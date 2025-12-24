@@ -71,13 +71,14 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ---
 
-### 5. Violation Inspector (P0 - v1.0) ⚠️ **PARTIALLY COMPLETE**
+### 5. Violation Inspector (P0 - v1.0) ⚠️ **MOSTLY COMPLETE**
 - ✅ Violation list view
 - ✅ Filtering by rule, file, severity
 - ✅ Violation detail view
 - ✅ Code snippet display
 - ✅ Suppress/resolve functionality
-- ⚠️ **MISSING**: Workspace selection/opening
+- ✅ Workspace integration (loads violations for selected workspace)
+- ✅ Automatic violation loading when workspace changes
 - ⚠️ **MISSING**: "Open in Xcode" button (file:line URL generation)
 - ⚠️ **MISSING**: Grouping by file/rule/severity
 - ⚠️ **MISSING**: Bulk operations UI
@@ -85,18 +86,35 @@ This document tracks the implementation status of features required for v1.0 rel
 - ⚠️ **MISSING**: Next/Previous violation navigation
 - ⚠️ **MISSING**: Keyboard shortcuts
 
-**Status**: Core functionality exists, but missing workspace integration and navigation features
+**Status**: Core functionality complete with workspace integration, missing navigation and export features
+
+---
+
+### 6. Workspace Management (P0 - v1.0) ✅ **COMPLETE**
+- ✅ Open workspace dialog (File picker integration)
+- ✅ Recent workspaces list (persisted across app restarts)
+- ✅ Workspace selection in UI (WorkspaceSelectionView)
+- ✅ Current workspace indicator (shown in sidebar)
+- ✅ Workspace-specific configuration (auto-detects `.swiftlint.yml`)
+- ✅ Workspace persistence (UserDefaults)
+- ✅ Workspace validation (rejects non-directories, filters deleted workspaces)
+- ✅ Integration with ViolationInspector (auto-loads violations)
+- ✅ Integration with DependencyContainer (app-wide access)
+
+**Status**: Fully implemented in `WorkspaceManager.swift` and `WorkspaceSelectionView.swift`
+- 15 unit tests (all passing)
+- 11 integration tests (all passing)
 
 ---
 
 ## ❌ Missing Features for v1.0
 
-### 6. Basic Onboarding Flow (P0 - v1.0) ❌ **NOT IMPLEMENTED**
+### 7. Basic Onboarding Flow (P0 - v1.0) ❌ **NOT IMPLEMENTED**
 
 **Required Features:**
 - First-run welcome screen
 - SwiftLint installation detection
-- Workspace selection/opening dialog
+- Workspace selection/opening dialog (now available, but not in onboarding flow)
 - Initial configuration setup
 - Quick tour of key features
 - "Get Started" workflow
@@ -104,35 +122,14 @@ This document tracks the implementation status of features required for v1.0 rel
 **Current Status**: 
 - Dashboard folder exists but is empty
 - No onboarding views
-- No workspace selection UI
+- Workspace selection UI exists but not integrated into onboarding
 - App assumes SwiftLint is installed (no detection/guidance)
 
-**Priority**: **HIGH** - Users need a way to open workspaces and get started
+**Priority**: **HIGH** - Users need guidance on first launch
 
 ---
 
-### 7. Workspace Management ❌ **NOT IMPLEMENTED**
-
-**Required Features:**
-- Open workspace dialog (File → Open Workspace)
-- Recent workspaces list
-- Workspace selection in UI
-- Current workspace indicator
-- Workspace-specific configuration
-- Auto-detect `.swiftlint.yml` in workspace
-
-**Current Status**:
-- `Workspace` model exists
-- `WorkspaceAnalyzer` can analyze workspaces
-- **BUT**: No UI to open/select workspaces
-- ViolationInspector has TODO: "Load violations for current workspace"
-- No way for users to specify which workspace to analyze
-
-**Priority**: **CRITICAL** - Core functionality blocked without this
-
----
-
-### 8. Rule Configuration Integration ⚠️ **PARTIALLY IMPLEMENTED**
+### 8. Rule Configuration Persistence ⚠️ **PARTIALLY IMPLEMENTED**
 
 **Required Features:**
 - ✅ Rule enable/disable in RuleDetailView
@@ -173,29 +170,24 @@ This document tracks the implementation status of features required for v1.0 rel
 
 2. **Configuration Persistence**
    - Rule changes don't save to YAML
-   - No connection between UI and YAML engine
+   - No connection between RuleDetailView and YAMLConfigurationEngine
    - No diff preview before saving
 
-3. **Workspace Selection**
-   - No file picker/dialog
-   - No recent workspaces
-   - No workspace context in UI
-
-4. **Error Handling & User Guidance**
+3. **Error Handling & User Guidance**
    - SwiftLint not found → no helpful error
    - No installation instructions
-   - No workspace validation
+   - Basic workspace validation exists (rejects non-directories)
 
 ---
 
 ## 📋 Recommended Implementation Order
 
 ### Phase 1: Critical Path (Blocking v1.0)
-1. **Workspace Selection/Opening** ⚠️ **CRITICAL**
-   - File → Open Workspace dialog
-   - Recent workspaces menu
-   - Workspace context in DependencyContainer
-   - Update ViolationInspector to use selected workspace
+1. ✅ **Workspace Selection/Opening** - **COMPLETE**
+   - ✅ File picker integration
+   - ✅ Recent workspaces menu
+   - ✅ Workspace context in DependencyContainer
+   - ✅ ViolationInspector integration
 
 2. **Rule Configuration Persistence** ⚠️ **HIGH**
    - Connect RuleDetailView to YAMLConfigurationEngine
@@ -247,12 +239,12 @@ This document tracks the implementation status of features required for v1.0 rel
 2. ✅ Rule Detail Panel (core features)
 3. ✅ YAML Configuration Engine (core engine)
 4. ✅ Workspace Analyzer (complete)
-5. ⚠️ Violation Inspector (needs workspace integration)
-6. ❌ **MUST ADD**: Workspace selection/opening
+5. ✅ Violation Inspector (workspace integration complete)
+6. ✅ **COMPLETE**: Workspace selection/opening
 7. ❌ **MUST ADD**: Rule configuration persistence
 8. ❌ **MUST ADD**: Basic onboarding
 
-**Without these 3 missing pieces, the app cannot be used end-to-end.**
+**Remaining critical pieces: Rule configuration persistence and onboarding flow.**
 
 ---
 
@@ -264,20 +256,20 @@ This document tracks the implementation status of features required for v1.0 rel
 | Rule Detail Panel | ⚠️ Mostly Complete | 70% |
 | YAML Configuration Engine | ⚠️ Mostly Complete | 80% |
 | Workspace Analyzer | ✅ Complete | 100% |
-| Violation Inspector | ⚠️ Partial | 50% |
-| Workspace Management | ❌ Missing | 0% |
+| Violation Inspector | ⚠️ Mostly Complete | 75% |
+| Workspace Management | ✅ Complete | 100% |
 | Onboarding Flow | ❌ Missing | 0% |
 | Rule Config Persistence | ❌ Missing | 0% |
 | Xcode Integration | ❌ Missing | 0% |
 
-**Overall v1.0 Completion: ~60%**
+**Overall v1.0 Completion: ~70%** (up from 60%)
 
 ---
 
 ## 🚀 Next Steps
 
-1. **Immediate Priority**: Implement workspace selection/opening
-2. **High Priority**: Connect rule configuration to YAML persistence
+1. ✅ **COMPLETE**: Workspace selection/opening
+2. **Immediate Priority**: Connect rule configuration to YAML persistence
 3. **High Priority**: Add basic onboarding flow
 4. **Medium Priority**: Xcode integration for violation navigation
 5. **Low Priority**: Dashboard (can defer to v1.1)
@@ -288,6 +280,18 @@ This document tracks the implementation status of features required for v1.0 rel
 
 - The core architecture is solid and well-tested
 - Most services are complete and working
-- Main gaps are in UI integration and user workflows
-- Focus should be on connecting existing components rather than building new ones
+- Workspace management is now fully implemented with comprehensive test coverage
+- Main remaining gaps: rule configuration persistence and onboarding flow
+- Focus should be on connecting RuleDetailView to YAMLConfigurationEngine
+
+## Recent Updates
+
+**December 24, 2025:**
+- ✅ Completed workspace selection/opening feature
+- ✅ Added WorkspaceManager service with persistence
+- ✅ Added WorkspaceSelectionView UI
+- ✅ Integrated workspace management into app
+- ✅ Added 15 unit tests and 11 integration tests
+- ✅ Updated ViolationInspector to load violations for selected workspace
+- Overall completion increased from ~60% to ~70%
 
