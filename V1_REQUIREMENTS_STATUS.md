@@ -27,6 +27,9 @@ This document tracks the implementation status of features required for v1.0 rel
 - ✅ Examples (triggering and non-triggering)
 - ✅ Syntax-highlighted code blocks
 - ✅ Configuration UI (enabled/disabled toggle, severity selector)
+- ✅ **Rule configuration persistence** (save to `.swiftlint.yml`)
+- ✅ **Diff preview before saving**
+- ✅ **Pending changes tracking**
 - ✅ Markdown documentation rendering
 - ✅ Category and metadata badges
 - ✅ Auto-correctable indicator
@@ -37,7 +40,7 @@ This document tracks the implementation status of features required for v1.0 rel
 - ⚠️ **MISSING**: Related rules section
 - ⚠️ **MISSING**: "Open in Xcode" for violations
 
-**Status**: Core functionality complete, but missing some advanced features
+**Status**: Core functionality complete including configuration persistence, missing some advanced features
 
 ---
 
@@ -107,9 +110,11 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ---
 
+---
+
 ## ❌ Missing Features for v1.0
 
-### 7. Basic Onboarding Flow (P0 - v1.0) ❌ **NOT IMPLEMENTED**
+### 8. Basic Onboarding Flow (P0 - v1.0) ❌ **NOT IMPLEMENTED**
 
 **Required Features:**
 - First-run welcome screen
@@ -129,21 +134,21 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ---
 
-### 8. Rule Configuration Persistence ⚠️ **PARTIALLY IMPLEMENTED**
-
-**Required Features:**
+### 7. Rule Configuration Persistence (P0 - v1.0) ✅ **COMPLETE**
 - ✅ Rule enable/disable in RuleDetailView
-- ⚠️ **MISSING**: Save configuration changes to YAML
-- ⚠️ **MISSING**: Preview changes before saving
-- ⚠️ **MISSING**: Apply rule changes to workspace config
-- ⚠️ **MISSING**: Real-time config preview
+- ✅ Save configuration changes to YAML
+- ✅ Preview changes before saving (diff preview modal)
+- ✅ Apply rule changes to workspace config
+- ✅ Load current configuration from workspace
+- ✅ Track pending changes vs original state
+- ✅ Validation before saving
+- ✅ Atomic saves with backup creation
+- ✅ Notification system for component communication
+- ✅ Error handling and user feedback
 
-**Current Status**: 
-- UI toggles exist but don't persist changes
-- No integration between RuleDetailView and YAMLConfigurationEngine
-- Changes are not saved to `.swiftlint.yml`
-
-**Priority**: **HIGH** - Core value proposition (configuring rules) doesn't work end-to-end
+**Status**: Fully implemented in `RuleDetailViewModel.swift` and `ConfigDiffPreviewView.swift`
+- 18 unit tests (all passing)
+- 12 integration tests (all passing)
 
 ---
 
@@ -168,12 +173,7 @@ This document tracks the implementation status of features required for v1.0 rel
    - No file:line URL generation
    - No Xcode project detection
 
-2. **Configuration Persistence**
-   - Rule changes don't save to YAML
-   - No connection between RuleDetailView and YAMLConfigurationEngine
-   - No diff preview before saving
-
-3. **Error Handling & User Guidance**
+2. **Error Handling & User Guidance**
    - SwiftLint not found → no helpful error
    - No installation instructions
    - Basic workspace validation exists (rejects non-directories)
@@ -189,11 +189,11 @@ This document tracks the implementation status of features required for v1.0 rel
    - ✅ Workspace context in DependencyContainer
    - ✅ ViolationInspector integration
 
-2. **Rule Configuration Persistence** ⚠️ **HIGH**
-   - Connect RuleDetailView to YAMLConfigurationEngine
-   - Save rule changes to `.swiftlint.yml`
-   - Show diff preview before saving
-   - Validate changes before applying
+2. ✅ **Rule Configuration Persistence** - **COMPLETE**
+   - ✅ Connected RuleDetailView to YAMLConfigurationEngine
+   - ✅ Save rule changes to `.swiftlint.yml`
+   - ✅ Diff preview before saving
+   - ✅ Validation before applying
 
 3. **Basic Onboarding** ⚠️ **HIGH**
    - First-run detection
@@ -241,10 +241,10 @@ This document tracks the implementation status of features required for v1.0 rel
 4. ✅ Workspace Analyzer (complete)
 5. ✅ Violation Inspector (workspace integration complete)
 6. ✅ **COMPLETE**: Workspace selection/opening
-7. ❌ **MUST ADD**: Rule configuration persistence
+7. ✅ **COMPLETE**: Rule configuration persistence
 8. ❌ **MUST ADD**: Basic onboarding
 
-**Remaining critical pieces: Rule configuration persistence and onboarding flow.**
+**Remaining critical piece: Basic onboarding flow.**
 
 ---
 
@@ -253,24 +253,24 @@ This document tracks the implementation status of features required for v1.0 rel
 | Feature | Status | Completion |
 |---------|--------|------------|
 | Rule Browser | ✅ Complete | 100% |
-| Rule Detail Panel | ⚠️ Mostly Complete | 70% |
+| Rule Detail Panel | ⚠️ Mostly Complete | 80% |
 | YAML Configuration Engine | ⚠️ Mostly Complete | 80% |
 | Workspace Analyzer | ✅ Complete | 100% |
 | Violation Inspector | ⚠️ Mostly Complete | 75% |
 | Workspace Management | ✅ Complete | 100% |
+| Rule Config Persistence | ✅ Complete | 100% |
 | Onboarding Flow | ❌ Missing | 0% |
-| Rule Config Persistence | ❌ Missing | 0% |
 | Xcode Integration | ❌ Missing | 0% |
 
-**Overall v1.0 Completion: ~70%** (up from 60%)
+**Overall v1.0 Completion: ~75%** (up from 70%)
 
 ---
 
 ## 🚀 Next Steps
 
 1. ✅ **COMPLETE**: Workspace selection/opening
-2. **Immediate Priority**: Connect rule configuration to YAML persistence
-3. **High Priority**: Add basic onboarding flow
+2. ✅ **COMPLETE**: Rule configuration persistence
+3. **Immediate Priority**: Add basic onboarding flow
 4. **Medium Priority**: Xcode integration for violation navigation
 5. **Low Priority**: Dashboard (can defer to v1.1)
 
@@ -280,13 +280,24 @@ This document tracks the implementation status of features required for v1.0 rel
 
 - The core architecture is solid and well-tested
 - Most services are complete and working
-- Workspace management is now fully implemented with comprehensive test coverage
-- Main remaining gaps: rule configuration persistence and onboarding flow
-- Focus should be on connecting RuleDetailView to YAMLConfigurationEngine
+- Workspace management is fully implemented with comprehensive test coverage
+- Rule configuration persistence is fully implemented with comprehensive test coverage
+- Main remaining gap: basic onboarding flow
+- Focus should be on first-run experience and user guidance
 
 ## Recent Updates
 
-**December 24, 2025:**
+**December 24, 2025 (Afternoon):**
+- ✅ Completed rule configuration persistence feature
+- ✅ Added RuleDetailViewModel for managing rule configuration state
+- ✅ Connected RuleDetailView to YAMLConfigurationEngine
+- ✅ Added ConfigDiffPreviewView for previewing changes before saving
+- ✅ Added notification system for component communication
+- ✅ Added 18 unit tests and 12 integration tests
+- ✅ Full end-to-end workflow: open workspace → configure rule → save → verify
+- Overall completion increased from ~70% to ~75%
+
+**December 24, 2025 (Morning):**
 - ✅ Completed workspace selection/opening feature
 - ✅ Added WorkspaceManager service with persistence
 - ✅ Added WorkspaceSelectionView UI
