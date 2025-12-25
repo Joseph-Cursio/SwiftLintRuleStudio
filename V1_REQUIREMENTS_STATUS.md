@@ -36,9 +36,9 @@ This document tracks the implementation status of features required for v1.0 rel
 - ⚠️ **MISSING**: "Why this matters" section
 - ⚠️ **MISSING**: Links to Swift Evolution proposals
 - ⚠️ **MISSING**: Current violations count in workspace
-- ⚠️ **MISSING**: Impact simulation ("Simulate" button) - Preview violations for disabled rules
-- ⚠️ **MISSING**: Zero-violation rule detection - Identify disabled rules with zero violations
-- ⚠️ **MISSING**: Bulk enable safe rules - Automatically enable rules with zero violations
+- ✅ **COMPLETE**: Impact simulation ("Simulate" button) - Preview violations for disabled rules
+- ✅ **COMPLETE**: Zero-violation rule detection - Identify disabled rules with zero violations
+- ✅ **COMPLETE**: Bulk enable safe rules - Automatically enable rules with zero violations
 - ⚠️ **MISSING**: Related rules section
 - ⚠️ **MISSING**: "Open in Xcode" for violations
 
@@ -132,6 +132,28 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ---
 
+### 9. Impact Simulation & Zero-Violation Rule Discovery (P0 - v1.0) ✅ **COMPLETE**
+
+- ✅ Impact simulation for disabled rules (preview violations before enabling)
+- ✅ Single rule simulation with violation count and affected files
+- ✅ Batch simulation with progress tracking
+- ✅ Zero-violation rule detection (find safe rules)
+- ✅ Bulk enable safe rules with selection UI
+- ✅ Integration with RuleDetailView ("Simulate Impact" button)
+- ✅ SafeRulesDiscoveryView for bulk discovery and enabling
+- ✅ Temporary config generation for isolated simulations
+- ✅ Automatic cleanup of temporary files
+
+**Status**: Fully implemented in `ImpactSimulator.swift`, `ImpactSimulationView.swift`, and `SafeRulesDiscoveryView.swift`
+- 9 unit tests (all passing)
+- 3 integration tests (all passing)
+- 3 UI component tests (all passing)
+- 3 discovery tests (all passing)
+- 3 workflow tests (all passing)
+- Total: 21 tests covering all functionality
+
+---
+
 ## ❌ Missing Features for v1.0
 
 ### 7. Rule Configuration Persistence (P0 - v1.0) ✅ **COMPLETE**
@@ -173,12 +195,12 @@ This document tracks the implementation status of features required for v1.0 rel
    - No file:line URL generation
    - No Xcode project detection
 
-2. **Impact Simulation & Rule Discovery**
-   - No impact simulation for disabled rules
-   - Cannot preview violation count before enabling a rule
-   - Cannot identify disabled rules with zero violations
-   - No bulk enable functionality for safe rules
-   - Would require: temporary config generation, SwiftLint simulation runs, violation counting
+2. ✅ **Impact Simulation & Rule Discovery** - **COMPLETE**
+   - ✅ Impact simulation for disabled rules implemented
+   - ✅ Preview violation count before enabling a rule
+   - ✅ Identify disabled rules with zero violations
+   - ✅ Bulk enable functionality for safe rules
+   - ✅ Temporary config generation, SwiftLint simulation runs, violation counting
 
 3. **Error Handling & User Guidance**
    - SwiftLint not found → no helpful error
@@ -211,12 +233,14 @@ This document tracks the implementation status of features required for v1.0 rel
    - ✅ State persistence across app launches
 
 ### Phase 2: Essential Features
-4. **Impact Simulation & Rule Discovery**
-   - Simulate violations for disabled rules (preview impact)
-   - Identify disabled rules with zero violations
-   - Bulk enable "safe" rules (zero violations)
-   - UI for reviewing and enabling safe rules
-   - Implementation: temporary config generation, SwiftLint simulation, violation counting
+4. ✅ **Impact Simulation & Rule Discovery** - **COMPLETE**
+   - ✅ Simulate violations for disabled rules (preview impact)
+   - ✅ Identify disabled rules with zero violations
+   - ✅ Bulk enable "safe" rules (zero violations)
+   - ✅ UI for reviewing and enabling safe rules
+   - ✅ Temporary config generation, SwiftLint simulation, violation counting
+   - ✅ Progress tracking for batch operations
+   - ✅ Integration with RuleDetailView and SafeRulesDiscoveryView
 
 5. **Xcode Integration**
    - Generate file:line URLs
@@ -259,6 +283,7 @@ This document tracks the implementation status of features required for v1.0 rel
 6. ✅ **COMPLETE**: Workspace selection/opening
 7. ✅ **COMPLETE**: Rule configuration persistence
 8. ✅ **COMPLETE**: Basic onboarding flow
+9. ✅ **COMPLETE**: Impact simulation and zero-violation rule detection
 
 **All critical P0 features for v1.0 are now complete!**
 
@@ -276,11 +301,11 @@ This document tracks the implementation status of features required for v1.0 rel
 | Workspace Management | ✅ Complete | 100% |
 | Rule Config Persistence | ✅ Complete | 100% |
 | Onboarding Flow | ✅ Complete | 100% |
-| Impact Simulation | ❌ Missing | 0% |
-| Zero-Violation Detection | ❌ Missing | 0% |
+| Impact Simulation | ✅ Complete | 100% |
+| Zero-Violation Detection | ✅ Complete | 100% |
 | Xcode Integration | ❌ Missing | 0% |
 
-**Overall v1.0 Completion: ~80%** (up from 75%)
+**Overall v1.0 Completion: ~85%** (up from 80%)
 
 ---
 
@@ -289,7 +314,7 @@ This document tracks the implementation status of features required for v1.0 rel
 1. ✅ **COMPLETE**: Workspace selection/opening
 2. ✅ **COMPLETE**: Rule configuration persistence
 3. ✅ **COMPLETE**: Basic onboarding flow
-4. **High Priority**: Impact simulation and zero-violation rule detection
+4. ✅ **COMPLETE**: Impact simulation and zero-violation rule detection
 5. **Medium Priority**: Xcode integration for violation navigation
 6. **Low Priority**: Dashboard (can defer to v1.1)
 
@@ -302,10 +327,23 @@ This document tracks the implementation status of features required for v1.0 rel
 - Workspace management is fully implemented with comprehensive test coverage
 - Rule configuration persistence is fully implemented with comprehensive test coverage
 - Basic onboarding flow is complete with first-run detection and SwiftLint installation guidance
+- Impact simulation is fully implemented with comprehensive test coverage (21 tests)
 - All critical P0 features for v1.0 are now complete
-- Focus should shift to Phase 2 features (impact simulation, Xcode integration)
+- Focus should shift to remaining Phase 2 features (Xcode integration)
 
 ## Recent Updates
+
+**December 24, 2025 (Late Evening):**
+- ✅ Completed impact simulation and zero-violation rule detection feature
+- ✅ Added ImpactSimulator service for simulating rule violations without enabling rules
+- ✅ Created ImpactSimulationView for displaying simulation results
+- ✅ Created SafeRulesDiscoveryView for bulk discovery and enabling safe rules
+- ✅ Integrated "Simulate Impact" button into RuleDetailView for disabled rules
+- ✅ Added batch simulation with progress tracking
+- ✅ Implemented temporary config generation for isolated simulations
+- ✅ Added 9 unit tests, 3 integration tests, 3 UI tests, 3 discovery tests, and 3 workflow tests (21 total)
+- ✅ Full workflow: simulate → discover safe rules → bulk enable
+- Overall completion increased from ~80% to ~85%
 
 **December 24, 2025 (Evening):**
 - ✅ Completed basic onboarding flow feature
@@ -341,58 +379,14 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ## 💡 Potential Future Enhancements
 
-### Impact Simulation & Zero-Violation Rule Discovery
+### Additional Rule Browser Features
+- Related rules section
+- "Why this matters" section
+- Links to Swift Evolution proposals
+- Current violations count in workspace
 
-**Use Case**: Users want to identify which disabled rules are "safe" to enable (would produce zero violations) and optionally enable them automatically.
-
-**Value Proposition**:
-- Helps users adopt more rules without introducing violations
-- Reduces manual trial-and-error when enabling rules
-- Provides confidence when enabling new rules
-- Can bulk-enable safe rules to improve code quality
-
-**Required Features**:
-1. **Impact Simulation**
-   - Simulate violations for a disabled rule without actually enabling it
-   - Create temporary config with rule enabled
-   - Run SwiftLint with temporary config
-   - Count violations for that specific rule
-   - Show violation count and affected files
-
-2. **Zero-Violation Detection**
-   - Identify all disabled rules in workspace
-   - Simulate each disabled rule
-   - Filter to rules with zero violations
-   - Present list of "safe" rules to enable
-
-3. **Bulk Enable Safe Rules**
-   - UI to review rules with zero violations
-   - Select which rules to enable
-   - Bulk enable selected rules
-   - Show diff preview before applying
-   - Apply changes to workspace config
-
-**Implementation Requirements**:
-- Extend `WorkspaceAnalyzer` with simulation methods
-- Create temporary config generation in `YAMLConfigurationEngine`
-- Add bulk operations for rule configuration
-- Build UI for reviewing and enabling safe rules
-- Progress indicators for batch simulation
-
-**Dependencies**:
-- `WorkspaceAnalyzer` (for running SwiftLint)
-- `YAMLConfigurationEngine` (for config manipulation)
-- `SwiftLintCLI` (for executing SwiftLint)
-- `RuleRegistry` (for rule metadata)
-
-**Complexity**: **Medium**
-- Requires simulation infrastructure
-- Needs efficient batch processing
-- UI for managing bulk operations
-- Performance considerations for large rule sets
-
-**Priority**: **High** (Phase 2 - Essential Features)
-- High user value
-- Natural extension of existing features
-- Complements rule configuration persistence
+### Xcode Integration Enhancements
+- Enhanced violation navigation
+- Project file detection improvements
+- Better integration with Xcode projects
 
