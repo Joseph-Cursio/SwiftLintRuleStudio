@@ -333,6 +333,16 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ## Recent Updates
 
+**December 25, 2025 (Early Morning):**
+- ✅ Fixed critical SQLite string binding issue causing violation storage failures
+- ✅ Updated all SQLite string bindings to use `strdup` with `free` destructor for proper memory management
+- ✅ Fixed violation accumulation issue by deleting old violations before storing new ones
+- ✅ Cleaned up verbose debug logging while keeping essential error messages
+- ✅ Added test coverage for delete-before-insert behavior (`testStoreViolationsDeletesOldOnes`)
+- ✅ Updated `suppressViolations`, `resolveViolations`, and `deleteViolations` to use proper string binding
+- ✅ All ViolationStorage tests passing (7 tests total)
+- ✅ Improved database reliability and data integrity
+
 **December 24, 2025 (Late Evening):**
 - ✅ Completed impact simulation and zero-violation rule detection feature
 - ✅ Added ImpactSimulator service for simulating rule violations without enabling rules
