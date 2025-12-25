@@ -36,7 +36,9 @@ This document tracks the implementation status of features required for v1.0 rel
 - ⚠️ **MISSING**: "Why this matters" section
 - ⚠️ **MISSING**: Links to Swift Evolution proposals
 - ⚠️ **MISSING**: Current violations count in workspace
-- ⚠️ **MISSING**: Impact simulation ("Simulate" button)
+- ⚠️ **MISSING**: Impact simulation ("Simulate" button) - Preview violations for disabled rules
+- ⚠️ **MISSING**: Zero-violation rule detection - Identify disabled rules with zero violations
+- ⚠️ **MISSING**: Bulk enable safe rules - Automatically enable rules with zero violations
 - ⚠️ **MISSING**: Related rules section
 - ⚠️ **MISSING**: "Open in Xcode" for violations
 
@@ -112,27 +114,25 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ---
 
-## ❌ Missing Features for v1.0
+### 8. Basic Onboarding Flow (P0 - v1.0) ✅ **COMPLETE**
 
-### 8. Basic Onboarding Flow (P0 - v1.0) ❌ **NOT IMPLEMENTED**
+- ✅ First-run welcome screen with feature overview
+- ✅ SwiftLint installation detection with automatic checking
+- ✅ Installation guidance (Homebrew, Mint, Direct Download)
+- ✅ Workspace selection integrated into onboarding flow
+- ✅ Progress indicator showing current step
+- ✅ Step-by-step navigation (welcome → SwiftLint check → workspace selection → complete)
+- ✅ State persistence across app launches
+- ✅ Reset functionality for testing/re-onboarding
 
-**Required Features:**
-- First-run welcome screen
-- SwiftLint installation detection
-- Workspace selection/opening dialog (now available, but not in onboarding flow)
-- Initial configuration setup
-- Quick tour of key features
-- "Get Started" workflow
-
-**Current Status**: 
-- Dashboard folder exists but is empty
-- No onboarding views
-- Workspace selection UI exists but not integrated into onboarding
-- App assumes SwiftLint is installed (no detection/guidance)
-
-**Priority**: **HIGH** - Users need guidance on first launch
+**Status**: Fully implemented in `OnboardingManager.swift` and `OnboardingView.swift`
+- 10 unit tests (all passing)
+- 6 integration tests (all passing)
+- Integrated into `ContentView` for first-launch detection
 
 ---
+
+## ❌ Missing Features for v1.0
 
 ### 7. Rule Configuration Persistence (P0 - v1.0) ✅ **COMPLETE**
 - ✅ Rule enable/disable in RuleDetailView
@@ -173,7 +173,14 @@ This document tracks the implementation status of features required for v1.0 rel
    - No file:line URL generation
    - No Xcode project detection
 
-2. **Error Handling & User Guidance**
+2. **Impact Simulation & Rule Discovery**
+   - No impact simulation for disabled rules
+   - Cannot preview violation count before enabling a rule
+   - Cannot identify disabled rules with zero violations
+   - No bulk enable functionality for safe rules
+   - Would require: temporary config generation, SwiftLint simulation runs, violation counting
+
+3. **Error Handling & User Guidance**
    - SwiftLint not found → no helpful error
    - No installation instructions
    - Basic workspace validation exists (rejects non-directories)
@@ -195,26 +202,35 @@ This document tracks the implementation status of features required for v1.0 rel
    - ✅ Diff preview before saving
    - ✅ Validation before applying
 
-3. **Basic Onboarding** ⚠️ **HIGH**
-   - First-run detection
-   - SwiftLint installation check
-   - Workspace selection in onboarding
-   - Quick feature tour
+3. ✅ **Basic Onboarding** - **COMPLETE**
+   - ✅ First-run detection using UserDefaults
+   - ✅ SwiftLint installation check with automatic detection
+   - ✅ Installation guidance and instructions
+   - ✅ Workspace selection integrated into onboarding
+   - ✅ Progress indicator and step navigation
+   - ✅ State persistence across app launches
 
 ### Phase 2: Essential Features
-4. **Xcode Integration**
+4. **Impact Simulation & Rule Discovery**
+   - Simulate violations for disabled rules (preview impact)
+   - Identify disabled rules with zero violations
+   - Bulk enable "safe" rules (zero violations)
+   - UI for reviewing and enabling safe rules
+   - Implementation: temporary config generation, SwiftLint simulation, violation counting
+
+5. **Xcode Integration**
    - Generate file:line URLs
    - "Open in Xcode" buttons
    - Xcode project detection
 
-5. **Violation Inspector Enhancements**
+6. **Violation Inspector Enhancements**
    - Grouping options
    - Bulk operations
    - Export functionality
    - Keyboard shortcuts
 
-6. **Configuration Engine UI**
-   - Diff preview modal
+7. **Configuration Engine UI**
+   - Diff preview modal (already implemented)
    - "Explain changes" feature
    - Undo functionality
 
@@ -242,9 +258,9 @@ This document tracks the implementation status of features required for v1.0 rel
 5. ✅ Violation Inspector (workspace integration complete)
 6. ✅ **COMPLETE**: Workspace selection/opening
 7. ✅ **COMPLETE**: Rule configuration persistence
-8. ❌ **MUST ADD**: Basic onboarding
+8. ✅ **COMPLETE**: Basic onboarding flow
 
-**Remaining critical piece: Basic onboarding flow.**
+**All critical P0 features for v1.0 are now complete!**
 
 ---
 
@@ -259,10 +275,12 @@ This document tracks the implementation status of features required for v1.0 rel
 | Violation Inspector | ⚠️ Mostly Complete | 75% |
 | Workspace Management | ✅ Complete | 100% |
 | Rule Config Persistence | ✅ Complete | 100% |
-| Onboarding Flow | ❌ Missing | 0% |
+| Onboarding Flow | ✅ Complete | 100% |
+| Impact Simulation | ❌ Missing | 0% |
+| Zero-Violation Detection | ❌ Missing | 0% |
 | Xcode Integration | ❌ Missing | 0% |
 
-**Overall v1.0 Completion: ~75%** (up from 70%)
+**Overall v1.0 Completion: ~80%** (up from 75%)
 
 ---
 
@@ -270,9 +288,10 @@ This document tracks the implementation status of features required for v1.0 rel
 
 1. ✅ **COMPLETE**: Workspace selection/opening
 2. ✅ **COMPLETE**: Rule configuration persistence
-3. **Immediate Priority**: Add basic onboarding flow
-4. **Medium Priority**: Xcode integration for violation navigation
-5. **Low Priority**: Dashboard (can defer to v1.1)
+3. ✅ **COMPLETE**: Basic onboarding flow
+4. **High Priority**: Impact simulation and zero-violation rule detection
+5. **Medium Priority**: Xcode integration for violation navigation
+6. **Low Priority**: Dashboard (can defer to v1.1)
 
 ---
 
@@ -282,10 +301,22 @@ This document tracks the implementation status of features required for v1.0 rel
 - Most services are complete and working
 - Workspace management is fully implemented with comprehensive test coverage
 - Rule configuration persistence is fully implemented with comprehensive test coverage
-- Main remaining gap: basic onboarding flow
-- Focus should be on first-run experience and user guidance
+- Basic onboarding flow is complete with first-run detection and SwiftLint installation guidance
+- All critical P0 features for v1.0 are now complete
+- Focus should shift to Phase 2 features (impact simulation, Xcode integration)
 
 ## Recent Updates
+
+**December 24, 2025 (Evening):**
+- ✅ Completed basic onboarding flow feature
+- ✅ Added OnboardingManager service for first-run detection and state management
+- ✅ Created OnboardingView with welcome screen, SwiftLint check, and workspace selection
+- ✅ Integrated SwiftLint installation detection with automatic checking and guidance
+- ✅ Added progress indicator and step-by-step navigation
+- ✅ Integrated onboarding into ContentView for first-launch detection
+- ✅ Added 10 unit tests and 6 integration tests
+- ✅ Full onboarding workflow: welcome → SwiftLint check → workspace selection → complete
+- Overall completion increased from ~75% to ~80%
 
 **December 24, 2025 (Afternoon):**
 - ✅ Completed rule configuration persistence feature
@@ -305,4 +336,63 @@ This document tracks the implementation status of features required for v1.0 rel
 - ✅ Added 15 unit tests and 11 integration tests
 - ✅ Updated ViolationInspector to load violations for selected workspace
 - Overall completion increased from ~60% to ~70%
+
+---
+
+## 💡 Potential Future Enhancements
+
+### Impact Simulation & Zero-Violation Rule Discovery
+
+**Use Case**: Users want to identify which disabled rules are "safe" to enable (would produce zero violations) and optionally enable them automatically.
+
+**Value Proposition**:
+- Helps users adopt more rules without introducing violations
+- Reduces manual trial-and-error when enabling rules
+- Provides confidence when enabling new rules
+- Can bulk-enable safe rules to improve code quality
+
+**Required Features**:
+1. **Impact Simulation**
+   - Simulate violations for a disabled rule without actually enabling it
+   - Create temporary config with rule enabled
+   - Run SwiftLint with temporary config
+   - Count violations for that specific rule
+   - Show violation count and affected files
+
+2. **Zero-Violation Detection**
+   - Identify all disabled rules in workspace
+   - Simulate each disabled rule
+   - Filter to rules with zero violations
+   - Present list of "safe" rules to enable
+
+3. **Bulk Enable Safe Rules**
+   - UI to review rules with zero violations
+   - Select which rules to enable
+   - Bulk enable selected rules
+   - Show diff preview before applying
+   - Apply changes to workspace config
+
+**Implementation Requirements**:
+- Extend `WorkspaceAnalyzer` with simulation methods
+- Create temporary config generation in `YAMLConfigurationEngine`
+- Add bulk operations for rule configuration
+- Build UI for reviewing and enabling safe rules
+- Progress indicators for batch simulation
+
+**Dependencies**:
+- `WorkspaceAnalyzer` (for running SwiftLint)
+- `YAMLConfigurationEngine` (for config manipulation)
+- `SwiftLintCLI` (for executing SwiftLint)
+- `RuleRegistry` (for rule metadata)
+
+**Complexity**: **Medium**
+- Requires simulation infrastructure
+- Needs efficient batch processing
+- UI for managing bulk operations
+- Performance considerations for large rule sets
+
+**Priority**: **High** (Phase 2 - Essential Features)
+- High user value
+- Natural extension of existing features
+- Complements rule configuration persistence
 
