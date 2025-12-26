@@ -156,6 +156,56 @@ This document tracks the implementation status of features required for v1.0 rel
 
 ## ❌ Missing Features for v1.0
 
+### 10. Exclusion Path Recommendations (P1 - v1.1) ⚠️ **NOT IMPLEMENTED**
+
+**Description:** Proactively suggest and help users configure common exclusion paths to prevent SwiftLint from scanning third-party dependencies and build artifacts.
+
+**User Stories:**
+- As a developer, I want the app to suggest excluding `.build/` when violations are detected there, so I don't waste time on third-party code
+- As a new user, I want to see recommended exclusions when creating my first config, so I follow best practices
+- As a tech lead, I want the app to detect when common dependency directories aren't excluded, so I can fix configuration issues
+
+**Features:**
+
+**Smart Detection:**
+- Detect violations in common build/dependency directories (`.build/`, `Pods/`, `.git/`, `DerivedData/`, `.swiftpm/`)
+- Check if these directories are already in `excluded` paths
+- Show warnings when violations are found in unexcluded third-party directories
+
+**Recommendation UI:**
+- "Recommended Exclusions" section in configuration editor
+- Checkbox list of common exclusion paths:
+  - `.build` (Swift Package Manager dependencies)
+  - `Pods` (CocoaPods dependencies)
+  - `.git` (Git metadata)
+  - `DerivedData` (Xcode build artifacts)
+  - `.swiftpm` (Swift Package Manager metadata)
+  - `xcuserdata` (Xcode user-specific data)
+- One-click "Add Recommended Exclusions" button
+- Explanation tooltips for each exclusion path
+
+**Violation Analysis Integration:**
+- When analyzing workspace, detect if violations exist in excluded directories
+- Show informational message: "⚠️ Violations detected in `.build/` directory. This contains third-party dependencies. Consider adding `.build` to your `excluded` paths."
+- Provide quick action: "Add to exclusions" button
+
+**Onboarding Integration:**
+- Add exclusion guidance to onboarding flow
+- Show best practices tip: "Tip: Exclude build and dependency directories to focus on your code"
+
+**Technical Requirements:**
+- Detect common directory patterns in violation file paths
+- Check existing `excluded` configuration before suggesting
+- Integrate with YAMLConfigurationEngine to add exclusions
+- Show diff preview when adding exclusions
+- Validate exclusion paths before saving
+
+**Status**: Not yet implemented
+
+**Priority**: **P1** (v1.1 enhancement, but valuable for user experience)
+
+---
+
 ### 7. Rule Configuration Persistence (P0 - v1.0) ✅ **COMPLETE**
 - ✅ Rule enable/disable in RuleDetailView
 - ✅ Save configuration changes to YAML
@@ -206,6 +256,8 @@ This document tracks the implementation status of features required for v1.0 rel
    - SwiftLint not found → no helpful error
    - No installation instructions
    - Basic workspace validation exists (rejects non-directories)
+   - ⚠️ **MISSING**: Exclusion path recommendations for build/dependency directories
+   - ⚠️ **MISSING**: Smart detection of violations in third-party code
 
 ---
 
@@ -258,6 +310,13 @@ This document tracks the implementation status of features required for v1.0 rel
    - "Explain changes" feature
    - Undo functionality
 
+8. **Exclusion Path Recommendations**
+   - Detect violations in common build/dependency directories
+   - Recommend exclusions when violations found in `.build/`, `Pods/`, etc.
+   - Add "Recommended Exclusions" UI to configuration editor
+   - Integrate exclusion guidance into onboarding flow
+   - One-click "Add Recommended Exclusions" functionality
+
 ### Phase 3: Polish
 7. **Error Handling**
    - Better error messages
@@ -303,6 +362,7 @@ This document tracks the implementation status of features required for v1.0 rel
 | Onboarding Flow | ✅ Complete | 100% |
 | Impact Simulation | ✅ Complete | 100% |
 | Zero-Violation Detection | ✅ Complete | 100% |
+| Exclusion Path Recommendations | ❌ Missing | 0% |
 | Xcode Integration | ❌ Missing | 0% |
 
 **Overall v1.0 Completion: ~85%** (up from 80%)
@@ -316,7 +376,8 @@ This document tracks the implementation status of features required for v1.0 rel
 3. ✅ **COMPLETE**: Basic onboarding flow
 4. ✅ **COMPLETE**: Impact simulation and zero-violation rule detection
 5. **Medium Priority**: Xcode integration for violation navigation
-6. **Low Priority**: Dashboard (can defer to v1.1)
+6. **Medium Priority**: Exclusion path recommendations (v1.1 enhancement)
+7. **Low Priority**: Dashboard (can defer to v1.1)
 
 ---
 
@@ -399,4 +460,10 @@ This document tracks the implementation status of features required for v1.0 rel
 - Enhanced violation navigation
 - Project file detection improvements
 - Better integration with Xcode projects
+
+### Configuration Best Practices
+- Exclusion path recommendations
+- Smart detection of third-party code violations
+- Configuration health checks
+- Best practices wizard for new projects
 
