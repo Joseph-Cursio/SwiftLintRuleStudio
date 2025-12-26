@@ -1,0 +1,70 @@
+# SwiftLint Configuration for SwiftLint Rule Studio
+# This configuration follows best practices for excluding third-party code
+# and setting reasonable defaults for a macOS application.
+
+# Exclude common build and dependency directories
+excluded:
+  - .build                    # Swift Package Manager dependencies
+  - Pods                      # CocoaPods dependencies
+  - .git                      # Git metadata
+  - DerivedData               # Xcode build artifacts
+  - .swiftpm                  # Swift Package Manager metadata
+  - xcuserdata                # Xcode user-specific data
+  - .xcode                    # Xcode project files
+  - SwiftLIntRuleStudio.xcodeproj  # Xcode project bundle
+
+# Disable rules that are too strict for this project
+disabled_rules:
+  - todo                      # Allow TODO comments during development
+  - trailing_whitespace       # Can be handled by Xcode
+
+# Opt-in rules (enable specific rules that are valuable)
+opt_in_rules:
+  - empty_count               # Prefer isEmpty over count == 0
+  - empty_string              # Prefer isEmpty over == ""
+  - first_where               # Prefer first(where:) over filter.first
+  - force_unwrapping          # Warn about force unwraps
+  - implicitly_unwrapped_optional  # Warn about IUOs
+  - overridden_super_call     # Ensure super calls in overrides
+  - prohibited_super_call    # Prevent incorrect super calls
+  - redundant_nil_coalescing  # Remove redundant ?? nil
+  - single_test_class         # One test class per file
+  - unneeded_parentheses_in_closure_argument  # Clean closure syntax
+  - vertical_parameter_alignment_on_call  # Align parameters
+
+# Rule configurations
+line_length:
+  warning: 120
+  error: 150
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_urls: true
+
+file_length:
+  warning: 500
+  error: 1000
+  ignore_comment_only_lines: true
+
+function_body_length:
+  warning: 50
+  error: 100
+
+function_parameter_count:
+  warning: 5
+  error: 8
+
+type_body_length:
+  warning: 300
+  error: 500
+
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+nesting:
+  type_level: 2
+  function_level: 3
+
+# Reporter type (xcode, json, csv, checkstyle, junit, html, emoji, sonarqube, markdown)
+reporter: "xcode"
+
