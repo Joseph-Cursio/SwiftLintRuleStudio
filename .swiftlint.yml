@@ -28,9 +28,11 @@ opt_in_rules:
   - overridden_super_call     # Ensure super calls in overrides
   - prohibited_super_call    # Prevent incorrect super calls
   - redundant_nil_coalescing  # Remove redundant ?? nil
+  - redundant_sendable        # Swift 6: Flag redundant Sendable conformances
   - single_test_class         # One test class per file
   - unneeded_parentheses_in_closure_argument  # Clean closure syntax
   - vertical_parameter_alignment_on_call  # Align parameters
+  - incompatible_concurrency_annotation  # Swift 6: Flag incompatible concurrency annotations
 
 # Rule configurations
 line_length:
