@@ -12,6 +12,7 @@ excluded:
   - xcuserdata                # Xcode user-specific data
   - .xcode                    # Xcode project files
   - SwiftLIntRuleStudio.xcodeproj  # Xcode project bundle
+  - SwiftLIntRuleStudio/SwiftLIntRuleStudioTests  # Test files (async_without_await not applicable)
 
 # Disable rules that are too strict for this project
 disabled_rules:
@@ -33,6 +34,16 @@ opt_in_rules:
   - unneeded_parentheses_in_closure_argument  # Clean closure syntax
   - vertical_parameter_alignment_on_call  # Align parameters
   - incompatible_concurrency_annotation  # Swift 6: Flag incompatible concurrency annotations
+  - async_without_await       # Swift 6: Flag async functions without await calls
+  - unhandled_throwing_task   # Swift 6: Flag tasks where errors are not handled
+
+# Custom rules
+custom_rules:
+  discarded_task:
+    name: "Discarded Task"
+    regex: 'let _ = Task\('
+    message: "Use `_ = Task(...)` instead of `let _ = Task(...)` when discarding a task."
+    severity: warning
 
 # Rule configurations
 line_length:
