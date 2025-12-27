@@ -1,0 +1,638 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		703886572EFC3A3500F2A033 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7038863F2EFC3A3400F2A033 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 703886462EFC3A3400F2A033;
+			remoteInfo = SwiftLIntRuleStudio;
+		};
+		703886612EFC3A3500F2A033 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7038863F2EFC3A3400F2A033 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 703886462EFC3A3400F2A033;
+			remoteInfo = SwiftLIntRuleStudio;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		703886472EFC3A3400F2A033 /* SwiftLIntRuleStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLIntRuleStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		703886562EFC3A3500F2A033 /* SwiftLIntRuleStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		703886492EFC3A3400F2A033 /* SwiftLIntRuleStudio */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SwiftLIntRuleStudio;
+			sourceTree = "<group>";
+		};
+		703886592EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SwiftLIntRuleStudioTests;
+			sourceTree = "<group>";
+		};
+		703886632EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SwiftLIntRuleStudioUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		703886442EFC3A3400F2A033 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		703886532EFC3A3500F2A033 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7038865D2EFC3A3500F2A033 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7038863E2EFC3A3400F2A033 = {
+			isa = PBXGroup;
+			children = (
+				703886492EFC3A3400F2A033 /* SwiftLIntRuleStudio */,
+				703886592EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */,
+				703886632EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests */,
+				703886482EFC3A3400F2A033 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		703886482EFC3A3400F2A033 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				703886472EFC3A3400F2A033 /* SwiftLIntRuleStudio.app */,
+				703886562EFC3A3500F2A033 /* SwiftLIntRuleStudioTests.xctest */,
+				703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		703886462EFC3A3400F2A033 /* SwiftLIntRuleStudio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7038866A2EFC3A3500F2A033 /* Build configuration list for PBXNativeTarget "SwiftLIntRuleStudio" */;
+			buildPhases = (
+				703886432EFC3A3400F2A033 /* Sources */,
+				703886442EFC3A3400F2A033 /* Frameworks */,
+				703886452EFC3A3400F2A033 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				703886492EFC3A3400F2A033 /* SwiftLIntRuleStudio */,
+			);
+			name = SwiftLIntRuleStudio;
+			packageProductDependencies = (
+				703886762EFC3A3500F2A033 /* Yams */,
+			);
+			productName = SwiftLIntRuleStudio;
+			productReference = 703886472EFC3A3400F2A033 /* SwiftLIntRuleStudio.app */;
+			productType = "com.apple.product-type.application";
+		};
+		703886552EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7038866D2EFC3A3500F2A033 /* Build configuration list for PBXNativeTarget "SwiftLIntRuleStudioTests" */;
+			buildPhases = (
+				703886522EFC3A3500F2A033 /* Sources */,
+				703886532EFC3A3500F2A033 /* Frameworks */,
+				703886542EFC3A3500F2A033 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				703886582EFC3A3500F2A033 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				703886592EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */,
+			);
+			name = SwiftLIntRuleStudioTests;
+			packageProductDependencies = (
+				703886742EFC3A3500F2A033 /* ViewInspector */,
+			);
+			productName = SwiftLIntRuleStudioTests;
+			productReference = 703886562EFC3A3500F2A033 /* SwiftLIntRuleStudioTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		7038865F2EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 703886702EFC3A3500F2A033 /* Build configuration list for PBXNativeTarget "SwiftLIntRuleStudioUITests" */;
+			buildPhases = (
+				7038865C2EFC3A3500F2A033 /* Sources */,
+				7038865D2EFC3A3500F2A033 /* Frameworks */,
+				7038865E2EFC3A3500F2A033 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				703886622EFC3A3500F2A033 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				703886632EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests */,
+			);
+			name = SwiftLIntRuleStudioUITests;
+			packageProductDependencies = (
+			);
+			productName = SwiftLIntRuleStudioUITests;
+			productReference = 703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7038863F2EFC3A3400F2A033 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					703886462EFC3A3400F2A033 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					703886552EFC3A3500F2A033 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 703886462EFC3A3400F2A033;
+					};
+					7038865F2EFC3A3500F2A033 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 703886462EFC3A3400F2A033;
+					};
+				};
+			};
+			buildConfigurationList = 703886422EFC3A3400F2A033 /* Build configuration list for PBXProject "SwiftLIntRuleStudio" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7038863E2EFC3A3400F2A033;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 703886482EFC3A3400F2A033 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			packageReferences = (
+				703886732EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "ViewInspector" */,
+				703886752EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "Yams" */,
+			);
+			targets = (
+				703886462EFC3A3400F2A033 /* SwiftLIntRuleStudio */,
+				703886552EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */,
+				7038865F2EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		703886452EFC3A3400F2A033 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		703886542EFC3A3500F2A033 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7038865E2EFC3A3500F2A033 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		703886432EFC3A3400F2A033 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		703886522EFC3A3500F2A033 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7038865C2EFC3A3500F2A033 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		703886582EFC3A3500F2A033 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 703886462EFC3A3400F2A033 /* SwiftLIntRuleStudio */;
+			targetProxy = 703886572EFC3A3500F2A033 /* PBXContainerItemProxy */;
+		};
+		703886622EFC3A3500F2A033 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 703886462EFC3A3400F2A033 /* SwiftLIntRuleStudio */;
+			targetProxy = 703886612EFC3A3500F2A033 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		703886682EFC3A3500F2A033 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		703886692EFC3A3500F2A033 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		7038866B2EFC3A3500F2A033 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_THREAD_SANITIZER = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLIntRuleStudio;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				OTHER_SWIFT_FLAGS = (
+					"$(inherited)",
+					"-Xfrontend",
+					"-warn-concurrency",
+					"-Xfrontend",
+					"-enable-actor-data-race-checks",
+				);
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		7038866C2EFC3A3500F2A033 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLIntRuleStudio;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		7038866E2EFC3A3500F2A033 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				ENABLE_THREAD_SANITIZER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLIntRuleStudioTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				OTHER_SWIFT_FLAGS = (
+					"$(inherited)",
+					"-Xfrontend",
+					"-warn-concurrency",
+					"-Xfrontend",
+					"-enable-actor-data-race-checks",
+				);
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftLIntRuleStudio.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftLIntRuleStudio";
+			};
+			name = Debug;
+		};
+		7038866F2EFC3A3500F2A033 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLIntRuleStudioTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SwiftLIntRuleStudio.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SwiftLIntRuleStudio";
+			};
+			name = Release;
+		};
+		703886712EFC3A3500F2A033 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLIntRuleStudioUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = SwiftLIntRuleStudio;
+			};
+			name = Debug;
+		};
+		703886722EFC3A3500F2A033 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLIntRuleStudioUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = SwiftLIntRuleStudio;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		703886422EFC3A3400F2A033 /* Build configuration list for PBXProject "SwiftLIntRuleStudio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				703886682EFC3A3500F2A033 /* Debug */,
+				703886692EFC3A3500F2A033 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7038866A2EFC3A3500F2A033 /* Build configuration list for PBXNativeTarget "SwiftLIntRuleStudio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7038866B2EFC3A3500F2A033 /* Debug */,
+				7038866C2EFC3A3500F2A033 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7038866D2EFC3A3500F2A033 /* Build configuration list for PBXNativeTarget "SwiftLIntRuleStudioTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7038866E2EFC3A3500F2A033 /* Debug */,
+				7038866F2EFC3A3500F2A033 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		703886702EFC3A3500F2A033 /* Build configuration list for PBXNativeTarget "SwiftLIntRuleStudioUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				703886712EFC3A3500F2A033 /* Debug */,
+				703886722EFC3A3500F2A033 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		703886732EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "ViewInspector" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nalexn/ViewInspector";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.7;
+			};
+		};
+		703886752EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "Yams" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jpsim/Yams.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		703886742EFC3A3500F2A033 /* ViewInspector */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 703886732EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "ViewInspector" */;
+			productName = ViewInspector;
+		};
+		703886762EFC3A3500F2A033 /* Yams */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 703886752EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "Yams" */;
+			productName = Yams;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 7038863F2EFC3A3400F2A033 /* Project object */;
+}

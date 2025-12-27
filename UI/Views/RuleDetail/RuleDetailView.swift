@@ -1,0 +1,723 @@
+//
+//  RuleDetailView.swift
+//  SwiftLintRuleStudio
+//
+//  Created by joe cursio on 12/24/25.
+//
+
+import SwiftUI
+
+struct RuleDetailView: View {
+    @StateObject private var viewModel: RuleDetailViewModel
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject var dependencies: DependencyContainer
+    @State private var showSaveConfirmation = false
+    @State private var showError = false
+    @State private var errorMessage: String?
+    @State private var showImpactSimulation = false
+    @State private var impactResult: RuleImpactResult?
+    @State private var isSimulating = false
+    @State private var currentRule: Rule
+    
+    let ruleId: String
+    
+    // Get the latest rule from registry (may have updated documentation)
+    // Made internal for testing
+    var rule: Rule {
+        dependencies.ruleRegistry.getRule(id: ruleId) ?? currentRule
+    }
+    
+    init(rule: Rule) {
+        self.ruleId = rule.id
+        _currentRule = State(initialValue: rule)
+        // Create ViewModel - will be updated with workspace config in onAppear
+        _viewModel = StateObject(wrappedValue: RuleDetailViewModel(rule: rule))
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                // Header
+                headerView
+                
+                Divider()
+                
+                // Description
+                descriptionView
+                
+                Divider()
+                
+                // Configuration
+                configurationView
+                
+                // Documentation (if available) - includes examples
+                if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
+                    Divider()
+                    documentationView(markdown: markdownDoc, colorScheme: colorScheme)
+                } else {
+                    // Only show examples section if we don't have markdown documentation
+                    Divider()
+                    examplesView
+                }
+            }
+            .padding()
+        }
+        .navigationTitle(rule.name)
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                if viewModel.pendingChanges != nil {
+                    Button {
+                        viewModel.showPreview()
+                    } label: {
+                        Label("Preview Changes", systemImage: "eye")
+                    }
+                    
+                    Button {
+                        Task {
+                            do {
+                                try viewModel.saveConfiguration()
+                                showSaveConfirmation = true
+                            } catch {
+                                showError = true
+                            }
+                        }
+                    } label: {
+                        if viewModel.isSaving {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                        } else {
+                            Label("Save", systemImage: "checkmark")
+                        }
+                    }
+                    .disabled(viewModel.isSaving)
+                }
+                
+                Toggle("Enabled", isOn: Binding(
+                    get: { viewModel.isEnabled },
+                    set: { viewModel.updateEnabled($0) }
+                ))
+                .toggleStyle(.switch)
+            }
+        }
+        .onAppear {
+            // Update ViewModel with workspace config if available
+            if let workspace = dependencies.workspaceManager.currentWorkspace,
+               let configPath = workspace.configPath {
+                let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+                viewModel.yamlEngine = yamlEngine
+                viewModel.workspaceManager = dependencies.workspaceManager
+                
+                // Load current configuration
+                do {
+                    try viewModel.loadConfiguration()
+                } catch {
+                    print("Warning: Failed to load configuration: \(error)")
+                }
+            }
+            
+            // Fetch rule details if documentation is missing
+            if rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true {
+                Task {
+                    await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
+                    // Update local state when rule is updated
+                    if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
+                        await MainActor.run {
+                            currentRule = updatedRule
+                        }
+                    }
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in
+            // Reload configuration if this rule was changed
+            if let ruleId = notification.userInfo?["ruleId"] as? String,
+               ruleId == rule.id {
+                try? viewModel.loadConfiguration()
+            }
+        }
+        .id(rule.id) // Force view recreation when rule ID changes
+        .onChange(of: dependencies.ruleRegistry.rules) {
+            // Update local rule when registry updates
+            if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
+                currentRule = updatedRule
+            }
+        }
+        .sheet(isPresented: $viewModel.showDiffPreview) {
+            if let diff = viewModel.generateDiff() {
+                ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
+                    Task {
+                        do {
+                            try viewModel.saveConfiguration()
+                            viewModel.showDiffPreview = false
+                            showSaveConfirmation = true
+                        } catch {
+                            showError = true
+                        }
+                    }
+                } onCancel: {
+                    viewModel.showDiffPreview = false
+                }
+            }
+        }
+        .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
+            Button("OK") { }
+        } message: {
+            Text("Rule configuration has been saved to your workspace's .swiftlint.yml file.")
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK") {
+                viewModel.saveError = nil
+            }
+        } message: {
+            Text(viewModel.saveError?.localizedDescription ?? "An error occurred while saving the configuration.")
+        }
+        .sheet(isPresented: $showImpactSimulation) {
+            if let result = impactResult {
+                ImpactSimulationView(
+                    ruleId: rule.id,
+                    ruleName: rule.name,
+                    result: result,
+                    onEnable: {
+                        viewModel.updateEnabled(true)
+                    }
+                )
+            }
+        }
+    }
+    
+    private func simulateRule() {
+        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
+            return
+        }
+        
+        isSimulating = true
+        
+        Task {
+            do {
+                let result = try await dependencies.impactSimulator.simulateRule(
+                    ruleId: rule.id,
+                    workspace: workspace,
+                    baseConfigPath: workspace.configPath
+                )
+                
+                await MainActor.run {
+                    impactResult = result
+                    isSimulating = false
+                    showImpactSimulation = true
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                    showError = true
+                    isSimulating = false
+                }
+            }
+        }
+    }
+    
+    private var headerView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(rule.name)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    
+                    Text(rule.id)
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                CategoryBadge(category: rule.category)
+                    .scaleEffect(1.2)
+            }
+            
+            HStack(spacing: 16) {
+                if rule.isOptIn {
+                    Label("Opt-In Rule", systemImage: "star.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.orange)
+                }
+                
+                if viewModel.isEnabled {
+                    Label("Enabled", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                }
+                
+                if rule.supportsAutocorrection {
+                    Label("Auto-correctable", systemImage: "wand.and.stars")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                }
+                
+                if let minVersion = rule.minimumSwiftVersion {
+                    Label("Swift \(minVersion)+", systemImage: "swift")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+    
+    private var descriptionView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Description")
+                .font(.headline)
+            
+            Text(rule.description)
+                .font(.body)
+                .foregroundColor(.primary)
+        }
+    }
+    
+    private var configurationView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Configuration")
+                .font(.headline)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Enable this rule", isOn: Binding(
+                    get: { viewModel.isEnabled },
+                    set: { viewModel.updateEnabled($0) }
+                ))
+                
+                if viewModel.isEnabled {
+                    Picker("Severity", selection: Binding(
+                        get: { viewModel.severity ?? .warning },
+                        set: { viewModel.updateSeverity($0) }
+                    )) {
+                        ForEach(Severity.allCases) { severity in
+                            Text(severity.displayName).tag(severity)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 200)
+                }
+                
+                if viewModel.pendingChanges != nil {
+                    HStack {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.orange)
+                        Text("You have unsaved changes")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 4)
+                }
+                
+                // Simulate button for disabled rules
+                if !viewModel.isEnabled,
+                   dependencies.workspaceManager.currentWorkspace != nil {
+                    Divider()
+                    
+                    Button {
+                        simulateRule()
+                    } label: {
+                        HStack {
+                            if isSimulating {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: "chart.bar.fill")
+                            }
+                            Text("Simulate Impact")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isSimulating)
+                }
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(8)
+        }
+    }
+    
+    private var examplesView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Examples")
+                .font(.headline)
+            
+            if !rule.triggeringExamples.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Triggering Examples", systemImage: "xmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                    
+                    ForEach(Array(rule.triggeringExamples.enumerated()), id: \.offset) { index, example in
+                        CodeBlock(code: example, isError: true)
+                    }
+                }
+            }
+            
+            if !rule.nonTriggeringExamples.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Non-Triggering Examples", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                    
+                    ForEach(Array(rule.nonTriggeringExamples.enumerated()), id: \.offset) { index, example in
+                        CodeBlock(code: example, isError: false)
+                    }
+                }
+            }
+            
+            if rule.triggeringExamples.isEmpty && rule.nonTriggeringExamples.isEmpty {
+                Text("No examples available")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .italic()
+            }
+        }
+    }
+    
+    private func documentationView(markdown: String, colorScheme: ColorScheme) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Documentation")
+                .font(.headline)
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Process content to remove metadata we already show
+                    let processedContent = processContentForDisplay(content: markdown)
+                    
+                    // Convert markdown elements to HTML while preserving existing HTML
+                    let htmlContent = convertMarkdownToHTML(content: processedContent)
+                    
+                    // Wrap in full HTML document with styling
+                    let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
+                    
+                    // Render HTML using NSAttributedString
+                    if let htmlData = fullHTML.data(using: .utf8),
+                       let attributedString = try? NSAttributedString(
+                        data: htmlData,
+                        options: [.documentType: NSAttributedString.DocumentType.html,
+                                 .characterEncoding: String.Encoding.utf8.rawValue],
+                        documentAttributes: nil
+                       ) {
+                        Text(AttributedString(attributedString))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        // Fallback to plain text if HTML parsing fails
+                        Text(processedContent)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding()
+            }
+            .frame(maxHeight: 500)
+            .background(Color(NSColor.controlBackgroundColor))
+            .cornerRadius(8)
+        }
+    }
+    
+    private func processContentForDisplay(content: String) -> String {
+        let lines = content.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        var skipTable = false
+        
+        for (index, line) in lines.enumerated() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            
+            // Skip the main title (we already show it in the header)
+            if index == 0 && (trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")) {
+                continue
+            }
+            
+            // Skip metadata section (we show this info in badges/configuration)
+            if trimmed.contains("* **") || trimmed.hasPrefix("* **") {
+                // Check if this is the default configuration line
+                if trimmed.contains("default configuration:") || trimmed.contains("Default configuration:") {
+                    // Skip the HTML table that follows
+                    skipTable = true
+                }
+                continue
+            }
+            
+            // Skip HTML table if we're in the metadata section
+            if skipTable {
+                if trimmed.hasPrefix("<table>") || trimmed.contains("<table>") {
+                    // Skip until we find </table>
+                    continue
+                } else if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
+                    skipTable = false
+                    continue
+                } else if trimmed.contains("<thead>") || trimmed.contains("</thead>") ||
+                          trimmed.contains("<tbody>") || trimmed.contains("</tbody>") ||
+                          trimmed.contains("<tr>") || trimmed.contains("</tr>") ||
+                          trimmed.contains("<th>") || trimmed.contains("</th>") ||
+                          trimmed.contains("<td>") || trimmed.contains("</td>") {
+                    continue
+                }
+            }
+            
+            processedLines.append(line)
+        }
+        
+        return processedLines.joined(separator: "\n")
+    }
+    
+    private func convertMarkdownToHTML(content: String) -> String {
+        let lines = content.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        var inCodeBlock = false
+        var codeBlockLanguage = ""
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            
+            // Check if line already contains HTML tags - preserve it as-is
+            let hasHTMLTags = trimmed.contains("<") && trimmed.contains(">")
+            
+            // Handle markdown code blocks
+            if line.hasPrefix("```") {
+                if inCodeBlock {
+                    // End code block
+                    processedLines.append("</code></pre>")
+                    inCodeBlock = false
+                    codeBlockLanguage = ""
+                } else {
+                    // Start code block
+                    let language = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+                    codeBlockLanguage = language.isEmpty ? "" : " class=\"language-\(language)\""
+                    processedLines.append("<pre><code\(codeBlockLanguage)>")
+                    inCodeBlock = true
+                }
+                continue
+            }
+            
+            if inCodeBlock {
+                // Escape HTML in code blocks
+                let escaped = line
+                    .replacingOccurrences(of: "&", with: "&amp;")
+                    .replacingOccurrences(of: "<", with: "&lt;")
+                    .replacingOccurrences(of: ">", with: "&gt;")
+                processedLines.append(escaped)
+                continue
+            }
+            
+            // If line already has HTML tags, preserve it as-is
+            // (HTML content should already be properly formatted)
+            if hasHTMLTags {
+                processedLines.append(line)
+                continue
+            }
+            
+            // Convert markdown headers (only if not already HTML)
+            if line.hasPrefix("# ") {
+                let text = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                processedLines.append("<h1>\(text)</h1>")
+            } else if line.hasPrefix("## ") {
+                let text = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+                processedLines.append("<h2>\(text)</h2>")
+            } else if line.hasPrefix("### ") {
+                let text = String(line.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+                processedLines.append("<h3>\(text)</h3>")
+            } else if trimmed.isEmpty {
+                processedLines.append("<br>")
+            } else {
+                // Regular line - convert inline markdown
+                var processedLine = line
+                
+                // Convert inline code (handle backticks)
+                processedLine = processedLine.replacingOccurrences(
+                    of: #"`([^`]+)`"#,
+                    with: "<code>$1</code>",
+                    options: .regularExpression
+                )
+                
+                // Convert bold
+                processedLine = processedLine.replacingOccurrences(
+                    of: #"\*\*([^*]+)\*\*"#,
+                    with: "<strong>$1</strong>",
+                    options: .regularExpression
+                )
+                
+                // Convert italic (but be careful not to match bold markers)
+                processedLine = processedLine.replacingOccurrences(
+                    of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
+                    with: "<em>$1</em>",
+                    options: .regularExpression
+                )
+                
+                processedLines.append(processedLine)
+            }
+        }
+        
+        // Close any open code block
+        if inCodeBlock {
+            processedLines.append("</code></pre>")
+        }
+        
+        return processedLines.joined(separator: "\n")
+    }
+    
+    private func wrapHTMLInDocument(body: String, colorScheme: ColorScheme) -> String {
+        // Detect if we're in dark mode
+        let isDarkMode = colorScheme == .dark
+        
+        let textColor = isDarkMode ? "#FFFFFF" : "#000000"
+        let codeBgColor = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+        let tableBorderColor = isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)"
+        let tableHeaderBg = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+        
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+                    font-size: 14px; 
+                    line-height: 1.6; 
+                    color: \(textColor);
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 { 
+                    font-size: 20px; 
+                    font-weight: 600; 
+                    margin-top: 0; 
+                    margin-bottom: 16px; 
+                    color: \(textColor);
+                }
+                h2 { 
+                    font-size: 18px; 
+                    font-weight: 600; 
+                    margin-top: 24px; 
+                    margin-bottom: 12px; 
+                    color: \(textColor);
+                }
+                h3 { 
+                    font-size: 16px; 
+                    font-weight: 600; 
+                    margin-top: 20px; 
+                    margin-bottom: 10px; 
+                    color: \(textColor);
+                }
+                code { 
+                    font-family: 'SF Mono', Monaco, 'Courier New', monospace; 
+                    background-color: \(codeBgColor); 
+                    padding: 2px 6px; 
+                    border-radius: 3px; 
+                    font-size: 13px;
+                    color: \(textColor);
+                }
+                pre { 
+                    background-color: \(codeBgColor); 
+                    padding: 12px; 
+                    border-radius: 6px; 
+                    overflow-x: auto;
+                    margin: 12px 0;
+                }
+                pre code { 
+                    background: none; 
+                    padding: 0; 
+                    color: \(textColor);
+                }
+                table { 
+                    border-collapse: collapse; 
+                    width: 100%; 
+                    margin: 12px 0; 
+                }
+                th, td { 
+                    border: 1px solid \(tableBorderColor); 
+                    padding: 8px 12px; 
+                    text-align: left; 
+                    color: \(textColor);
+                }
+                th { 
+                    background-color: \(tableHeaderBg); 
+                    font-weight: 600; 
+                }
+                p { 
+                    margin: 8px 0; 
+                    color: \(textColor);
+                }
+                ul, ol { 
+                    margin: 8px 0; 
+                    padding-left: 24px; 
+                    color: \(textColor);
+                }
+                li { 
+                    margin: 4px 0; 
+                    color: \(textColor);
+                }
+                strong {
+                    color: \(textColor);
+                }
+                em {
+                    color: \(textColor);
+                }
+            </style>
+        </head>
+        <body>
+        \(body)
+        </body>
+        </html>
+        """
+    }
+}
+
+struct CodeBlock: View {
+    let code: String
+    let isError: Bool
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            Rectangle()
+                .fill(isError ? Color.red : Color.green)
+                .frame(width: 4)
+            
+            Text(code)
+                .font(.system(.body, design: .monospaced))
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(NSColor.textBackgroundColor))
+        }
+        .cornerRadius(4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(isError ? Color.red.opacity(0.3) : Color.green.opacity(0.3), lineWidth: 1)
+        )
+    }
+}
+
+#Preview {
+    let rule = Rule(
+        id: "force_cast",
+        name: "Force Cast",
+        description: "Force casts should be avoided. Use optional binding or guard statements instead.",
+        category: .lint,
+        isOptIn: false,
+        severity: .error,
+        parameters: nil,
+        triggeringExamples: [
+            "let string = value as! String",
+            "let number = data as! Int"
+        ],
+        nonTriggeringExamples: [
+            "if let string = value as? String { }",
+            "guard let number = data as? Int else { return }"
+        ],
+        documentation: nil,
+        isEnabled: true,
+        supportsAutocorrection: false,
+        minimumSwiftVersion: "5.0.0",
+        defaultSeverity: .error,
+        markdownDocumentation: nil
+    )
+    
+    NavigationStack {
+        RuleDetailView(rule: rule)
+    }
+    .frame(width: 800, height: 600)
+}
+
