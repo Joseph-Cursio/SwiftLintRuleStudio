@@ -11,6 +11,7 @@ struct RuleBrowserView: View {
     @EnvironmentObject var ruleRegistry: RuleRegistry
     @StateObject private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
+    @State private var expandedCategories: Set<RuleCategory> = Set(RuleCategory.allCases)
     
     init() {
         // Create a temporary ruleRegistry for initialization
@@ -40,10 +41,10 @@ struct RuleBrowserView: View {
             // Update viewModel with the actual ruleRegistry from environment
             viewModel.ruleRegistry = ruleRegistry
         }
-        .onChange(of: viewModel.filteredRules) {
+        .onChange(of: viewModel.groupedRules) {
             // Clear selection if the selected rule is no longer in the filtered list
             if let selectedRuleId = selectedRuleId,
-               !viewModel.filteredRules.contains(where: { $0.id == selectedRuleId }) {
+               !viewModel.groupedRules.flatMap({ $0.rules }).contains(where: { $0.id == selectedRuleId }) {
                 self.selectedRuleId = nil
             }
         }
@@ -57,13 +58,37 @@ struct RuleBrowserView: View {
             Divider()
             
             // Rules List
-            if viewModel.filteredRules.isEmpty {
+            if viewModel.groupedRules.isEmpty {
                 emptyStateView
             } else {
                 List(selection: $selectedRuleId) {
-                    ForEach(viewModel.filteredRules, id: \.id) { rule in
-                        RuleListItem(rule: rule)
-                            .tag(rule.id)
+                    ForEach(viewModel.groupedRules, id: \.category) { category, rules in
+                        let isExpanded = Binding<Bool>(
+                            get: { expandedCategories.contains(category) },
+                            set: { isExpanding in
+                                if isExpanding {
+                                    expandedCategories.insert(category)
+                                } else {
+                                    expandedCategories.remove(category)
+                                }
+                            }
+                        )
+
+                        DisclosureGroup(isExpanded: isExpanded) {
+                            ForEach(rules, id: \.id) { rule in
+                                RuleListItem(rule: rule)
+                                    .tag(rule.id)
+                            }
+                        } label: {
+                            HStack {
+                                Text(category.displayName)
+                                    .font(.headline)
+                                Spacer()
+                                Text("(\(rules.count))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
                 .listStyle(.sidebar)
@@ -211,4 +236,3 @@ struct RuleBrowserView: View {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
-

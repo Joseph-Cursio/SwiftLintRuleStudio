@@ -30,7 +30,7 @@ class RuleBrowserViewModel: ObservableObject {
             setupSubscriptions()
         }
     }
-    @Published private(set) var filteredRules: [Rule] = []
+    @Published private(set) var groupedRules: [(category: RuleCategory, rules: [Rule])] = []
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -108,7 +108,10 @@ class RuleBrowserViewModel: ObservableObject {
             }
         }
         
-        filteredRules = rules
+        let grouped = Dictionary(grouping: rules, by: { $0.category })
+        groupedRules = grouped.map { (category, rules) in
+            return (category: category, rules: rules)
+        }.sorted { $0.category.displayName < $1.category.displayName }
     }
     
     var categoryCounts: [RuleCategory: Int] {
@@ -184,4 +187,3 @@ enum SortOption: String, CaseIterable, Identifiable {
         }
     }
 }
-
