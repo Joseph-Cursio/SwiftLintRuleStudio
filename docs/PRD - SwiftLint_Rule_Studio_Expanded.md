@@ -239,6 +239,7 @@ SwiftLint Rule Studio makes linting a competitive advantage by turning it from a
 
 **UI Components:**
 - Master-detail split view
+- Collapsible categories for better organization
 - List view with sortable columns
 - Quick action buttons for common operations
 - Keyboard shortcuts for power users
