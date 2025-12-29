@@ -673,18 +673,8 @@ struct WorkspaceManagerIntegrationTests {
     
     @Test("Handles invalid workspace paths in recent workspaces")
     func testHandlesInvalidPathsInRecentWorkspaces() async throws {
-        // Use isolated UserDefaults for test isolation
-        // Note: WorkspaceManager uses UserDefaults.standard internally,
-        // so we clear it for this test and clean up afterwards
-        let isolatedDefaults = IsolatedUserDefaults.create(for: "testHandlesInvalidPathsInRecentWorkspaces")
-        defer {
-            // Clean up UserDefaults.standard after test
-            UserDefaults.standard.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
-            IsolatedUserDefaults.cleanup(isolatedDefaults)
-        }
-        
-        // Clear UserDefaults.standard to ensure clean state for this test
-        UserDefaults.standard.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
+        // Note: withWorkspaceManager uses isolated UserDefaults via WorkspaceManager.createForTesting
+        // No need to clean up UserDefaults.standard since we're using isolated UserDefaults
         
         let tempDir1 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         let tempDir2 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()

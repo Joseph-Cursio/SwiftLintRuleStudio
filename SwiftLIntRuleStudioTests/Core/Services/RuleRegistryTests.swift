@@ -38,6 +38,18 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         if shouldFail {
             throw SwiftLintError.notFound
         }
+        // Use a more portable path - check common locations
+        let possiblePaths = [
+            "/opt/homebrew/bin/swiftlint",
+            "/usr/local/bin/swiftlint",
+            "/usr/bin/swiftlint"
+        ]
+        for path in possiblePaths {
+            if FileManager.default.fileExists(atPath: path) {
+                return URL(fileURLWithPath: path)
+            }
+        }
+        // Fallback to /usr/local/bin/swiftlint for mock purposes
         return URL(fileURLWithPath: "/usr/local/bin/swiftlint")
     }
     

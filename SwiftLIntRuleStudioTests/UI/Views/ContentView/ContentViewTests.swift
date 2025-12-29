@@ -33,15 +33,16 @@ struct ContentViewTests {
     // Workaround for Swift 6 strict concurrency: Return ViewResult instead of tuple with 'some View'
     @MainActor
     private func createContentView(
+        testName: String,
         hasCompletedOnboarding: Bool = false,
         hasWorkspace: Bool = false,
         configFileMissing: Bool = false
     ) -> ViewResult {
-        let userDefaults = IsolatedUserDefaults.create(for: "ContentViewTests")
+        let userDefaults = IsolatedUserDefaults.create(for: testName)
         let onboardingManager = OnboardingManager(userDefaults: userDefaults)
         onboardingManager.hasCompletedOnboarding = hasCompletedOnboarding
         
-        let workspaceManager = WorkspaceManager.createForTesting(testName: "ContentViewTests")
+        let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
         
         let cacheManager = CacheManager.createForTesting()
         let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
@@ -69,7 +70,7 @@ struct ContentViewTests {
         // Workaround: Use Task instead of MainActor.run to bypass Sendable check
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView()
+            createContentView(testName: #function)
         }.value
         let view = result.view
         
@@ -89,7 +90,7 @@ struct ContentViewTests {
     func testShowsOnboardingWhenNotCompleted() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView(hasCompletedOnboarding: false)
+            createContentView(testName: #function, hasCompletedOnboarding: false)
         }.value
         let view = result.view
         
@@ -108,7 +109,7 @@ struct ContentViewTests {
     func testHidesOnboardingWhenCompleted() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView(hasCompletedOnboarding: true)
+            createContentView(testName: #function, hasCompletedOnboarding: true)
         }.value
         let view = result.view
         
@@ -127,7 +128,7 @@ struct ContentViewTests {
     func testShowsWorkspaceSelectionWhenNoWorkspace() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView(hasCompletedOnboarding: true, hasWorkspace: false)
+            createContentView(testName: #function, hasCompletedOnboarding: true, hasWorkspace: false)
         }.value
         let view = result.view
         
@@ -147,7 +148,7 @@ struct ContentViewTests {
     func testShowsMainInterfaceWhenWorkspaceOpen() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView(hasCompletedOnboarding: true, hasWorkspace: true)
+            createContentView(testName: #function, hasCompletedOnboarding: true, hasWorkspace: true)
         }.value
         let view = result.view
         let dependencies = result.dependencies
@@ -175,7 +176,7 @@ struct ContentViewTests {
     func testShowsConfigRecommendationWhenConfigMissing() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView(hasCompletedOnboarding: true, hasWorkspace: true)
+            createContentView(testName: #function, hasCompletedOnboarding: true, hasWorkspace: true)
         }.value
         let view = result.view
         let dependencies = result.dependencies
@@ -202,7 +203,7 @@ struct ContentViewTests {
     func testShowsDefaultDetailView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView(hasCompletedOnboarding: true, hasWorkspace: true)
+            createContentView(testName: #function, hasCompletedOnboarding: true, hasWorkspace: true)
         }.value
         let view = result.view
         let dependencies = result.dependencies
@@ -231,7 +232,7 @@ struct ContentViewTests {
     func testHandlesRuleLoadingErrors() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in
-            createContentView()
+            createContentView(testName: #function)
         }.value
         let view = result.view
         

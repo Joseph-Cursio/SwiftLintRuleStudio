@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-@main
 struct SwiftLintRuleStudioApp: App {
     @StateObject private var ruleRegistry: RuleRegistry
     @StateObject private var dependencyContainer: DependencyContainer
