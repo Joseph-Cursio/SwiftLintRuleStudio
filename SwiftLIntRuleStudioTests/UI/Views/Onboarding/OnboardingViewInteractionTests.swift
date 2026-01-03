@@ -18,14 +18,15 @@ struct OnboardingViewInteractionTests {
     // MARK: - Test Data Helpers
     
     private func createOnboardingView(
+        testName: String,
         step: OnboardingManager.OnboardingStep = .welcome
     ) async -> (view: some View, onboardingManager: OnboardingManager, workspaceManager: WorkspaceManager) {
         return await MainActor.run {
-            let userDefaults = IsolatedUserDefaults.create(for: "OnboardingViewInteractionTests")
+            let userDefaults = IsolatedUserDefaults.create(for: testName)
             let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             onboardingManager.currentStep = step
             
-            let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
+            let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
             let cacheManager = CacheManager.createForTesting()
             let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
             
@@ -45,7 +46,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView Next button advances to next step")
     func testNextButtonAdvancesStep() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .welcome)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Find and tap Next button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -68,7 +69,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView Back button returns to previous step")
     func testBackButtonReturnsToPreviousStep() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .swiftLintCheck)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find and tap Back button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -91,7 +92,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView Get Started button completes onboarding")
     func testGetStartedButtonCompletesOnboarding() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .complete)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .complete)
         
         // Find and tap Get Started button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -118,7 +119,7 @@ struct OnboardingViewInteractionTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
-        let (view, onboardingManager, workspaceManager) = await createOnboardingView(step: .workspaceSelection)
+        let (view, onboardingManager, workspaceManager) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Select a workspace first
         try await MainActor.run {
@@ -142,7 +143,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView navigates through all steps")
     func testNavigatesThroughAllSteps() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .welcome)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Start at welcome
         let initialStep = await MainActor.run {
@@ -186,7 +187,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView can navigate backwards through steps")
     func testNavigatesBackwardsThroughSteps() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .workspaceSelection)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Start at workspace selection
         let initialStep = await MainActor.run {
@@ -224,7 +225,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView Check Again button retriggers SwiftLint check")
     func testCheckAgainButtonRetriggersCheck() async throws {
-        let (view, _, _) = await createOnboardingView(step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Wait for initial check to complete
         try await Task.sleep(nanoseconds: 200_000_000)
@@ -258,7 +259,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView Next button is disabled while checking SwiftLint")
     func testNextButtonDisabledWhileChecking() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .swiftLintCheck)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Next button should be disabled while checking
         // Note: This is handled by the view's disabled modifier
@@ -275,7 +276,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView Complete button is disabled when no workspace selected")
     func testCompleteButtonDisabledWhenNoWorkspace() async throws {
-        let (view, _, _) = await createOnboardingView(step: .workspaceSelection)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Complete button should be disabled when no workspace is selected
         // Instead, "Select a Workspace" button should be shown
@@ -292,7 +293,7 @@ struct OnboardingViewInteractionTests {
     
     @Test("OnboardingView progress indicator updates with current step")
     func testProgressIndicatorUpdates() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(step: .welcome)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Progress indicator should show current step
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -322,7 +323,7 @@ struct OnboardingViewInteractionTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
-        let (_, onboardingManager, workspaceManager) = await createOnboardingView(step: .workspaceSelection)
+        let (_, onboardingManager, workspaceManager) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Verify we start at workspace selection step
         let initialStep = await MainActor.run {

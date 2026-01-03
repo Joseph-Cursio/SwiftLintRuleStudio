@@ -138,7 +138,11 @@ struct ViolationInspectorViewModelTests {
         let workspaceId = UUID()
         // Workspace.init should be Sendable, but Swift 6 has false positive
         let workspace = await MainActor.run {
-            Workspace(path: URL(fileURLWithPath: "/test"))
+            // Use temporary directory instead of hard-coded path for portability
+            let tempPath = FileManager.default.temporaryDirectory
+                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            return Workspace(path: tempPath)
         }
         
         // Initial violations
@@ -185,7 +189,11 @@ struct ViolationInspectorViewModelTests {
         let workspaceId = UUID()
         // Workspace.init should be Sendable, but Swift 6 has false positive
         let workspace = await MainActor.run {
-            Workspace(path: URL(fileURLWithPath: "/test"))
+            // Use temporary directory instead of hard-coded path for portability
+            let tempPath = FileManager.default.temporaryDirectory
+                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            return Workspace(path: tempPath)
         }
         
         // Setup analyzer to return violations
@@ -225,7 +233,11 @@ struct ViolationInspectorViewModelTests {
         let workspaceId = UUID()
         // Workspace.init should be Sendable, but Swift 6 has false positive
         let workspace = await MainActor.run {
-            Workspace(path: URL(fileURLWithPath: "/test"))
+            // Use temporary directory instead of hard-coded path for portability
+            let tempPath = FileManager.default.temporaryDirectory
+                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            return Workspace(path: tempPath)
         }
         
         // Pre-store some violations

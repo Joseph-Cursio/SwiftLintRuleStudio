@@ -93,7 +93,7 @@ struct OnboardingManagerIntegrationTests {
     
     @Test("Onboarding can complete after workspace is selected")
     func testOnboardingWithWorkspaceSelection() async throws {
-        let userDefaults = UserDefaults(suiteName: "testOnboardingWorkspace")!
+        let userDefaults = IsolatedUserDefaults.create(for: #function)
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
         
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -130,7 +130,7 @@ struct OnboardingManagerIntegrationTests {
     
     @Test("Onboarding flow progresses through all steps")
     func testFullOnboardingFlow() async throws {
-        let userDefaults = UserDefaults(suiteName: "testFullFlow")!
+        let userDefaults = IsolatedUserDefaults.create(for: #function)
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
         
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -222,7 +222,7 @@ struct OnboardingManagerIntegrationTests {
     
     @Test("Reset allows re-showing onboarding")
     func testResetOnboarding() async throws {
-        let userDefaults = UserDefaults(suiteName: "testResetOnboarding")!
+        let userDefaults = IsolatedUserDefaults.create(for: #function)
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
         
         let result: (Bool, Bool, Bool, OnboardingManager.OnboardingStep, Bool) = try await MainActor.run {

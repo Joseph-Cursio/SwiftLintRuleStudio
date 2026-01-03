@@ -1,0 +1,53 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Tests",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"test",
+				"-project",
+				"SwiftLIntRuleStudio.xcodeproj",
+				"-scheme",
+				"SwiftLIntRuleStudio",
+				"-destination",
+				"platform=iOS Simulator,name=iPhone 14"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run Tests",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"test",
+				"-project",
+				"SwiftLIntRuleStudio.xcodeproj",
+				"-scheme",
+				"SwiftLIntRuleStudio",
+				"-destination",
+				"platform=iOS Simulator,name=iPhone 14"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run macOS Tests",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"test",
+				"-project",
+				"SwiftLIntRuleStudio.xcodeproj",
+				"-scheme",
+				"SwiftLIntRuleStudio",
+				"-destination",
+				"platform=macOS"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
