@@ -375,10 +375,10 @@ This document tracks the implementation status of features required for v1.0 rel
 3. ✅ YAML Configuration Engine (core engine)
 4. ✅ Workspace Analyzer (complete)
 5. ✅ Violation Inspector (workspace integration complete)
-6. ✅ **COMPLETE**: Workspace selection/opening
-7. ✅ **COMPLETE**: Rule configuration persistence
-8. ✅ **COMPLETE**: Basic onboarding flow
-9. ✅ **COMPLETE**: Impact simulation and zero-violation rule detection
+6. ✅ Workspace selection/opening
+7. ✅ Rule configuration persistence
+8. ✅ Basic onboarding flow
+9. ✅ Impact simulation and zero-violation rule detection
 
 **All critical P0 features for v1.0 are now complete!**
 

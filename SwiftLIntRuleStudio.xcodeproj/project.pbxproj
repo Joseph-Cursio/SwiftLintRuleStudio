@@ -27,12 +27,23 @@
 		703886472EFC3A3400F2A033 /* SwiftLIntRuleStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLIntRuleStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		703886562EFC3A3500F2A033 /* SwiftLIntRuleStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7038864D2EFC3A3400F2A037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		703886492EFC3A3400F2A033 /* SwiftLIntRuleStudio */ = {
+		703886492EFC3A3400F2A033 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SwiftLIntRuleStudio;
+			path = App;
+			sourceTree = "<group>";
+		};
+		7038864A2EFC3A3400F2A034 /* Core */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Core;
+			sourceTree = "<group>";
+		};
+		7038864B2EFC3A3400F2A035 /* UI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = UI;
 			sourceTree = "<group>";
 		};
 		703886592EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */ = {
@@ -75,7 +86,10 @@
 		7038863E2EFC3A3400F2A033 = {
 			isa = PBXGroup;
 			children = (
-				703886492EFC3A3400F2A033 /* SwiftLIntRuleStudio */,
+				703886492EFC3A3400F2A033 /* App */,
+				7038864A2EFC3A3400F2A034 /* Core */,
+				7038864B2EFC3A3400F2A035 /* UI */,
+				7038864D2EFC3A3400F2A037 /* Assets.xcassets */,
 				703886592EFC3A3500F2A033 /* SwiftLIntRuleStudioTests */,
 				703886632EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests */,
 				703886482EFC3A3400F2A033 /* Products */,
@@ -108,7 +122,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				703886492EFC3A3400F2A033 /* SwiftLIntRuleStudio */,
+				703886492EFC3A3400F2A033 /* App */,
+				7038864A2EFC3A3400F2A034 /* Core */,
+				7038864B2EFC3A3400F2A035 /* UI */,
 			);
 			name = SwiftLIntRuleStudio;
 			packageProductDependencies = (
@@ -218,6 +234,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7038864E2EFC3A3400F2A038 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +327,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				SWIFT_DEBUG_INFO_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L3QPPH39L5;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -407,7 +425,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_THREAD_SANITIZER = YES;
+				ENABLE_THREAD_SANITIZER = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

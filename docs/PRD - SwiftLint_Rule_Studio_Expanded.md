@@ -3,7 +3,7 @@ I asked Claude to expand on Copilots initial PRD.
 # SwiftLint Rule Studio - Product Requirements Document
 
 **Version:** 2.0  
-**Last Updated:** December 21, 2025  
+**Last Updated:** December 26, 2025  
 **Status:** Draft  
 **Owner:** Product Team
 
@@ -16,6 +16,53 @@ SwiftLint Rule Studio is a macOS desktop application and optional Xcode companio
 **Target Market:** iOS/macOS development teams (5-50 developers) using SwiftLint who struggle with configuration management, onboarding, and maintaining consistent code quality standards.
 
 **Key Differentiator:** While other tools provide basic YAML editing or IDE integration, SwiftLint Rule Studio is the only solution purpose-built for team governance, learning, and data-driven rule adoption.
+
+---
+
+## Current Implementation Status
+
+**Last Updated:** December 26, 2025  
+**Overall v1.0 Completion:** ~85%
+
+> **Note:** This PRD is a requirements document describing what *should* be built. For detailed implementation status, see [`V1_REQUIREMENTS_STATUS.md`](../V1_REQUIREMENTS_STATUS.md).
+
+### v1.0 MVP Status
+
+| Feature | Status | Completion | Notes |
+|---------|--------|------------|-------|
+| Rule Browser | ✅ Complete | 100% | Fully implemented with search, filters, and caching |
+| Rule Detail Panel | ⚠️ Mostly Complete | 80% | Core features done; missing "Why this matters" and related rules |
+| YAML Configuration Engine | ⚠️ Mostly Complete | 80% | Core engine complete; missing dry-run UI and Git integration |
+| Workspace Analyzer | ✅ Complete | 100% | Fully implemented with incremental analysis and file tracking |
+| Violation Inspector | ⚠️ Mostly Complete | 75% | Core functionality done; Xcode integration needs improvement |
+| Workspace Management | ✅ Complete | 100% | Fully implemented with persistence and validation |
+| Rule Config Persistence | ✅ Complete | 100% | Full end-to-end workflow with diff preview |
+| Onboarding Flow | ✅ Complete | 100% | Complete with SwiftLint detection and workspace selection |
+| Impact Simulation | ✅ Complete | 100% | Full implementation with zero-violation rule discovery |
+| Xcode Integration | ⚠️ Partial | ~30% | Basic "Open in Xcode" exists but unreliable; needs service layer |
+
+### Test Coverage
+
+- **Total Tests:** 176 tests (100% passing)
+- **Test Framework:** Swift Testing (migrated from XCTest)
+- **Concurrency:** Swift 6 compliant with strict concurrency checking
+- **Test Isolation:** Complete isolation for UserDefaults, workspaces, and file systems
+
+### What's Left for v1.0
+
+**Critical Path (Blocking v1.0):**
+1. **Xcode Integration Improvements** (2-3 days)
+   - Reliable file opening with path resolution
+   - Project detection and URL generation
+   - Better error handling and fallbacks
+
+**Nice to Have (Can Ship Without):**
+2. Rule Detail Panel polish (missing sections)
+3. Violation Inspector enhancements (grouping, bulk operations, export)
+
+### Roadmap Checkmarks
+
+**Important:** The checkmarks (✅) in the Release Roadmap section below represent *planned features* for each version, not implementation status. Actual implementation status is tracked in `V1_REQUIREMENTS_STATUS.md`.
 
 ---
 
@@ -2015,11 +2062,13 @@ By end of v1.0 launch + 3 months:
 
 ## Release Roadmap
 
+> **Note:** The checkmarks (✅) in this section indicate *planned features* for each version, not implementation status. For actual implementation status, see the [Current Implementation Status](#current-implementation-status) section above or [`V1_REQUIREMENTS_STATUS.md`](../V1_REQUIREMENTS_STATUS.md).
+
 ### v1.0 - Core Experience (MVP) - Target: 6 months
 
 **Goal:** Ship a solid, useful product that individual developers and small teams love.
 
-**Features:**
+**Planned Features:**
 - ✅ Rule Browser with search and filters
 - ✅ Rule Detail Panel with examples and configuration
 - ✅ YAML Configuration Engine with diffs and validation
@@ -2042,7 +2091,7 @@ By end of v1.0 launch + 3 months:
 
 **Goal:** Add team features and analytics to drive Pro tier adoption.
 
-**Features:**
+**Planned Features:**
 - ✅ Dashboard with violation trends and quality score
 - ✅ Configuration Profiles (save and share configurations)
 - ✅ Team Mode: proposal and approval workflow
@@ -2059,7 +2108,7 @@ By end of v1.0 launch + 3 months:
 
 **Goal:** Help teams adopt SwiftLint progressively and integrate with CI/CD.
 
-**Features:**
+**Planned Features:**
 - ✅ Migration Assistant with phased rollout planning
 - ✅ Fix Sprints and progress tracking
 - ✅ CI/CD integration (GitHub Actions, GitLab CI, etc.)
@@ -2076,7 +2125,7 @@ By end of v1.0 launch + 3 months:
 
 **Goal:** Use AI to provide smarter recommendations and improve UX.
 
-**Features:**
+**Planned Features:**
 - ✅ AI-powered rule recommendations based on codebase
 - ✅ Automatic threshold suggestions (e.g., optimal line_length)
 - ✅ Xcode Source Editor Extension
@@ -2093,7 +2142,7 @@ By end of v1.0 launch + 3 months:
 
 **Goal:** Expand platform and scale to larger teams.
 
-**Features:**
+**Planned Features:**
 - ✅ Cloud sync service for team configurations
 - ✅ Real-time collaboration features
 - ✅ Multi-workspace support
