@@ -36,32 +36,26 @@ struct RuleDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
                 // Header
                 headerView
-                
-                Divider()
-                
-                // Description
-                descriptionView
                 
                 Divider()
                 
                 // Configuration
                 configurationView
                 
-                // Documentation (if available) - includes examples
-                if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
-                    Divider()
-                    documentationView(markdown: markdownDoc, colorScheme: colorScheme)
-                } else {
-                    // Only show examples section if we don't have markdown documentation
-                    Divider()
-                    examplesView
-                }
+                Divider()
+                
+                // Description
+                descriptionView
             }
-            .padding()
+            .padding(.top, 8) // Minimal top padding
+            .padding(.bottom)
+            .padding(.trailing)
+            .padding(.leading, 0) // No left padding - NavigationSplitView may add its own
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .navigationTitle(rule.name)
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -216,7 +210,7 @@ struct RuleDetailView: View {
     }
     
     private var headerView: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(rule.name)
@@ -270,7 +264,95 @@ struct RuleDetailView: View {
             Text(rule.description)
                 .font(.body)
                 .foregroundColor(.primary)
+            
+            // Show markdown documentation if available - directly below description
+            if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
+                // Process content to remove metadata we already show
+                let processedContent = processContentForDisplay(content: markdownDoc)
+                
+                // Convert markdown elements to HTML while preserving existing HTML
+                let htmlContent = convertMarkdownToHTML(content: processedContent)
+                
+                // Wrap in full HTML document with styling
+                let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
+                
+                // Render HTML using NSAttributedString
+                if let htmlData = fullHTML.data(using: .utf8),
+                   let attributedString = try? NSAttributedString(
+                    data: htmlData,
+                    options: [.documentType: NSAttributedString.DocumentType.html,
+                             .characterEncoding: String.Encoding.utf8.rawValue],
+                    documentAttributes: nil
+                   ) {
+                    Text(AttributedString(attributedString))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
+                } else {
+                    // Fallback to plain text if HTML parsing fails
+                    Text(processedContent)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
+                }
+            }
         }
+    }
+    
+    private func convertDocumentationToPlainText(markdown: String) -> String {
+        // Strip HTML tags
+        var stripped = markdown.replacingOccurrences(
+            of: #"<[^>]+>"#,
+            with: "",
+            options: .regularExpression
+        )
+        
+        // Remove inline styles
+        stripped = stripped.replacingOccurrences(
+            of: #"style\s*=\s*["'][^"']*["']"#,
+            with: "",
+            options: .regularExpression
+        )
+        
+        // Convert markdown to plain text
+        let lines = stripped.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        
+        for line in lines {
+            var processedLine = line
+            
+            // Remove markdown headers
+            processedLine = processedLine.replacingOccurrences(
+                of: #"^#+\s+"#,
+                with: "",
+                options: [.regularExpression, .anchored]
+            )
+            
+            // Remove markdown bold
+            processedLine = processedLine.replacingOccurrences(
+                of: #"\*\*([^*]+)\*\*"#,
+                with: "$1",
+                options: .regularExpression
+            )
+            
+            // Remove markdown italic
+            processedLine = processedLine.replacingOccurrences(
+                of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
+                with: "$1",
+                options: .regularExpression
+            )
+            
+            // Remove markdown inline code (keep the content)
+            processedLine = processedLine.replacingOccurrences(
+                of: #"`([^`]+)`"#,
+                with: "$1",
+                options: .regularExpression
+            )
+            
+            processedLines.append(processedLine)
+        }
+        
+        return processedLines.joined(separator: "\n")
     }
     
     private var configurationView: some View {
@@ -331,7 +413,9 @@ struct RuleDetailView: View {
                     .disabled(isSimulating)
                 }
             }
-            .padding()
+            .padding(.vertical)
+            .padding(.trailing)
+            .padding(.leading, 0) // No left padding
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)
         }
@@ -409,7 +493,9 @@ struct RuleDetailView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
-                .padding()
+                .padding(.vertical)
+                .padding(.trailing)
+                .padding(.leading, 0) // No left padding
             }
             .frame(maxHeight: 500)
             .background(Color(NSColor.controlBackgroundColor))

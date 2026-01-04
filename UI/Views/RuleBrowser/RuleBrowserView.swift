@@ -27,17 +27,22 @@ struct RuleBrowserView: View {
         NavigationSplitView {
             // First panel: Rule List
             ruleListView
-        } content: {
-            // Second panel: Rule Detail or Empty State
-            if let selectedRuleId = selectedRuleId,
-               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
-                RuleDetailView(rule: selectedRule)
-            } else {
-                emptyDetailView
-            }
+                .navigationSplitViewColumnWidth(min: 200, ideal: 300)
         } detail: {
-            // Third panel: Rule Text/Documentation
-            ruleTextView
+            Group {
+                // Second panel: Rule Detail (only shown when rule is selected)
+                if let selectedRuleId = selectedRuleId,
+                   let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
+                    RuleDetailView(rule: selectedRule)
+                        .id(selectedRuleId) // Force view recreation when selection changes
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .padding(.leading, -16) // Negative padding to counteract NavigationSplitView default padding
+                } else {
+                    // Empty view - no message shown
+                    Color.clear
+                }
+            }
+            .navigationSplitViewColumnWidth(min: 300, ideal: 500)
         }
         .navigationTitle("Rules")
         .onAppear {
@@ -187,143 +192,99 @@ struct RuleBrowserView: View {
         .padding()
     }
     
-    private var emptyDetailView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "doc.text")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary)
-            
-            Text("Select a rule to view details")
-                .font(.headline)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    private var ruleTextView: some View {
-        Group {
-            if let selectedRuleId = selectedRuleId,
-               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Rule Description
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Description")
-                                .font(.headline)
-                            
-                            Text(selectedRule.description)
-                                .font(.body)
-                                .foregroundColor(.primary)
-                        }
-                        .padding()
-                        
-                        Divider()
-                        
-                        // Markdown Documentation (if available)
-                        if let markdownDoc = selectedRule.markdownDocumentation, !markdownDoc.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Documentation")
-                                    .font(.headline)
-                                
-                                // Render markdown documentation
-                                documentationTextView(markdown: markdownDoc, colorScheme: colorScheme)
-                            }
-                            .padding()
-                        } else {
-                            // Show examples if no markdown documentation
-                            if !selectedRule.triggeringExamples.isEmpty || !selectedRule.nonTriggeringExamples.isEmpty {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    Text("Examples")
-                                        .font(.headline)
-                                    
-                                    if !selectedRule.triggeringExamples.isEmpty {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Label("Triggering Examples", systemImage: "xmark.circle.fill")
-                                                .font(.subheadline)
-                                                .foregroundColor(.red)
-                                            
-                                            ForEach(Array(selectedRule.triggeringExamples.enumerated()), id: \.offset) { index, example in
-                                                Text(example)
-                                                    .font(.system(.body, design: .monospaced))
-                                                    .padding()
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                                    .background(Color(NSColor.textBackgroundColor))
-                                                    .cornerRadius(4)
-                                            }
-                                        }
-                                    }
-                                    
-                                    if !selectedRule.nonTriggeringExamples.isEmpty {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Label("Non-Triggering Examples", systemImage: "checkmark.circle.fill")
-                                                .font(.subheadline)
-                                                .foregroundColor(.green)
-                                            
-                                            ForEach(Array(selectedRule.nonTriggeringExamples.enumerated()), id: \.offset) { index, example in
-                                                Text(example)
-                                                    .font(.system(.body, design: .monospaced))
-                                                    .padding()
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                                    .background(Color(NSColor.textBackgroundColor))
-                                                    .cornerRadius(4)
-                                            }
-                                        }
-                                    }
-                                }
-                                .padding()
-                            } else {
-                                VStack(spacing: 16) {
-                                    Image(systemName: "doc.text")
-                                        .font(.system(size: 32))
-                                        .foregroundColor(.secondary)
-                                    
-                                    Text("No additional documentation available")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding()
-                            }
-                        }
-                    }
-                }
-                .navigationTitle("Rule Text")
-            } else {
-                VStack(spacing: 16) {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    
-                    Text("Select a rule to view text")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-    }
-    
     @ViewBuilder
     private func documentationTextView(markdown: String, colorScheme: ColorScheme) -> some View {
-        let processedContent = processContentForDisplay(content: markdown)
-        let htmlContent = convertMarkdownToHTML(content: processedContent)
-        let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
+        // Strip all HTML and render as plain text to avoid any layout issues
+        let strippedContent = stripHTMLTags(from: markdown)
+        let processedContent = processContentForDisplay(content: strippedContent)
+        // Convert markdown to plain text (remove markdown syntax)
+        let plainText = convertMarkdownToPlainText(content: processedContent)
         
-        if let htmlData = fullHTML.data(using: .utf8),
-           let attributedString = try? NSAttributedString(
-            data: htmlData,
-            options: [.documentType: NSAttributedString.DocumentType.html,
-                     .characterEncoding: String.Encoding.utf8.rawValue],
-            documentAttributes: nil
-           ) {
-            Text(AttributedString(attributedString))
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        } else {
-            Text(processedContent)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        Text(plainText)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .multilineTextAlignment(.leading)
+    }
+    
+    private func convertMarkdownToPlainText(content: String) -> String {
+        let lines = content.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        
+        for line in lines {
+            var processedLine = line
+            
+            // Remove markdown headers
+            processedLine = processedLine.replacingOccurrences(
+                of: #"^#+\s+"#,
+                with: "",
+                options: [.regularExpression, .anchored]
+            )
+            
+            // Remove markdown bold
+            processedLine = processedLine.replacingOccurrences(
+                of: #"\*\*([^*]+)\*\*"#,
+                with: "$1",
+                options: .regularExpression
+            )
+            
+            // Remove markdown italic
+            processedLine = processedLine.replacingOccurrences(
+                of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
+                with: "$1",
+                options: .regularExpression
+            )
+            
+            // Remove markdown inline code (keep the content)
+            processedLine = processedLine.replacingOccurrences(
+                of: #"`([^`]+)`"#,
+                with: "$1",
+                options: .regularExpression
+            )
+            
+            processedLines.append(processedLine)
         }
+        
+        return processedLines.joined(separator: "\n")
+    }
+    
+    private func stripHTMLTags(from text: String) -> String {
+        // Remove all HTML tags except markdown code blocks
+        var result = text
+        var inCodeBlock = false
+        var codeBlockContent: [String] = []
+        var lines = text.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        
+        for line in lines {
+            if line.trimmingCharacters(in: .whitespaces).hasPrefix("```") {
+                inCodeBlock.toggle()
+                processedLines.append(line)
+                continue
+            }
+            
+            if inCodeBlock {
+                processedLines.append(line)
+            } else {
+                // Remove HTML tags and inline styles from non-code lines
+                var cleanedLine = line
+                // First remove inline styles (style="...")
+                cleanedLine = cleanedLine.replacingOccurrences(
+                    of: #"style\s*=\s*["'][^"']*["']"#,
+                    with: "",
+                    options: .regularExpression
+                )
+                // Then remove all HTML tags
+                cleanedLine = cleanedLine.replacingOccurrences(
+                    of: #"<[^>]+>"#,
+                    with: "",
+                    options: .regularExpression
+                )
+                processedLines.append(cleanedLine)
+            }
+        }
+        
+        return processedLines.joined(separator: "\n")
     }
     
     private func processContentForDisplay(content: String) -> String {
@@ -347,20 +308,31 @@ struct RuleBrowserView: View {
                 continue
             }
             
-            // Skip HTML table if we're in the metadata section
+            // Skip ALL HTML tables (not just metadata section)
+            if trimmed.hasPrefix("<table") || trimmed.contains("<table>") || trimmed.contains("<table ") {
+                skipTable = true
+                continue
+            }
             if skipTable {
-                if trimmed.hasPrefix("<table>") || trimmed.contains("<table>") {
-                    continue
-                } else if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
+                if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
                     skipTable = false
                     continue
                 } else if trimmed.contains("<thead>") || trimmed.contains("</thead>") ||
                           trimmed.contains("<tbody>") || trimmed.contains("</tbody>") ||
                           trimmed.contains("<tr>") || trimmed.contains("</tr>") ||
                           trimmed.contains("<th>") || trimmed.contains("</th>") ||
-                          trimmed.contains("<td>") || trimmed.contains("</td>") {
+                          trimmed.contains("<td>") || trimmed.contains("</td>") ||
+                          trimmed.contains("<thead") || trimmed.contains("<tbody") ||
+                          trimmed.contains("<tr") || trimmed.contains("<th") ||
+                          trimmed.contains("<td") {
                     continue
                 }
+            }
+            
+            // Skip horizontal rules (dividers)
+            if trimmed.hasPrefix("<hr") || trimmed.contains("<hr>") || 
+               trimmed.hasPrefix("---") || trimmed == "---" {
+                continue
             }
             
             processedLines.append(line)
@@ -473,6 +445,8 @@ struct RuleBrowserView: View {
                     color: \(textColor);
                     margin: 0;
                     padding: 0;
+                    display: block !important;
+                    width: 100% !important;
                 }
                 h1 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 16px; color: \(textColor); }
                 h2 { font-size: 18px; font-weight: 600; margin-top: 24px; margin-bottom: 12px; color: \(textColor); }
@@ -494,10 +468,28 @@ struct RuleBrowserView: View {
                 }
                 pre code { background: none; padding: 0; color: \(textColor); }
                 p { margin: 8px 0; color: \(textColor); }
-                ul, ol { margin: 8px 0; padding-left: 24px; color: \(textColor); }
-                li { margin: 4px 0; color: \(textColor); }
+                ul, ol { margin: 8px 0; padding-left: 24px; color: \(textColor); list-style-position: inside; }
+                li { margin: 4px 0; color: \(textColor); display: list-item; }
                 strong { color: \(textColor); }
                 em { color: \(textColor); }
+                hr { display: none; }
+                table { border: none; border-collapse: collapse; width: 100%; display: block; }
+                td, th { border: none; display: block; width: 100%; padding: 4px; }
+                tr { display: block; width: 100%; }
+                thead, tbody { display: block; width: 100%; }
+                div { display: block; width: 100%; }
+                * { 
+                    max-width: 100% !important; 
+                    box-sizing: border-box !important; 
+                    float: none !important; 
+                    display: block !important;
+                    width: 100% !important;
+                }
+                p, span, div, section, article { 
+                    display: block !important; 
+                    width: 100% !important; 
+                    float: none !important;
+                }
             </style>
         </head>
         <body>
