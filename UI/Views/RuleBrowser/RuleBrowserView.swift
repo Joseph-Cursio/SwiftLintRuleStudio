@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RuleBrowserView: View {
     @EnvironmentObject var ruleRegistry: RuleRegistry
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
     
@@ -24,16 +25,19 @@ struct RuleBrowserView: View {
     
     var body: some View {
         NavigationSplitView {
-            // Master: Rule List
+            // First panel: Rule List
             ruleListView
-        } detail: {
-            // Detail: Rule Detail or Empty State
+        } content: {
+            // Second panel: Rule Detail or Empty State
             if let selectedRuleId = selectedRuleId,
                let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
                 RuleDetailView(rule: selectedRule)
             } else {
                 emptyDetailView
             }
+        } detail: {
+            // Third panel: Rule Text/Documentation
+            ruleTextView
         }
         .navigationTitle("Rules")
         .onAppear {
@@ -195,6 +199,313 @@ struct RuleBrowserView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    
+    private var ruleTextView: some View {
+        Group {
+            if let selectedRuleId = selectedRuleId,
+               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Rule Description
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Description")
+                                .font(.headline)
+                            
+                            Text(selectedRule.description)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                        }
+                        .padding()
+                        
+                        Divider()
+                        
+                        // Markdown Documentation (if available)
+                        if let markdownDoc = selectedRule.markdownDocumentation, !markdownDoc.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Documentation")
+                                    .font(.headline)
+                                
+                                // Render markdown documentation
+                                documentationTextView(markdown: markdownDoc, colorScheme: colorScheme)
+                            }
+                            .padding()
+                        } else {
+                            // Show examples if no markdown documentation
+                            if !selectedRule.triggeringExamples.isEmpty || !selectedRule.nonTriggeringExamples.isEmpty {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("Examples")
+                                        .font(.headline)
+                                    
+                                    if !selectedRule.triggeringExamples.isEmpty {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Label("Triggering Examples", systemImage: "xmark.circle.fill")
+                                                .font(.subheadline)
+                                                .foregroundColor(.red)
+                                            
+                                            ForEach(Array(selectedRule.triggeringExamples.enumerated()), id: \.offset) { index, example in
+                                                Text(example)
+                                                    .font(.system(.body, design: .monospaced))
+                                                    .padding()
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                    .background(Color(NSColor.textBackgroundColor))
+                                                    .cornerRadius(4)
+                                            }
+                                        }
+                                    }
+                                    
+                                    if !selectedRule.nonTriggeringExamples.isEmpty {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Label("Non-Triggering Examples", systemImage: "checkmark.circle.fill")
+                                                .font(.subheadline)
+                                                .foregroundColor(.green)
+                                            
+                                            ForEach(Array(selectedRule.nonTriggeringExamples.enumerated()), id: \.offset) { index, example in
+                                                Text(example)
+                                                    .font(.system(.body, design: .monospaced))
+                                                    .padding()
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                    .background(Color(NSColor.textBackgroundColor))
+                                                    .cornerRadius(4)
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding()
+                            } else {
+                                VStack(spacing: 16) {
+                                    Image(systemName: "doc.text")
+                                        .font(.system(size: 32))
+                                        .foregroundColor(.secondary)
+                                    
+                                    Text("No additional documentation available")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding()
+                            }
+                        }
+                    }
+                }
+                .navigationTitle("Rule Text")
+            } else {
+                VStack(spacing: 16) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    
+                    Text("Select a rule to view text")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func documentationTextView(markdown: String, colorScheme: ColorScheme) -> some View {
+        let processedContent = processContentForDisplay(content: markdown)
+        let htmlContent = convertMarkdownToHTML(content: processedContent)
+        let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
+        
+        if let htmlData = fullHTML.data(using: .utf8),
+           let attributedString = try? NSAttributedString(
+            data: htmlData,
+            options: [.documentType: NSAttributedString.DocumentType.html,
+                     .characterEncoding: String.Encoding.utf8.rawValue],
+            documentAttributes: nil
+           ) {
+            Text(AttributedString(attributedString))
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text(processedContent)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+    
+    private func processContentForDisplay(content: String) -> String {
+        let lines = content.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        var skipTable = false
+        
+        for (index, line) in lines.enumerated() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            
+            // Skip the main title
+            if index == 0 && (trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")) {
+                continue
+            }
+            
+            // Skip metadata section
+            if trimmed.contains("* **") || trimmed.hasPrefix("* **") {
+                if trimmed.contains("default configuration:") || trimmed.contains("Default configuration:") {
+                    skipTable = true
+                }
+                continue
+            }
+            
+            // Skip HTML table if we're in the metadata section
+            if skipTable {
+                if trimmed.hasPrefix("<table>") || trimmed.contains("<table>") {
+                    continue
+                } else if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
+                    skipTable = false
+                    continue
+                } else if trimmed.contains("<thead>") || trimmed.contains("</thead>") ||
+                          trimmed.contains("<tbody>") || trimmed.contains("</tbody>") ||
+                          trimmed.contains("<tr>") || trimmed.contains("</tr>") ||
+                          trimmed.contains("<th>") || trimmed.contains("</th>") ||
+                          trimmed.contains("<td>") || trimmed.contains("</td>") {
+                    continue
+                }
+            }
+            
+            processedLines.append(line)
+        }
+        
+        return processedLines.joined(separator: "\n")
+    }
+    
+    private func convertMarkdownToHTML(content: String) -> String {
+        let lines = content.components(separatedBy: .newlines)
+        var processedLines: [String] = []
+        var inCodeBlock = false
+        var codeBlockLanguage = ""
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            let hasHTMLTags = trimmed.contains("<") && trimmed.contains(">")
+            
+            // Handle markdown code blocks
+            if line.hasPrefix("```") {
+                if inCodeBlock {
+                    processedLines.append("</code></pre>")
+                    inCodeBlock = false
+                    codeBlockLanguage = ""
+                } else {
+                    let language = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+                    codeBlockLanguage = language.isEmpty ? "" : " class=\"language-\(language)\""
+                    processedLines.append("<pre><code\(codeBlockLanguage)>")
+                    inCodeBlock = true
+                }
+                continue
+            }
+            
+            if inCodeBlock {
+                let escaped = line
+                    .replacingOccurrences(of: "&", with: "&amp;")
+                    .replacingOccurrences(of: "<", with: "&lt;")
+                    .replacingOccurrences(of: ">", with: "&gt;")
+                processedLines.append(escaped)
+                continue
+            }
+            
+            if hasHTMLTags {
+                processedLines.append(line)
+                continue
+            }
+            
+            // Convert markdown headers
+            if line.hasPrefix("# ") {
+                let text = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                processedLines.append("<h1>\(text)</h1>")
+            } else if line.hasPrefix("## ") {
+                let text = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+                processedLines.append("<h2>\(text)</h2>")
+            } else if line.hasPrefix("### ") {
+                let text = String(line.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+                processedLines.append("<h3>\(text)</h3>")
+            } else if trimmed.isEmpty {
+                processedLines.append("<br>")
+            } else {
+                var processedLine = line
+                
+                // Convert inline code
+                processedLine = processedLine.replacingOccurrences(
+                    of: #"`([^`]+)`"#,
+                    with: "<code>$1</code>",
+                    options: .regularExpression
+                )
+                
+                // Convert bold
+                processedLine = processedLine.replacingOccurrences(
+                    of: #"\*\*([^*]+)\*\*"#,
+                    with: "<strong>$1</strong>",
+                    options: .regularExpression
+                )
+                
+                // Convert italic
+                processedLine = processedLine.replacingOccurrences(
+                    of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
+                    with: "<em>$1</em>",
+                    options: .regularExpression
+                )
+                
+                processedLines.append(processedLine)
+            }
+        }
+        
+        if inCodeBlock {
+            processedLines.append("</code></pre>")
+        }
+        
+        return processedLines.joined(separator: "\n")
+    }
+    
+    private func wrapHTMLInDocument(body: String, colorScheme: ColorScheme) -> String {
+        let isDarkMode = colorScheme == .dark
+        let textColor = isDarkMode ? "#FFFFFF" : "#000000"
+        let codeBgColor = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+        
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+                    font-size: 14px; 
+                    line-height: 1.6; 
+                    color: \(textColor);
+                    margin: 0;
+                    padding: 0;
+                }
+                h1 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 16px; color: \(textColor); }
+                h2 { font-size: 18px; font-weight: 600; margin-top: 24px; margin-bottom: 12px; color: \(textColor); }
+                h3 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: \(textColor); }
+                code { 
+                    font-family: 'SF Mono', Monaco, 'Courier New', monospace; 
+                    background-color: \(codeBgColor); 
+                    padding: 2px 6px; 
+                    border-radius: 3px; 
+                    font-size: 13px;
+                    color: \(textColor);
+                }
+                pre { 
+                    background-color: \(codeBgColor); 
+                    padding: 12px; 
+                    border-radius: 6px; 
+                    overflow-x: auto;
+                    margin: 12px 0;
+                }
+                pre code { background: none; padding: 0; color: \(textColor); }
+                p { margin: 8px 0; color: \(textColor); }
+                ul, ol { margin: 8px 0; padding-left: 24px; color: \(textColor); }
+                li { margin: 4px 0; color: \(textColor); }
+                strong { color: \(textColor); }
+                em { color: \(textColor); }
+            </style>
+        </head>
+        <body>
+        \(body)
+        </body>
+        </html>
+        """
+    }
 }
 
 #Preview {
@@ -207,7 +518,7 @@ struct RuleBrowserView: View {
         cacheManager: cacheManager
     )
     
-    return RuleBrowserView()
+    RuleBrowserView()
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
