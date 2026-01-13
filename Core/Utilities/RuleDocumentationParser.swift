@@ -22,19 +22,45 @@ struct RuleDocumentationParser {
         var currentSection: SectionType?
         var currentExample: [String] = []
         var inCodeBlock = false
+        var descriptionLines: [String] = []
+        var foundTitle = false
         
         // Parse title (first line is usually the rule name)
         if let firstLine = lines.first, firstLine.hasPrefix("#") {
             name = String(firstLine.dropFirst()).trimmingCharacters(in: .whitespaces)
+            foundTitle = true
         }
         
         // Parse metadata and examples
         for (index, line) in lines.enumerated() {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             
-            // Description is usually the line after the title (before metadata)
-            if index == 1 && !trimmed.isEmpty && !trimmed.hasPrefix("*") && !trimmed.hasPrefix("#") && description.isEmpty {
-                description = trimmed
+            // Skip the title line
+            if index == 0 && foundTitle {
+                continue
+            }
+            
+            // Collect description lines - everything after title until we hit metadata or section headers
+            // Stop collecting when we encounter:
+            // - Metadata lines (starting with "* **")
+            // - Section headers (starting with "##")
+            // - Code blocks (starting with "```")
+            // - Empty lines that indicate end of description paragraph
+            if description.isEmpty {
+                if trimmed.hasPrefix("* **") || trimmed.hasPrefix("##") || trimmed.hasPrefix("```") {
+                    // We've hit metadata or a section, stop collecting description
+                    if !descriptionLines.isEmpty {
+                        description = descriptionLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                        descriptionLines = [] // Clear to prevent re-collecting
+                    }
+                } else if !trimmed.isEmpty {
+                    // Collect non-empty lines for description
+                    descriptionLines.append(trimmed)
+                } else if !descriptionLines.isEmpty {
+                    // Empty line after description - we've reached the end of the first paragraph
+                    description = descriptionLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                    descriptionLines = [] // Clear to prevent re-collecting
+                }
             }
             
             // Detect code blocks
@@ -128,6 +154,23 @@ struct RuleDocumentationParser {
                     currentSection = nil
                 }
                 continue
+            }
+        }
+        
+        // If we still have collected description lines, use them
+        if description.isEmpty && !descriptionLines.isEmpty {
+            description = descriptionLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        // Limit description length for list view (first 250 characters or first sentence)
+        if !description.isEmpty && description.count > 250 {
+            // Try to find a sentence boundary near 250 characters
+            let truncated = String(description.prefix(250))
+            if let lastPeriod = truncated.lastIndex(of: ".") {
+                description = String(description[..<description.index(after: lastPeriod)]).trimmingCharacters(in: .whitespaces)
+            } else {
+                // No period found, just truncate and add ellipsis
+                description = truncated.trimmingCharacters(in: .whitespaces) + "..."
             }
         }
         
