@@ -209,6 +209,23 @@ struct RuleDetailView: View {
         }
     }
     
+    /// Determines if the short description should be shown (only if it's unique and not in markdown)
+    private var shouldShowShortDescription: Bool {
+        guard !rule.description.isEmpty && rule.description != "No description available" else {
+            return false
+        }
+        // If we have markdown, check if the short description is already contained in it
+        if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
+            // Check if the description text appears in the markdown (case-insensitive, ignoring whitespace)
+            let normalizedDescription = rule.description.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalizedMarkdown = markdownDoc.lowercased().replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "  ", with: " ")
+            // Only show short description if it's NOT found in the markdown
+            return !normalizedMarkdown.contains(normalizedDescription)
+        }
+        // If no markdown, show the short description
+        return true
+    }
+    
     private var headerView: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -261,9 +278,12 @@ struct RuleDetailView: View {
             Text("Description")
                 .font(.headline)
             
-            Text(rule.description)
-                .font(.body)
-                .foregroundColor(.primary)
+            // Only show the short description if it's unique (not already in markdown)
+            if shouldShowShortDescription {
+                Text(rule.description)
+                    .font(.body)
+                    .foregroundColor(.primary)
+            }
             
             // Show markdown documentation if available - directly below description
             if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
@@ -276,6 +296,9 @@ struct RuleDetailView: View {
                 // Wrap in full HTML document with styling
                 let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
                 
+                // Determine top padding: only add spacing if we showed the short description above
+                let hasShortDescription = shouldShowShortDescription
+                
                 // Render HTML using NSAttributedString
                 if let htmlData = fullHTML.data(using: .utf8),
                    let attributedString = try? NSAttributedString(
@@ -287,14 +310,20 @@ struct RuleDetailView: View {
                     Text(AttributedString(attributedString))
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 8)
+                        .padding(.top, hasShortDescription ? 8 : 0)
                 } else {
                     // Fallback to plain text if HTML parsing fails
                     Text(processedContent)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 8)
+                        .padding(.top, hasShortDescription ? 8 : 0)
                 }
+            } else if rule.description.isEmpty || rule.description == "No description available" {
+                // Show message if we have neither description nor markdown documentation
+                Text("No description available")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .italic()
             }
         }
     }
