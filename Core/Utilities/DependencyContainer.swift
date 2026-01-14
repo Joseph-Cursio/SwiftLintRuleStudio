@@ -19,6 +19,7 @@ class DependencyContainer: ObservableObject {
     let workspaceManager: WorkspaceManager
     let onboardingManager: OnboardingManager
     let impactSimulator: ImpactSimulator
+    let xcodeIntegrationService: XcodeIntegrationService
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -30,6 +31,7 @@ class DependencyContainer: ObservableObject {
         workspaceManager: WorkspaceManager? = nil,
         onboardingManager: OnboardingManager? = nil,
         impactSimulator: ImpactSimulator? = nil,
+        xcodeIntegrationService: XcodeIntegrationService? = nil,
         userDefaults: UserDefaults? = nil
     ) {
         let cache = cacheManager ?? CacheManager()
@@ -70,6 +72,9 @@ class DependencyContainer: ObservableObject {
             violationStorage: self.violationStorage,
             fileTracker: nil // Will create default file tracker
         )
+        
+        // Initialize Xcode integration service
+        self.xcodeIntegrationService = xcodeIntegrationService ?? XcodeIntegrationService(workspaceManager: self.workspaceManager)
         
         // Forward changes from child ObservableObjects to trigger view updates
         self.onboardingManager.objectWillChange

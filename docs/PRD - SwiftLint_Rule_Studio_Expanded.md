@@ -3,7 +3,7 @@ I asked Claude to expand on Copilots initial PRD.
 # SwiftLint Rule Studio - Product Requirements Document
 
 **Version:** 2.0  
-**Last Updated:** December 26, 2025  
+**Last Updated:** January 2026  
 **Status:** Draft  
 **Owner:** Product Team
 
@@ -21,7 +21,7 @@ SwiftLint Rule Studio is a macOS desktop application and optional Xcode companio
 
 ## Current Implementation Status
 
-**Last Updated:** December 26, 2025  
+**Last Updated:** January 2026  
 **Overall v1.0 Completion:** ~85%
 
 > **Note:** This PRD is a requirements document describing what *should* be built. For detailed implementation status, see [`V1_REQUIREMENTS_STATUS.md`](../V1_REQUIREMENTS_STATUS.md).
@@ -30,11 +30,11 @@ SwiftLint Rule Studio is a macOS desktop application and optional Xcode companio
 
 | Feature | Status | Completion | Notes |
 |---------|--------|------------|-------|
-| Rule Browser | ✅ Complete | 100% | Fully implemented with search, filters, and caching |
-| Rule Detail Panel | ⚠️ Mostly Complete | 80% | Core features done; missing "Why this matters" and related rules |
+| Rule Browser | ✅ Complete | 100% | Fully implemented with search, filters, and caching. Background loading for rules beyond initial batch. Improved UI alignment with toolbar. |
+| Rule Detail Panel | ⚠️ Mostly Complete | 85% | Core features done; improved markdown rendering, description parsing, and UI layout. Removed third panel, consolidated to two-panel layout. Missing "Why this matters" and related rules. |
 | YAML Configuration Engine | ⚠️ Mostly Complete | 80% | Core engine complete; missing dry-run UI and Git integration |
 | Workspace Analyzer | ✅ Complete | 100% | Fully implemented with incremental analysis and file tracking |
-| Violation Inspector | ⚠️ Mostly Complete | 75% | Core functionality done; Xcode integration needs improvement |
+| Violation Inspector | ⚠️ Mostly Complete | 75% | Core functionality done; UI alignment improvements applied. Xcode integration needs improvement |
 | Workspace Management | ✅ Complete | 100% | Fully implemented with persistence and validation |
 | Rule Config Persistence | ✅ Complete | 100% | Full end-to-end workflow with diff preview |
 | Onboarding Flow | ✅ Complete | 100% | Complete with SwiftLint detection and workspace selection |
@@ -45,8 +45,32 @@ SwiftLint Rule Studio is a macOS desktop application and optional Xcode companio
 
 - **Total Tests:** 176 tests (100% passing)
 - **Test Framework:** Swift Testing (migrated from XCTest)
-- **Concurrency:** Swift 6 compliant with strict concurrency checking
+- **Concurrency:** Swift 6 compliant with strict concurrency checking (region-based isolation checker)
 - **Test Isolation:** Complete isolation for UserDefaults, workspaces, and file systems
+
+### Recent UI/UX Improvements (January 2026)
+
+**Layout Refinements:**
+- ✅ Simplified Rule Detail Panel from three-panel to two-panel layout
+- ✅ Moved rule description from separate panel to bottom of detail panel
+- ✅ Improved content alignment with toolbar toggle using negative padding offsets
+- ✅ Applied consistent alignment to both Rules and Violations panels
+- ✅ Restored natural margins and padding within content components
+- ✅ Matched heading text sizes (Description, Rationale, Examples) for visual consistency
+- ✅ Added blank line before "Rationale" section for better readability
+
+**Performance & Data Loading:**
+- ✅ Implemented background loading for rules beyond initial batch (20 rules)
+- ✅ Parallel rule detail fetching with timeout handling
+- ✅ Improved rule description extraction from markdown documentation
+- ✅ Enhanced description parsing to collect multiple lines (first paragraph/sentences)
+- ✅ Limited description length to ~250 characters for list view with sentence boundary detection
+
+**Code Quality:**
+- ✅ Resolved Swift 6 concurrency errors (region-based isolation checker)
+- ✅ Fixed data race issues in background rule loading
+- ✅ Improved actor isolation and Sendable conformance
+- ✅ Enhanced error handling for rule detail fetching with timeouts
 
 ### What's Left for v1.0
 
@@ -285,14 +309,18 @@ SwiftLint Rule Studio makes linting a competitive advantage by turning it from a
 - Fuzzy matching
 
 **UI Components:**
-- Master-detail split view
+- Master-detail split view (two-panel layout)
 - List view with sortable columns
 - Quick action buttons for common operations
 - Keyboard shortcuts for power users
+- Content alignment with toolbar toggle
 
 **Technical Requirements:**
-- Load rules from `swiftlint rules --format json`
-- Cache rule metadata for performance
+- ✅ Load rules from `swiftlint rules --format json`
+- ✅ Cache rule metadata for performance
+- ✅ Background loading for rules beyond initial batch (20 rules)
+- ✅ Parallel rule detail fetching with timeout handling (30 seconds)
+- ✅ Improved description extraction from markdown
 - Update when SwiftLint version changes
 - Support custom rules from workspace
 
@@ -308,10 +336,12 @@ SwiftLint Rule Studio makes linting a competitive advantage by turning it from a
 **Content Sections:**
 
 **Overview:**
-- Full description in plain English
-- "Why this matters" section explaining rationale
-- Links to Swift Evolution proposals, style guides, or documentation
-- Rule adoption statistics ("Used by 85% of popular open-source Swift projects")
+- Full description in plain English (improved parsing from markdown documentation)
+- Short description extracted from first paragraph for list view
+- Markdown documentation rendering with HTML formatting
+- "Why this matters" section explaining rationale (planned)
+- Links to Swift Evolution proposals, style guides, or documentation (planned)
+- Rule adoption statistics ("Used by 85% of popular open-source Swift projects") (planned)
 
 **Examples:**
 - "Triggering Examples" showing code that violates the rule
@@ -327,29 +357,41 @@ SwiftLint Rule Studio makes linting a competitive advantage by turning it from a
 - "Restore defaults" button
 
 **Current Violations:**
-- Count of violations in current workspace
-- List of affected files with line numbers
-- Code snippet preview for each violation
-- "Open in Xcode" button for each violation
-- Filter by severity or file path
+- Count of violations in current workspace (planned)
+- List of affected files with line numbers (planned)
+- Code snippet preview for each violation (planned)
+- "Open in Xcode" button for each violation (planned)
+- Filter by severity or file path (planned)
 
 **Impact Simulation:**
-- "Simulate" button to estimate impact without enabling
-- Projected violation count
-- Estimated fix time (trivial/moderate/complex)
-- Affected files heat map
-- "Enable anyway" or "Fix first" CTAs
+- ✅ "Simulate" button to estimate impact without enabling (implemented)
+- ✅ Projected violation count (implemented)
+- ✅ Affected files list (implemented)
+- Estimated fix time (trivial/moderate/complex) (planned)
+- Affected files heat map (planned)
+- "Enable anyway" or "Fix first" CTAs (planned)
 
 **Related Rules:**
-- Rules in same category
-- Rules that commonly conflict or complement
-- Suggested rule combinations
+- Rules in same category (planned)
+- Rules that commonly conflict or complement (planned)
+- Suggested rule combinations (planned)
+
+**UI Layout:**
+- ✅ Two-panel layout (rules list + detail panel)
+- ✅ Description section at bottom of detail panel with markdown rendering
+- ✅ Consistent heading sizes and spacing
+- ✅ Content aligned with toolbar toggle
+- ✅ Natural margins and padding within content
 
 **Technical Requirements:**
-- Parse SwiftLint's built-in examples
-- Run background analysis to find current violations
-- Cache violation results for performance
-- Support real-time config preview without saving
+- ✅ Parse SwiftLint's built-in examples
+- ✅ Parse markdown documentation from `swiftlint generate-docs`
+- ✅ Background loading for rule details beyond initial batch
+- ✅ Parallel fetching with timeout handling
+- ✅ Improved description extraction (multiple lines, sentence boundaries)
+- Run background analysis to find current violations (planned)
+- Cache violation results for performance (planned)
+- ✅ Support real-time config preview without saving
 
 ### 3. YAML Configuration Engine (P0 - v1.0)
 
@@ -2245,6 +2287,14 @@ By end of v1.0 launch + 3 months:
 
 ## Changelog
 
+**v2.1 (This Document) - January 2026**
+- Updated implementation status with recent UI/UX improvements
+- Documented layout refinements (two-panel layout, alignment fixes)
+- Documented performance improvements (background rule loading)
+- Documented code quality improvements (Swift 6 concurrency fixes)
+- Updated Rule Detail Panel section with current implementation status
+- Updated Rule Browser section with background loading details
+
 **v2.0 (This Document) - December 21, 2025**
 - Expanded from original 1-page PRD
 - Added detailed competitive analysis
@@ -2269,6 +2319,80 @@ By end of v1.0 launch + 3 months:
 **Reviewers:** Engineering Lead, Design Lead, CEO  
 **Review Cadence:** Monthly or after major milestones  
 **Status:** Living document - update as product evolves
+
+---
+
+## Recommended Next Steps (January 2026)
+
+Based on the current implementation status (~85% complete) and recent improvements, here are the recommended priorities:
+
+### Immediate Priority (v1.0 Critical Path)
+
+**1. Xcode Integration Improvements** (Estimated: 2-3 days)
+- **Why:** This is the only critical blocking feature for v1.0. Users need reliable "Open in Xcode" functionality to fix violations efficiently.
+- **Tasks:**
+  - Implement reliable file:line URL generation (`xcode://file?path=...&line=...`)
+  - Add Xcode project detection and path resolution
+  - Create service layer for Xcode integration
+  - Add fallback handling for when Xcode isn't installed
+  - Test with various Xcode project structures (workspace, project, SPM)
+
+**2. Verify UI Alignment Values** (Estimated: 30 minutes)
+- **Why:** Recent UI alignment work settled on `-300pt` negative padding, but code may need verification after syncing with remote.
+- **Tasks:**
+  - Verify `RuleBrowserView` has correct negative padding value
+  - Verify `ViolationInspectorView` has matching alignment
+  - Test on different screen sizes to ensure alignment holds
+  - Document the final values in code comments
+
+### Short-term Enhancements (v1.0 Polish)
+
+**3. Rule Detail Panel Enhancements** (Estimated: 1-2 days)
+- **Why:** Improve user learning experience with missing sections.
+- **Tasks:**
+  - Add "Why this matters" section (extract from markdown rationale)
+  - Add current violations count in workspace
+  - Add "Related Rules" section (rules in same category)
+  - Link to Swift Evolution proposals where available
+
+**4. Violation Inspector Enhancements** (Estimated: 2-3 days)
+- **Why:** Improve workflow efficiency for developers fixing violations.
+- **Tasks:**
+  - Add grouping options (by file, rule, severity)
+  - Add bulk operations UI (suppress/resolve multiple)
+  - Add export to CSV/JSON functionality
+  - Add keyboard shortcuts for navigation
+
+### Medium-term Features (v1.1 Candidates)
+
+**5. Exclusion Path Recommendations** (Estimated: 1-2 days)
+- **Why:** Help users avoid analyzing third-party code unnecessarily.
+- **Tasks:**
+  - Detect violations in common build/dependency directories
+  - Add "Recommended Exclusions" UI in configuration
+  - One-click "Add Recommended Exclusions" button
+  - Integrate into onboarding flow
+
+**6. Dashboard (Basic Version)** (Estimated: 3-5 days)
+- **Why:** Provide visibility into code quality trends (moved from v1.0 to v1.1, but could be valuable earlier).
+- **Tasks:**
+  - Basic violation trends chart
+  - Quality score calculation
+  - Rule adoption timeline
+  - Export functionality
+
+### Success Criteria for v1.0 Launch
+
+Before declaring v1.0 complete, ensure:
+- ✅ All P0 features implemented and tested
+- ✅ Xcode integration is reliable and tested
+- ✅ UI is polished and consistent
+- ✅ All 176 tests passing
+- ✅ Performance targets met (see Technical Architecture section)
+- ✅ User documentation complete
+- ✅ App Store submission materials ready
+
+**Current Status:** ~85% complete, with Xcode integration as the primary remaining blocker.
 
 ---
 

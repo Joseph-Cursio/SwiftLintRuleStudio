@@ -9,6 +9,9 @@ import SwiftUI
 
 struct ViolationListItem: View {
     let violation: Violation
+    var onOpenInXcode: (() -> Void)? = nil
+    
+    @EnvironmentObject var dependencies: DependencyContainer
     
     var body: some View {
         HStack(spacing: 12) {
@@ -56,9 +59,47 @@ struct ViolationListItem: View {
             }
             
             Spacer()
+            
+            // Open in Xcode button (compact)
+            if let onOpenInXcode = onOpenInXcode {
+                Button {
+                    onOpenInXcode()
+                } label: {
+                    Image(systemName: "arrow.right.circle")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Open in Xcode (⌘O)")
+            }
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .contextMenu {
+            if let workspace = dependencies.workspaceManager.currentWorkspace {
+                Button {
+                    Task {
+                        await openInXcode(workspace: workspace)
+                    }
+                } label: {
+                    Label("Open in Xcode", systemImage: "arrow.right.circle")
+                }
+                .keyboardShortcut("o", modifiers: .command)
+            }
+        }
+    }
+    
+    private func openInXcode(workspace: Workspace) async {
+        do {
+            _ = try await dependencies.xcodeIntegrationService.openFile(
+                at: violation.filePath,
+                line: violation.line,
+                column: violation.column,
+                in: workspace
+            )
+        } catch {
+            // Error handling is done at the service level or can be shown via alert
+            print("Failed to open file in Xcode: \(error)")
+        }
     }
     
     private var severityColor: Color {

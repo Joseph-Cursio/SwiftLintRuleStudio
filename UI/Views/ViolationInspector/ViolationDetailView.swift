@@ -14,6 +14,9 @@ struct ViolationDetailView: View {
     
     @State private var showSuppressDialog = false
     @State private var suppressReason = ""
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
+    @State private var isOpeningInXcode = false
     @EnvironmentObject var dependencies: DependencyContainer
     
     var body: some View {
@@ -47,6 +50,11 @@ struct ViolationDetailView: View {
         .navigationTitle(violation.ruleID)
         .sheet(isPresented: $showSuppressDialog) {
             suppressDialog
+        }
+        .alert("Error Opening File", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
         }
     }
     
@@ -110,11 +118,19 @@ struct ViolationDetailView: View {
             }
             
             Button {
-                openInXcode()
+                Task {
+                    await openInXcode()
+                }
             } label: {
-                Label("Open in Xcode", systemImage: "arrow.right.circle")
+                if isOpeningInXcode {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else {
+                    Label("Open in Xcode", systemImage: "arrow.right.circle")
+                }
             }
             .buttonStyle(.borderedProminent)
+            .disabled(isOpeningInXcode)
         }
     }
     
@@ -202,20 +218,41 @@ struct ViolationDetailView: View {
         .frame(width: 500, height: 300)
     }
     
-    private func openInXcode() {
-        // Generate xcode:// URL to open file at specific line
-        // Format: xcode://file/path/to/file.swift:line:column
-        let fileURL = URL(fileURLWithPath: violation.filePath)
-        var urlString = "xcode://file\(fileURL.path):\(violation.line)"
-        if let column = violation.column {
-            urlString += ":\(column)"
+    private func openInXcode() async {
+        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
+            errorMessage = "No workspace is currently open. Please select a workspace first."
+            showErrorAlert = true
+            return
         }
         
-        if let xcodeURL = URL(string: urlString) {
-            NSWorkspace.shared.open(xcodeURL)
-        } else {
-            // Fallback: try to open the file in default editor
-            NSWorkspace.shared.open(fileURL)
+        isOpeningInXcode = true
+        defer { isOpeningInXcode = false }
+        
+        do {
+            let success = try await dependencies.xcodeIntegrationService.openFile(
+                at: violation.filePath,
+                line: violation.line,
+                column: violation.column,
+                in: workspace
+            )
+            
+            if !success {
+                errorMessage = "Failed to open file in Xcode. Please ensure Xcode is installed and try again."
+                showErrorAlert = true
+            }
+        } catch let error as XcodeIntegrationError {
+            switch error {
+            case .fileNotFound(let path):
+                errorMessage = "File not found: \(path)\n\nThe file may have been moved or deleted."
+            case .xcodeNotInstalled:
+                errorMessage = "Xcode is not installed.\n\nPlease install Xcode from the App Store to use this feature."
+            case .failedToOpen:
+                errorMessage = "Failed to open file in Xcode.\n\nPlease ensure Xcode is installed and try again."
+            }
+            showErrorAlert = true
+        } catch {
+            errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
+            showErrorAlert = true
         }
     }
 }
