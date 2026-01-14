@@ -18,6 +18,8 @@ struct RuleDetailView: View {
     @State private var impactResult: RuleImpactResult?
     @State private var isSimulating = false
     @State private var currentRule: Rule
+    @State private var violationCount: Int = 0
+    @State private var isLoadingViolationCount = false
     
     let ruleId: String
     
@@ -49,6 +51,26 @@ struct RuleDetailView: View {
                 
                 // Description
                 descriptionView
+                
+                Divider()
+                
+                // Why This Matters (Rationale)
+                whyThisMattersView
+                
+                Divider()
+                
+                // Violations Count
+                violationsCountView
+                
+                Divider()
+                
+                // Related Rules
+                relatedRulesView
+                
+                Divider()
+                
+                // Swift Evolution Links
+                swiftEvolutionView
             }
             .padding(.top, 8) // Minimal top padding
             .padding(.bottom)
@@ -778,6 +800,257 @@ struct RuleDetailView: View {
         </body>
         </html>
         """
+    }
+    
+    // MARK: - New Sections
+    
+    private var whyThisMattersView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Why This Matters")
+                .font(.headline)
+            
+            if let rationale = extractRationale(from: rule.markdownDocumentation ?? "") {
+                Text(rationale)
+                    .font(.body)
+                    .foregroundColor(.primary)
+            } else {
+                Text("No rationale available")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .italic()
+            }
+        }
+    }
+    
+    private var violationsCountView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Current Violations")
+                .font(.headline)
+            
+            if isLoadingViolationCount {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else {
+                HStack(spacing: 8) {
+                    Text("\(violationCount)")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(violationCount > 0 ? .orange : .green)
+                    
+                    Text(violationCount == 1 ? "violation" : "violations")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                    
+                    if violationCount > 0 {
+                        Text("in current workspace")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var relatedRulesView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Related Rules")
+                .font(.headline)
+            
+            let related = relatedRules
+            if related.isEmpty {
+                Text("No related rules found")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .italic()
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(related.prefix(5), id: \.id) { relatedRule in
+                        Button {
+                            // Navigate to related rule - would need navigation handling
+                        } label: {
+                            HStack {
+                                Text(relatedRule.name)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    if related.count > 5 {
+                        Text("+ \(related.count - 5) more")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                }
+            }
+        }
+    }
+    
+    private var swiftEvolutionView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Swift Evolution")
+                .font(.headline)
+            
+            let links = extractSwiftEvolutionLinks(from: rule.markdownDocumentation ?? "")
+            if links.isEmpty {
+                Text("No Swift Evolution proposals linked")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .italic()
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(links, id: \.self) { link in
+                        Link(destination: link) {
+                            HStack {
+                                Image(systemName: "link")
+                                    .font(.caption)
+                                Text(link.absoluteString)
+                                    .font(.body)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private var relatedRules: [Rule] {
+        dependencies.ruleRegistry.rules
+            .filter { $0.id != rule.id && $0.category == rule.category }
+            .sorted { $0.name < $1.name }
+    }
+    
+    private func extractRationale(from markdown: String) -> String? {
+        guard !markdown.isEmpty else { return nil }
+        
+        let lines = markdown.components(separatedBy: .newlines)
+        var inRationaleSection = false
+        var rationaleLines: [String] = []
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            
+            // Look for "## Rationale" or "## Why" section
+            if trimmed.hasPrefix("##") {
+                let sectionName = trimmed.lowercased()
+                if sectionName.contains("rationale") || sectionName.contains("why") {
+                    inRationaleSection = true
+                    continue
+                } else if inRationaleSection {
+                    // Hit another section, stop collecting
+                    break
+                }
+            }
+            
+            if inRationaleSection {
+                // Skip code blocks
+                if trimmed.hasPrefix("```") {
+                    continue
+                }
+                
+                // Skip empty lines at start
+                if rationaleLines.isEmpty && trimmed.isEmpty {
+                    continue
+                }
+                
+                // Collect rationale text (stop at code blocks or next major section)
+                if !trimmed.isEmpty {
+                    rationaleLines.append(trimmed)
+                } else if !rationaleLines.isEmpty {
+                    // Empty line after content - we have enough
+                    break
+                }
+            }
+        }
+        
+        if !rationaleLines.isEmpty {
+            return rationaleLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        return nil
+    }
+    
+    private func extractSwiftEvolutionLinks(from markdown: String) -> [URL] {
+        guard !markdown.isEmpty else { return [] }
+        
+        var links: [URL] = []
+        
+        // Look for Swift Evolution URLs
+        let patterns = [
+            #"https?://github\.com/apple/swift-evolution/blob/.*SE-\d+"#,
+            #"https?://github\.com/apple/swift-evolution/.*SE-\d+"#,
+            #"SE-\d+"#,
+            #"swift-evolution.*SE-\d+"#
+        ]
+        
+        for pattern in patterns {
+            let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+            let range = NSRange(markdown.startIndex..<markdown.endIndex, in: markdown)
+            
+            regex?.enumerateMatches(in: markdown, options: [], range: range) { match, _, _ in
+                guard let match = match,
+                      let range = Range(match.range, in: markdown) else { return }
+                
+                let matchedString = String(markdown[range])
+                
+                // Convert to full URL if needed
+                if matchedString.hasPrefix("http") {
+                    if let url = URL(string: matchedString) {
+                        links.append(url)
+                    }
+                } else if matchedString.contains("SE-") {
+                    // Extract SE number and construct URL
+                    if let seNumber = matchedString.components(separatedBy: CharacterSet.decimalDigits.inverted)
+                        .joined().components(separatedBy: "SE").last,
+                       !seNumber.isEmpty {
+                        let urlString = "https://github.com/apple/swift-evolution/blob/main/proposals/\(seNumber.prefix(4)).md"
+                        if let url = URL(string: urlString) {
+                            links.append(url)
+                        }
+                    }
+                }
+            }
+        }
+        
+        return Array(Set(links)).sorted { $0.absoluteString < $1.absoluteString }
+    }
+    
+    private func loadViolationCount() {
+        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
+            violationCount = 0
+            return
+        }
+        
+        isLoadingViolationCount = true
+        
+        Task {
+            do {
+                let filter = ViolationFilter(ruleIDs: [rule.id], suppressedOnly: false)
+                let count = try await dependencies.violationStorage.getViolationCount(
+                    filter: filter,
+                    workspaceId: workspace.id
+                )
+                
+                await MainActor.run {
+                    violationCount = count
+                    isLoadingViolationCount = false
+                }
+            } catch {
+                await MainActor.run {
+                    violationCount = 0
+                    isLoadingViolationCount = false
+                }
+            }
+        }
     }
 }
 

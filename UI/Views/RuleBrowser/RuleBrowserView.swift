@@ -31,13 +31,15 @@ struct RuleBrowserView: View {
         } detail: {
             Group {
                 // Second panel: Rule Detail (only shown when rule is selected)
-                if let selectedRuleId = selectedRuleId,
-                   let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
-                    RuleDetailView(rule: selectedRule)
+            if let selectedRuleId = selectedRuleId,
+               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
+                RuleDetailView(rule: selectedRule)
                         .id(selectedRuleId) // Force view recreation when selection changes
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                        .padding(.leading, -16) // Negative padding to counteract NavigationSplitView default padding
-                } else {
+                        // NavigationSplitView detail column adds default padding (~20-24 points on macOS)
+                        // We use negative padding to align content with the toolbar's left edge
+                        .padding(.leading, -300) // Fixed value to align with toolbar
+            } else {
                     // Empty view - no message shown
                     Color.clear
                 }

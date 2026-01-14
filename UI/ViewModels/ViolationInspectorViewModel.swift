@@ -258,7 +258,8 @@ class ViolationInspectorViewModel: ObservableObject {
         // Apply sorting
         filtered = sortViolations(filtered)
         
-        // Apply grouping
+        // Grouping is handled in the view layer, not here
+        // We keep filteredViolations flat for now
         filteredViolations = filtered
     }
     

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ViolationInspectorView: View {
     @EnvironmentObject var dependencies: DependencyContainer
@@ -57,6 +58,8 @@ struct ViolationInspectorView: View {
                         }
                     }
                 )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .padding(.leading, -300) // Fixed value to align with toolbar
             } else {
                 emptyDetailView
             }
@@ -112,6 +115,26 @@ struct ViolationInspectorView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 
+                Button {
+                    exportViolations()
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                
+                Button {
+                    viewModel.selectNextViolation()
+                } label: {
+                    Label("Next", systemImage: "chevron.right")
+                }
+                .keyboardShortcut(.rightArrow, modifiers: .command)
+                
+                Button {
+                    viewModel.selectPreviousViolation()
+                } label: {
+                    Label("Previous", systemImage: "chevron.left")
+                }
+                .keyboardShortcut(.leftArrow, modifiers: .command)
+                
                 if !viewModel.selectedViolationIds.isEmpty {
                     Menu {
                         Button {
@@ -155,13 +178,17 @@ struct ViolationInspectorView: View {
             } else if viewModel.filteredViolations.isEmpty {
                 emptyStateView
             } else {
-                List(selection: $selectedViolationId) {
-                    ForEach(viewModel.filteredViolations, id: \.id) { violation in
-                        ViolationListItem(violation: violation)
-                            .tag(violation.id)
+                if viewModel.groupingOption == .none {
+                    List(selection: $selectedViolationId) {
+                        ForEach(viewModel.filteredViolations, id: \.id) { violation in
+                            ViolationListItem(violation: violation)
+                                .tag(violation.id)
+                        }
                     }
+                    .listStyle(.sidebar)
+                } else {
+                    groupedViolationListView
                 }
-                .listStyle(.sidebar)
             }
         }
     }
@@ -224,6 +251,24 @@ struct ViolationInspectorView: View {
                         }
                     } label: {
                         Label("Severity", systemImage: "exclamationmark.triangle")
+                    }
+                    
+                    // Grouping options
+                    Menu {
+                        ForEach(ViolationGroupingOption.allCases, id: \.self) { option in
+                            Button {
+                                viewModel.groupingOption = option
+                            } label: {
+                                HStack {
+                                    Text(option.rawValue)
+                                    if viewModel.groupingOption == option {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Group", systemImage: "rectangle.3.group")
                     }
                     
                     // Sort options
@@ -348,6 +393,89 @@ struct ViolationInspectorView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var groupedViolationListView: some View {
+        List(selection: $selectedViolationId) {
+            let grouped = groupViolations(viewModel.filteredViolations, by: viewModel.groupingOption)
+            
+            ForEach(grouped.keys.sorted(), id: \.self) { groupKey in
+                Section(header: Text(groupKey).font(.headline)) {
+                    ForEach(grouped[groupKey] ?? [], id: \.id) { violation in
+                        ViolationListItem(violation: violation)
+                            .tag(violation.id)
+                    }
+                }
+            }
+        }
+        .listStyle(.sidebar)
+    }
+    
+    private func groupViolations(_ violations: [Violation], by option: ViolationGroupingOption) -> [String: [Violation]] {
+        switch option {
+        case .none:
+            return ["All": violations]
+        case .file:
+            return Dictionary(grouping: violations, by: { $0.filePath })
+        case .rule:
+            return Dictionary(grouping: violations, by: { $0.ruleID })
+        case .severity:
+            return Dictionary(grouping: violations, by: { $0.severity.rawValue.capitalized })
+        }
+    }
+    
+    private func exportViolations() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json, .commaSeparatedText]
+        panel.nameFieldStringValue = "violations_\(Date().timeIntervalSince1970)"
+        panel.canCreateDirectories = true
+        
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            
+            Task {
+                do {
+                    if url.pathExtension == "json" {
+                        try await exportToJSON(url: url)
+                    } else {
+                        try await exportToCSV(url: url)
+                    }
+                } catch {
+                    print("Export failed: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func exportToJSON(url: URL) async throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        
+        let data = try encoder.encode(viewModel.filteredViolations)
+        try data.write(to: url)
+    }
+    
+    private func exportToCSV(url: URL) async throws {
+        var csv = "Rule ID,File Path,Line,Column,Severity,Message,Detected At,Resolved At,Suppressed,Suppression Reason\n"
+        
+        for violation in viewModel.filteredViolations {
+            let line = [
+                violation.ruleID,
+                violation.filePath,
+                "\(violation.line)",
+                violation.column.map { "\($0)" } ?? "",
+                violation.severity.rawValue,
+                "\"\(violation.message.replacingOccurrences(of: "\"", with: "\"\""))\"",
+                ISO8601DateFormatter().string(from: violation.detectedAt),
+                violation.resolvedAt.map { ISO8601DateFormatter().string(from: $0) } ?? "",
+                violation.suppressed ? "true" : "false",
+                violation.suppressionReason.map { "\"\($0.replacingOccurrences(of: "\"", with: "\"\""))\"" } ?? ""
+            ].joined(separator: ",")
+            csv += line + "\n"
+        }
+        
+        try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 }
 

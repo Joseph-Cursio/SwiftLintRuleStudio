@@ -30,9 +30,9 @@
 
 /* Begin PBXFileReference section */
 		703886472EFC3A3400F2A033 /* SwiftLIntRuleStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLIntRuleStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7038864D2EFC3A3400F2A037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		703886562EFC3A3500F2A033 /* SwiftLIntRuleStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		7038864D2EFC3A3400F2A037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -47,21 +47,6 @@
 			sourceTree = "<group>";
 		};
 		7038864B2EFC3A3400F2A035 /* UI */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = UI;
-			sourceTree = "<group>";
-		};
-		7038864B2EFC3A3400F2A036 /* App */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = App;
-			sourceTree = "<group>";
-		};
-		7038864C2EFC3A3400F2A037 /* Core */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Core;
-			sourceTree = "<group>";
-		};
-		7038864D2EFC3A3400F2A038 /* UI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = UI;
 			sourceTree = "<group>";
@@ -256,7 +241,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7038864E2EFC3A3400F2A038 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,7 +333,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				SWIFT_DEBUG_INFO_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L3QPPH39L5;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -375,6 +358,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_DEBUG_INFO_FORMAT = dwarf;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
