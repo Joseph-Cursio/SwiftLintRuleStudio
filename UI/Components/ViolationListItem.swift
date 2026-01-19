@@ -67,6 +67,7 @@ struct ViolationListItem: View {
                 } label: {
                     Image(systemName: "arrow.right.circle")
                         .foregroundColor(.secondary)
+                        .accessibilityLabel("Open in Xcode")
                 }
                 .buttonStyle(.plain)
                 .help("Open in Xcode (⌘O)")

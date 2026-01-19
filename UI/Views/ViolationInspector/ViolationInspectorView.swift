@@ -205,6 +205,7 @@ struct ViolationInspectorView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
                 TextField("Search violations...", text: $viewModel.searchText)
             }
             .textFieldStyle(.roundedBorder)
@@ -228,6 +229,7 @@ struct ViolationInspectorView: View {
                                         Text(ruleID)
                                         if viewModel.selectedRuleIDs.contains(ruleID) {
                                             Image(systemName: "checkmark")
+                                            .accessibilityHidden(true)
                                         }
                                     }
                                 }
@@ -251,6 +253,7 @@ struct ViolationInspectorView: View {
                                     Text(severity.rawValue.capitalized)
                                     if viewModel.selectedSeverities.contains(severity) {
                                         Image(systemName: "checkmark")
+                                            .accessibilityHidden(true)
                                     }
                                 }
                             }
@@ -269,6 +272,7 @@ struct ViolationInspectorView: View {
                                     Text(option.rawValue)
                                     if viewModel.groupingOption == option {
                                         Image(systemName: "checkmark")
+                                            .accessibilityHidden(true)
                                     }
                                 }
                             }
@@ -287,6 +291,7 @@ struct ViolationInspectorView: View {
                                     Text(option.rawValue)
                                     if viewModel.sortOption == option {
                                         Image(systemName: "checkmark")
+                                            .accessibilityHidden(true)
                                     }
                                 }
                             }
@@ -363,6 +368,7 @@ struct ViolationInspectorView: View {
             Image(systemName: "checkmark.circle")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             
             Text("No Violations")
                 .font(.title2)
@@ -389,6 +395,7 @@ struct ViolationInspectorView: View {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             
             Text("Select a Violation")
                 .font(.title2)

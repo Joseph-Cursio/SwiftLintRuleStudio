@@ -35,6 +35,12 @@ struct RuleDetailView: View {
         // Create ViewModel - will be updated with workspace config in onAppear
         _viewModel = StateObject(wrappedValue: RuleDetailViewModel(rule: rule))
     }
+
+    init(rule: Rule, viewModel: RuleDetailViewModel) {
+        self.ruleId = rule.id
+        _currentRule = State(initialValue: rule)
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         ScrollView {
@@ -434,6 +440,7 @@ struct RuleDetailView: View {
                     HStack {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundColor(.orange)
+                            .accessibilityHidden(true)
                         Text("You have unsaved changes")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -455,6 +462,7 @@ struct RuleDetailView: View {
                                     .scaleEffect(0.7)
                             } else {
                                 Image(systemName: "chart.bar.fill")
+                                    .accessibilityHidden(true)
                             }
                             Text("Simulate Impact")
                         }
@@ -876,6 +884,7 @@ struct RuleDetailView: View {
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                                    .accessibilityHidden(true)
                             }
                         }
                         .buttonStyle(.plain)
@@ -910,6 +919,7 @@ struct RuleDetailView: View {
                             HStack {
                                 Image(systemName: "link")
                                     .font(.caption)
+                                    .accessibilityHidden(true)
                                 Text(link.absoluteString)
                                     .font(.body)
                                     .foregroundColor(.blue)
@@ -1053,6 +1063,115 @@ struct RuleDetailView: View {
         }
     }
 }
+
+#if DEBUG
+extension RuleDetailView {
+    @MainActor static func extractRationaleForTesting(_ markdown: String) -> String? {
+        let rule = Rule(
+            id: "test_rule",
+            name: "Test Rule",
+            description: "Test description",
+            category: .lint,
+            isOptIn: false,
+            severity: nil,
+            parameters: nil,
+            triggeringExamples: [],
+            nonTriggeringExamples: [],
+            documentation: nil,
+            isEnabled: false,
+            supportsAutocorrection: false,
+            minimumSwiftVersion: nil,
+            defaultSeverity: nil,
+            markdownDocumentation: markdown
+        )
+        return RuleDetailView(rule: rule).extractRationale(from: markdown)
+    }
+
+    @MainActor static func extractSwiftEvolutionLinksForTesting(_ markdown: String) -> [URL] {
+        let rule = Rule(
+            id: "test_rule",
+            name: "Test Rule",
+            description: "Test description",
+            category: .lint,
+            isOptIn: false,
+            severity: nil,
+            parameters: nil,
+            triggeringExamples: [],
+            nonTriggeringExamples: [],
+            documentation: nil,
+            isEnabled: false,
+            supportsAutocorrection: false,
+            minimumSwiftVersion: nil,
+            defaultSeverity: nil,
+            markdownDocumentation: markdown
+        )
+        return RuleDetailView(rule: rule).extractSwiftEvolutionLinks(from: markdown)
+    }
+
+    @MainActor static func processContentForDisplayForTesting(_ content: String) -> String {
+        let rule = Rule(
+            id: "test_rule",
+            name: "Test Rule",
+            description: "Test description",
+            category: .lint,
+            isOptIn: false,
+            severity: nil,
+            parameters: nil,
+            triggeringExamples: [],
+            nonTriggeringExamples: [],
+            documentation: nil,
+            isEnabled: false,
+            supportsAutocorrection: false,
+            minimumSwiftVersion: nil,
+            defaultSeverity: nil,
+            markdownDocumentation: content
+        )
+        return RuleDetailView(rule: rule).processContentForDisplay(content: content)
+    }
+
+    @MainActor static func convertMarkdownToHTMLForTesting(_ content: String) -> String {
+        let rule = Rule(
+            id: "test_rule",
+            name: "Test Rule",
+            description: "Test description",
+            category: .lint,
+            isOptIn: false,
+            severity: nil,
+            parameters: nil,
+            triggeringExamples: [],
+            nonTriggeringExamples: [],
+            documentation: nil,
+            isEnabled: false,
+            supportsAutocorrection: false,
+            minimumSwiftVersion: nil,
+            defaultSeverity: nil,
+            markdownDocumentation: content
+        )
+        return RuleDetailView(rule: rule).convertMarkdownToHTML(content: content)
+    }
+
+    @MainActor static func wrapHTMLInDocumentForTesting(body: String, colorScheme: ColorScheme) -> String {
+        let rule = Rule(
+            id: "test_rule",
+            name: "Test Rule",
+            description: "Test description",
+            category: .lint,
+            isOptIn: false,
+            severity: nil,
+            parameters: nil,
+            triggeringExamples: [],
+            nonTriggeringExamples: [],
+            documentation: nil,
+            isEnabled: false,
+            supportsAutocorrection: false,
+            minimumSwiftVersion: nil,
+            defaultSeverity: nil,
+            markdownDocumentation: nil
+        )
+        return RuleDetailView(rule: rule).wrapHTMLInDocument(body: body, colorScheme: colorScheme)
+    }
+}
+#endif
 
 struct CodeBlock: View {
     let code: String

@@ -95,6 +95,7 @@ struct OnboardingView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.blue)
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
+                .accessibilityHidden(true)
             
             Text("Welcome to SwiftLint Rule Studio")
                 .font(.system(size: 32, weight: .bold))
@@ -121,6 +122,7 @@ struct OnboardingView: View {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: 64))
                 .foregroundColor(swiftLintStatus == .installed(URL(fileURLWithPath: ""), "") ? .green : .orange)
+                .accessibilityHidden(true)
             
             Text("SwiftLint Installation")
                 .font(.system(size: 28, weight: .bold))
@@ -141,6 +143,7 @@ struct OnboardingView: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 48))
                             .foregroundColor(.green)
+                            .accessibilityHidden(true)
                         
                         Text("SwiftLint is installed")
                             .font(.title2)
@@ -160,6 +163,7 @@ struct OnboardingView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 48))
                             .foregroundColor(.orange)
+                            .accessibilityHidden(true)
                         
                         Text("SwiftLint Not Found")
                             .font(.title2)
@@ -219,6 +223,7 @@ struct OnboardingView: View {
             Image(systemName: "folder.badge.gearshape")
                 .font(.system(size: 64))
                 .foregroundColor(.blue)
+                .accessibilityHidden(true)
             
             Text("Select Your Workspace")
                 .font(.system(size: 28, weight: .bold))
@@ -248,6 +253,7 @@ struct OnboardingView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.green)
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
+                .accessibilityHidden(true)
             
             Text("You're All Set!")
                 .font(.system(size: 32, weight: .bold))
@@ -269,6 +275,7 @@ struct OnboardingView: View {
                 .font(.title2)
                 .foregroundColor(.blue)
                 .frame(width: 32)
+                .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)

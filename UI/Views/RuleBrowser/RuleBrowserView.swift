@@ -26,6 +26,10 @@ struct RuleBrowserView: View {
     init(ruleRegistry: RuleRegistry) {
         _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
     }
+
+    init(viewModel: RuleBrowserViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         NavigationSplitView {
@@ -102,6 +106,7 @@ struct RuleBrowserView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
                 TextField("Search rules...", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
                 
@@ -111,6 +116,7 @@ struct RuleBrowserView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
+                            .accessibilityLabel("Clear search text")
                     }
                     .buttonStyle(.plain)
                 }
@@ -174,6 +180,7 @@ struct RuleBrowserView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             
             Text("No rules found")
                 .font(.headline)
@@ -505,6 +512,30 @@ struct RuleBrowserView: View {
         """
     }
 }
+
+#if DEBUG
+extension RuleBrowserView {
+    @MainActor static func convertMarkdownToPlainTextForTesting(_ content: String) -> String {
+        RuleBrowserView().convertMarkdownToPlainText(content: content)
+    }
+
+    @MainActor static func stripHTMLTagsForTesting(_ content: String) -> String {
+        RuleBrowserView().stripHTMLTags(from: content)
+    }
+
+    @MainActor static func processContentForDisplayForTesting(_ content: String) -> String {
+        RuleBrowserView().processContentForDisplay(content: content)
+    }
+
+    @MainActor static func convertMarkdownToHTMLForTesting(_ content: String) -> String {
+        RuleBrowserView().convertMarkdownToHTML(content: content)
+    }
+
+    @MainActor static func wrapHTMLInDocumentForTesting(body: String, colorScheme: ColorScheme) -> String {
+        RuleBrowserView().wrapHTMLInDocument(body: body, colorScheme: colorScheme)
+    }
+}
+#endif
 
 #Preview {
     let cacheManager = CacheManager()

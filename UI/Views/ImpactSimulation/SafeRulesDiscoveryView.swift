@@ -18,6 +18,20 @@ struct SafeRulesDiscoveryView: View {
     @State private var isEnabling = false
     @State private var showError = false
     @State private var errorMessage: String?
+
+    init() {}
+
+    init(
+        safeRules: [RuleImpactResult],
+        selectedRules: Set<String> = [],
+        isDiscovering: Bool = false,
+        discoveryProgress: (current: Int, total: Int, ruleId: String)? = nil
+    ) {
+        _safeRules = State(initialValue: safeRules)
+        _selectedRules = State(initialValue: selectedRules)
+        _isDiscovering = State(initialValue: isDiscovering)
+        _discoveryProgress = State(initialValue: discoveryProgress)
+    }
     
     var body: some View {
         NavigationStack {
@@ -118,6 +132,7 @@ struct SafeRulesDiscoveryView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 64))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             
             Text("No Safe Rules Discovered")
                 .font(.title2)
@@ -252,23 +267,7 @@ struct SafeRulesDiscoveryView: View {
                 let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
                 try yamlEngine.load()
                 var config = yamlEngine.getConfig()
-                
-                // Enable selected rules
-                for ruleId in selectedRules {
-                    if config.rules[ruleId] == nil {
-                        config.rules[ruleId] = RuleConfiguration(enabled: true)
-                    } else {
-                        var ruleConfig = config.rules[ruleId]!
-                        ruleConfig.enabled = true
-                        config.rules[ruleId] = ruleConfig
-                    }
-                    
-                    // Remove from disabled rules list if present
-                    if var disabledRules = config.disabledRules {
-                        disabledRules.removeAll { $0 == ruleId }
-                        config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
-                    }
-                }
+                Self.applyEnableRules(config: &config, ruleIds: Array(selectedRules))
                 
                 try yamlEngine.save(config: config, createBackup: true)
                 
@@ -292,6 +291,26 @@ struct SafeRulesDiscoveryView: View {
             }
         }
     }
+
+    static func applyEnableRules(
+        config: inout YAMLConfigurationEngine.YAMLConfig,
+        ruleIds: [String]
+    ) {
+        for ruleId in ruleIds {
+            if config.rules[ruleId] == nil {
+                config.rules[ruleId] = RuleConfiguration(enabled: true)
+            } else {
+                var ruleConfig = config.rules[ruleId]!
+                ruleConfig.enabled = true
+                config.rules[ruleId] = ruleConfig
+            }
+            
+            if var disabledRules = config.disabledRules {
+                disabledRules.removeAll { $0 == ruleId }
+                config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
+            }
+        }
+    }
 }
 
 struct SafeRuleRow: View {
@@ -306,6 +325,7 @@ struct SafeRuleRow: View {
             } label: {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .foregroundColor(isSelected ? .blue : .secondary)
+                    .accessibilityLabel(isSelected ? "Deselect rule" : "Select rule")
             }
             .buttonStyle(.plain)
             
@@ -322,9 +342,11 @@ struct SafeRuleRow: View {
             
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.green)
+                .accessibilityHidden(true)
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .accessibilityAddTraits(.isButton)
         .onTapGesture {
             onToggle()
         }

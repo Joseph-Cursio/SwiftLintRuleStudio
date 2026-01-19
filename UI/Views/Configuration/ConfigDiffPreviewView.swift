@@ -129,6 +129,7 @@ struct ConfigDiffPreviewView: View {
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(color)
+                    .accessibilityHidden(true)
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

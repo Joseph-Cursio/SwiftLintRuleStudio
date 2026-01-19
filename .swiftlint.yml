@@ -24,6 +24,8 @@ opt_in_rules:
   - empty_count               # Prefer isEmpty over count == 0
   - empty_string              # Prefer isEmpty over == ""
   - first_where               # Prefer first(where:) over filter.first
+  - accessibility_trait_for_button  # SwiftUI: require button trait for tappable views
+  - accessibility_label_for_image   # SwiftUI: require labels on images
   - force_unwrapping          # Warn about force unwraps
   - implicitly_unwrapped_optional  # Warn about IUOs
   - overridden_super_call     # Ensure super calls in overrides

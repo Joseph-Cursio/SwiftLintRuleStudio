@@ -64,6 +64,7 @@ struct ImpactSimulationView: View {
                 Image(systemName: result.isSafe ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .font(.system(size: 48))
                     .foregroundColor(result.isSafe ? .green : .orange)
+                    .accessibilityLabel(result.isSafe ? "Safe rule" : "Rule has violations")
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(ruleName)
@@ -158,6 +159,7 @@ struct ViolationRow: View {
             Image(systemName: violation.severity == .error ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
                 .foregroundColor(violation.severity == .error ? .red : .orange)
                 .frame(width: 20)
+                .accessibilityLabel(violation.severity == .error ? "Error" : "Warning")
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {

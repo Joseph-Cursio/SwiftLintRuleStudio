@@ -21,6 +21,7 @@ struct WorkspaceSelectionView: View {
                 Image(systemName: "folder.badge.gearshape")
                     .font(.system(size: 64))
                     .foregroundColor(.blue)
+                    .accessibilityHidden(true)
                 
                 Text("Select a Workspace")
                     .font(.largeTitle)
@@ -92,6 +93,7 @@ struct WorkspaceSelectionView: View {
             HStack {
                 Image(systemName: "folder.fill")
                     .foregroundColor(.blue)
+                    .accessibilityHidden(true)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(workspace.name)
@@ -148,6 +150,7 @@ struct WorkspaceSelectionView: View {
         HStack {
             Image(systemName: "folder")
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(workspace.name)
@@ -165,6 +168,7 @@ struct WorkspaceSelectionView: View {
             if workspace.path == workspaceManager.currentWorkspace?.path {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
+                    .accessibilityHidden(true)
             }
             
             Button {
@@ -172,6 +176,7 @@ struct WorkspaceSelectionView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("Remove from recent workspaces")
             }
             .buttonStyle(.plain)
         }
@@ -179,6 +184,7 @@ struct WorkspaceSelectionView: View {
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(8)
         .contentShape(Rectangle())
+        .accessibilityAddTraits(.isButton)
         .onTapGesture {
             do {
                 try workspaceManager.openWorkspace(at: workspace.path)

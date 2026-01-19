@@ -20,6 +20,7 @@ struct ConfigRecommendationView: View {
                     Image(systemName: "info.circle.fill")
                         .foregroundColor(.blue)
                         .font(.title2)
+                        .accessibilityLabel("Information")
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("SwiftLint Configuration File Missing")
@@ -55,6 +56,7 @@ struct ConfigRecommendationView: View {
                                     .scaleEffect(0.8)
                             } else {
                                 Image(systemName: "plus.circle.fill")
+                                    .accessibilityHidden(true)
                             }
                             Text(isCreatingConfig ? "Creating..." : "Create Default Configuration")
                         }
@@ -119,6 +121,7 @@ struct ConfigBenefitRow: View {
             Image(systemName: icon)
                 .foregroundColor(.green)
                 .font(.caption)
+                .accessibilityHidden(true)
             Text(text)
                 .font(.caption)
                 .foregroundColor(.secondary)

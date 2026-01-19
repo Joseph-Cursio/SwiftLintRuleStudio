@@ -95,6 +95,7 @@ struct SidebarView: View {
                         HStack {
                             Image(systemName: "folder.fill")
                                 .foregroundColor(.blue)
+                                .accessibilityHidden(true)
                             Text(workspace.name)
                                 .font(.headline)
                         }
