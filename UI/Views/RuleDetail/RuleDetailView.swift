@@ -951,37 +951,25 @@ struct RuleDetailView: View {
         
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            
-            // Look for "## Rationale" or "## Why" section
-            if trimmed.hasPrefix("##") {
-                let sectionName = trimmed.lowercased()
-                if sectionName.contains("rationale") || sectionName.contains("why") {
+
+            if let action = rationaleSectionAction(for: trimmed, inRationaleSection: inRationaleSection) {
+                switch action {
+                case .start:
                     inRationaleSection = true
                     continue
-                } else if inRationaleSection {
-                    // Hit another section, stop collecting
+                case .stop:
                     break
                 }
             }
-            
+
             if inRationaleSection {
-                // Skip code blocks
-                if trimmed.hasPrefix("```") {
+                if shouldSkipRationaleLine(trimmed, hasContent: !rationaleLines.isEmpty) {
                     continue
                 }
-                
-                // Skip empty lines at start
-                if rationaleLines.isEmpty && trimmed.isEmpty {
-                    continue
-                }
-                
-                // Collect rationale text (stop at code blocks or next major section)
-                if !trimmed.isEmpty {
-                    rationaleLines.append(trimmed)
-                } else if !rationaleLines.isEmpty {
-                    // Empty line after content - we have enough
+                if trimmed.isEmpty {
                     break
                 }
+                rationaleLines.append(trimmed)
             }
         }
         
@@ -990,6 +978,27 @@ struct RuleDetailView: View {
         }
         
         return nil
+    }
+
+    private enum RationaleSectionAction {
+        case start
+        case stop
+    }
+
+    private func rationaleSectionAction(for trimmed: String, inRationaleSection: Bool) -> RationaleSectionAction? {
+        guard trimmed.hasPrefix("##") else { return nil }
+        let sectionName = trimmed.lowercased()
+        if sectionName.contains("rationale") || sectionName.contains("why") {
+            return .start
+        }
+        return inRationaleSection ? .stop : nil
+    }
+
+    private func shouldSkipRationaleLine(_ trimmed: String, hasContent: Bool) -> Bool {
+        if trimmed.hasPrefix("```") {
+            return true
+        }
+        return !hasContent && trimmed.isEmpty
     }
     
     private func extractSwiftEvolutionLinks(from markdown: String) -> [URL] {

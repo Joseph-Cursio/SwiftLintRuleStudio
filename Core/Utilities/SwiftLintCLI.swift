@@ -95,60 +95,24 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         let currentVersion = try await getVersion()
         print("📋 Current SwiftLint version: \(currentVersion)")
         
-        // Check cached version
-        let cachedVersion = try? cacheManager.getCachedSwiftLintVersion()
-        
-        // Check if we have cached docs directory and version matches
-        if let cachedVersion = cachedVersion,
-           cachedVersion == currentVersion,
-           let cachedDocsDir = cacheManager.getCachedDocsDirectory() {
-            let docFile = cachedDocsDir.appendingPathComponent("\(ruleId).md")
-            
-            // Try to read from cache first
-            if FileManager.default.fileExists(atPath: docFile.path) {
-                // Wait longer for file system sync (up to 2 seconds)
-                var attempts = 0
-                while attempts < 20 {
-                    if let content = try? String(contentsOf: docFile, encoding: .utf8), !content.isEmpty {
-                        print("✅ Using cached documentation for \(ruleId)")
-                        return content
-                    }
-                    try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                    attempts += 1
-                }
-            }
+        if let cachedContent = await readCachedDocs(ruleId: ruleId, currentVersion: currentVersion) {
+            return cachedContent
         }
         
         // Version changed or cache missing - generate new docs
         print("🔄 Generating new documentation (version: \(currentVersion))")
         
-        // Use a persistent directory in app support instead of temp
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.temporaryDirectory
-        let docsDir = appSupport
-            .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
-            .appendingPathComponent("rule_docs", isDirectory: true)
-            .appendingPathComponent(currentVersion, isDirectory: true)
+        let docsDir = docsDirectory(for: currentVersion)
         
         // Create directory if it doesn't exist
         try? FileManager.default.createDirectory(at: docsDir, withIntermediateDirectories: true)
         
-        // Check if docs already exist for this version (another process might have generated them)
-        let docFile = docsDir.appendingPathComponent("\(ruleId).md")
-        if FileManager.default.fileExists(atPath: docFile.path) {
-            // Wait longer for file system sync (up to 2 seconds)
-            var attempts = 0
-            while attempts < 20 {
-                if let content = try? String(contentsOf: docFile, encoding: .utf8), !content.isEmpty {
-                    print("✅ Using existing documentation for \(ruleId)")
-                    // Cache the directory and version
-                    try? cacheManager.saveDocsDirectory(docsDir)
-                    try? cacheManager.saveSwiftLintVersion(currentVersion)
-                    return content
-                }
-                try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                attempts += 1
-            }
+        if let existingContent = await readExistingDocs(
+            ruleId: ruleId,
+            docsDir: docsDir,
+            currentVersion: currentVersion
+        ) {
+            return existingContent
         }
         
         // Generate docs - generate docs for ALL rules (not just enabled ones)
@@ -159,31 +123,19 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             "--path", docsDir.path
         ])
         
-        // Wait longer for file system to sync (generate-docs might have just finished writing)
-        // Increased timeout: up to 5 seconds (50 attempts × 0.1s)
-        var attempts = 0
-        while !FileManager.default.fileExists(atPath: docFile.path) && attempts < 50 {
-            try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-            attempts += 1
-        }
+        let docFile = docsDir.appendingPathComponent("\(ruleId).md")
+        let fileExists = await waitForFile(at: docFile, attempts: 50, delayNanoseconds: 100_000_000)
         
-        guard FileManager.default.fileExists(atPath: docFile.path) else {
+        guard fileExists else {
             throw SwiftLintError.executionFailed(message: "Documentation file not found for rule: \(ruleId) after generation")
         }
         
         // Wait for content to be readable (up to 2 more seconds)
-        attempts = 0
-        var content: String?
-        while attempts < 20 {
-            content = try? String(contentsOf: docFile, encoding: .utf8)
-            if let content = content, !content.isEmpty {
-                break
-            }
-            try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-            attempts += 1
-        }
-        
-        guard let finalContent = content, !finalContent.isEmpty else {
+        guard let finalContent = await readDocFileWithRetries(
+            docFile,
+            attempts: 20,
+            delayNanoseconds: 100_000_000
+        ) else {
             throw SwiftLintError.executionFailed(message: "Could not read documentation file for rule: \(ruleId)")
         }
         
@@ -193,6 +145,70 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         print("✅ Generated and cached documentation for \(ruleId)")
         
         return finalContent
+    }
+
+    private func docsDirectory(for version: String) -> URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        return appSupport
+            .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
+            .appendingPathComponent("rule_docs", isDirectory: true)
+            .appendingPathComponent(version, isDirectory: true)
+    }
+
+    private func readCachedDocs(ruleId: String, currentVersion: String) async -> String? {
+        guard let cachedVersion = try? cacheManager.getCachedSwiftLintVersion(),
+              cachedVersion == currentVersion,
+              let cachedDocsDir = cacheManager.getCachedDocsDirectory() else {
+            return nil
+        }
+        let docFile = cachedDocsDir.appendingPathComponent("\(ruleId).md")
+        guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
+        if let content = await readDocFileWithRetries(docFile, attempts: 20, delayNanoseconds: 100_000_000) {
+            print("✅ Using cached documentation for \(ruleId)")
+            return content
+        }
+        return nil
+    }
+
+    private func readExistingDocs(ruleId: String, docsDir: URL, currentVersion: String) async -> String? {
+        let docFile = docsDir.appendingPathComponent("\(ruleId).md")
+        guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
+        if let content = await readDocFileWithRetries(docFile, attempts: 20, delayNanoseconds: 100_000_000) {
+            print("✅ Using existing documentation for \(ruleId)")
+            try? cacheManager.saveDocsDirectory(docsDir)
+            try? cacheManager.saveSwiftLintVersion(currentVersion)
+            return content
+        }
+        return nil
+    }
+
+    private func waitForFile(at fileURL: URL, attempts: Int, delayNanoseconds: UInt64) async -> Bool {
+        var remaining = attempts
+        while remaining > 0 {
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                return true
+            }
+            try? await Task.sleep(nanoseconds: delayNanoseconds)
+            remaining -= 1
+        }
+        return false
+    }
+
+    private func readDocFileWithRetries(
+        _ fileURL: URL,
+        attempts: Int,
+        delayNanoseconds: UInt64
+    ) async -> String? {
+        var remaining = attempts
+        while remaining > 0 {
+            if let content = try? String(contentsOf: fileURL, encoding: .utf8), !content.isEmpty {
+                return content
+            }
+            try? await Task.sleep(nanoseconds: delayNanoseconds)
+            remaining -= 1
+        }
+        return nil
     }
     
     func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {

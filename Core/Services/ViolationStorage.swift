@@ -39,36 +39,37 @@ actor ViolationStorage: ViolationStorageProtocol {
     
     init(databasePath: URL? = nil, useInMemory: Bool = false) throws {
         self.useInMemory = useInMemory
-        
+
+        self.databasePath = try Self.resolveDatabasePath(databasePath: databasePath, useInMemory: useInMemory)
+        let databaseHandle = try Self.openDatabase(at: self.databasePath, useInMemory: useInMemory)
+        try Self.createSchema(in: databaseHandle)
+        self.database = databaseHandle
+    }
+
+    private static func resolveDatabasePath(databasePath: URL?, useInMemory: Bool) throws -> URL {
         if useInMemory {
-            // Use SQLite's :memory: database - each connection gets its own isolated database
-            // This ensures complete isolation between test instances
-            // Note: We store a placeholder URL but will use ":memory:" string directly in openDatabase()
-            self.databasePath = URL(fileURLWithPath: ":memory:")
-        } else if let customPath = databasePath {
-            self.databasePath = customPath
-        } else {
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-                ?? FileManager.default.temporaryDirectory
-            let dbDir = appSupport.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
-            try? FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
-            self.databasePath = dbDir.appendingPathComponent("violations.db")
+            return URL(fileURLWithPath: ":memory:")
         }
-        
-        // Open database synchronously during initialization
-        // This is safe because init runs before the actor is accessible
-        // We inline the database setup here to avoid nonisolated method issues
-        var db: OpaquePointer?
-        let dbPath: String = useInMemory ? ":memory:" : self.databasePath.path
-        
-        // Validate path before attempting to open
+        if let customPath = databasePath {
+            return customPath
+        }
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        let dbDir = appSupport.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
+        return dbDir.appendingPathComponent("violations.db")
+    }
+
+    private static func openDatabase(at path: URL, useInMemory: Bool) throws -> OpaquePointer {
+        let dbPath: String = useInMemory ? ":memory:" : path.path
         if !useInMemory {
-            let parentDir = self.databasePath.deletingLastPathComponent()
+            let parentDir = path.deletingLastPathComponent()
             if !FileManager.default.fileExists(atPath: parentDir.path) {
                 throw ViolationStorageError.databaseOpenFailed("Database directory does not exist: \(parentDir.path)")
             }
         }
-        
+
+        var db: OpaquePointer?
         let result = sqlite3_open(dbPath, &db)
         guard result == SQLITE_OK else {
             let errorMsg = db != nil ? String(cString: sqlite3_errmsg(db)) : "Unknown error (code: \(result))"
@@ -77,8 +78,13 @@ actor ViolationStorage: ViolationStorageProtocol {
             }
             throw ViolationStorageError.databaseOpenFailed("Failed to open database at '\(dbPath)': \(errorMsg)")
         }
-        
-        // Create tables before assigning database (use local db variable)
+        guard let databaseHandle = db else {
+            throw ViolationStorageError.databaseNotOpen
+        }
+        return databaseHandle
+    }
+
+    private static func createSchema(in databaseHandle: OpaquePointer) throws {
         let createViolationsTable = """
         CREATE TABLE IF NOT EXISTS violations (
             id TEXT PRIMARY KEY,
@@ -95,7 +101,7 @@ actor ViolationStorage: ViolationStorageProtocol {
             suppression_reason TEXT
         );
         """
-        
+
         let createIndexes = """
         CREATE INDEX IF NOT EXISTS idx_violations_workspace ON violations(workspace_id);
         CREATE INDEX IF NOT EXISTS idx_violations_rule ON violations(rule_id);
@@ -103,21 +109,19 @@ actor ViolationStorage: ViolationStorageProtocol {
         CREATE INDEX IF NOT EXISTS idx_violations_detected ON violations(detected_at);
         CREATE INDEX IF NOT EXISTS idx_violations_workspace_rule ON violations(workspace_id, rule_id);
         """
-        
-        guard let databaseHandle = db else {
-            throw ViolationStorageError.databaseNotOpen
-        }
-        
-        // Execute SQL directly during init (can't call actor-isolated methods from init)
+
+        try executeInitSQL(createViolationsTable, on: databaseHandle)
+        try executeInitSQL(createIndexes, on: databaseHandle)
+    }
+
+    private static func executeInitSQL(_ sql: String, on databaseHandle: OpaquePointer) throws {
         var statement: OpaquePointer?
         defer {
             if let stmt = statement {
                 sqlite3_finalize(stmt)
             }
         }
-        
-        // Create violations table
-        guard sqlite3_prepare_v2(databaseHandle, createViolationsTable, -1, &statement, nil) == SQLITE_OK else {
+        guard sqlite3_prepare_v2(databaseHandle, sql, -1, &statement, nil) == SQLITE_OK else {
             let errorMsg = String(cString: sqlite3_errmsg(databaseHandle))
             throw ViolationStorageError.sqlError(errorMsg)
         }
@@ -125,24 +129,6 @@ actor ViolationStorage: ViolationStorageProtocol {
             let errorMsg = String(cString: sqlite3_errmsg(databaseHandle))
             throw ViolationStorageError.sqlError(errorMsg)
         }
-        sqlite3_finalize(statement)
-        statement = nil
-        
-        // Create indexes
-        guard sqlite3_prepare_v2(databaseHandle, createIndexes, -1, &statement, nil) == SQLITE_OK else {
-            let errorMsg = String(cString: sqlite3_errmsg(databaseHandle))
-            throw ViolationStorageError.sqlError(errorMsg)
-        }
-        guard sqlite3_step(statement) == SQLITE_DONE else {
-            let errorMsg = String(cString: sqlite3_errmsg(databaseHandle))
-            throw ViolationStorageError.sqlError(errorMsg)
-        }
-        sqlite3_finalize(statement)
-        statement = nil
-        
-        // Assign database property after all setup is complete
-        // Safe because database is marked nonisolated(unsafe) and init runs before actor is accessible
-        self.database = db
     }
     
     deinit {
@@ -197,7 +183,7 @@ actor ViolationStorage: ViolationStorageProtocol {
         }
         
         // Use transaction for performance
-        try executeSQL("BEGIN TRANSACTION", db: db)
+        try beginTransaction(db: db)
         
         var transactionCommitted = false
         defer {
@@ -207,52 +193,20 @@ actor ViolationStorage: ViolationStorageProtocol {
             }
         }
         
-        // Delete existing violations for this workspace before inserting new ones
-        // This ensures we don't accumulate violations from previous runs
-        let deleteSQL = "DELETE FROM violations WHERE workspace_id = ?;"
-        var deleteStatement: OpaquePointer?
-        if sqlite3_prepare_v2(db, deleteSQL, -1, &deleteStatement, nil) == SQLITE_OK {
-            guard let deleteWorkspaceIdCString = strdup(workspaceId.uuidString) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for delete workspace ID")
-            }
-            sqlite3_bind_text(deleteStatement, 1, deleteWorkspaceIdCString, -1, free)
-            if sqlite3_step(deleteStatement) == SQLITE_DONE {
-                let changes = sqlite3_changes(db)
-                if changes > 0 {
-                    print("🗑️  Deleted \(changes) existing violations for workspace before inserting new ones")
-                }
-            }
-            sqlite3_finalize(deleteStatement)
+        let deleted = try deleteExistingViolations(for: workspaceId, db: db)
+        if deleted > 0 {
+            print("🗑️  Deleted \(deleted) existing violations for workspace before inserting new ones")
         }
-        
-        let insertSQL = """
-        INSERT OR REPLACE INTO violations 
-        (id, workspace_id, rule_id, file_path, line, column, severity, message, detected_at, resolved_at, suppressed, suppression_reason)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """
-        
-        var statement: OpaquePointer?
-        defer {
-            if statement != nil {
-                sqlite3_finalize(statement)
-            }
-        }
-        
-        guard sqlite3_prepare_v2(db, insertSQL, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
-        }
+
+        let statement = try prepareInsertStatement(db: db)
+        defer { sqlite3_finalize(statement) }
         
         var insertedCount = 0
         var seenIDs = Set<String>()
         var duplicateIDs = Set<String>()
         
         for (index, violation) in violations.enumerated() {
-            // Reset and clear bindings before each bind (except first iteration where statement is fresh)
-            // Note: clear_bindings will call free() on any previously bound strings
-            if index > 0 {
-                sqlite3_reset(statement)
-                sqlite3_clear_bindings(statement)
-            }
+            resetStatement(statement, shouldReset: index > 0)
             
             // Check for duplicate IDs
             let idString = violation.id.uuidString
@@ -265,65 +219,11 @@ actor ViolationStorage: ViolationStorageProtocol {
                 seenIDs.insert(idString)
             }
             
-            // Bind all parameters - manually copy strings using strdup to ensure they persist
-            // SQLite will free these when the statement is finalized
-            guard let idCString = strdup(idString) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for violation ID")
-            }
-            let idLen = Int32(idString.utf8.count)
-            sqlite3_bind_text(statement, 1, idCString, idLen, free)
-            
-            guard let workspaceIdCString = strdup(workspaceId.uuidString) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for workspace ID")
-            }
-            sqlite3_bind_text(statement, 2, workspaceIdCString, -1, free)
-            
-            guard let ruleIDCString = strdup(violation.ruleID) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for rule ID")
-            }
-            sqlite3_bind_text(statement, 3, ruleIDCString, -1, free)
-            
-            guard let filePathCString = strdup(violation.filePath) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for file path")
-            }
-            sqlite3_bind_text(statement, 4, filePathCString, -1, free)
-            
-            sqlite3_bind_int(statement, 5, Int32(violation.line))
-            
-            if let column = violation.column {
-                sqlite3_bind_int(statement, 6, Int32(column))
-            } else {
-                sqlite3_bind_null(statement, 6)
-            }
-            
-            guard let severityCString = strdup(violation.severity.rawValue) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for severity")
-            }
-            sqlite3_bind_text(statement, 7, severityCString, -1, free)
-            
-            guard let messageCString = strdup(violation.message) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for message")
-            }
-            sqlite3_bind_text(statement, 8, messageCString, -1, free)
-            
-            sqlite3_bind_double(statement, 9, violation.detectedAt.timeIntervalSince1970)
-            
-            if let resolvedAt = violation.resolvedAt {
-                sqlite3_bind_double(statement, 10, resolvedAt.timeIntervalSince1970)
-            } else {
-                sqlite3_bind_null(statement, 10)
-            }
-            
-            sqlite3_bind_int(statement, 11, violation.suppressed ? 1 : 0)
-            
-            if let reason = violation.suppressionReason {
-                guard let reasonCString = strdup(reason) else {
-                    throw ViolationStorageError.sqlError("Failed to allocate memory for suppression reason")
-                }
-                sqlite3_bind_text(statement, 12, reasonCString, -1, free)
-            } else {
-                sqlite3_bind_null(statement, 12)
-            }
+            try bindViolation(
+                violation,
+                workspaceId: workspaceId,
+                statement: statement
+            )
             
             let stepResult = sqlite3_step(statement)
             if stepResult == SQLITE_DONE {
@@ -348,6 +248,85 @@ actor ViolationStorage: ViolationStorageProtocol {
         transactionCommitted = true
         
         print("💾 Stored \(insertedCount) violations for workspace: \(workspaceId.uuidString)")
+    }
+
+    private func beginTransaction(db: OpaquePointer) throws {
+        try executeSQL("BEGIN TRANSACTION", db: db)
+    }
+
+    private func deleteExistingViolations(for workspaceId: UUID, db: OpaquePointer) throws -> Int {
+        let deleteSQL = "DELETE FROM violations WHERE workspace_id = ?;"
+        var deleteStatement: OpaquePointer?
+        defer { sqlite3_finalize(deleteStatement) }
+
+        guard sqlite3_prepare_v2(db, deleteSQL, -1, &deleteStatement, nil) == SQLITE_OK,
+              let statement = deleteStatement else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+        }
+        try bindText(workspaceId.uuidString, index: 1, statement: statement, errorMessage: "Failed to allocate memory for delete workspace ID")
+        guard sqlite3_step(statement) == SQLITE_DONE else {
+            let errorMsg = String(cString: sqlite3_errmsg(db))
+            throw ViolationStorageError.sqlError(errorMsg)
+        }
+        return Int(sqlite3_changes(db))
+    }
+
+    private func prepareInsertStatement(db: OpaquePointer) throws -> OpaquePointer {
+        let insertSQL = """
+        INSERT OR REPLACE INTO violations
+        (id, workspace_id, rule_id, file_path, line, column, severity, message, detected_at, resolved_at, suppressed, suppression_reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, insertSQL, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+        }
+        guard let prepared = statement else {
+            throw ViolationStorageError.databaseNotOpen
+        }
+        return prepared
+    }
+
+    private func resetStatement(_ statement: OpaquePointer, shouldReset: Bool) {
+        if shouldReset {
+            sqlite3_reset(statement)
+            sqlite3_clear_bindings(statement)
+        }
+    }
+
+    private func bindViolation(_ violation: Violation, workspaceId: UUID, statement: OpaquePointer) throws {
+        let idString = violation.id.uuidString
+        try bindText(idString, index: 1, statement: statement, errorMessage: "Failed to allocate memory for violation ID")
+        try bindText(workspaceId.uuidString, index: 2, statement: statement, errorMessage: "Failed to allocate memory for workspace ID")
+        try bindText(violation.ruleID, index: 3, statement: statement, errorMessage: "Failed to allocate memory for rule ID")
+        try bindText(violation.filePath, index: 4, statement: statement, errorMessage: "Failed to allocate memory for file path")
+        sqlite3_bind_int(statement, 5, Int32(violation.line))
+        if let column = violation.column {
+            sqlite3_bind_int(statement, 6, Int32(column))
+        } else {
+            sqlite3_bind_null(statement, 6)
+        }
+        try bindText(violation.severity.rawValue, index: 7, statement: statement, errorMessage: "Failed to allocate memory for severity")
+        try bindText(violation.message, index: 8, statement: statement, errorMessage: "Failed to allocate memory for message")
+        sqlite3_bind_double(statement, 9, violation.detectedAt.timeIntervalSince1970)
+        if let resolvedAt = violation.resolvedAt {
+            sqlite3_bind_double(statement, 10, resolvedAt.timeIntervalSince1970)
+        } else {
+            sqlite3_bind_null(statement, 10)
+        }
+        sqlite3_bind_int(statement, 11, violation.suppressed ? 1 : 0)
+        if let reason = violation.suppressionReason {
+            try bindText(reason, index: 12, statement: statement, errorMessage: "Failed to allocate memory for suppression reason")
+        } else {
+            sqlite3_bind_null(statement, 12)
+        }
+    }
+
+    private func bindText(_ value: String, index: Int32, statement: OpaquePointer, errorMessage: String) throws {
+        guard let cString = strdup(value) else {
+            throw ViolationStorageError.sqlError(errorMessage)
+        }
+        sqlite3_bind_text(statement, index, cString, -1, free)
     }
     
     // swiftlint:disable:next async_without_await

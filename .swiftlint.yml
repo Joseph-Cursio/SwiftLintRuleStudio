@@ -20,7 +20,6 @@ disabled_rules:
   - todo                      # Allow TODO comments during development
   - trailing_whitespace       # Can be handled by Xcode
   - trailing_newline          # Allow without strict enforcement
-  - cyclomatic_complexity     # Too noisy for current codebase
   - file_length               # Large views/services exceed limits
   - function_body_length      # Some helpers are intentionally long
   - type_body_length          # Several core types exceed limits
