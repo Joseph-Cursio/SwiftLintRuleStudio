@@ -263,57 +263,60 @@ class YAMLConfigurationEngine {
             guard let key = keyNode.string else {
                 continue
             }
-            
-            switch valueNode {
-            case .scalar(let scalar):
-                // Use Yams' built-in type detection
-                let stringValue = scalar.string
-                // Check tag description for type information
-                let tagDescription = String(describing: scalar.tag)
-                // Yams uses specific tag names for types
-                if tagDescription.contains("bool") || tagDescription.contains("tag:yaml.org,2002:bool") {
-                    dict[key] = stringValue == "true"
-                } else if tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int") {
-                    dict[key] = Int(stringValue) ?? stringValue
-                } else if tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float") {
-                    dict[key] = Double(stringValue) ?? stringValue
-                } else if stringValue == "true" || stringValue == "false" {
-                    // Fallback: if it looks like a boolean, treat it as one
-                    dict[key] = stringValue == "true"
-                } else {
-                    dict[key] = stringValue
-                }
-            case .mapping:
-                dict[key] = try nodeToDictionary(valueNode)
-            case .sequence(let sequence):
-                var array: [Any] = []
-                for item in sequence {
-                    if case .scalar(let scalar) = item {
-                        let stringValue = scalar.string
-                        let tagDescription = String(describing: scalar.tag)
-                        if tagDescription.contains("bool") || tagDescription.contains("tag:yaml.org,2002:bool") || stringValue == "true" || stringValue == "false" {
-                            array.append(stringValue == "true")
-                        } else if tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int") {
-                            array.append(Int(stringValue) ?? stringValue)
-                        } else if tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float") {
-                            array.append(Double(stringValue) ?? stringValue)
-                        } else {
-                            array.append(stringValue)
-                        }
-                    } else if case .mapping = item {
-                        array.append(try nodeToDictionary(item))
-                    } else if case .sequence = item {
-                        // Nested sequence - flatten or handle as needed
-                        array.append(try nodeToDictionary(item))
-                    }
-                }
-                dict[key] = array
-            case .alias:
-                // Handle aliases by resolving them
-                dict[key] = try nodeToDictionary(valueNode)
-            }
+            dict[key] = try nodeToAny(valueNode)
         }
         return dict
+    }
+
+    private func nodeToAny(_ node: Node) throws -> Any {
+        switch node {
+        case .scalar(let scalar):
+            return parseScalarValue(scalar)
+        case .mapping:
+            return try nodeToDictionary(node)
+        case .sequence(let sequence):
+            return try parseSequence(sequence)
+        case .alias:
+            return try nodeToDictionary(node)
+        }
+    }
+
+    private func parseSequence(_ sequence: Node.Sequence) throws -> [Any] {
+        var array: [Any] = []
+        for item in sequence {
+            array.append(try nodeToAny(item))
+        }
+        return array
+    }
+
+    private func parseScalarValue(_ scalar: Node.Scalar) -> Any {
+        let stringValue = scalar.string
+        let tagDescription = String(describing: scalar.tag)
+        if isBoolScalar(tagDescription: tagDescription, stringValue: stringValue) {
+            return stringValue == "true"
+        }
+        if isIntScalar(tagDescription: tagDescription) {
+            return Int(stringValue) ?? stringValue
+        }
+        if isFloatScalar(tagDescription: tagDescription) {
+            return Double(stringValue) ?? stringValue
+        }
+        return stringValue
+    }
+
+    private func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
+        if tagDescription.contains("bool") || tagDescription.contains("tag:yaml.org,2002:bool") {
+            return true
+        }
+        return stringValue == "true" || stringValue == "false"
+    }
+
+    private func isIntScalar(tagDescription: String) -> Bool {
+        tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int")
+    }
+
+    private func isFloatScalar(tagDescription: String) -> Bool {
+        tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float")
     }
     
     private func parseDictionaryToConfig(_ dict: [String: Any]) throws -> SwiftLintConfiguration {
@@ -321,58 +324,7 @@ class YAMLConfigurationEngine {
         
         // Parse rules
         if let rulesDict = dict["rules"] as? [String: Any] {
-            var rules: [String: RuleConfiguration] = [:]
-            for (ruleId, ruleValue) in rulesDict {
-                // Check if it's a simple boolean first
-                // Handle both Bool and String representations
-                var boolValue: Bool?
-                if let boolRuleValue = ruleValue as? Bool {
-                    boolValue = boolRuleValue
-                } else if let str = ruleValue as? String, str == "true" || str == "false" {
-                    boolValue = str == "true"
-                }
-                
-                if let boolValue = boolValue {
-                    // Simple enabled/disabled
-                    rules[ruleId] = RuleConfiguration(enabled: boolValue)
-                } else if let ruleDict = ruleValue as? [String: Any] {
-                    // Complex configuration with severity/parameters
-                    var enabled = true
-                    var severity: Severity?
-                    var parameters: [String: AnyCodable]?
-                    
-                    // Parse severity
-                    if let severityStr = ruleDict["severity"] as? String {
-                        severity = Severity(rawValue: severityStr)
-                    }
-                    
-                    // Parse enabled (might be explicit or implicit)
-                    // Handle both Bool and String representations
-                    if let enabledValue = ruleDict["enabled"] as? Bool {
-                        enabled = enabledValue
-                    } else if let enabledStr = ruleDict["enabled"] as? String {
-                        enabled = enabledStr.lowercased() == "true"
-                    }
-                    
-                    // Parse parameters (everything else)
-                    var params: [String: AnyCodable] = [:]
-                    for (paramKey, paramValue) in ruleDict {
-                        if paramKey != "severity" && paramKey != "enabled" {
-                            params[paramKey] = AnyCodable(paramValue)
-                        }
-                    }
-                    if !params.isEmpty {
-                        parameters = params
-                    }
-                    
-                    rules[ruleId] = RuleConfiguration(
-                        enabled: enabled,
-                        severity: severity,
-                        parameters: parameters
-                    )
-                }
-            }
-            config.rules = rules
+            config.rules = parseRulesConfig(from: rulesDict)
         }
         
         // Parse other fields
@@ -388,41 +340,81 @@ class YAMLConfigurationEngine {
         
         return config
     }
+
+    private func parseRulesConfig(from rulesDict: [String: Any]) -> [String: RuleConfiguration] {
+        var rules: [String: RuleConfiguration] = [:]
+        for (ruleId, ruleValue) in rulesDict {
+            if let ruleConfig = parseRuleConfiguration(from: ruleValue) {
+                rules[ruleId] = ruleConfig
+            }
+        }
+        return rules
+    }
+
+    private func parseRuleConfiguration(from ruleValue: Any) -> RuleConfiguration? {
+        if let boolValue = parseBoolRuleValue(from: ruleValue) {
+            return RuleConfiguration(enabled: boolValue)
+        }
+        guard let ruleDict = ruleValue as? [String: Any] else {
+            return nil
+        }
+        return parseComplexRuleConfiguration(from: ruleDict)
+    }
+
+    private func parseBoolRuleValue(from ruleValue: Any) -> Bool? {
+        if let boolRuleValue = ruleValue as? Bool {
+            return boolRuleValue
+        }
+        if let str = ruleValue as? String, str == "true" || str == "false" {
+            return str == "true"
+        }
+        return nil
+    }
+
+    private func parseComplexRuleConfiguration(from ruleDict: [String: Any]) -> RuleConfiguration {
+        let severity = parseSeverity(from: ruleDict)
+        let enabled = parseEnabledValue(from: ruleDict)
+        let parameters = parseRuleParameters(from: ruleDict)
+        return RuleConfiguration(
+            enabled: enabled,
+            severity: severity,
+            parameters: parameters
+        )
+    }
+
+    private func parseSeverity(from ruleDict: [String: Any]) -> Severity? {
+        guard let severityStr = ruleDict["severity"] as? String else {
+            return nil
+        }
+        return Severity(rawValue: severityStr)
+    }
+
+    private func parseEnabledValue(from ruleDict: [String: Any]) -> Bool {
+        if let enabledValue = ruleDict["enabled"] as? Bool {
+            return enabledValue
+        }
+        if let enabledStr = ruleDict["enabled"] as? String {
+            return enabledStr.lowercased() == "true"
+        }
+        return true
+    }
+
+    private func parseRuleParameters(from ruleDict: [String: Any]) -> [String: AnyCodable]? {
+        var params: [String: AnyCodable] = [:]
+        for (paramKey, paramValue) in ruleDict {
+            if paramKey != "severity" && paramKey != "enabled" {
+                params[paramKey] = AnyCodable(paramValue)
+            }
+        }
+        return params.isEmpty ? nil : params
+    }
     
     private func configToDictionary(_ config: YAMLConfig) -> [String: Any] {
         var dict: [String: Any] = [:]
         
         // Add rules
         if !config.rules.isEmpty {
-            var rulesDict: [String: Any] = [:]
-            for (ruleId, ruleConfig) in config.rules {
-                // Check if this is a simple boolean rule (no severity, no parameters, enabled=true)
-                if ruleConfig.severity == nil && ruleConfig.parameters == nil && ruleConfig.enabled {
-                    // Simple boolean - just enabled
-                    rulesDict[ruleId] = true
-                } else if ruleConfig.severity == nil && ruleConfig.parameters == nil && !ruleConfig.enabled {
-                    // Simple boolean - just disabled
-                    rulesDict[ruleId] = false
-                } else {
-                    // Complex configuration with severity and/or parameters
-                    var ruleDict: [String: Any] = [:]
-                    if let severity = ruleConfig.severity {
-                        ruleDict["severity"] = severity.rawValue
-                    }
-                    if let parameters = ruleConfig.parameters {
-                        for (key, value) in parameters {
-                            ruleDict[key] = value.value
-                        }
-                    }
-                    // Always include enabled if it's false
-                    // SwiftLint treats enabled=true as default, so we only need to specify if false
-                    if !ruleConfig.enabled {
-                        ruleDict["enabled"] = false
-                    }
-                    rulesDict[ruleId] = ruleDict
-                }
-            }
-            dict["rules"] = rulesDict
+            dict["rules"] = buildRulesDictionary(from: config.rules)
         }
         
         // Add other fields
@@ -437,6 +429,41 @@ class YAMLConfigurationEngine {
         }
         
         return dict
+    }
+
+    private func buildRulesDictionary(from rules: [String: RuleConfiguration]) -> [String: Any] {
+        var rulesDict: [String: Any] = [:]
+        for (ruleId, ruleConfig) in rules {
+            rulesDict[ruleId] = ruleDictionaryValue(for: ruleConfig)
+        }
+        return rulesDict
+    }
+
+    private func ruleDictionaryValue(for ruleConfig: RuleConfiguration) -> Any {
+        if isSimpleBooleanRule(ruleConfig, enabled: true) {
+            return true
+        }
+        if isSimpleBooleanRule(ruleConfig, enabled: false) {
+            return false
+        }
+
+        var ruleDict: [String: Any] = [:]
+        if let severity = ruleConfig.severity {
+            ruleDict["severity"] = severity.rawValue
+        }
+        if let parameters = ruleConfig.parameters {
+            for (key, value) in parameters {
+                ruleDict[key] = value.value
+            }
+        }
+        if !ruleConfig.enabled {
+            ruleDict["enabled"] = false
+        }
+        return ruleDict
+    }
+
+    private func isSimpleBooleanRule(_ ruleConfig: RuleConfiguration, enabled: Bool) -> Bool {
+        ruleConfig.severity == nil && ruleConfig.parameters == nil && ruleConfig.enabled == enabled
     }
     
     // MARK: - Comment Preservation

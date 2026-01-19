@@ -64,93 +64,98 @@ class WorkspaceManager: ObservableObject {
     
     /// Validate that a directory is a valid Swift project workspace
     private func validateSwiftWorkspace(at url: URL) throws {
-        let fileManager = FileManager.default
         let path = url.path
-        
-        // Check for common Swift project indicators
-        var hasSwiftFiles = false
-        var hasXcodeProject = false
-        var hasPackageSwift = false
-        var hasSwiftPM = false
-        
-        // Check top-level for common indicators
+        let indicators = try scanTopLevelIndicators(at: url)
+        if indicators.hasProjectMarker {
+            return
+        }
+
+        let hasSwiftFiles = indicators.hasSwiftFiles || hasSwiftFilesWithinDepth(
+            at: url,
+            rootPath: path,
+            maxDepth: 3
+        )
+        if !hasSwiftFiles {
+            throw WorkspaceError.notASwiftProject(directory: url.lastPathComponent)
+        }
+    }
+
+    private struct WorkspaceIndicators {
+        let hasProjectMarker: Bool
+        let hasSwiftFiles: Bool
+    }
+
+    private func scanTopLevelIndicators(at url: URL) throws -> WorkspaceIndicators {
         do {
-            let contents = try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey])
-            
+            let contents = try FileManager.default.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey]
+            )
+            var hasSwiftFiles = false
+            var hasProjectMarker = false
+
             for item in contents {
-                let itemName = item.lastPathComponent
-                
-                // Check for Xcode project
-                if itemName.hasSuffix(".xcodeproj") || itemName.hasSuffix(".xcworkspace") {
-                    hasXcodeProject = true
+                if isProjectMarker(item) {
+                    hasProjectMarker = true
                 }
-                
-                // Check for Package.swift
-                if itemName == "Package.swift" {
-                    hasPackageSwift = true
-                }
-                
-                // Check for .swiftpm directory
-                if itemName == ".swiftpm" {
-                    hasSwiftPM = true
-                }
-                
-                // Quick check for Swift files in top-level (limited depth check)
                 if item.pathExtension.lowercased() == "swift" {
                     hasSwiftFiles = true
                 }
             }
+
+            return WorkspaceIndicators(hasProjectMarker: hasProjectMarker, hasSwiftFiles: hasSwiftFiles)
         } catch {
-            // If we can't read the directory, it might be a permissions issue
             throw WorkspaceError.accessDenied
         }
-        
-        // If we found project indicators, it's likely valid
-        if hasXcodeProject || hasPackageSwift || hasSwiftPM {
-            return // Valid workspace
+    }
+
+    private func isProjectMarker(_ url: URL) -> Bool {
+        let itemName = url.lastPathComponent
+        if itemName.hasSuffix(".xcodeproj") || itemName.hasSuffix(".xcworkspace") {
+            return true
         }
-        
-        // If no project indicators, check for Swift files (but limit depth to avoid slow checks)
-        if !hasSwiftFiles {
-            // Do a limited-depth search for Swift files
-            if let enumerator = fileManager.enumerator(
-                at: url,
-                includingPropertiesForKeys: [.isRegularFileKey],
-                options: [.skipsHiddenFiles, .skipsPackageDescendants]
-            ) {
-                var depth = 0
-                var foundSwiftFile = false
-                
-                for case let fileURL as URL in enumerator {
-                    // Limit search depth to 3 levels to avoid slow checks
-                    let relativePath = fileURL.path.replacingOccurrences(of: path + "/", with: "")
-                    depth = relativePath.components(separatedBy: "/").count
-                    
-                    if depth > 3 {
-                        enumerator.skipDescendants()
-                        continue
-                    }
-                    
-                    // Skip common build and dependency directories
-                    if fileURL.path.contains("/.build/") ||
-                       fileURL.path.contains("/Pods/") ||
-                       fileURL.path.contains("/node_modules/") ||
-                       fileURL.path.contains("/.git/") {
-                        enumerator.skipDescendants()
-                        continue
-                    }
-                    
-                    if fileURL.pathExtension.lowercased() == "swift" {
-                        foundSwiftFile = true
-                        break
-                    }
-                }
-                
-                if !foundSwiftFile {
-                    throw WorkspaceError.notASwiftProject(directory: url.lastPathComponent)
-                }
+        return itemName == "Package.swift" || itemName == ".swiftpm"
+    }
+
+    private func hasSwiftFilesWithinDepth(at url: URL, rootPath: String, maxDepth: Int) -> Bool {
+        guard let enumerator = FileManager.default.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
+        ) else {
+            return false
+        }
+
+        for case let fileURL as URL in enumerator {
+            let relativePath = fileURL.path.replacingOccurrences(of: rootPath + "/", with: "")
+            let depth = relativePath.components(separatedBy: "/").count
+
+            if depth > maxDepth {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            if shouldSkipWorkspaceScan(path: fileURL.path) {
+                enumerator.skipDescendants()
+                continue
+            }
+
+            if fileURL.pathExtension.lowercased() == "swift" {
+                return true
             }
         }
+
+        return false
+    }
+
+    private func shouldSkipWorkspaceScan(path: String) -> Bool {
+        if path.contains("/.build/") ||
+            path.contains("/Pods/") ||
+            path.contains("/node_modules/") ||
+            path.contains("/.git/") {
+            return true
+        }
+        return false
     }
     
     /// Close the current workspace
