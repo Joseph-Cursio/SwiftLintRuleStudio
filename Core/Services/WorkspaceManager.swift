@@ -303,7 +303,6 @@ class WorkspaceManager: ObservableObject {
         saveRecentWorkspaces()
     }
     
-    
     // MARK: - Persistence
     
     private func loadRecentWorkspaces() {

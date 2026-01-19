@@ -77,7 +77,8 @@ class WorkspaceAnalyzer: ObservableObject {
         if let providedTracker = fileTracker {
             self.fileTracker = providedTracker
         } else {
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+                ?? FileManager.default.temporaryDirectory
             let cacheDir = appSupport.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
             try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
             let cacheURL = cacheDir.appendingPathComponent("file_tracker_cache.json")
@@ -215,13 +216,13 @@ class WorkspaceAnalyzer: ObservableObject {
         
         // Analyze files in batches for performance
         let batchSize = 10
-        for i in stride(from: 0, to: filesToAnalyzeURLs.count, by: batchSize) {
-            let batch = Array(filesToAnalyzeURLs[i..<min(i + batchSize, filesToAnalyzeURLs.count)])
+        for batchStart in stride(from: 0, to: filesToAnalyzeURLs.count, by: batchSize) {
+            let batch = Array(filesToAnalyzeURLs[batchStart..<min(batchStart + batchSize, filesToAnalyzeURLs.count)])
             
             // Update progress
             currentProgress = AnalysisProgress(
                 currentFile: batch.first?.lastPathComponent,
-                filesProcessed: i,
+                filesProcessed: batchStart,
                 totalFiles: filesToAnalyzeURLs.count,
                 violationsFound: allViolations.count,
                 isComplete: false

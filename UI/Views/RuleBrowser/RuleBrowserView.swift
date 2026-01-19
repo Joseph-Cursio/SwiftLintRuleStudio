@@ -69,7 +69,10 @@ struct RuleBrowserView: View {
     }
     
     private var ruleListView: some View {
-        VStack(spacing: 0) {
+        let hasActiveFilters = !viewModel.searchText.isEmpty
+            || viewModel.selectedCategory != nil
+            || viewModel.selectedStatus != .all
+        return VStack(spacing: 0) {
             // Search and Filters
             searchAndFiltersView
             
@@ -95,7 +98,7 @@ struct RuleBrowserView: View {
                 } label: {
                     Label("Clear Filters", systemImage: "xmark.circle")
                 }
-                .disabled(viewModel.searchText.isEmpty && viewModel.selectedCategory == nil && viewModel.selectedStatus == .all)
+                .disabled(!hasActiveFilters)
             }
         }
     }

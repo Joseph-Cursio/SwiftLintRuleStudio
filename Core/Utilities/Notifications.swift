@@ -14,5 +14,3 @@ extension Notification.Name {
     /// Posted when workspace changes
     static let workspaceDidChange = Notification.Name("workspaceDidChange")
 }
-
-

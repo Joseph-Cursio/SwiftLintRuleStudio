@@ -87,7 +87,7 @@ struct ViolationInspectorView: View {
                 }
             }
         }
-        .onChange(of: dependencies.workspaceManager.currentWorkspace) { oldValue, newWorkspace in
+        .onChange(of: dependencies.workspaceManager.currentWorkspace) { _, newWorkspace in
             // Reload violations when workspace changes
             if let workspace = newWorkspace {
                 Task {
@@ -144,8 +144,9 @@ struct ViolationInspectorView: View {
                 if !viewModel.selectedViolationIds.isEmpty {
                     Menu {
                         Button {
+                            let suppressReason = "Suppressed via Violation Inspector"
                             Task {
-                                try? await viewModel.suppressSelectedViolations(reason: "Suppressed via Violation Inspector")
+                                try? await viewModel.suppressSelectedViolations(reason: suppressReason)
                             }
                         } label: {
                             Label("Suppress Selected", systemImage: "eye.slash")
@@ -449,9 +450,9 @@ struct ViolationInspectorView: View {
             Task {
                 do {
                     if url.pathExtension == "json" {
-                        try await exportToJSON(url: url)
+                        try exportToJSON(url: url)
                     } else {
-                        try await exportToCSV(url: url)
+                        try exportToCSV(url: url)
                     }
                 } catch {
                     print("Export failed: \(error)")
@@ -460,7 +461,7 @@ struct ViolationInspectorView: View {
         }
     }
     
-    private func exportToJSON(url: URL) async throws {
+    private func exportToJSON(url: URL) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
@@ -469,7 +470,7 @@ struct ViolationInspectorView: View {
         try data.write(to: url)
     }
     
-    private func exportToCSV(url: URL) async throws {
+    private func exportToCSV(url: URL) throws {
         var csv = "Rule ID,File Path,Line,Column,Severity,Message,Detected At,Resolved At,Suppressed,Suppression Reason\n"
         
         for violation in viewModel.filteredViolations {

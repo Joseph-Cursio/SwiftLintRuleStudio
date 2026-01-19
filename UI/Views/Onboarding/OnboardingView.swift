@@ -78,8 +78,9 @@ struct OnboardingView: View {
     private var progressIndicator: some View {
         HStack(spacing: 8) {
             ForEach(OnboardingManager.OnboardingStep.allCases.filter { $0 != .complete }, id: \.rawValue) { step in
+                let isCompleted = step.rawValue <= onboardingManager.currentStep.rawValue
                 Circle()
-                    .fill(step.rawValue <= onboardingManager.currentStep.rawValue ? Color.accentColor : Color.secondary.opacity(0.3))
+                    .fill(isCompleted ? Color.accentColor : Color.secondary.opacity(0.3))
                     .frame(width: 8, height: 8)
             }
         }
@@ -107,9 +108,21 @@ struct OnboardingView: View {
                 .padding(.horizontal, 40)
             
             VStack(alignment: .leading, spacing: 16) {
-                featureRow(icon: "list.bullet.rectangle", title: "Browse Rules", description: "Explore all available SwiftLint rules with detailed documentation")
-                featureRow(icon: "exclamationmark.triangle", title: "Inspect Violations", description: "View and manage code violations in your workspace")
-                featureRow(icon: "gearshape", title: "Configure Rules", description: "Enable, disable, and customize rules with live preview")
+                featureRow(
+                    icon: "list.bullet.rectangle",
+                    title: "Browse Rules",
+                    description: "Explore all available SwiftLint rules with detailed documentation"
+                )
+                featureRow(
+                    icon: "exclamationmark.triangle",
+                    title: "Inspect Violations",
+                    description: "View and manage code violations in your workspace"
+                )
+                featureRow(
+                    icon: "gearshape",
+                    title: "Configure Rules",
+                    description: "Enable, disable, and customize rules with live preview"
+                )
             }
             .padding(.horizontal, 40)
             .padding(.top, 8)
@@ -258,7 +271,9 @@ struct OnboardingView: View {
             Text("You're All Set!")
                 .font(.system(size: 32, weight: .bold))
             
-            Text("SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace.")
+            Text("""
+            SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace.
+            """)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -335,7 +350,8 @@ struct OnboardingView: View {
                 // Show "Complete" button if workspace is selected
                 if workspaceManager.currentWorkspace != nil {
                     Button("Complete") {
-                        print("Complete button tapped - workspace: \(workspaceManager.currentWorkspace?.path.path ?? "nil")")
+                        let workspacePath = workspaceManager.currentWorkspace?.path.path ?? "nil"
+                        print("Complete button tapped - workspace: \(workspacePath)")
                         onboardingManager.nextStep() // Move to complete step
                     }
                     .buttonStyle(.borderedProminent)
@@ -383,14 +399,12 @@ struct OnboardingView: View {
             let possiblePaths = [
                 "/opt/homebrew/bin/swiftlint",  // Apple Silicon Homebrew (most common)
                 "/usr/local/bin/swiftlint",     // Intel Homebrew
-                "/usr/bin/swiftlint",           // System installation
+                "/usr/bin/swiftlint"            // System installation
             ]
             
             // Synchronous file checks - should be instant for local paths
-            for pathString in possiblePaths {
-                if FileManager.default.fileExists(atPath: pathString) {
-                    return URL(fileURLWithPath: pathString)
-                }
+            for pathString in possiblePaths where FileManager.default.fileExists(atPath: pathString) {
+                return URL(fileURLWithPath: pathString)
             }
             
             return nil
@@ -422,7 +436,9 @@ struct OnboardingView: View {
             }
             
             // Return first completed result (either success or timeout)
-            let result = try await group.next()!
+            guard let result = try await group.next() else {
+                throw SwiftLintError.executionFailed(message: "Operation timed out after \(seconds) seconds")
+            }
             group.cancelAll()
             return result
         }

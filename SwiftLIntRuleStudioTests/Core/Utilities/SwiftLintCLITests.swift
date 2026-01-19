@@ -316,14 +316,14 @@ struct SwiftLintCLITests {
             (Data("ok".utf8), Data("warn".utf8))
         }
         let onTimeout: @Sendable () async -> Void = { }
-        let (stdout, stderr, timedOut) = try await SwiftLintCLI.readWithTimeout(
+        let timeoutResult = try await SwiftLintCLI.readWithTimeout(
             timeoutSeconds: 1,
             read: read,
             onTimeout: onTimeout
         )
-        #expect(String(data: stdout, encoding: .utf8) == "ok")
-        #expect(String(data: stderr, encoding: .utf8) == "warn")
-        #expect(timedOut == false)
+        #expect(String(data: timeoutResult.stdout, encoding: .utf8) == "ok")
+        #expect(String(data: timeoutResult.stderr, encoding: .utf8) == "warn")
+        #expect(timeoutResult.didTimeout == false)
     }
 
     @Test("SwiftLintCLI readWithTimeout handles timeout")
@@ -341,14 +341,14 @@ struct SwiftLintCLITests {
             await tracker.mark()
         }
 
-        let (stdout, stderr, timedOut) = try await SwiftLintCLI.readWithTimeout(
+        let timeoutResult = try await SwiftLintCLI.readWithTimeout(
             timeoutSeconds: 1,
             read: read,
             onTimeout: onTimeout
         )
-        #expect(stdout.isEmpty == true)
-        #expect(stderr.isEmpty == true)
-        #expect(timedOut == true)
+        #expect(timeoutResult.stdout.isEmpty == true)
+        #expect(timeoutResult.stderr.isEmpty == true)
+        #expect(timeoutResult.didTimeout == true)
         let didTimeout = await tracker.didTimeout
         #expect(didTimeout == true)
     }

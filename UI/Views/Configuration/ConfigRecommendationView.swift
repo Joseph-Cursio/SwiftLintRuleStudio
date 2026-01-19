@@ -26,7 +26,10 @@ struct ConfigRecommendationView: View {
                         Text("SwiftLint Configuration File Missing")
                             .font(.headline)
                         
-                        Text("Your workspace doesn't have a `.swiftlint.yml` configuration file. Creating one will help you:")
+                        Text("""
+                        Your workspace doesn't have a `.swiftlint.yml` configuration file.
+                        Creating one will help you:
+                        """)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }

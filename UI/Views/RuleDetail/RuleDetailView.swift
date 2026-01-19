@@ -246,7 +246,10 @@ struct RuleDetailView: View {
         if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
             // Check if the description text appears in the markdown (case-insensitive, ignoring whitespace)
             let normalizedDescription = rule.description.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            let normalizedMarkdown = markdownDoc.lowercased().replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "  ", with: " ")
+            let normalizedMarkdown = markdownDoc
+                .lowercased()
+                .replacingOccurrences(of: "\n", with: " ")
+                .replacingOccurrences(of: "  ", with: " ")
             // Only show short description if it's NOT found in the markdown
             return !normalizedMarkdown.contains(normalizedDescription)
         }
@@ -491,7 +494,7 @@ struct RuleDetailView: View {
                         .font(.subheadline)
                         .foregroundColor(.red)
                     
-                    ForEach(Array(rule.triggeringExamples.enumerated()), id: \.offset) { index, example in
+                    ForEach(Array(rule.triggeringExamples.enumerated()), id: \.offset) { _, example in
                         CodeBlock(code: example, isError: true)
                     }
                 }
@@ -503,7 +506,7 @@ struct RuleDetailView: View {
                         .font(.subheadline)
                         .foregroundColor(.green)
                     
-                    ForEach(Array(rule.nonTriggeringExamples.enumerated()), id: \.offset) { index, example in
+                    ForEach(Array(rule.nonTriggeringExamples.enumerated()), id: \.offset) { _, example in
                         CodeBlock(code: example, isError: false)
                     }
                 }

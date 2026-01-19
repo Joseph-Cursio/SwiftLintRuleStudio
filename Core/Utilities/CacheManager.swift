@@ -28,7 +28,8 @@ struct CacheManager: CacheManagerProtocol {
         if let customDirectory = cacheDirectory {
             self.cacheDirectory = customDirectory
         } else {
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+                ?? FileManager.default.temporaryDirectory
             self.cacheDirectory = appSupport.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
         }
         rulesCacheFile = self.cacheDirectory.appendingPathComponent("rules_cache.json")

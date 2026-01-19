@@ -32,6 +32,7 @@ class XcodeIntegrationService {
         column: Int?,
         in workspace: Workspace
     ) async throws -> Bool {
+        await Task.yield()
         // 1. Resolve file path
         let fileURL = try resolveFileURL(path, in: workspace)
         
@@ -48,7 +49,7 @@ class XcodeIntegrationService {
         let projectURL = findXcodeProject(for: fileURL, in: workspace)
         
         // 4. Try to open using various methods
-        return try await openFileInXcode(
+        return try openFileInXcode(
             fileURL: fileURL,
             line: line,
             column: column,
@@ -162,10 +163,10 @@ class XcodeIntegrationService {
         line: Int,
         column: Int?,
         projectURL: URL?
-    ) async throws -> Bool {
+    ) throws -> Bool {
         // Method 1: Try xed command line tool first (most reliable)
         // This is preferred because it's more reliable than the URL scheme
-        if try await openWithXedCommand(fileURL: fileURL, line: line) {
+        if try openWithXedCommand(fileURL: fileURL, line: line) {
             return true
         }
         
@@ -211,7 +212,7 @@ class XcodeIntegrationService {
     }
     
     /// Try opening file using xed command line tool
-    private func openWithXedCommand(fileURL: URL, line: Int) async throws -> Bool {
+    private func openWithXedCommand(fileURL: URL, line: Int) throws -> Bool {
         // xed is typically in /usr/bin/xed, but can also be accessed via xcode-select
         let xedPath = "/usr/bin/xed"
         guard FileManager.default.fileExists(atPath: xedPath) else {

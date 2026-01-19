@@ -127,8 +127,8 @@ struct RuleDocumentationParser {
             // Parse default configuration table for severity
             if trimmed.contains("severity") && index < lines.count - 1 {
                 // Look for the severity value in the next few lines
-                for i in (index + 1)..<min(index + 10, lines.count) {
-                    let nextLine = lines[i].trimmingCharacters(in: .whitespaces)
+                for lookaheadIndex in (index + 1)..<min(index + 10, lines.count) {
+                    let nextLine = lines[lookaheadIndex].trimmingCharacters(in: .whitespaces)
                     if nextLine.hasPrefix("<td>") && nextLine.contains("</td>") {
                         let severityValue = nextLine
                             .replacingOccurrences(of: "<td>", with: "")

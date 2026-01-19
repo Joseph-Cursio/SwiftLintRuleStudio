@@ -16,12 +16,6 @@ class FileTracker {
         let path: String
         let lastModified: Date
         let fileSize: Int64
-        
-        init(path: String, lastModified: Date, fileSize: Int64) {
-            self.path = path
-            self.lastModified = lastModified
-            self.fileSize = fileSize
-        }
     }
     
     // MARK: - Properties
@@ -149,6 +143,4 @@ enum FileTrackerError: LocalizedError {
         }
     }
 }
-
-
 

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ViolationListItem: View {
     let violation: Violation
-    var onOpenInXcode: (() -> Void)? = nil
+    var onOpenInXcode: (() -> Void)?
     
     @EnvironmentObject var dependencies: DependencyContainer
     
@@ -136,6 +136,3 @@ struct SeverityBadge: View {
         }
     }
 }
-
-
-

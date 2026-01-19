@@ -10,6 +10,7 @@ import SQLite3
 
 // SQLITE_TRANSIENT is a function pointer constant that tells SQLite to copy the string
 // In Swift, we need to define it ourselves
+// swiftlint:disable:next identifier_name
 private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Protocol for violation storage operations
@@ -47,7 +48,8 @@ actor ViolationStorage: ViolationStorageProtocol {
         } else if let customPath = databasePath {
             self.databasePath = customPath
         } else {
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+                ?? FileManager.default.temporaryDirectory
             let dbDir = appSupport.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
             try? FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
             self.databasePath = dbDir.appendingPathComponent("violations.db")
@@ -188,7 +190,6 @@ actor ViolationStorage: ViolationStorageProtocol {
     
     // MARK: - ViolationStorageProtocol
     
-    // swiftlint:disable:next async_without_await
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws { // swiftlint:disable:this async_without_await
         guard let db = database else {

@@ -168,18 +168,14 @@ class YAMLConfigurationEngine {
         
         // Validate file paths in included/excluded
         if let included = config.included {
-            for path in included {
-                if path.isEmpty {
-                    throw YAMLConfigError.invalidPath(path: path)
-                }
+            for path in included where path.isEmpty {
+                throw YAMLConfigError.invalidPath(path: path)
             }
         }
         
         if let excluded = config.excluded {
-            for path in excluded {
-                if path.isEmpty {
-                    throw YAMLConfigError.invalidPath(path: path)
-                }
+            for path in excluded where path.isEmpty {
+                throw YAMLConfigError.invalidPath(path: path)
             }
         }
     }
@@ -329,9 +325,9 @@ class YAMLConfigurationEngine {
             for (ruleId, ruleValue) in rulesDict {
                 // Check if it's a simple boolean first
                 // Handle both Bool and String representations
-                var boolValue: Bool? = nil
-                if let b = ruleValue as? Bool {
-                    boolValue = b
+                var boolValue: Bool?
+                if let boolRuleValue = ruleValue as? Bool {
+                    boolValue = boolRuleValue
                 } else if let str = ruleValue as? String, str == "true" || str == "false" {
                     boolValue = str == "true"
                 }
@@ -342,8 +338,8 @@ class YAMLConfigurationEngine {
                 } else if let ruleDict = ruleValue as? [String: Any] {
                     // Complex configuration with severity/parameters
                     var enabled = true
-                    var severity: Severity? = nil
-                    var parameters: [String: AnyCodable]? = nil
+                    var severity: Severity?
+                    var parameters: [String: AnyCodable]?
                     
                     // Parse severity
                     if let severityStr = ruleDict["severity"] as? String {
@@ -447,7 +443,7 @@ class YAMLConfigurationEngine {
     
     private func extractComments(from content: String) {
         let lines = content.components(separatedBy: .newlines)
-        var currentKey: String? = nil
+        var currentKey: String?
         
         for (index, line) in lines.enumerated() {
             let trimmed = line.trimmingCharacters(in: .whitespaces)

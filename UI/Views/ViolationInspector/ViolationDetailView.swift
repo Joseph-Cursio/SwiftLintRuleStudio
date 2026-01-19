@@ -264,7 +264,7 @@ struct ViolationDetailView: View {
     }
 }
 
-fileprivate func buildSuppressDialog(
+private func buildSuppressDialog(
     reason: Binding<String>,
     onSuppress: @escaping (String) -> Void,
     onCancel: @escaping () -> Void

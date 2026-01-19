@@ -208,7 +208,13 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
                             }
                             
                             // Return first completed result (either success or timeout)
-                            let result = try await timeoutGroup.next()!
+                            guard let result = try await timeoutGroup.next() else {
+                                throw NSError(
+                                    domain: "RuleRegistry",
+                                    code: 4,
+                                    userInfo: [NSLocalizedDescriptionKey: "Rule detail fetch cancelled for \(rule.id)"]
+                                )
+                            }
                             timeoutGroup.cancelAll()
                             return result
                         }
@@ -273,7 +279,7 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
                 let batch = Array(rulesData[batchStart..<batchEnd])
                 
                 // Extract rule data to avoid capturing in closures
-                let ruleData = batch.enumerated().map { (offset, rule) in
+                let ruleData = batch.enumerated().map { offset, rule in
                     (id: rule.id, category: rule.category, isOptIn: rule.isOptIn, index: currentIndex + offset)
                 }
                 currentIndex += batch.count
@@ -308,7 +314,13 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
                                         }
                                         
                                         // Return first completed result (either success or timeout)
-                                        let result = try await timeoutGroup.next()!
+                                        guard let result = try await timeoutGroup.next() else {
+                                            throw NSError(
+                                                domain: "RuleRegistry",
+                                                code: 4,
+                                                userInfo: [NSLocalizedDescriptionKey: "Rule detail fetch cancelled for \(ruleId)"]
+                                            )
+                                        }
                                         timeoutGroup.cancelAll()
                                         return result
                                     }

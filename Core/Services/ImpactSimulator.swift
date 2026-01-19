@@ -219,9 +219,8 @@ class ImpactSimulator {
         if config.rules[ruleId] == nil {
             // Rule not in config, add it as enabled
             config.rules[ruleId] = RuleConfiguration(enabled: true)
-        } else {
+        } else if var ruleConfig = config.rules[ruleId] {
             // Rule exists, update it to enabled
-            var ruleConfig = config.rules[ruleId]!
             ruleConfig.enabled = true
             config.rules[ruleId] = ruleConfig
         }

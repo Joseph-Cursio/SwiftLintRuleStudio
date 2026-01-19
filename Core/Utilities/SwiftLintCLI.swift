@@ -52,9 +52,8 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         self.shellRunner = shellRunner
     }
     
-    // swiftlint:disable:next async_without_await
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func detectSwiftLintPath() async throws -> URL { // swiftlint:disable:this async_without_await
+    func detectSwiftLintPath() async throws -> URL {
         // Check cache first (fast path) - synchronous check is fine for cached paths
         if let cached = cachedSwiftLintPath, await fileExists(cached.path) {
             return cached
@@ -67,16 +66,14 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         let possiblePaths = [
             "/opt/homebrew/bin/swiftlint",  // Apple Silicon Homebrew (most common)
             "/usr/local/bin/swiftlint",     // Intel Homebrew
-            "/usr/bin/swiftlint",           // System installation
+            "/usr/bin/swiftlint"            // System installation
         ]
         
         // Check paths synchronously - these are local paths and should be instant
-        for pathString in possiblePaths {
-            if await fileExists(pathString) {
-                let url = URL(fileURLWithPath: pathString)
-                cachedSwiftLintPath = url
-                return url
-            }
+        for pathString in possiblePaths where await fileExists(pathString) {
+            let url = URL(fileURLWithPath: pathString)
+            cachedSwiftLintPath = url
+            return url
         }
         
         // If we get here, SwiftLint wasn't found in common locations
@@ -126,7 +123,8 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         print("🔄 Generating new documentation (version: \(currentVersion))")
         
         // Use a persistent directory in app support instead of temp
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
         let docsDir = appSupport
             .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
             .appendingPathComponent("rule_docs", isDirectory: true)
@@ -276,7 +274,7 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             
             // Wait for reading to complete with timeout
             let timeoutSeconds: UInt64 = 300
-            let (stdout, stderr, timedOut) = try await Self.readWithTimeout(
+            let timeoutResult = try await Self.readWithTimeout(
                 timeoutSeconds: timeoutSeconds,
                 read: {
                     let stdout = await outputTask.value
@@ -289,13 +287,13 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
                     process.terminate()
                 }
             )
-            outputData = stdout
-            errorData = stderr
+            outputData = timeoutResult.stdout
+            errorData = timeoutResult.stderr
             
             let elapsed = Date().timeIntervalSince(startTime)
             print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
             
-            if timedOut {
+            if timeoutResult.didTimeout {
                 throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds. For very large projects, consider analyzing specific files or directories.")
             }
         } catch {
@@ -348,7 +346,7 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             
             // Wait for process to complete by reading output with timeout
             let timeoutSeconds: UInt64 = 300
-            let (stdout, stderr, didTimeout) = try await Self.readWithTimeout(
+            let timeoutResult = try await Self.readWithTimeout(
                 timeoutSeconds: timeoutSeconds,
                 read: {
                     async let stdout = Self.readChunks(
@@ -369,14 +367,13 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
                     process.terminate()
                 }
             )
-            
-            outputData = stdout
-            errorData = stderr
+            outputData = timeoutResult.stdout
+            errorData = timeoutResult.stderr
             
             let elapsed = Date().timeIntervalSince(startTime)
             print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
             
-            if didTimeout {
+            if timeoutResult.didTimeout {
                 throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds.")
             }
         } catch {
@@ -447,11 +444,17 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         return arguments
     }
 
+    struct ReadWithTimeoutResult {
+        let stdout: Data
+        let stderr: Data
+        let didTimeout: Bool
+    }
+
     nonisolated static func readWithTimeout(
         timeoutSeconds: UInt64,
         read: @escaping @Sendable () async -> (Data, Data),
         onTimeout: @escaping @Sendable () async -> Void
-    ) async throws -> (Data, Data, Bool) {
+    ) async throws -> ReadWithTimeoutResult {
         let timeoutNanoseconds = timeoutSeconds * 1_000_000_000
         var timedOut = false
         var stdout = Data()
@@ -484,7 +487,7 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             }
         }
         
-        return (stdout, stderr, timedOut)
+        return ReadWithTimeoutResult(stdout: stdout, stderr: stderr, didTimeout: timedOut)
     }
 
     nonisolated static func readChunks(

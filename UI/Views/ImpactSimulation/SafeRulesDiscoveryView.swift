@@ -12,7 +12,7 @@ struct SafeRulesDiscoveryView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var isDiscovering = false
-    @State private var discoveryProgress: (current: Int, total: Int, ruleId: String)?
+    @State private var discoveryProgress: DiscoveryProgress?
     @State private var safeRules: [RuleImpactResult] = []
     @State private var selectedRules: Set<String> = []
     @State private var isEnabling = false
@@ -25,7 +25,7 @@ struct SafeRulesDiscoveryView: View {
         safeRules: [RuleImpactResult],
         selectedRules: Set<String> = [],
         isDiscovering: Bool = false,
-        discoveryProgress: (current: Int, total: Int, ruleId: String)? = nil
+        discoveryProgress: DiscoveryProgress? = nil
     ) {
         _safeRules = State(initialValue: safeRules)
         _selectedRules = State(initialValue: selectedRules)
@@ -112,7 +112,7 @@ struct SafeRulesDiscoveryView: View {
             ProgressView()
                 .scaleEffect(1.5)
             
-            if let progress = discoveryProgress {
+                if let progress = discoveryProgress {
                 Text("Analyzing rule \(progress.current) of \(progress.total)")
                     .font(.headline)
                 
@@ -222,7 +222,7 @@ struct SafeRulesDiscoveryView: View {
                     disabledRuleIds: disabledRuleIds
                 ) { current, total, ruleId in
                     Task { @MainActor in
-                        discoveryProgress = (current, total, ruleId)
+                        discoveryProgress = DiscoveryProgress(current: current, total: total, ruleId: ruleId)
                     }
                 }
                 
@@ -300,9 +300,10 @@ struct SafeRulesDiscoveryView: View {
             if config.rules[ruleId] == nil {
                 config.rules[ruleId] = RuleConfiguration(enabled: true)
             } else {
-                var ruleConfig = config.rules[ruleId]!
-                ruleConfig.enabled = true
-                config.rules[ruleId] = ruleConfig
+                if var ruleConfig = config.rules[ruleId] {
+                    ruleConfig.enabled = true
+                    config.rules[ruleId] = ruleConfig
+                }
             }
             
             if var disabledRules = config.disabledRules {
@@ -311,6 +312,12 @@ struct SafeRulesDiscoveryView: View {
             }
         }
     }
+}
+
+struct DiscoveryProgress {
+    let current: Int
+    let total: Int
+    let ruleId: String
 }
 
 struct SafeRuleRow: View {
