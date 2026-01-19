@@ -433,6 +433,7 @@ final class MockImpactSimulator: ImpactSimulator {
         disabledRuleIds: [String],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> [String] {
+        await Task.yield()
         findSafeRulesCalls += 1
         for (index, ruleId) in safeRuleIds.enumerated() {
             progressHandler?(index + 1, safeRuleIds.count, ruleId)
@@ -445,6 +446,7 @@ final class MockImpactSimulator: ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?
     ) async throws -> RuleImpactResult {
+        await Task.yield()
         simulateRuleCalls += 1
         if let result = results[ruleId] {
             return result
@@ -460,11 +462,11 @@ final class MockImpactSimulator: ImpactSimulator {
 }
 
 private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
-    func detectSwiftLintPath() async throws -> URL { throw SwiftLintError.notFound }
-    func executeRulesCommand() async throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId: String) async throws -> Data { Data() }
-    func generateDocsForRule(ruleId: String) async throws -> String { "" }
-    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data { Data() }
-    func getVersion() async throws -> String { "0.0.0" }
+    func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
+    func executeRulesCommand() throws -> Data { Data() }
+    func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
+    func generateDocsForRule(ruleId: String) throws -> String { "" }
+    func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
+    func getVersion() throws -> String { "0.0.0" }
 }
 

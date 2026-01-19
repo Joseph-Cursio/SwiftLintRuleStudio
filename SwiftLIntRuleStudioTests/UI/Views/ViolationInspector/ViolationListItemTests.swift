@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for ViolationListItem component
+// Tests for ViolationListItem component
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -76,7 +76,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasRuleID = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "force_cast")
+            _ = try viewCapture.inspect().find(text: "force_cast")
             return true
         }
         #expect(hasRuleID == true, "ViolationListItem should display rule ID")
@@ -93,7 +93,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasMessage = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Force cast should be avoided")
+            _ = try viewCapture.inspect().find(text: "Force cast should be avoided")
             return true
         }
         #expect(hasMessage == true, "ViolationListItem should display violation message")
@@ -110,7 +110,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasFilePath = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Sources/MyFile.swift")
+            _ = try viewCapture.inspect().find(text: "Sources/MyFile.swift")
             return true
         }
         #expect(hasFilePath == true, "ViolationListItem should display file path")
@@ -127,7 +127,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasLine = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Line 42")
+            _ = try viewCapture.inspect().find(text: "Line 42")
             return true
         }
         #expect(hasLine == true, "ViolationListItem should display line number")
@@ -147,7 +147,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSeverityBadge = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.Text.self, where: { textView in
+            _ = try viewCapture.inspect().find(ViewType.Text.self, where: { textView in
                 do {
                     let text = try textView.string()
                     return text == "ERROR"
@@ -172,7 +172,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSeverityBadge = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.Text.self, where: { textView in
+            _ = try viewCapture.inspect().find(ViewType.Text.self, where: { textView in
                 do {
                     let text = try textView.string()
                     return text == "WARNING"
@@ -196,7 +196,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSuppressed = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Suppressed")
+            _ = try viewCapture.inspect().find(text: "Suppressed")
             return true
         }
         #expect(hasSuppressed == true, "ViolationListItem should show 'Suppressed' label when violation is suppressed")
@@ -233,7 +233,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasHStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasHStack == true, "ViolationListItem should have HStack structure")
@@ -251,7 +251,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasHStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasHStack == true, "ViolationListItem should have HStack structure")
@@ -274,7 +274,7 @@ struct ViolationListItemTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasHStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasHStack == true, "ViolationListItem should handle long messages")
@@ -312,7 +312,7 @@ struct ViolationListItemTests {
         nonisolated(unsafe) let viewCapture = view
         let hasRuleID = try await MainActor.run {
             let ruleID = violation.ruleID
-            let _ = try viewCapture.inspect().find(text: ruleID)
+            _ = try viewCapture.inspect().find(text: ruleID)
             return true
         }
         #expect(hasRuleID == true, "ViolationListItem should display even without column")
@@ -332,7 +332,7 @@ struct ViolationListItemTests {
         nonisolated(unsafe) let viewCapture = view
         let hasRuleID = try await MainActor.run {
             let ruleID = violation.ruleID
-            let _ = try viewCapture.inspect().find(text: ruleID)
+            _ = try viewCapture.inspect().find(text: ruleID)
             return true
         }
         #expect(hasRuleID == true, "ViolationListItem should display with column")

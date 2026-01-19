@@ -22,7 +22,7 @@ struct OnboardingManagerIntegrationTests {
         // UserDefaults is thread-safe for our test use case
         nonisolated(unsafe) let userDefaultsCapture = userDefaults
         return try await MainActor.run {
-            let container = userDefaultsCapture != nil 
+            let container = userDefaultsCapture != nil
                 ? DependencyContainer.createForTesting(userDefaults: userDefaultsCapture!)
                 : DependencyContainer.createForTesting()
             return try operation(container)
@@ -200,7 +200,7 @@ struct OnboardingManagerIntegrationTests {
             let afterStep = container.onboardingManager.currentStep
             
             // Create new container instance with same isolated UserDefaults
-            // Note: Since completeOnboarding() doesn't persist to UserDefaults, 
+            // Note: Since completeOnboarding() doesn't persist to UserDefaults,
             // a new instance will start fresh, but this demonstrates the isolation pattern
             // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
             // Note: userDefaults is captured from outer scope, need to use the same capture
@@ -225,7 +225,15 @@ struct OnboardingManagerIntegrationTests {
         let userDefaults = IsolatedUserDefaults.create(for: #function)
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
         
-        let result: (Bool, Bool, Bool, OnboardingManager.OnboardingStep, Bool) = try await MainActor.run {
+        struct ResetResult {
+            let afterComplete: Bool
+            let afterReset: Bool
+            let hasCompleted: Bool
+            let currentStep: OnboardingManager.OnboardingStep
+            let hasCompleted2: Bool
+        }
+
+        let result: ResetResult = try await MainActor.run {
             let container = DependencyContainer.createForTesting()
             
             // Complete onboarding
@@ -241,16 +249,20 @@ struct OnboardingManagerIntegrationTests {
             let container2 = DependencyContainer.createForTesting()
             let hasCompleted2 = container2.onboardingManager.hasCompletedOnboarding
             
-            return (afterComplete, afterReset, afterReset, currentStep, hasCompleted2)
+            return ResetResult(
+                afterComplete: afterComplete,
+                afterReset: afterReset,
+                hasCompleted: afterReset,
+                currentStep: currentStep,
+                hasCompleted2: hasCompleted2
+            )
         }
         
-        let (afterComplete, afterReset, hasCompleted, currentStep, hasCompleted2) = result
-        
-        #expect(afterComplete == true)
-        #expect(afterReset == false)
-        #expect(hasCompleted == false)
-        #expect(currentStep == .welcome)
-        #expect(hasCompleted2 == false)
+        #expect(result.afterComplete == true)
+        #expect(result.afterReset == false)
+        #expect(result.hasCompleted == false)
+        #expect(result.currentStep == .welcome)
+        #expect(result.hasCompleted2 == false)
         
         // Cleanup
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")

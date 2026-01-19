@@ -403,12 +403,12 @@ class MockViolationStorage: ViolationStorageProtocol {
     var storedViolations: [Violation] = []
     var storedWorkspaceIds: [UUID] = []
     
-    func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {
+    func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
         storedViolations.append(contentsOf: violations)
         storedWorkspaceIds.append(workspaceId)
     }
     
-    func fetchViolations(filter: ViolationFilter, workspaceId: UUID?) async throws -> [Violation] {
+    func fetchViolations(filter: ViolationFilter, workspaceId: UUID?) throws -> [Violation] {
         var filtered = storedViolations
         
         if let workspaceId = workspaceId {
@@ -431,7 +431,7 @@ class MockViolationStorage: ViolationStorageProtocol {
         return filtered
     }
     
-    func suppressViolations(_ violationIds: [UUID], reason: String) async throws {
+    func suppressViolations(_ violationIds: [UUID], reason: String) throws {
         for (index, violation) in storedViolations.enumerated() {
             if violationIds.contains(violation.id) {
                 storedViolations[index] = Violation(
@@ -451,7 +451,7 @@ class MockViolationStorage: ViolationStorageProtocol {
         }
     }
     
-    func resolveViolations(_ violationIds: [UUID]) async throws {
+    func resolveViolations(_ violationIds: [UUID]) throws {
         for (index, violation) in storedViolations.enumerated() {
             if violationIds.contains(violation.id) {
                 storedViolations[index] = Violation(
@@ -471,7 +471,7 @@ class MockViolationStorage: ViolationStorageProtocol {
         }
     }
     
-    func deleteViolations(for workspaceId: UUID) async throws {
+    func deleteViolations(for workspaceId: UUID) throws {
         storedViolations.removeAll()
     }
     

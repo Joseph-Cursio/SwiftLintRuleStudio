@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for ViolationInspectorView
+// Tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -80,7 +80,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should initialize with NavigationSplitView")
@@ -97,7 +97,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have navigation title")
@@ -115,7 +115,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSearchField = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try viewCapture.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(hasSearchField == true, "ViolationInspectorView should display search field")
@@ -131,7 +131,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSearchField = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try viewCapture.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(hasSearchField == true, "Search field should exist")
@@ -150,7 +150,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "ViolationInspectorView should have statistics section")
@@ -169,7 +169,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasHStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasHStack == true, "ViolationInspectorView should have filter controls")
@@ -189,7 +189,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasEmptyState = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "No Violations")
+            _ = try viewCapture.inspect().find(text: "No Violations")
             return true
         }
         #expect(viewCapture != nil, "ViolationInspectorView should handle empty state")
@@ -206,7 +206,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasEmptyMessage = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "No violations match your current filters.")
+            _ = try viewCapture.inspect().find(text: "No violations match your current filters.")
             return true
         }
         #expect(viewCapture != nil, "ViolationInspectorView should show empty state message")
@@ -225,7 +225,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have toolbar with refresh button")
@@ -244,7 +244,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasEmptyDetail = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Select a Violation")
+            _ = try viewCapture.inspect().find(text: "Select a Violation")
             return true
         }
         #expect(viewCapture != nil, "ViolationInspectorView should show empty detail view")
@@ -263,7 +263,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasList = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.List.self)
+            _ = try viewCapture.inspect().find(ViewType.List.self)
             return true
         }
         #expect(viewCapture != nil, "ViolationInspectorView should have list structure")
@@ -282,7 +282,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasAnalyzing = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Analyzing Workspace")
+            _ = try viewCapture.inspect().find(text: "Analyzing Workspace")
             return true
         }
         #expect(viewCapture != nil, "ViolationInspectorView should handle analyzing state")
@@ -315,7 +315,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should integrate with DependencyContainer")
@@ -333,7 +333,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have NavigationSplitView as root")
@@ -349,7 +349,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have master-detail layout")

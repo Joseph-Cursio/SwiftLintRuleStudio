@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for OnboardingView
+// Tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -47,12 +47,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView initializes correctly")
     func testInitialization() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,)
+        let (view, _, _) = await createOnboardingView(testName: #function, )
         
         // Verify the view can be created
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasVStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "OnboardingView should initialize with VStack")
@@ -60,12 +60,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView has fixed frame size")
     func testFixedFrameSize() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,)
+        let (view, _, _) = await createOnboardingView(testName: #function, )
         
         // Verify the view structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasVStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "OnboardingView should have fixed frame size")
@@ -75,13 +75,13 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView displays progress indicator")
     func testDisplaysProgressIndicator() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,)
+        let (view, _, _) = await createOnboardingView(testName: #function, )
         
         // Find progress indicator (circles)
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.HStack.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(true, "OnboardingView should display progress indicator")
@@ -89,13 +89,13 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView progress indicator shows correct number of steps")
     func testProgressIndicatorStepCount() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,)
+        let (view, _, _) = await createOnboardingView(testName: #function, )
         
         // Progress indicator should show 3 steps (welcome, swiftLintCheck, workspaceSelection)
         // Complete step is not shown in progress indicator
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasHStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.HStack.self)
+            _ = try view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasHStack == true, "Progress indicator should show correct number of steps")
@@ -105,12 +105,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView displays welcome step")
     func testDisplaysWelcomeStep() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .welcome)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Find welcome text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasWelcome = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Welcome to SwiftLint Rule Studio")
+            _ = try view.inspect().find(text: "Welcome to SwiftLint Rule Studio")
             return true
         }
         #expect(hasWelcome == true, "OnboardingView should display welcome step")
@@ -118,7 +118,7 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView welcome step shows feature list")
     func testWelcomeStepShowsFeatures() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .welcome)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Find feature descriptions
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -129,18 +129,18 @@ struct OnboardingViewTests {
             return (browseRulesText != nil, inspectViolationsText != nil, configureRulesText != nil)
         }
         
-        #expect(hasBrowseRules == true || hasInspectViolations == true || hasConfigureRules == true, 
+        #expect(hasBrowseRules == true || hasInspectViolations == true || hasConfigureRules == true,
                 "Welcome step should show feature list")
     }
     
     @Test("OnboardingView welcome step shows description")
     func testWelcomeStepShowsDescription() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .welcome)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Find description text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasDescription = try? await MainActor.run {
-            let _ = try view.inspect().find(
+            _ = try view.inspect().find(
                 text: "A powerful tool for managing and configuring SwiftLint rules in your Swift projects."
             )
             return true
@@ -152,12 +152,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView displays SwiftLint check step")
     func testDisplaysSwiftLintCheckStep() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find SwiftLint check text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasSwiftLint = try await MainActor.run {
-            let _ = try view.inspect().find(text: "SwiftLint Installation")
+            _ = try view.inspect().find(text: "SwiftLint Installation")
             return true
         }
         #expect(hasSwiftLint == true, "OnboardingView should display SwiftLint check step")
@@ -165,12 +165,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView SwiftLint check step shows checking state")
     func testSwiftLintCheckStepShowsChecking() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find checking text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasChecking = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Checking for SwiftLint installation...")
+            _ = try view.inspect().find(text: "Checking for SwiftLint installation...")
             return true
         }
         #expect(hasChecking == true, "SwiftLint check step should show checking state")
@@ -178,14 +178,14 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView SwiftLint check step shows not installed state")
     func testSwiftLintCheckStepShowsNotInstalled() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find not installed text (may appear after checking)
         // Note: May not be visible immediately, but structure should exist
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "SwiftLint Not Found")
+        _ = try? await MainActor.run {
+            _ = try viewCapture.inspect().find(text: "SwiftLint Not Found")
             return true
         }
         #expect(true, "SwiftLint check step should handle not installed state")
@@ -193,14 +193,14 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView SwiftLint check step shows installation options")
     func testSwiftLintCheckStepShowsInstallationOptions() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find installation options
         // Note: May not be visible if SwiftLint is installed
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Installation Options:")
+        _ = try? await MainActor.run {
+            _ = try viewCapture.inspect().find(text: "Installation Options:")
             return true
         }
         #expect(true, "SwiftLint check step should show installation options when not installed")
@@ -208,14 +208,14 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView SwiftLint check step shows check again button")
     func testSwiftLintCheckStepShowsCheckAgainButton() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find check again button
         // Note: May not be visible if SwiftLint is installed
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Check Again")
+        _ = try? await MainActor.run {
+            _ = try viewCapture.inspect().find(text: "Check Again")
             return true
         }
         #expect(true, "SwiftLint check step should show check again button when not installed")
@@ -225,12 +225,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView displays workspace selection step")
     func testDisplaysWorkspaceSelectionStep() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .workspaceSelection)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Find workspace selection text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasWorkspace = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Select Your Workspace")
+            _ = try view.inspect().find(text: "Select Your Workspace")
             return true
         }
         #expect(hasWorkspace == true, "OnboardingView should display workspace selection step")
@@ -238,12 +238,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView workspace selection step shows description")
     func testWorkspaceSelectionStepShowsDescription() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .workspaceSelection)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Find description text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasDescription = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Choose a directory containing your Swift project")
+            _ = try view.inspect().find(text: "Choose a directory containing your Swift project")
             return true
         }
         #expect(hasDescription == true, "Workspace selection step should show description")
@@ -251,14 +251,14 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView workspace selection step embeds WorkspaceSelectionView")
     func testWorkspaceSelectionStepEmbedsView() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .workspaceSelection)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // WorkspaceSelectionView should be embedded
         // We verify the view structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(true, "Workspace selection step should embed WorkspaceSelectionView")
@@ -268,12 +268,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView displays complete step")
     func testDisplaysCompleteStep() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .complete)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .complete)
         
         // Find complete step text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasComplete = try await MainActor.run {
-            let _ = try view.inspect().find(text: "You're All Set!")
+            _ = try view.inspect().find(text: "You're All Set!")
             return true
         }
         #expect(hasComplete == true, "OnboardingView should display complete step")
@@ -281,12 +281,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView complete step shows completion message")
     func testCompleteStepShowsMessage() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .complete)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .complete)
         
         // Find completion message
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasMessage = try? await MainActor.run {
-            let _ = try view.inspect().find(
+            _ = try view.inspect().find(
                 text: "SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace."
             )
             return true
@@ -298,12 +298,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView shows Next button on welcome step")
     func testShowsNextButtonOnWelcome() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .welcome)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Find Next button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasNext = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Next")
+            _ = try view.inspect().find(text: "Next")
             return true
         }
         #expect(hasNext == true, "OnboardingView should show Next button on welcome step")
@@ -311,12 +311,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView shows Back button when not on welcome step")
     func testShowsBackButton() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .swiftLintCheck)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .swiftLintCheck)
         
         // Find Back button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasBack = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Back")
+            _ = try view.inspect().find(text: "Back")
             return true
         }
         #expect(hasBack == true, "OnboardingView should show Back button when not on welcome step")
@@ -324,7 +324,7 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView hides Back button on welcome step")
     func testHidesBackButtonOnWelcome() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .welcome)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Back button should not exist
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -336,28 +336,28 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView shows Complete button on workspace selection when workspace selected")
     func testShowsCompleteButtonWhenWorkspaceSelected() async throws {
-        let (view, _, workspaceManager) = await createOnboardingView(testName: #function,step: .workspaceSelection)
+        let (view, _, workspaceManager) = await createOnboardingView(testName: #function, step: .workspaceSelection)
         
         // Note: This test verifies the button structure exists
         // Actual workspace selection would require integration test
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
-        let _ = workspaceManager // Suppress unused warning
+        _ = workspaceManager // Suppress unused warning
         #expect(true, "OnboardingView should show Complete button when workspace is selected")
     }
     
     @Test("OnboardingView shows Get Started button on complete step")
     func testShowsGetStartedButton() async throws {
-        let (view, _, _) = await createOnboardingView(testName: #function,step: .complete)
+        let (view, _, _) = await createOnboardingView(testName: #function, step: .complete)
         
         // Find Get Started button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasGetStarted = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Get Started")
+            _ = try view.inspect().find(text: "Get Started")
             return true
         }
         #expect(hasGetStarted == true, "OnboardingView should show Get Started button on complete step")
@@ -367,12 +367,12 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView transitions between steps")
     func testTransitionsBetweenSteps() async throws {
-        let (view, onboardingManager, _) = await createOnboardingView(testName: #function,step: .welcome)
+        let (view, onboardingManager, _) = await createOnboardingView(testName: #function, step: .welcome)
         
         // Verify welcome step is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasWelcome = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Welcome to SwiftLint Rule Studio")
+            _ = try view.inspect().find(text: "Welcome to SwiftLint Rule Studio")
             return true
         }
         #expect(hasWelcome == true, "Should start at welcome step")

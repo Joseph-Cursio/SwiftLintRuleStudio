@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Interaction tests for RuleBrowserView
+// Interaction tests for RuleBrowserView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -308,7 +308,7 @@ struct RuleBrowserViewInteractionTests {
         
         let hasListAfterUpdate = try? await MainActor.run {
             let splitView = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
-            let _ = try splitView.find(ViewType.List.self)
+            _ = try splitView.find(ViewType.List.self)
             return true
         }
         #expect(hasListAfterUpdate == true, "RuleBrowserView should render List after rules load")
@@ -393,7 +393,7 @@ struct RuleBrowserViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "Status filter should default to all")
@@ -410,7 +410,7 @@ struct RuleBrowserViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "Category filter should default to nil")
@@ -427,7 +427,7 @@ struct RuleBrowserViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "Sort option should default to name")

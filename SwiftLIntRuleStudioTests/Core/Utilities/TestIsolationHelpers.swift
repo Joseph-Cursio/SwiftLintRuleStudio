@@ -9,8 +9,8 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
-/// Provides isolated UserDefaults for each test
-/// Uses Swift Testing's test name to create unique suite names
+// Provides isolated UserDefaults for each test
+// Uses Swift Testing's test name to create unique suite names
 struct IsolatedUserDefaults {
     /// Creates a unique UserDefaults suite for the current test
     /// Uses the test function name to ensure uniqueness
@@ -45,7 +45,7 @@ struct IsolatedUserDefaults {
     }
 }
 
-/// Helper to create DependencyContainer with isolated UserDefaults
+// Helper to create DependencyContainer with isolated UserDefaults
 extension DependencyContainer {
     /// Creates a DependencyContainer with isolated UserDefaults for testing
     static func createForTesting(
@@ -79,7 +79,7 @@ extension DependencyContainer {
     }
 }
 
-/// Extension to OnboardingManager for test isolation
+// Extension to OnboardingManager for test isolation
 extension OnboardingManager {
     /// Creates an OnboardingManager with isolated UserDefaults for testing
     static func createForTesting(testName: String) -> OnboardingManager {
@@ -88,7 +88,7 @@ extension OnboardingManager {
     }
 }
 
-/// Extension to WorkspaceManager for test isolation
+// Extension to WorkspaceManager for test isolation
 extension WorkspaceManager {
     /// Creates a WorkspaceManager with isolated UserDefaults for testing
     /// Uses the test function name to ensure uniqueness
@@ -98,7 +98,7 @@ extension WorkspaceManager {
     }
 }
 
-/// Extension to CacheManager for test isolation
+// Extension to CacheManager for test isolation
 extension CacheManager {
     /// Creates a CacheManager with isolated cache directory for testing
     /// Uses UUID to ensure complete isolation between tests
@@ -111,7 +111,7 @@ extension CacheManager {
     }
 }
 
-/// Extension to FileTracker for test isolation
+// Extension to FileTracker for test isolation
 extension FileTracker {
     /// Creates a FileTracker with isolated cache file for testing
     /// Uses UUID to ensure complete isolation between tests

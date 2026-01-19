@@ -12,7 +12,7 @@ import ViewInspector
 
 // MARK: - Test Data Factories
 
-/// Factory methods for creating test data
+// Factory methods for creating test data
 // Using async functions with MainActor.run to allow parallel test execution
 enum UITestDataFactory {
     
@@ -145,7 +145,7 @@ enum UITestDataFactory {
 
 // MARK: - View Creation Helpers
 
-/// Helpers for creating views with proper environment objects
+// Helpers for creating views with proper environment objects
 // Using async functions with MainActor.run to allow parallel test execution
 enum UIViewTestHelpers {
     
@@ -160,38 +160,30 @@ enum UIViewTestHelpers {
     }
     
     /// Creates a view with DependencyContainer as environment object
+    @MainActor
     static func createViewWithDependencies<Content: View>(
         _ content: Content,
         dependencyContainer: DependencyContainer? = nil
-    ) async -> AnyView {
-        nonisolated(unsafe) let contentCapture = content
-        nonisolated(unsafe) var viewCapture: AnyView!
-        await MainActor.run {
-            let container = dependencyContainer ?? DependencyContainer.createForTesting()
-            viewCapture = AnyView(contentCapture.environmentObject(container))
-        }
-        return viewCapture
+    ) -> AnyView {
+        let container = dependencyContainer ?? DependencyContainer.createForTesting()
+        return AnyView(content.environmentObject(container))
     }
     
     /// Creates a view with both RuleRegistry and DependencyContainer
+    @MainActor
     static func createViewWithFullDependencies<Content: View>(
         _ content: Content,
         dependencyContainer: DependencyContainer? = nil,
         ruleRegistry: RuleRegistry? = nil
-    ) async -> AnyView {
-        nonisolated(unsafe) let contentCapture = content
-        nonisolated(unsafe) var viewCapture: AnyView!
-        await MainActor.run {
-            let container = dependencyContainer ?? DependencyContainer.createForTesting()
-            let cacheManager = CacheManager.createForTesting()
-            let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
-            let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
-            
-            viewCapture = AnyView(contentCapture
-                .environmentObject(registry)
-                .environmentObject(container))
-        }
-        return viewCapture
+    ) -> AnyView {
+        let container = dependencyContainer ?? DependencyContainer.createForTesting()
+        let cacheManager = CacheManager.createForTesting()
+        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
+
+        return AnyView(content
+            .environmentObject(registry)
+            .environmentObject(container))
     }
     
     /// Creates an OnboardingManager with isolated UserDefaults
@@ -213,7 +205,7 @@ enum UIViewTestHelpers {
 
 // MARK: - Test Assertion Helpers
 
-/// Helpers for common test assertions
+// Helpers for common test assertions
 enum UITestAssertions {
     
     /// Asserts that a view contains specific text
@@ -260,7 +252,7 @@ enum UITestAssertions {
 
 // MARK: - Async Test Helpers
 
-/// Helpers for async test operations
+// Helpers for async test operations
 enum UIAsyncTestHelpers {
     
     /// Waits for a condition to become true

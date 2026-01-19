@@ -60,7 +60,7 @@ struct RuleDetailViewNewFeaturesTests {
         ## Examples
         """
         
-        let _ = await makeTestRule(markdownDocumentation: markdown)
+        _ = await makeTestRule(markdownDocumentation: markdown)
         
         // Test rationale extraction using the helper method
         let rationale = await extractRationale(from: markdown)
@@ -253,7 +253,7 @@ struct RuleDetailViewNewFeaturesTests {
     // MARK: - Helper Methods
     
     // Test rationale extraction by checking view content
-    private func extractRationale(from markdown: String) async -> String? {
+    private func extractRationale(from markdown: String) -> String? {
         // Replicate the logic from RuleDetailView for testing
         guard !markdown.isEmpty else { return nil }
         
@@ -299,7 +299,7 @@ struct RuleDetailViewNewFeaturesTests {
     }
     
     // Test Swift Evolution link extraction
-    private func extractSwiftEvolutionLinks(from markdown: String) async -> [URL] {
+    private func extractSwiftEvolutionLinks(from markdown: String) -> [URL] {
         guard !markdown.isEmpty else { return [] }
         
         var links: [URL] = []

@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for SidebarView
+// Tests for SidebarView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -63,7 +63,7 @@ struct SidebarViewTests {
         // Verify the view can be created
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasList = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.List.self)
+            _ = try view.inspect().find(ViewType.List.self)
             return true
         }
         #expect(hasList == true, "SidebarView should initialize with List")
@@ -78,7 +78,7 @@ struct SidebarViewTests {
         // Find navigation title
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasTitle = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Rules")
+            _ = try view.inspect().find(text: "Rules")
             return true
         }
         #expect(hasTitle == true, "SidebarView should display navigation title")
@@ -107,7 +107,7 @@ struct SidebarViewTests {
         // Verify workspace section is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasWorkspaceHeader = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Workspace")
+            _ = try view.inspect().find(text: "Workspace")
             return true
         }
         #expect(hasWorkspaceHeader == true, "SidebarView should show workspace info when workspace is open")
@@ -122,7 +122,7 @@ struct SidebarViewTests {
         // Verify workspace section is not shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasWorkspaceHeader = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Workspace")
+            _ = try view.inspect().find(text: "Workspace")
             return true
         }
         #expect(hasWorkspaceHeader == nil, "SidebarView should hide workspace info when no workspace")
@@ -139,7 +139,7 @@ struct SidebarViewTests {
         // Find Rules link
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasRulesText = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Rules")
+            _ = try view.inspect().find(text: "Rules")
             return true
         }
         #expect(hasRulesText == true, "SidebarView should display Rules navigation link")
@@ -205,7 +205,7 @@ struct SidebarViewTests {
         // Safe Rules link should have checkmark.circle.badge.questionmark icon
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasList = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.List.self)
+            _ = try view.inspect().find(ViewType.List.self)
             return true
         }
         #expect(hasList == true, "SidebarView should display correct icons for navigation links")
@@ -222,7 +222,7 @@ struct SidebarViewTests {
         // Verify List structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasList = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.List.self)
+            _ = try view.inspect().find(ViewType.List.self)
             return true
         }
         #expect(hasList == true, "SidebarView should have correct structure")

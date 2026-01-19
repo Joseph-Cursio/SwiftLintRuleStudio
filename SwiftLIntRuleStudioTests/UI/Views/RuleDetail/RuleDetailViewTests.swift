@@ -22,12 +22,12 @@ struct RuleDetailViewTests {
     }
     
     private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
-        func detectSwiftLintPath() async throws -> URL { throw SwiftLintError.notFound }
-        func executeRulesCommand() async throws -> Data { Data() }
-        func executeRuleDetailCommand(ruleId: String) async throws -> Data { Data() }
-        func generateDocsForRule(ruleId: String) async throws -> String { "" }
-        func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data { Data() }
-        func getVersion() async throws -> String { "0.0.0" }
+        func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
+        func executeRulesCommand() throws -> Data { Data() }
+        func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
+        func generateDocsForRule(ruleId: String) throws -> String { "" }
+        func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
+        func getVersion() throws -> String { "0.0.0" }
     }
     
     @MainActor
@@ -355,7 +355,7 @@ struct RuleDetailViewTests {
 
     @Test("RuleDetailView markdown helpers process content")
     @MainActor
-    func testMarkdownHelpers() async throws {
+    func testMarkdownHelpers() throws {
         let markdown = """
         # Title
         **Bold** *italic* `code`

@@ -12,8 +12,6 @@ excluded:
   - xcuserdata                # Xcode user-specific data
   - .xcode                    # Xcode project files
   - SwiftLIntRuleStudio.xcodeproj  # Xcode project bundle
-  - SwiftLIntRuleStudioTests  # Unit/UI tests
-  - SwiftLIntRuleStudioUITests  # UI tests
 
 # Disable rules that are too strict for this project
 disabled_rules:

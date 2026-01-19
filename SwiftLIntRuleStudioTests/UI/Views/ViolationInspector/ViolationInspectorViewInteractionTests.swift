@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Interaction tests for ViolationInspectorView
+// Interaction tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -70,7 +70,6 @@ struct ViolationInspectorViewInteractionTests {
         return ViewResult(view: view, container: container)
     }
 
-    
     // MARK: - Search Interaction Tests
     
     @Test("ViolationInspectorView search field accepts text input")
@@ -273,7 +272,7 @@ struct ViolationInspectorViewInteractionTests {
             ViewHosting.expel()
             ViewHosting.host(view: viewCapture)
             defer { ViewHosting.expel() }
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have refresh button in toolbar")
@@ -306,7 +305,7 @@ struct ViolationInspectorViewInteractionTests {
         defer { Task { @MainActor in ViewHosting.expel() } }
 
         let hasList = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.List.self)
+            _ = try viewCapture.inspect().find(ViewType.List.self)
             return true
         }
         #expect(hasList == true, "ViolationInspectorView should allow violation selection via List")

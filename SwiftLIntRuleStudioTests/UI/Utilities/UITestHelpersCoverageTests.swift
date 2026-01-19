@@ -112,24 +112,21 @@ struct UITestHelpersCoverageTests {
         #expect(isRecentWorkspacesEmpty == true)
         
         let view = Text("Hello")
-        let wrappedView = await UIViewTestHelpers.createViewWithDependencies(view, dependencyContainer: container)
-        
-        nonisolated(unsafe) let viewCapture = wrappedView
         let hasHelloText = await MainActor.run {
+            let wrappedView = UIViewTestHelpers.createViewWithDependencies(view, dependencyContainer: container)
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: wrappedView)
             defer { ViewHosting.expel() }
-            return (try? viewCapture.inspect().find(text: "Hello")) != nil
+            return (try? wrappedView.inspect().find(text: "Hello")) != nil
         }
         #expect(hasHelloText == true)
         
-        let fullView = await UIViewTestHelpers.createViewWithFullDependencies(Text("Full"))
-        nonisolated(unsafe) let fullViewCapture = fullView
         let hasFullText = await MainActor.run {
+            let fullView = UIViewTestHelpers.createViewWithFullDependencies(Text("Full"))
             ViewHosting.expel()
-            ViewHosting.host(view: fullViewCapture)
+            ViewHosting.host(view: fullView)
             defer { ViewHosting.expel() }
-            return (try? fullViewCapture.inspect().find(text: "Full")) != nil
+            return (try? fullView.inspect().find(text: "Full")) != nil
         }
         #expect(hasFullText == true)
     }
@@ -224,7 +221,7 @@ struct UITestHelpersCoverageTests {
         }
         
         struct NavigationLinkView: View {
-            @State private var selection: String? = nil
+            @State private var selection: String?
             var body: some View {
                 VStack {
                     Text("Details")
@@ -246,7 +243,7 @@ struct UITestHelpersCoverageTests {
             defer { ViewHosting.expel() }
             let buttonInspector = try buttonView.inspect()
             try buttonInspector.tapButton(text: "Tap Me")
-            let _ = try buttonInspector.findButton(text: "Tap Me")
+            _ = try buttonInspector.findButton(text: "Tap Me")
             return true
         }
         
@@ -258,7 +255,7 @@ struct UITestHelpersCoverageTests {
             let textFieldInspector = try textFieldView.inspect()
             try textFieldInspector.setTextFieldInput("Ada")
             let inputValue = try textFieldInspector.getTextFieldInput()
-            let _ = try textFieldInspector.findTextField(placeholder: "Name")
+            _ = try textFieldInspector.findTextField(placeholder: "Name")
             return inputValue
         }
         
@@ -268,7 +265,7 @@ struct UITestHelpersCoverageTests {
             ViewHosting.host(view: pickerView)
             defer { ViewHosting.expel() }
             let pickerInspector = try pickerView.inspect()
-            let _ = try pickerInspector.findPicker(label: "Options")
+            _ = try pickerInspector.findPicker(label: "Options")
             return true
         }
         
@@ -278,7 +275,7 @@ struct UITestHelpersCoverageTests {
             ViewHosting.host(view: linkView)
             defer { ViewHosting.expel() }
             let linkInspector = try linkView.inspect()
-            let _ = try linkInspector.findNavigationLink(text: "Details")
+            _ = try linkInspector.findNavigationLink(text: "Details")
             try linkInspector.tapNavigationLink(text: "Details")
         }
         

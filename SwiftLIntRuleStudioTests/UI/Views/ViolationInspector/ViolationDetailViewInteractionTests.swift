@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Interaction tests for ViolationDetailView
+// Interaction tests for ViolationDetailView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -280,7 +280,7 @@ struct ViolationDetailViewInteractionTests {
             let openButton = try buttons.first { button in
                 // Try to find text "Open in Xcode" within the button's label
                 do {
-                    let _ = try button.find(text: "Open in Xcode")
+                    _ = try button.find(text: "Open in Xcode")
                     return true
                 } catch {
                     return false
@@ -306,7 +306,7 @@ struct ViolationDetailViewInteractionTests {
             let openButton = try buttons.first { button in
                 // Try to find text "Open in Xcode" within the button's label
                 do {
-                    let _ = try button.find(text: "Open in Xcode")
+                    _ = try button.find(text: "Open in Xcode")
                     return true
                 } catch {
                     return false

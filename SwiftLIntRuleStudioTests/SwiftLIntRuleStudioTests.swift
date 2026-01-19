@@ -8,7 +8,7 @@
 import Testing
 @testable import SwiftLIntRuleStudio
 
-/// Main test suite - individual test files are organized by module
+// Main test suite - individual test files are organized by module
 struct SwiftLIntRuleStudioTests {
     
     @Test("Test suite is properly configured")

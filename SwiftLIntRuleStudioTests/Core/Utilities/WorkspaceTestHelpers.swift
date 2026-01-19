@@ -8,7 +8,7 @@
 import Foundation
 @testable import SwiftLIntRuleStudio
 
-/// Helper to create valid Swift project workspaces for testing
+// Helper to create valid Swift project workspaces for testing
 struct WorkspaceTestHelpers {
     
     /// Creates a temporary directory with a valid Swift project structure

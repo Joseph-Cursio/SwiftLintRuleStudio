@@ -33,7 +33,7 @@ struct SwiftLintCLICachingTests {
     }
     
     @Test("generateDocsForRule saves version to cache after generation")
-    func testVersionCachingAfterGeneration() async throws {
+    func testVersionCachingAfterGeneration() throws {
         // This test would require actual SwiftLint installation
         // For now, we test the cache manager integration
         let cacheManager = createIsolatedCacheManager()
@@ -47,7 +47,7 @@ struct SwiftLintCLICachingTests {
     }
     
     @Test("generateDocsForRule saves docs directory to cache")
-    func testDocsDirectoryCaching() async throws {
+    func testDocsDirectoryCaching() throws {
         let cacheManager = createIsolatedCacheManager()
         
         // Create a test docs directory

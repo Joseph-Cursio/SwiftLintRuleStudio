@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Interaction tests for OnboardingView
+// Interaction tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -162,7 +162,7 @@ struct OnboardingViewInteractionTests {
         let (currentStep, hasWorkspace) = await MainActor.run {
             (onboardingManager.currentStep, workspaceManager.currentWorkspace != nil)
         }
-        #expect(currentStep == .complete || hasWorkspace == true, 
+        #expect(currentStep == .complete || hasWorkspace == true,
                 "Should advance to complete step when workspace is selected")
     }
     
@@ -290,11 +290,11 @@ struct OnboardingViewInteractionTests {
         // We verify the view structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
-        let _ = onboardingManager // Suppress unused warning
+        _ = onboardingManager // Suppress unused warning
         #expect(true, "Next button should be disabled while checking SwiftLint")
     }
     
@@ -307,7 +307,7 @@ struct OnboardingViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSelectWorkspace = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Select a Workspace")
+            _ = try viewCapture.inspect().find(text: "Select a Workspace")
             return true
         }
         #expect(hasSelectWorkspace == true, "Should show disabled Select a Workspace button when no workspace selected")
@@ -322,8 +322,8 @@ struct OnboardingViewInteractionTests {
         // Progress indicator should show current step
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.HStack.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(true, "Progress indicator should update with current step")
@@ -370,7 +370,7 @@ struct OnboardingViewInteractionTests {
         let (finalStep, hasWorkspace) = await MainActor.run {
             (onboardingManager.currentStep, workspaceManager.currentWorkspace != nil)
         }
-        #expect(finalStep == .complete || hasWorkspace == true, 
+        #expect(finalStep == .complete || hasWorkspace == true,
                 "Should auto-advance to complete step when workspace is selected. Current step: \(finalStep)")
     }
 }

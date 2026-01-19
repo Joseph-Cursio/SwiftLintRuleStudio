@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for WorkspaceSelectionView
+// Tests for WorkspaceSelectionView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -52,7 +52,7 @@ struct WorkspaceSelectionViewTests {
         // Verify the view can be created
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasVStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "WorkspaceSelectionView should initialize with VStack")
@@ -65,7 +65,7 @@ struct WorkspaceSelectionViewTests {
         // Find header text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasHeader = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Select a Workspace")
+            _ = try view.inspect().find(text: "Select a Workspace")
             return true
         }
         #expect(hasHeader == true, "WorkspaceSelectionView should display header")
@@ -78,7 +78,7 @@ struct WorkspaceSelectionViewTests {
         // Find description text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasDescription = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Choose a directory containing your Swift project")
+            _ = try view.inspect().find(text: "Choose a directory containing your Swift project")
             return true
         }
         #expect(hasDescription == true, "WorkspaceSelectionView should display description")
@@ -104,7 +104,7 @@ struct WorkspaceSelectionViewTests {
         // Verify current workspace section is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasCurrentWorkspace = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Current Workspace")
+            _ = try view.inspect().find(text: "Current Workspace")
             return true
         }
         #expect(hasCurrentWorkspace == true, "WorkspaceSelectionView should show current workspace when available")
@@ -117,7 +117,7 @@ struct WorkspaceSelectionViewTests {
         // Verify current workspace section is not shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasCurrentWorkspace = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Current Workspace")
+            _ = try view.inspect().find(text: "Current Workspace")
             return true
         }
         #expect(hasCurrentWorkspace == nil, "WorkspaceSelectionView should hide current workspace when not available")
@@ -144,7 +144,7 @@ struct WorkspaceSelectionViewTests {
         // Verify recent workspaces section is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasRecentWorkspaces = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Recent Workspaces")
+            _ = try view.inspect().find(text: "Recent Workspaces")
             return true
         }
         #expect(hasRecentWorkspaces == true, "WorkspaceSelectionView should show recent workspaces when available")
@@ -157,7 +157,7 @@ struct WorkspaceSelectionViewTests {
         // Verify recent workspaces section is not shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasRecentWorkspaces = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Recent Workspaces")
+            _ = try view.inspect().find(text: "Recent Workspaces")
             return true
         }
         #expect(hasRecentWorkspaces == nil, "WorkspaceSelectionView should hide recent workspaces when empty")
@@ -172,7 +172,7 @@ struct WorkspaceSelectionViewTests {
         // Find Open Workspace button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasOpenButton = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Open Workspace...")
+            _ = try view.inspect().find(text: "Open Workspace...")
             return true
         }
         #expect(hasOpenButton == true, "WorkspaceSelectionView should display Open Workspace button")
@@ -196,7 +196,7 @@ struct WorkspaceSelectionViewTests {
         // Verify Close Workspace button is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasCloseButton = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Close Workspace")
+            _ = try view.inspect().find(text: "Close Workspace")
             return true
         }
         #expect(hasCloseButton == true, "WorkspaceSelectionView should show Close Workspace button when workspace is open")
@@ -209,7 +209,7 @@ struct WorkspaceSelectionViewTests {
         // Verify Close Workspace button is not shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasCloseButton = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Close Workspace")
+            _ = try view.inspect().find(text: "Close Workspace")
             return true
         }
         #expect(hasCloseButton == nil, "WorkspaceSelectionView should hide Close Workspace button when no workspace")
@@ -225,7 +225,7 @@ struct WorkspaceSelectionViewTests {
         // Note: Actual error would require triggering an error condition
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasVStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "WorkspaceSelectionView should handle error display")
@@ -241,7 +241,7 @@ struct WorkspaceSelectionViewTests {
         // Note: File picker is a system component, we verify the view structure
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasVStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "WorkspaceSelectionView should have file picker")

@@ -34,7 +34,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         lintCommandHandler = handler
     }
     
-    func detectSwiftLintPath() async throws -> URL {
+    func detectSwiftLintPath() throws -> URL {
         if shouldFail {
             throw SwiftLintError.notFound
         }
@@ -53,7 +53,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         return URL(fileURLWithPath: "/usr/local/bin/swiftlint")
     }
     
-    func executeRulesCommand() async throws -> Data {
+    func executeRulesCommand() throws -> Data {
         if shouldFail {
             throw SwiftLintError.executionFailed(message: "Mock failure")
         }
@@ -71,7 +71,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         """.data(using: .utf8) ?? Data()
     }
     
-    func executeRuleDetailCommand(ruleId: String) async throws -> Data {
+    func executeRuleDetailCommand(ruleId: String) throws -> Data {
         if shouldFail {
             throw SwiftLintError.executionFailed(message: "Mock failure")
         }
@@ -99,7 +99,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         return mockDetail.data(using: .utf8) ?? Data()
     }
     
-    func generateDocsForRule(ruleId: String) async throws -> String {
+    func generateDocsForRule(ruleId: String) throws -> String {
         if shouldFail {
             throw SwiftLintError.executionFailed(message: "Mock failure")
         }
@@ -144,7 +144,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         return mockLintOutput
     }
     
-    func getVersion() async throws -> String {
+    func getVersion() throws -> String {
         if shouldFail {
             throw SwiftLintError.invalidVersion
         }
@@ -202,7 +202,7 @@ struct RuleRegistryTests {
     
     @Test("RuleRegistry initializes with empty rules")
     @MainActor
-    func testInitialization() async {
+    func testInitialization() {
         let mockCLI = MockSwiftLintCLI()
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)

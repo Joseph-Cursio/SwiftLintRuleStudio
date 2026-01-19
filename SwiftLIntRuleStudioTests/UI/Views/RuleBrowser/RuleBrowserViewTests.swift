@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for RuleBrowserView
+// Tests for RuleBrowserView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -90,8 +90,8 @@ struct RuleBrowserViewTests {
         // Verify the view can be created
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(true, "RuleBrowserView should initialize with NavigationSplitView")
@@ -108,7 +108,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have navigation title")
@@ -141,8 +141,8 @@ struct RuleBrowserViewTests {
         // Find the search TextField
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.TextField.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(true, "RuleBrowserView should display search field")
@@ -158,7 +158,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSearchField = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try viewCapture.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(hasSearchField == true, "Search field should exist with placeholder")
@@ -174,7 +174,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasSearchField = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try viewCapture.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(hasSearchField == true, "Search field should have clear button when text is entered")
@@ -222,8 +222,8 @@ struct RuleBrowserViewTests {
         // Picker views are complex, so we verify structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(true, "RuleBrowserView should have status filter picker")
@@ -239,7 +239,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "RuleBrowserView should have category filter picker")
@@ -255,7 +255,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try viewCapture.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "RuleBrowserView should have sort option picker")
@@ -263,7 +263,7 @@ struct RuleBrowserViewTests {
 
     @Test("RuleBrowserView markdown helpers process content")
     @MainActor
-    func testMarkdownHelpers() async throws {
+    func testMarkdownHelpers() throws {
         let markdown = """
         # Title
         **Bold** *italic* `code`
@@ -334,7 +334,7 @@ struct RuleBrowserViewTests {
             ViewHosting.expel()
             ViewHosting.host(view: viewCapture)
             defer { ViewHosting.expel() }
-            let _ = try viewCapture.inspect().find(ViewType.List.self)
+            _ = try viewCapture.inspect().find(ViewType.List.self)
             return true
         }
         #expect(hasList == true, "RuleBrowserView should have list when rules exist")
@@ -364,7 +364,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasEmptyText = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "No rules found")
+            _ = try viewCapture.inspect().find(text: "No rules found")
             return true
         }
         #expect(hasEmptyText == true, "RuleBrowserView should show empty state")
@@ -392,7 +392,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasMessage = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Try adjusting your filters")
+            _ = try viewCapture.inspect().find(text: "Try adjusting your filters")
             return true
         }
         #expect(hasMessage == true, "RuleBrowserView should show empty state message")
@@ -408,8 +408,8 @@ struct RuleBrowserViewTests {
         // Note: May not be visible if rules are already loaded
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Loading rules...")
+        _ = try? await MainActor.run {
+            _ = try viewCapture.inspect().find(text: "Loading rules...")
             return true
         }
         #expect(viewCapture != nil, "RuleBrowserView should show loading message")
@@ -427,8 +427,8 @@ struct RuleBrowserViewTests {
         // Note: May not be visible depending on state
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Select a rule to view details")
+        _ = try? await MainActor.run {
+            _ = try viewCapture.inspect().find(text: "Select a rule to view details")
             return true
         }
         #expect(viewCapture != nil, "RuleBrowserView should show empty detail view")
@@ -447,7 +447,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have toolbar with clear filters button")
@@ -465,7 +465,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have NavigationSplitView as root")
@@ -481,7 +481,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have master-detail layout")
@@ -499,7 +499,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should integrate with RuleRegistry")

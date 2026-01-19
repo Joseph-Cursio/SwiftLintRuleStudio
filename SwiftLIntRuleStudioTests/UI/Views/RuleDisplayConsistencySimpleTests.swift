@@ -9,8 +9,8 @@ import Testing
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Simple tests to verify rule state consistency without ViewInspector
-/// These tests check the data model and view initialization logic
+// Simple tests to verify rule state consistency without ViewInspector
+// These tests check the data model and view initialization logic
 // RuleDetailView is a SwiftUI view (implicitly @MainActor), but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)

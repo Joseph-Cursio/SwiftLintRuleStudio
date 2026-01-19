@@ -11,8 +11,8 @@ import SwiftUI
 
 // MARK: - ViewInspector Extensions
 
-/// Extension for InspectableView to add common interaction helpers
-/// Note: This extension works with any InspectableView that can find text and buttons
+// Extension for InspectableView to add common interaction helpers
+// Note: This extension works with any InspectableView that can find text and buttons
 extension InspectableView {
     
     /// Finds and taps a button by its text label
@@ -141,7 +141,7 @@ extension InspectableView {
 
 // MARK: - View Type Helpers
 
-/// Common view types for easier reference
+// Common view types for easier reference
 enum CommonViewType {
     case list
     case button

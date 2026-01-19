@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for ConfigDiffPreviewView
+// Tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -59,7 +59,7 @@ struct ConfigDiffPreviewViewTests {
         // Verify the view can be created
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasNavigationStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.NavigationStack.self)
+            _ = try view.inspect().find(ViewType.NavigationStack.self)
             return true
         }
         #expect(hasNavigationStack == true, "ConfigDiffPreviewView should initialize with NavigationStack")
@@ -72,7 +72,7 @@ struct ConfigDiffPreviewViewTests {
         // Find header text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasHeader = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Preview Configuration Changes")
+            _ = try view.inspect().find(text: "Preview Configuration Changes")
             return true
         }
         #expect(hasHeader == true, "ConfigDiffPreviewView should display header")
@@ -86,7 +86,7 @@ struct ConfigDiffPreviewViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasDescription = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(
+            _ = try viewCapture.inspect().find(
                 text: "Review the changes that will be made to your .swiftlint.yml file"
             )
             return true
@@ -103,7 +103,7 @@ struct ConfigDiffPreviewViewTests {
         // Find summary view content
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasSummary = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Changes Summary")
+            _ = try view.inspect().find(text: "Changes Summary")
             return true
         }
         #expect(hasSummary == true, "ConfigDiffPreviewView should display summary view by default")
@@ -123,7 +123,7 @@ struct ConfigDiffPreviewViewTests {
         // Find added rules section
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasAddedRules = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Rules to be Added")
+            _ = try view.inspect().find(text: "Rules to be Added")
             return true
         }
         #expect(hasAddedRules == true, "ConfigDiffPreviewView should show added rules in summary")
@@ -143,7 +143,7 @@ struct ConfigDiffPreviewViewTests {
         // Find removed rules section
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasRemovedRules = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Rules to be Removed")
+            _ = try view.inspect().find(text: "Rules to be Removed")
             return true
         }
         #expect(hasRemovedRules == true, "ConfigDiffPreviewView should show removed rules in summary")
@@ -163,7 +163,7 @@ struct ConfigDiffPreviewViewTests {
         // Find modified rules section
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasModifiedRules = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "Rules to be Modified")
+            _ = try view.inspect().find(text: "Rules to be Modified")
             return true
         }
         #expect(hasModifiedRules == true, "ConfigDiffPreviewView should show modified rules in summary")
@@ -183,7 +183,7 @@ struct ConfigDiffPreviewViewTests {
         // Find no changes message
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasNoChanges = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "No changes detected")
+            _ = try view.inspect().find(text: "No changes detected")
             return true
         }
         #expect(hasNoChanges == true, "ConfigDiffPreviewView should show no changes message when empty")
@@ -199,7 +199,7 @@ struct ConfigDiffPreviewViewTests {
         // We verify the structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasNavigationStack = try await MainActor.run {
-            let _ = try view.inspect().find(ViewType.NavigationStack.self)
+            _ = try view.inspect().find(ViewType.NavigationStack.self)
             return true
         }
         #expect(hasNavigationStack == true, "ConfigDiffPreviewView should display full diff view when selected")
@@ -214,7 +214,7 @@ struct ConfigDiffPreviewViewTests {
         // Find Cancel button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasCancelButton = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Cancel")
+            _ = try view.inspect().find(text: "Cancel")
             return true
         }
         #expect(hasCancelButton == true, "ConfigDiffPreviewView should display Cancel button")
@@ -227,7 +227,7 @@ struct ConfigDiffPreviewViewTests {
         // Find Save Changes button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasSaveButton = try await MainActor.run {
-            let _ = try view.inspect().find(text: "Save Changes")
+            _ = try view.inspect().find(text: "Save Changes")
             return true
         }
         #expect(hasSaveButton == true, "ConfigDiffPreviewView should display Save Changes button")

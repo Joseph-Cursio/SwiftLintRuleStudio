@@ -513,7 +513,7 @@ struct RuleDetailViewModelTests {
         // Check for backup file - backup files have format: .swiftlint.yml.{timestamp}.backup
         let backupDir = configPath.deletingLastPathComponent()
         let backupFiles = try FileManager.default.contentsOfDirectory(at: backupDir, includingPropertiesForKeys: nil)
-            .filter { 
+            .filter {
                 let name = $0.lastPathComponent
                 return name.hasPrefix(".swiftlint.yml.") && name.hasSuffix(".backup")
             }

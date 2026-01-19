@@ -10,10 +10,10 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests to identify display inconsistencies between RuleListItem and RuleDetailView
-/// 
-/// ViewInspector is already added as a Swift Package dependency.
-/// Run these tests to identify inconsistencies in the UI.
+// Tests to identify display inconsistencies between RuleListItem and RuleDetailView
+//
+// ViewInspector is already added as a Swift Package dependency.
+// Run these tests to identify inconsistencies in the UI.
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)

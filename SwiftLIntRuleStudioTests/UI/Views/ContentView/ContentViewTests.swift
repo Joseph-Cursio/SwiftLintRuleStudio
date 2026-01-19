@@ -10,7 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-/// Tests for ContentView
+// Tests for ContentView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
@@ -78,8 +78,8 @@ struct ContentViewTests {
         // Verify the view can be created
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.Group.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.Group.self)
             return true
         }
         #expect(true, "ContentView should initialize with Group")
@@ -100,7 +100,7 @@ struct ContentViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasOnboarding = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Welcome to SwiftLint Rule Studio")
+            _ = try viewCapture.inspect().find(text: "Welcome to SwiftLint Rule Studio")
             return true
         }
         #expect(hasOnboarding == true, "ContentView should show OnboardingView when onboarding not completed")
@@ -137,7 +137,7 @@ struct ContentViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasWorkspaceSelection = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Select a Workspace")
+            _ = try viewCapture.inspect().find(text: "Select a Workspace")
             return true
         }
         #expect(hasWorkspaceSelection == true, "ContentView should show WorkspaceSelectionView when no workspace")
@@ -176,7 +176,7 @@ struct ContentViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewInspectorTarget = view
         let hasSidebarTitle = try? await MainActor.run {
-            let _ = try viewInspectorTarget.inspect().find(text: "Rules")
+            _ = try viewInspectorTarget.inspect().find(text: "Rules")
             return true
         }
         #expect(hasSidebarTitle == true, "ContentView should show main interface when workspace is open")
@@ -203,7 +203,7 @@ struct ContentViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasConfigRecommendation = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "SwiftLint Configuration File Missing")
+            _ = try viewCapture.inspect().find(text: "SwiftLint Configuration File Missing")
             return true
         }
         #expect(hasConfigRecommendation == true, "ContentView should show config recommendation when config file missing")
@@ -230,7 +230,7 @@ struct ContentViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasDefaultText = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Select a section")
+            _ = try viewCapture.inspect().find(text: "Select a section")
             return true
         }
         #expect(hasDefaultText == true, "ContentView should show default detail view")
@@ -250,8 +250,8 @@ struct ContentViewTests {
         // Note: Actual error would require mocking RuleRegistry
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.Group.self)
+        _ = try await MainActor.run {
+            _ = try viewCapture.inspect().find(ViewType.Group.self)
             return true
         }
         #expect(true, "ContentView should handle rule loading errors")
