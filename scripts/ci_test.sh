@@ -9,6 +9,5 @@ xcodebuild \
   -scheme SwiftLIntRuleStudio \
   -configuration Debug \
   test \
-  -skip-testing:SwiftLIntRuleStudioUITests \
   ENABLE_THREAD_SANITIZER=NO \
   -parallel-testing-enabled NO

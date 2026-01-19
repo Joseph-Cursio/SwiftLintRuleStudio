@@ -75,5 +75,32 @@ struct RuleTests {
         #expect(decoded.name == rule.name)
         #expect(decoded.category == rule.category)
     }
+
+    @Test("AnyCodable encodes and decodes supported types")
+    func testAnyCodableEncodeDecode() throws {
+        let values: [AnyCodable] = [
+            AnyCodable(42),
+            AnyCodable("text"),
+            AnyCodable(true),
+            AnyCodable([1, "two", false])
+        ]
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(values)
+
+        let decoded = try JSONDecoder().decode([AnyCodable].self, from: data)
+        #expect(decoded.count == values.count)
+        #expect(String(describing: decoded[0].value) == "42")
+        #expect(String(describing: decoded[1].value) == "text")
+        #expect(String(describing: decoded[2].value) == "true")
+        #expect(String(describing: decoded[3].value) == String(describing: [1, "two", false]))
+    }
+
+    @Test("AnyCodable throws on unsupported encoding types")
+    func testAnyCodableUnsupportedEncoding() {
+        let encoder = JSONEncoder()
+        #expect(throws: EncodingError.self) {
+            _ = try encoder.encode(AnyCodable(Date()))
+        }
+    }
 }
 

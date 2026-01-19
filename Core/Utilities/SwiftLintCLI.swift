@@ -7,6 +7,11 @@
 
 import Foundation
 
+typealias SwiftLintCommandRunner = @Sendable (String, [String]) async throws -> (Data, Data)
+typealias SwiftLintFileExists = @Sendable (String) async -> Bool
+typealias SwiftLintProcessRunner = @Sendable (URL, [String], [String: String]) async throws -> (Data, Data)
+typealias SwiftLintShellRunner = @Sendable (String, [String], [String: String]) async throws -> (Data, Data)
+
 /// Protocol for SwiftLint CLI operations
 protocol SwiftLintCLIProtocol {
     func detectSwiftLintPath() async throws -> URL
@@ -21,8 +26,18 @@ protocol SwiftLintCLIProtocol {
 actor SwiftLintCLI: SwiftLintCLIProtocol {
     private var cachedSwiftLintPath: URL?
     private let cacheManager: CacheManager
+    private let commandRunner: SwiftLintCommandRunner?
+    private let fileExists: SwiftLintFileExists
+    private let processRunner: SwiftLintProcessRunner?
+    private let shellRunner: SwiftLintShellRunner?
     
-    init(cacheManager: CacheManagerProtocol? = nil) {
+    init(
+        cacheManager: CacheManagerProtocol? = nil,
+        commandRunner: SwiftLintCommandRunner? = nil,
+        fileExists: SwiftLintFileExists? = nil,
+        processRunner: SwiftLintProcessRunner? = nil,
+        shellRunner: SwiftLintShellRunner? = nil
+    ) {
         // Use provided cache manager or create a default one
         // Store as concrete CacheManager type to avoid protocol existential isolation issues
         // CacheManager is a struct (value type) and Sendable, so it can cross actor boundaries
@@ -31,13 +46,17 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         } else {
             self.cacheManager = CacheManager()
         }
+        self.commandRunner = commandRunner
+        self.fileExists = fileExists ?? { FileManager.default.fileExists(atPath: $0) }
+        self.processRunner = processRunner
+        self.shellRunner = shellRunner
     }
     
     // swiftlint:disable:next async_without_await
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func detectSwiftLintPath() async throws -> URL { // swiftlint:disable:this async_without_await
         // Check cache first (fast path) - synchronous check is fine for cached paths
-        if let cached = cachedSwiftLintPath, FileManager.default.fileExists(atPath: cached.path) {
+        if let cached = cachedSwiftLintPath, await fileExists(cached.path) {
             return cached
         } else if cachedSwiftLintPath != nil {
             cachedSwiftLintPath = nil
@@ -53,7 +72,7 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         
         // Check paths synchronously - these are local paths and should be instant
         for pathString in possiblePaths {
-            if FileManager.default.fileExists(atPath: pathString) {
+            if await fileExists(pathString) {
                 let url = URL(fileURLWithPath: pathString)
                 cachedSwiftLintPath = url
                 return url
@@ -179,19 +198,11 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
     }
     
     func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
-        // SwiftLint syntax: swiftlint lint [--config <path>] [--reporter <type>] [<paths>...]
-        // The workspace path is a positional argument, not --path
-        var arguments = ["lint", "--reporter", "json"]
-        
-        // Only use config path if the file actually exists
-        if let configPath = configPath,
-           FileManager.default.fileExists(atPath: configPath.path) {
-            arguments.append(contentsOf: ["--config", configPath.path])
-        }
-        
-        // Add workspace path as positional argument (not --path)
-        arguments.append(workspacePath.path)
-        
+        let arguments = await Self.buildLintArguments(
+            configPath: configPath,
+            workspacePath: workspacePath,
+            fileExists: fileExists
+        )
         return try await executeCommandViaShell(command: "swiftlint", arguments: arguments)
     }
     
@@ -206,6 +217,11 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
     /// Execute command - try direct execution first, fall back to shell if needed
     /// Direct execution is faster and avoids shell overhead
     private func executeCommandViaShell(command: String, arguments: [String]) async throws -> Data {
+        if let commandRunner = commandRunner {
+            let (stdout, stderr) = try await commandRunner(command, arguments)
+            return try processCommandOutput(stdout: stdout, stderr: stderr)
+        }
+        
         // Try to find SwiftLint path for direct execution
         let swiftLintPath: URL
         do {
@@ -218,18 +234,16 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         }
         
         // Execute SwiftLint directly (faster, no shell overhead)
+        let environment = Self.buildEnvironment(base: ProcessInfo.processInfo.environment)
+
+        if let processRunner = processRunner {
+            let (stdout, stderr) = try await processRunner(swiftLintPath, arguments, environment)
+            return try processCommandOutput(stdout: stdout, stderr: stderr)
+        }
+
         let process = Process()
         process.executableURL = swiftLintPath
         process.arguments = arguments
-        
-        // Set up environment to ensure PATH includes common locations
-        var environment = ProcessInfo.processInfo.environment
-        // Ensure common Homebrew paths are in PATH
-        if let currentPath = environment["PATH"], !currentPath.contains("/opt/homebrew/bin") {
-            environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(currentPath)"
-        } else if environment["PATH"] == nil {
-            environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
-        }
         process.environment = environment
         
         let outputPipe = Pipe()
@@ -261,53 +275,22 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             errorPipe.fileHandleForWriting.closeFile()
             
             // Wait for reading to complete with timeout
-            // When readDataToEndOfFile() returns, the process has finished and closed the pipe
-            // Use longer timeout for large projects (5 minutes = 300 seconds)
             let timeoutSeconds: UInt64 = 300
-            let timeoutNanoseconds = timeoutSeconds * 1_000_000_000
-            
-            var timedOut = false
-            
-            // Wait for reading to complete (which happens when process finishes and closes pipes)
-            // The readDataToEndOfFile() will block until the pipe closes (process finishes)
-            do {
-                // Wait for output reading with timeout
-                try await withThrowingTaskGroup(of: Void.self) { group in
-                    // Task to wait for output reading to complete
-                    group.addTask { @Sendable in
-                        // Wait for output to be read (this blocks until pipe closes = process done)
-                        _ = await outputTask.value
-                        _ = await errorTask.value
-                    }
-                    
-                    // Task for timeout
-                    group.addTask { @Sendable in
-                        try await Task.sleep(nanoseconds: timeoutNanoseconds)
-                        // Timeout reached - try to terminate
-                        process.terminate()
-                        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-                        process.terminate()
-                        print("⏰ Timeout reached")
-                        throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds.")
-                    }
-                    
-                    // Wait for first task to complete (whichever finishes first)
-                    try await group.next()
-                    group.cancelAll()
+            let (stdout, stderr, timedOut) = try await Self.readWithTimeout(
+                timeoutSeconds: timeoutSeconds,
+                read: {
+                    let stdout = await outputTask.value
+                    let stderr = await errorTask.value
+                    return (stdout, stderr)
+                },
+                onTimeout: {
+                    process.terminate()
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    process.terminate()
                 }
-                timedOut = false
-            } catch {
-                // If timeout task wins, we get an error
-                if case SwiftLintError.executionFailed(let msg) = error, msg.contains("timed out") {
-                    timedOut = true
-                } else {
-                    throw error
-                }
-            }
-            
-            // Get the output data
-            outputData = await outputTask.value
-            errorData = await errorTask.value
+            )
+            outputData = stdout
+            errorData = stderr
             
             let elapsed = Date().timeIntervalSince(startTime)
             print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
@@ -323,37 +306,7 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             throw SwiftLintError.executionFailed(message: "Failed to execute SwiftLint: \(error.localizedDescription)")
         }
         
-        // Output and error data were already read above during the wait
-        print("📖 Read \(outputData.count) bytes of output")
-        
-        // Check exit code - but be careful due to sandboxing restrictions
-        // SwiftLint returns exit code 1 when violations are found, which is normal
-        // Only treat as error if exit code is not 0 or 1, or if there's an actual error message
-        // Note: terminationStatus may throw if process is still running, so we check error output instead
-        // Check for errors in stderr output
-        // SwiftLint writes warnings to stderr even on success, so we need to be careful
-        if !errorData.isEmpty {
-            if let errorMessage = String(data: errorData, encoding: .utf8) {
-                // Check if it's a "command not found" error
-                if errorMessage.contains("command not found") || errorMessage.contains("swiftlint: command not found") {
-                    throw SwiftLintError.notFound
-                }
-                
-                // Only throw if it's a real error (not just warnings)
-                // SwiftLint writes warnings to stderr even on success
-                let lowercased = errorMessage.lowercased()
-                if lowercased.contains("error:") && !lowercased.contains("warning:") && !lowercased.contains("is not a valid rule identifier") {
-                    throw SwiftLintError.executionFailed(message: errorMessage)
-                }
-            }
-        }
-        
-        // If we got output, assume success (SwiftLint returns exit code 1 for violations, which is normal)
-        // Don't check terminationStatus due to sandboxing restrictions
-        
-        // SwiftLint may write errors to stderr even when it succeeds (like invalid rule warnings)
-        // But we still want to return the JSON output from stdout
-        return outputData
+        return try processCommandOutput(stdout: outputData, stderr: errorData)
     }
     
     /// Fallback: Execute command via shell - works better with sandboxed apps
@@ -361,34 +314,18 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
     private func executeCommandViaShellFallback(command: String, arguments: [String]) async throws -> Data {
         let shellPath = "/bin/zsh"
         
-        // Build command string with proper escaping
-        var commandParts = [command]
-        commandParts.append(contentsOf: arguments)
+        let commandString = Self.buildShellCommand(command: command, arguments: arguments)
         
-        // Escape arguments that contain spaces or special characters
-        let escapedParts = commandParts.map { part in
-            // Simple escaping - wrap in single quotes and escape internal quotes
-            if part.contains(" ") || part.contains("'") || part.contains("\"") {
-                let escaped = part.replacingOccurrences(of: "'", with: "'\"'\"'")
-                return "'\(escaped)'"
-            }
-            return part
+        let environment = Self.buildEnvironment(base: ProcessInfo.processInfo.environment)
+
+        if let shellRunner = shellRunner {
+            let (stdout, stderr) = try await shellRunner(commandString, arguments, environment)
+            return try processCommandOutput(stdout: stdout, stderr: stderr)
         }
-        
-        let commandString = escapedParts.joined(separator: " ")
-        
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: shellPath)
         process.arguments = ["-c", commandString]
-        
-        // Set up environment to ensure PATH includes common locations
-        var environment = ProcessInfo.processInfo.environment
-        // Ensure common Homebrew paths are in PATH
-        if let currentPath = environment["PATH"], !currentPath.contains("/opt/homebrew/bin") {
-            environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(currentPath)"
-        } else if environment["PATH"] == nil {
-            environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
-        }
         process.environment = environment
         
         let outputPipe = Pipe()
@@ -411,84 +348,35 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             
             // Wait for process to complete by reading output with timeout
             let timeoutSeconds: UInt64 = 300
-            let timeoutNanoseconds = timeoutSeconds * 1_000_000_000
-            
-            var timedOut = false
-            
-            // Read output incrementally as it becomes available
-            await withTaskGroup(of: (Bool, Data?, Data?).self) { group in
-                // Task to read output incrementally
-                group.addTask { @Sendable in
-                    // Use separate actors to protect concurrent mutations
-                    actor OutputAccumulator {
-                        private var data = Data()
-                        func append(_ chunk: Data) {
-                            data.append(chunk)
-                        }
-                        func get() -> Data {
-                            data
-                        }
-                    }
-                    
-                    let outputAccumulator = OutputAccumulator()
-                    let errorAccumulator = OutputAccumulator()
-                    
-                    await withTaskGroup(of: Void.self) { readGroup in
-                        readGroup.addTask { @Sendable in
-                            while true {
-                                let chunk = outputPipe.fileHandleForReading.availableData
-                                if chunk.isEmpty {
-                                    break
-                                }
-                                await outputAccumulator.append(chunk)
-                                try? await Task.sleep(nanoseconds: 10_000_000)
-                            }
-                        }
-                        
-                        readGroup.addTask { @Sendable in
-                            while true {
-                                let chunk = errorPipe.fileHandleForReading.availableData
-                                if chunk.isEmpty {
-                                    break
-                                }
-                                await errorAccumulator.append(chunk)
-                                try? await Task.sleep(nanoseconds: 10_000_000)
-                            }
-                        }
-                        
-                        await readGroup.waitForAll()
-                    }
-                    
-                    let output = await outputAccumulator.get()
-                    let error = await errorAccumulator.get()
-                    return (false, output, error)
-                }
-                
-                group.addTask { @Sendable in
-                    try? await Task.sleep(nanoseconds: timeoutNanoseconds)
+            let (stdout, stderr, didTimeout) = try await Self.readWithTimeout(
+                timeoutSeconds: timeoutSeconds,
+                read: {
+                    async let stdout = Self.readChunks(
+                        read: { outputPipe.fileHandleForReading.availableData },
+                        sleep: { try? await Task.sleep(nanoseconds: $0) },
+                        intervalNs: 10_000_000
+                    )
+                    async let stderr = Self.readChunks(
+                        read: { errorPipe.fileHandleForReading.availableData },
+                        sleep: { try? await Task.sleep(nanoseconds: $0) },
+                        intervalNs: 10_000_000
+                    )
+                    return await (stdout, stderr)
+                },
+                onTimeout: {
                     process.terminate()
                     try? await Task.sleep(nanoseconds: 100_000_000)
                     process.terminate()
-                    print("⏰ Timeout reached")
-                    return (true, nil, nil)
                 }
-                
-                if let result = await group.next() {
-                    timedOut = result.0
-                    if let output = result.1 {
-                        outputData = output
-                    }
-                    if let error = result.2 {
-                        errorData = error
-                    }
-                }
-                group.cancelAll()
-            }
+            )
+            
+            outputData = stdout
+            errorData = stderr
             
             let elapsed = Date().timeIntervalSince(startTime)
             print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
             
-            if timedOut {
+            if didTimeout {
                 throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds.")
             }
         } catch {
@@ -499,23 +387,121 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             throw SwiftLintError.executionFailed(message: "Failed to execute SwiftLint: \(error.localizedDescription)")
         }
         
-        // Check for errors in stderr output
-        // Don't check terminationStatus due to sandboxing - it can throw if process is still running
-        if !errorData.isEmpty {
-            if let errorMessage = String(data: errorData, encoding: .utf8) {
-                if errorMessage.contains("command not found") || errorMessage.contains("swiftlint: command not found") {
-                    throw SwiftLintError.notFound
-                }
-                
-                // Only throw if it's a real error (not just warnings)
-                let lowercased = errorMessage.lowercased()
-                if lowercased.contains("error:") && !lowercased.contains("warning:") && !lowercased.contains("is not a valid rule identifier") {
-                    throw SwiftLintError.executionFailed(message: errorMessage)
-                }
+        return try processCommandOutput(stdout: outputData, stderr: errorData)
+    }
+    
+    private func processCommandOutput(stdout: Data, stderr: Data) throws -> Data {
+        print("📖 Read \(stdout.count) bytes of output")
+        
+        // Check for errors in stderr output (SwiftLint writes warnings to stderr even on success)
+        if !stderr.isEmpty, let errorMessage = String(data: stderr, encoding: .utf8) {
+            if errorMessage.contains("command not found") || errorMessage.contains("swiftlint: command not found") {
+                throw SwiftLintError.notFound
+            }
+            
+            let lowercased = errorMessage.lowercased()
+            if lowercased.contains("error:") && !lowercased.contains("warning:") && !lowercased.contains("is not a valid rule identifier") {
+                throw SwiftLintError.executionFailed(message: errorMessage)
             }
         }
         
-        return outputData
+        return stdout
+    }
+
+    nonisolated static func buildEnvironment(base: [String: String]) -> [String: String] {
+        var environment = base
+        if let currentPath = environment["PATH"], !currentPath.contains("/opt/homebrew/bin") {
+            environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(currentPath)"
+        } else if environment["PATH"] == nil {
+            environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+        }
+        return environment
+    }
+
+    nonisolated static func buildShellCommand(command: String, arguments: [String]) -> String {
+        var commandParts = [command]
+        commandParts.append(contentsOf: arguments)
+        let escapedParts = commandParts.map { escapeShellArgument($0) }
+        return escapedParts.joined(separator: " ")
+    }
+
+    nonisolated static func escapeShellArgument(_ value: String) -> String {
+        if value.contains(" ") || value.contains("'") || value.contains("\"") {
+            let escaped = value.replacingOccurrences(of: "'", with: "'\"'\"'")
+            return "'\(escaped)'"
+        }
+        return value
+    }
+
+    nonisolated static func buildLintArguments(
+        configPath: URL?,
+        workspacePath: URL,
+        fileExists: @escaping SwiftLintFileExists
+    ) async -> [String] {
+        var arguments = ["lint", "--reporter", "json"]
+        if let configPath = configPath,
+           await fileExists(configPath.path) {
+            arguments.append(contentsOf: ["--config", configPath.path])
+        }
+        arguments.append(workspacePath.path)
+        return arguments
+    }
+
+    nonisolated static func readWithTimeout(
+        timeoutSeconds: UInt64,
+        read: @escaping @Sendable () async -> (Data, Data),
+        onTimeout: @escaping @Sendable () async -> Void
+    ) async throws -> (Data, Data, Bool) {
+        let timeoutNanoseconds = timeoutSeconds * 1_000_000_000
+        var timedOut = false
+        var stdout = Data()
+        var stderr = Data()
+        
+        do {
+            try await withThrowingTaskGroup(of: (Data, Data).self) { group in
+                group.addTask { @Sendable in
+                    await read()
+                }
+                group.addTask { @Sendable in
+                    try await Task.sleep(nanoseconds: timeoutNanoseconds)
+                    await onTimeout()
+                    print("⏰ Timeout reached")
+                    throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds.")
+                }
+                
+                if let result = try await group.next() {
+                    stdout = result.0
+                    stderr = result.1
+                }
+                group.cancelAll()
+            }
+            timedOut = false
+        } catch {
+            if case SwiftLintError.executionFailed(let msg) = error, msg.contains("timed out") {
+                timedOut = true
+            } else {
+                throw error
+            }
+        }
+        
+        return (stdout, stderr, timedOut)
+    }
+
+    nonisolated static func readChunks(
+        read: @escaping @Sendable () -> Data,
+        sleep: @escaping @Sendable (UInt64) async -> Void,
+        intervalNs: UInt64
+    ) async -> Data {
+        var data = Data()
+        while true {
+            let chunk = read()
+            if chunk.isEmpty {
+                break
+            }
+            data.append(chunk)
+            await sleep(intervalNs)
+        }
+        return data
     }
 }
 

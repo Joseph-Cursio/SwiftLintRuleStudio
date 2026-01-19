@@ -65,7 +65,12 @@ struct RuleBrowserViewTests {
         let cacheManager = CacheManager.createForTesting()
         let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
-        
+        #if DEBUG
+        if !rules.isEmpty {
+            ruleRegistry.setRulesForTesting(rules)
+        }
+        #endif
+
         // Note: RuleRegistry loads rules asynchronously, so we test the view structure
         let view = RuleBrowserView()
             .environmentObject(ruleRegistry)
@@ -107,6 +112,22 @@ struct RuleBrowserViewTests {
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have navigation title")
+    }
+
+    @Test("RuleBrowserView shows loading state when rules are empty")
+    func testShowsLoadingState() async throws {
+        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let view = result.view
+
+        nonisolated(unsafe) let viewCapture = view
+        let hasLoadingText = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            let inspector = try viewCapture.inspect()
+            return (try? inspector.find(text: "Loading rules...")) != nil
+        }
+        #expect(hasLoadingText == true, "Empty state should show loading text")
     }
     
     // MARK: - Search Tests
@@ -157,6 +178,36 @@ struct RuleBrowserViewTests {
             return true
         }
         #expect(hasSearchField == true, "Search field should have clear button when text is entered")
+    }
+
+    @Test("RuleBrowserView injected view model shows filter empty state")
+    func testInjectedViewModelEmptyState() async throws {
+        let result = await Task { @MainActor in
+            let cacheManager = CacheManager.createForTesting()
+            let ruleRegistry = RuleRegistry(
+                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                cacheManager: cacheManager
+            )
+            let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
+            viewModel.searchText = "missing"
+
+            let container = DependencyContainer.createForTesting()
+            let view = RuleBrowserView(viewModel: viewModel)
+                .environmentObject(ruleRegistry)
+                .environmentObject(container)
+            return ViewResult(view: view, container: container)
+        }.value
+
+        let view = result.view
+        nonisolated(unsafe) let viewCapture = view
+        let hasGuidance = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            return (try? viewCapture.inspect().find(text: "Try adjusting your filters")) != nil
+        }
+
+        #expect(hasGuidance == true)
     }
     
     // MARK: - Filter Tests
@@ -209,60 +260,142 @@ struct RuleBrowserViewTests {
         }
         #expect(hasVStack == true, "RuleBrowserView should have sort option picker")
     }
+
+    @Test("RuleBrowserView markdown helpers process content")
+    @MainActor
+    func testMarkdownHelpers() async throws {
+        let markdown = """
+        # Title
+        **Bold** *italic* `code`
+        """
+        let htmlInput = """
+        <p style="color:red">Hello</p>
+        ```swift
+        let value = 1
+        ```
+        """
+        let tableInput = """
+        # Title
+        * **Default configuration:** something
+        <table>
+        <tr><td>skip</td></tr>
+        </table>
+        Body text
+        """
+
+        let plain = RuleBrowserView.convertMarkdownToPlainTextForTesting(markdown)
+        #expect(plain.contains("Bold"))
+        #expect(plain.contains("italic"))
+        #expect(plain.contains("code"))
+
+        let stripped = RuleBrowserView.stripHTMLTagsForTesting(htmlInput)
+        #expect(stripped.contains("Hello"))
+        #expect(stripped.contains("```swift"))
+
+        let processed = RuleBrowserView.processContentForDisplayForTesting(tableInput)
+        #expect(processed.contains("Body text"))
+        #expect(processed.contains("<table>") == false)
+
+        let html = RuleBrowserView.convertMarkdownToHTMLForTesting(markdown)
+        #expect(html.contains("<h1>Title</h1>"))
+        #expect(html.contains("<strong>Bold</strong>"))
+        #expect(html.contains("<em>italic</em>"))
+
+        let wrapped = RuleBrowserView.wrapHTMLInDocumentForTesting(body: "<p>Body</p>", colorScheme: .light)
+        #expect(wrapped.contains("<body>"))
+        #expect(wrapped.contains("<p>Body</p>"))
+    }
     
     // MARK: - List Tests
     
     @Test("RuleBrowserView displays rule list")
     func testDisplaysRuleList() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in
+            let rule = makeTestRule()
+            let cacheManager = CacheManager.createForTesting()
+            let ruleRegistry = RuleRegistry(
+                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                cacheManager: cacheManager
+            )
+            #if DEBUG
+            ruleRegistry.setRulesForTesting([rule])
+            #endif
+            let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
+            let container = DependencyContainer.createForTesting()
+            let view = RuleBrowserView(viewModel: viewModel)
+                .environmentObject(ruleRegistry)
+                .environmentObject(container)
+            return ViewResult(view: view, container: container)
+        }.value
         let view = result.view
-        
-        // Find the List view
-        // Note: List may not be visible if empty, but view structure should exist
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
+
         nonisolated(unsafe) let viewCapture = view
         let hasList = try? await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
             let _ = try viewCapture.inspect().find(ViewType.List.self)
             return true
         }
-        #expect(viewCapture != nil, "RuleBrowserView should have list structure")
+        #expect(hasList == true, "RuleBrowserView should have list when rules exist")
     }
     
     // MARK: - Empty State Tests
     
     @Test("RuleBrowserView shows empty state when no rules match filters")
     func testShowsEmptyState() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in
+            let cacheManager = CacheManager.createForTesting()
+            let ruleRegistry = RuleRegistry(
+                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                cacheManager: cacheManager
+            )
+            let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
+            viewModel.searchText = "missing"
+            let container = DependencyContainer.createForTesting()
+            let view = RuleBrowserView(viewModel: viewModel)
+                .environmentObject(ruleRegistry)
+                .environmentObject(container)
+            return ViewResult(view: view, container: container)
+        }.value
         let view = result.view
         
         // Find empty state text
-        // Note: Empty state may not be visible if rules are loaded
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
+        let hasEmptyText = try? await MainActor.run {
             let _ = try viewCapture.inspect().find(text: "No rules found")
             return true
         }
-        #expect(viewCapture != nil, "RuleBrowserView should handle empty state")
+        #expect(hasEmptyText == true, "RuleBrowserView should show empty state")
     }
     
     @Test("RuleBrowserView shows empty state message")
     func testShowsEmptyStateMessage() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in
+            let cacheManager = CacheManager.createForTesting()
+            let ruleRegistry = RuleRegistry(
+                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                cacheManager: cacheManager
+            )
+            let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
+            viewModel.searchText = "missing"
+            let container = DependencyContainer.createForTesting()
+            let view = RuleBrowserView(viewModel: viewModel)
+                .environmentObject(ruleRegistry)
+                .environmentObject(container)
+            return ViewResult(view: view, container: container)
+        }.value
         let view = result.view
         
         // Find empty state message
-        // Note: May not be visible depending on state
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let _ = try? await MainActor.run {
+        let hasMessage = try? await MainActor.run {
             let _ = try viewCapture.inspect().find(text: "Try adjusting your filters")
             return true
         }
-        #expect(viewCapture != nil, "RuleBrowserView should show empty state message")
+        #expect(hasMessage == true, "RuleBrowserView should show empty state message")
     }
     
     @Test("RuleBrowserView shows loading message when rules are empty")

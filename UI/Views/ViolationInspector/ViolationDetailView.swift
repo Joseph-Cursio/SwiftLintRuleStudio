@@ -200,19 +200,29 @@ struct ViolationDetailView: View {
         )
     }
 
+#if DEBUG
     // Test-only: expose suppress dialog content for ViewInspector without presenting a sheet.
     var suppressDialogForTesting: some View {
         buildSuppressDialog(reason: $suppressReason, onSuppress: { _ in }, onCancel: {})
     }
     
     /// Test-only builder that allows custom state binding.
-    static func makeSuppressDialogForTesting(
+    static func suppressDialogForTesting(
         reason: Binding<String>,
         onSuppress: @escaping (String) -> Void
     ) -> some View {
         buildSuppressDialog(reason: reason, onSuppress: onSuppress, onCancel: {})
     }
 
+    /// Test-only alias kept for existing interaction tests.
+    static func makeSuppressDialogForTesting(
+        reason: Binding<String>,
+        onSuppress: @escaping (String) -> Void
+    ) -> some View {
+        suppressDialogForTesting(reason: reason, onSuppress: onSuppress)
+    }
+#endif
+    
     private func openInXcode() async {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             errorMessage = "No workspace is currently open. Please select a workspace first."
@@ -253,8 +263,6 @@ struct ViolationDetailView: View {
         }
     }
 }
-
-
 
 fileprivate func buildSuppressDialog(
     reason: Binding<String>,

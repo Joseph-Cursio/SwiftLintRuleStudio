@@ -224,16 +224,24 @@ struct ViolationInspectorViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let (hasClearButton, inputValue) = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+
             let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
             try searchField.setInput("test")
             
             // Find and tap clear filters button
-            let clearButton = try? viewCapture.inspect().find(button: "Clear")
+            let clearButton = try? viewCapture.inspect().find(ViewType.Button.self) { button in
+                let text = try? button.labelView().find(ViewType.Text.self).string()
+                return text == "Clear"
+            }
             if let clearButton = clearButton {
                 try clearButton.tap()
-                return (true, try searchField.input())
             }
-            return (false, try searchField.input())
+
+            let updatedField = try viewCapture.inspect().find(ViewType.TextField.self)
+            return (clearButton != nil, try updatedField.input())
         }
         
         // Wait for UI update
@@ -262,6 +270,9 @@ struct ViolationInspectorViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
             let _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
@@ -277,6 +288,7 @@ struct ViolationInspectorViewInteractionTests {
             let container = DependencyContainer.createForTesting()
             let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
             viewModel.violations = violations
+            viewModel.filteredViolations = violations
             viewModel.searchText = ""
             let view = ViolationInspectorView(viewModel: viewModel)
                 .environmentObject(container)

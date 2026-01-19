@@ -353,6 +353,32 @@ struct RuleBrowserViewInteractionTests {
             #expect(inputValue.isEmpty, "Empty state clear filters should clear search field")
         }
     }
+
+    @Test("RuleBrowserView empty state shows filter guidance")
+    func testEmptyStateShowsFilterGuidance() async throws {
+        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let view = result.view
+
+        nonisolated(unsafe) let viewCapture = view
+        let hasGuidance = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+
+            let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
+            try searchField.setInput("nonexistent")
+            return true
+        }
+
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        let hasEmptyState = try await MainActor.run {
+            (try? viewCapture.inspect().find(text: "No rules found")) != nil
+        }
+
+        #expect(hasGuidance == true, "Search input should be applied")
+        #expect(hasEmptyState == true, "Empty state should show no rules message")
+    }
     
     // MARK: - Filter State Tests
     
