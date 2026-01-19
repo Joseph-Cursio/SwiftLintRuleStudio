@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for ContentView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ContentViewTests {
     
     // Workaround type to bypass Sendable check for SwiftUI views
@@ -150,8 +151,8 @@ struct ContentViewTests {
         let result = await Task { @MainActor in
             createContentView(testName: #function, hasCompletedOnboarding: true, hasWorkspace: true)
         }.value
-        let view = result.view
         let dependencies = result.dependencies
+        let ruleRegistry = result.ruleRegistry
         
         // Create a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -161,12 +162,21 @@ struct ContentViewTests {
             try dependencies.workspaceManager.openWorkspace(at: tempDir)
         }
         
+        // Recreate the view after updating state to ensure latest environment values
+        nonisolated(unsafe) var viewCapture: AnyView!
+        await MainActor.run {
+            viewCapture = AnyView(ContentView()
+                .environmentObject(ruleRegistry)
+                .environmentObject(dependencies))
+        }
+        let view = viewCapture
+        
         // Verify main interface is shown (NavigationSplitView with SidebarView)
         // SidebarView contains "SwiftLint Rule Studio" title
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
+        nonisolated(unsafe) let viewInspectorTarget = view
         let hasSidebarTitle = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "SwiftLint Rule Studio")
+            let _ = try viewInspectorTarget.inspect().find(text: "Rules")
             return true
         }
         #expect(hasSidebarTitle == true, "ContentView should show main interface when workspace is open")

@@ -22,6 +22,10 @@ struct RuleBrowserView: View {
         )
         _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: tempRegistry))
     }
+
+    init(ruleRegistry: RuleRegistry) {
+        _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
+    }
     
     var body: some View {
         NavigationSplitView {

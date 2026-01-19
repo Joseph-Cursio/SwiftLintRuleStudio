@@ -11,6 +11,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
+@Suite(.serialized)
 struct RuleDetailViewNewFeaturesTests {
     
     // MARK: - Test Data Helpers
@@ -59,8 +60,7 @@ struct RuleDetailViewNewFeaturesTests {
         ## Examples
         """
         
-        let rule = await makeTestRule(markdownDocumentation: markdown)
-        let view = await createRuleDetailView(rule: rule)
+        let _ = await makeTestRule(markdownDocumentation: markdown)
         
         // Test rationale extraction using the helper method
         let rationale = await extractRationale(from: markdown)
@@ -168,12 +168,13 @@ struct RuleDetailViewNewFeaturesTests {
         
         let container = await DependencyContainer.createForTesting()
         await MainActor.run {
-            container.ruleRegistry.rules = [rule1, rule2, rule3]
+            container.ruleRegistry.setRulesForTesting([rule1, rule2, rule3])
         }
         
         let related = await getRelatedRules(for: rule1, in: container)
-        #expect(related.count == 1)
-        #expect(related.first?.id == "rule2")
+        let relatedData = await MainActor.run { related.map(\.id) }
+        #expect(relatedData.count == 1)
+        #expect(relatedData.first == "rule2")
     }
     
     @Test("Excludes current rule from related rules")
@@ -183,11 +184,12 @@ struct RuleDetailViewNewFeaturesTests {
         
         let container = await DependencyContainer.createForTesting()
         await MainActor.run {
-            container.ruleRegistry.rules = [rule1, rule2]
+            container.ruleRegistry.setRulesForTesting([rule1, rule2])
         }
         
         let related = await getRelatedRules(for: rule1, in: container)
-        #expect(related.contains { $0.id == "rule1" } == false)
+        let relatedIds = await MainActor.run { Set(related.map(\.id)) }
+        #expect(relatedIds.contains("rule1") == false)
     }
     
     @Test("Returns empty array when no related rules")
@@ -197,21 +199,22 @@ struct RuleDetailViewNewFeaturesTests {
         
         let container = await DependencyContainer.createForTesting()
         await MainActor.run {
-            container.ruleRegistry.rules = [rule1, rule2]
+            container.ruleRegistry.setRulesForTesting([rule1, rule2])
         }
         
         let related = await getRelatedRules(for: rule1, in: container)
-        #expect(related.isEmpty == true)
+        let relatedCount = await MainActor.run { related.count }
+        #expect(relatedCount == 0)
     }
     
     // MARK: - Violation Count Tests
     
     @Test("Loads violation count for rule")
+    @MainActor
     func testLoadViolationCount() async throws {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
-        let workspaceModel = Workspace(path: workspace)
         let container = await DependencyContainer.createForTesting()
         
         await MainActor.run {
@@ -235,7 +238,7 @@ struct RuleDetailViewNewFeaturesTests {
             message: "Another violation"
         )
         
-        if let workspaceId = await MainActor.run({ container.workspaceManager.currentWorkspace?.id }) {
+        if let workspaceId = await MainActor.run { container.workspaceManager.currentWorkspace?.id } {
             try await container.violationStorage.storeViolations([violation1, violation2], for: workspaceId)
             
             let count = try await container.violationStorage.getViolationCount(
@@ -248,13 +251,6 @@ struct RuleDetailViewNewFeaturesTests {
     }
     
     // MARK: - Helper Methods
-    
-    @MainActor
-    private func createRuleDetailView(rule: Rule) -> AnyView {
-        let container = DependencyContainer.createForTesting()
-        return AnyView(RuleDetailView(rule: rule)
-            .environmentObject(container))
-    }
     
     // Test rationale extraction by checking view content
     private func extractRationale(from markdown: String) async -> String? {

@@ -36,6 +36,12 @@ struct ViolationInspectorView: View {
         }
         _viewModel = StateObject(wrappedValue: ViolationInspectorViewModel(violationStorage: tempStorage))
     }
+
+#if DEBUG
+    init(viewModel: ViolationInspectorViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+#endif
     
     var body: some View {
         NavigationSplitView {

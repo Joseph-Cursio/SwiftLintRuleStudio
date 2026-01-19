@@ -186,38 +186,33 @@ struct ViolationDetailView: View {
     }
     
     private var suppressDialog: some View {
-        NavigationView {
-            Form {
-                Section {
-                    TextField("Reason (optional)", text: $suppressReason, axis: .vertical)
-                        .lineLimit(3...6)
-                } header: {
-                    Text("Suppression Reason")
-                } footer: {
-                    Text("Provide a reason for suppressing this violation. This helps with code review and maintenance.")
-                }
+        buildSuppressDialog(
+            reason: $suppressReason,
+            onSuppress: { reason in
+                onSuppress(reason)
+                showSuppressDialog = false
+                suppressReason = ""
+            },
+            onCancel: {
+                showSuppressDialog = false
+                suppressReason = ""
             }
-            .navigationTitle("Suppress Violation")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        showSuppressDialog = false
-                        suppressReason = ""
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Suppress") {
-                        onSuppress(suppressReason.isEmpty ? "Suppressed via Violation Inspector" : suppressReason)
-                        showSuppressDialog = false
-                        suppressReason = ""
-                    }
-                }
-            }
-        }
-        .frame(width: 500, height: 300)
+        )
+    }
+
+    // Test-only: expose suppress dialog content for ViewInspector without presenting a sheet.
+    var suppressDialogForTesting: some View {
+        buildSuppressDialog(reason: $suppressReason, onSuppress: { _ in }, onCancel: {})
     }
     
+    /// Test-only builder that allows custom state binding.
+    static func makeSuppressDialogForTesting(
+        reason: Binding<String>,
+        onSuppress: @escaping (String) -> Void
+    ) -> some View {
+        buildSuppressDialog(reason: reason, onSuppress: onSuppress, onCancel: {})
+    }
+
     private func openInXcode() async {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             errorMessage = "No workspace is currently open. Please select a workspace first."
@@ -244,6 +239,8 @@ struct ViolationDetailView: View {
             switch error {
             case .fileNotFound(let path):
                 errorMessage = "File not found: \(path)\n\nThe file may have been moved or deleted."
+            case .invalidPath(let path):
+                errorMessage = "Invalid file path: \(path)\n\nPlease verify the violation file path."
             case .xcodeNotInstalled:
                 errorMessage = "Xcode is not installed.\n\nPlease install Xcode from the App Store to use this feature."
             case .failedToOpen:
@@ -257,3 +254,36 @@ struct ViolationDetailView: View {
     }
 }
 
+
+
+fileprivate func buildSuppressDialog(
+    reason: Binding<String>,
+    onSuppress: @escaping (String) -> Void,
+    onCancel: @escaping () -> Void
+) -> some View {
+    NavigationView {
+        Form {
+            Section {
+                TextField("Reason (optional)", text: reason, axis: .vertical)
+                    .lineLimit(3...6)
+            } header: {
+                Text("Suppression Reason")
+            } footer: {
+                Text("Provide a reason for suppressing this violation. This helps with code review and maintenance.")
+            }
+        }
+        .navigationTitle("Suppress Violation")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", action: onCancel)
+            }
+            
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Suppress") {
+                    onSuppress(reason.wrappedValue.isEmpty ? "Suppressed via Violation Inspector" : reason.wrappedValue)
+                }
+            }
+        }
+    }
+    .frame(width: 500, height: 300)
+}

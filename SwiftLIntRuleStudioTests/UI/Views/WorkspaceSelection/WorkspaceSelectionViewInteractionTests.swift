@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for WorkspaceSelectionView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct WorkspaceSelectionViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -25,6 +26,14 @@ struct WorkspaceSelectionViewInteractionTests {
         }
     }
     
+    @MainActor
+    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+        try view.inspect().find(ViewType.Button.self) { button in
+            let text = try? button.labelView().find(ViewType.Text.self).string()
+            return text == label
+        }
+    }
+    
     // MARK: - Button Interaction Tests
     
     @Test("WorkspaceSelectionView Open Workspace button triggers file picker")
@@ -34,8 +43,10 @@ struct WorkspaceSelectionViewInteractionTests {
         // Find and tap Open Workspace button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
-            let openButtonText = try view.inspect().find(text: "Open Workspace...")
-            let openButton = try openButtonText.parent().find(ViewType.Button.self)
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            let openButton = try findButton(in: view, label: "Open Workspace...")
             try openButton.tap()
         }
         
@@ -48,7 +59,7 @@ struct WorkspaceSelectionViewInteractionTests {
     
     @Test("WorkspaceSelectionView Close Workspace button closes workspace")
     func testCloseWorkspaceButtonClosesWorkspace() async throws {
-        let (view, workspaceManager) = await createWorkspaceSelectionView()
+        let (_, workspaceManager) = await createWorkspaceSelectionView()
         
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -61,11 +72,15 @@ struct WorkspaceSelectionViewInteractionTests {
         // Wait for state update
         try await Task.sleep(nanoseconds: 100_000_000)
         
+        // Recreate the view after opening workspace so the button is visible
+        let view = await MainActor.run {
+            WorkspaceSelectionView(workspaceManager: workspaceManager)
+        }
+        
         // Find and tap Close Workspace button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
-            let closeButtonText = try view.inspect().find(text: "Close Workspace")
-            let closeButton = try closeButtonText.parent().find(ViewType.Button.self)
+            let closeButton = try findButton(in: view, label: "Close Workspace")
             try closeButton.tap()
         }
         
@@ -83,7 +98,7 @@ struct WorkspaceSelectionViewInteractionTests {
     
     @Test("WorkspaceSelectionView recent workspace row opens workspace")
     func testRecentWorkspaceRowOpensWorkspace() async throws {
-        let (view, workspaceManager) = await createWorkspaceSelectionView()
+        let (_, workspaceManager) = await createWorkspaceSelectionView()
         
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -96,6 +111,11 @@ struct WorkspaceSelectionViewInteractionTests {
         
         // Wait for state update
         try await Task.sleep(nanoseconds: 100_000_000)
+        
+        // Recreate the view after recent workspaces update
+        let view = await MainActor.run {
+            WorkspaceSelectionView(workspaceManager: workspaceManager)
+        }
         
         // Note: Tapping recent workspace row would require finding the specific row
         // This is complex with ViewInspector, so we verify the structure exists
@@ -110,7 +130,7 @@ struct WorkspaceSelectionViewInteractionTests {
     
     @Test("WorkspaceSelectionView Clear button clears recent workspaces")
     func testClearButtonClearsRecentWorkspaces() async throws {
-        let (view, workspaceManager) = await createWorkspaceSelectionView()
+        let (_, workspaceManager) = await createWorkspaceSelectionView()
         
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -130,11 +150,15 @@ struct WorkspaceSelectionViewInteractionTests {
         }
         #expect(hasRecentWorkspaces == true, "Should have recent workspaces")
         
+        // Recreate the view after recent workspaces update
+        let view = await MainActor.run {
+            WorkspaceSelectionView(workspaceManager: workspaceManager)
+        }
+        
         // Find and tap Clear button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
-            let clearButtonText = try view.inspect().find(text: "Clear")
-            let clearButton = try clearButtonText.parent().find(ViewType.Button.self)
+            let clearButton = try findButton(in: view, label: "Clear")
             try clearButton.tap()
         }
         
@@ -150,7 +174,7 @@ struct WorkspaceSelectionViewInteractionTests {
     
     @Test("WorkspaceSelectionView remove button removes workspace from recent")
     func testRemoveButtonRemovesWorkspace() async throws {
-        let (view, workspaceManager) = await createWorkspaceSelectionView()
+        let (_, workspaceManager) = await createWorkspaceSelectionView()
         
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -166,6 +190,11 @@ struct WorkspaceSelectionViewInteractionTests {
         
         let initialCount = await MainActor.run {
             workspaceManager.recentWorkspaces.count
+        }
+        
+        // Recreate the view after recent workspaces update
+        let view = await MainActor.run {
+            WorkspaceSelectionView(workspaceManager: workspaceManager)
         }
         
         // Note: Tapping remove button would require finding the specific button

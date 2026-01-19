@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for SidebarView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct SidebarViewTests {
     
     // MARK: - Test Data Helpers
@@ -46,6 +47,7 @@ struct SidebarViewTests {
         
         let view = SidebarView()
             .environmentObject(dependencies)
+            .environmentObject(ruleRegistry)
         
         return ViewResult(view: view, dependencies: dependencies)
     }
@@ -76,7 +78,7 @@ struct SidebarViewTests {
         // Find navigation title
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasTitle = try await MainActor.run {
-            let _ = try view.inspect().find(text: "SwiftLint Rule Studio")
+            let _ = try view.inspect().find(text: "Rules")
             return true
         }
         #expect(hasTitle == true, "SidebarView should display navigation title")

@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for ConfigRecommendationView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ConfigRecommendationViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -25,11 +26,19 @@ struct ConfigRecommendationViewInteractionTests {
         }
     }
     
+    @MainActor
+    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+        try view.inspect().find(ViewType.Button.self) { button in
+            let text = try? button.labelView().find(ViewType.Text.self).string()
+            return text == label
+        }
+    }
+    
     // MARK: - Button Interaction Tests
     
     @Test("ConfigRecommendationView Create button creates config file")
     func testCreateButtonCreatesConfigFile() async throws {
-        let (view, workspaceManager) = await createConfigRecommendationView()
+        let (_, workspaceManager) = await createConfigRecommendationView()
         
         // Create a temporary workspace without config file
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -48,11 +57,15 @@ struct ConfigRecommendationViewInteractionTests {
         }
         #expect(configFileMissing == true, "Config file should be missing")
         
+        // Recreate the view after workspace setup so state is reflected
+        let view = await MainActor.run {
+            ConfigRecommendationView(workspaceManager: workspaceManager)
+        }
+        
         // Find and tap Create button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
-            let createButton = try view.inspect().find(text: "Create Default Configuration")
-            let button = try createButton.parent().find(ViewType.Button.self)
+            let button = try findButton(in: view, label: "Create Default Configuration")
             try button.tap()
         }
         
@@ -68,7 +81,7 @@ struct ConfigRecommendationViewInteractionTests {
     
     @Test("ConfigRecommendationView Create button shows loading state")
     func testCreateButtonShowsLoadingState() async throws {
-        let (view, workspaceManager) = await createConfigRecommendationView()
+        let (_, workspaceManager) = await createConfigRecommendationView()
         
         // Create a temporary workspace without config file
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -81,11 +94,15 @@ struct ConfigRecommendationViewInteractionTests {
         // Wait for state update
         try await Task.sleep(nanoseconds: 100_000_000)
         
+        // Recreate the view after workspace setup so state is reflected
+        let view = await MainActor.run {
+            ConfigRecommendationView(workspaceManager: workspaceManager)
+        }
+        
         // Find and tap Create button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
-            let createButton = try view.inspect().find(text: "Create Default Configuration")
-            let button = try createButton.parent().find(ViewType.Button.self)
+            let button = try findButton(in: view, label: "Create Default Configuration")
             try button.tap()
         }
         
@@ -99,7 +116,7 @@ struct ConfigRecommendationViewInteractionTests {
     
     @Test("ConfigRecommendationView Learn More button opens documentation")
     func testLearnMoreButtonOpensDocumentation() async throws {
-        let (view, workspaceManager) = await createConfigRecommendationView()
+        let (_, workspaceManager) = await createConfigRecommendationView()
         
         // Create a temporary workspace without config file
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -112,11 +129,15 @@ struct ConfigRecommendationViewInteractionTests {
         // Wait for state update
         try await Task.sleep(nanoseconds: 100_000_000)
         
+        // Recreate the view after workspace setup so state is reflected
+        let view = await MainActor.run {
+            ConfigRecommendationView(workspaceManager: workspaceManager)
+        }
+        
         // Find and tap Learn More button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
-            let learnMoreButton = try view.inspect().find(text: "Learn More")
-            let button = try learnMoreButton.parent().find(ViewType.Button.self)
+            let button = try findButton(in: view, label: "Learn More")
             try button.tap()
         }
         

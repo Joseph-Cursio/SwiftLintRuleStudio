@@ -64,11 +64,13 @@ extension DependencyContainer {
         // Create OnboardingManager with isolated UserDefaults if not provided
         let testOnboardingManager = onboardingManager ?? OnboardingManager(userDefaults: testUserDefaults)
         
+        let testViolationStorage = violationStorage ?? (try? ViolationStorage(useInMemory: true))
+        
         return DependencyContainer(
             ruleRegistry: ruleRegistry,
             swiftLintCLI: swiftLintCLI,
             cacheManager: cacheManager,
-            violationStorage: violationStorage,
+            violationStorage: testViolationStorage,
             workspaceManager: workspaceManager,
             onboardingManager: testOnboardingManager,
             impactSimulator: impactSimulator,

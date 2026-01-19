@@ -255,22 +255,22 @@ struct WorkspaceManagerTests {
             WorkspaceTestHelpers.cleanupWorkspace(tempDir1)
             WorkspaceTestHelpers.cleanupWorkspace(tempDir2)
         }
-        
-        // Create first manager and add workspaces
-        let count1 = try await withWorkspaceManager { manager in
-            try manager.openWorkspace(at: tempDir1)
-            try manager.openWorkspace(at: tempDir2)
-            return manager.recentWorkspaces.count
+
+        let (count1, count2, hasDir1, hasDir2) = try await MainActor.run {
+            let sharedDefaults = IsolatedUserDefaults.createShared(for: #function)
+            
+            let manager1 = WorkspaceManager(userDefaults: sharedDefaults)
+            try manager1.openWorkspace(at: tempDir1)
+            try manager1.openWorkspace(at: tempDir2)
+            let count1 = manager1.recentWorkspaces.count
+            
+            let manager2 = WorkspaceManager(userDefaults: sharedDefaults)
+            let count2 = manager2.recentWorkspaces.count
+            let hasDir1 = manager2.recentWorkspaces.contains { $0.path == tempDir1 }
+            let hasDir2 = manager2.recentWorkspaces.contains { $0.path == tempDir2 }
+            return (count1, count2, hasDir1, hasDir2)
         }
         #expect(count1 == 2)
-        
-        // Create new manager - should load from persistence
-        let (count2, hasDir1, hasDir2) = try await withWorkspaceManager { manager in
-            let count = manager.recentWorkspaces.count
-            let hasDir1 = manager.recentWorkspaces.contains { $0.path == tempDir1 }
-            let hasDir2 = manager.recentWorkspaces.contains { $0.path == tempDir2 }
-            return (count, hasDir1, hasDir2)
-        }
         
         #expect(count2 == 2)
         #expect(hasDir1)

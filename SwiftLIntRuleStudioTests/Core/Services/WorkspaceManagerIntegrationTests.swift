@@ -593,6 +593,7 @@ struct WorkspaceManagerIntegrationTests {
         // Capture with nonisolated(unsafe) to avoid Sendable warnings
         // UserDefaults is thread-safe for our test use case
         nonisolated(unsafe) let defaultsCapture = sharedDefaults
+        sharedDefaults.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
         
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
@@ -673,31 +674,31 @@ struct WorkspaceManagerIntegrationTests {
     
     @Test("Handles invalid workspace paths in recent workspaces")
     func testHandlesInvalidPathsInRecentWorkspaces() async throws {
-        // Note: withWorkspaceManager uses isolated UserDefaults via WorkspaceManager.createForTesting
-        // No need to clean up UserDefaults.standard since we're using isolated UserDefaults
-        
         let tempDir1 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         let tempDir2 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer {
             WorkspaceTestHelpers.cleanupWorkspace(tempDir1)
             WorkspaceTestHelpers.cleanupWorkspace(tempDir2)
         }
-        
-        let recentCount1 = try await withWorkspaceManager { manager1 in
+
+        let (recentCount1, recentCount2, firstPath) = try await MainActor.run {
+            let sharedDefaults = IsolatedUserDefaults.createShared(for: #function)
+            
+            let manager1 = WorkspaceManager(userDefaults: sharedDefaults)
             try manager1.openWorkspace(at: tempDir1)
             try manager1.openWorkspace(at: tempDir2)
-            return manager1.recentWorkspaces.count
+            let recentCount1 = manager1.recentWorkspaces.count
+            
+            // Delete one workspace
+            WorkspaceTestHelpers.cleanupWorkspace(tempDir1)
+            
+            let manager2 = WorkspaceManager(userDefaults: sharedDefaults)
+            let recentCount2 = manager2.recentWorkspaces.count
+            let firstPath = manager2.recentWorkspaces.first?.path
+            return (recentCount1, recentCount2, firstPath)
         }
         
         #expect(recentCount1 == 2)
-        
-        // Delete one workspace
-        WorkspaceTestHelpers.cleanupWorkspace(tempDir1)
-        
-        // Create new manager - should filter out deleted workspace
-        let (recentCount2, firstPath) = try await withWorkspaceManager { manager2 in
-            return (manager2.recentWorkspaces.count, manager2.recentWorkspaces.first?.path)
-        }
         #expect(recentCount2 == 1)
         #expect(firstPath == tempDir2)
     }

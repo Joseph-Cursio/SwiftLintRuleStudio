@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for ConfigRecommendationView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ConfigRecommendationViewTests {
     
     // MARK: - Test Data Helpers
@@ -120,7 +121,9 @@ struct ConfigRecommendationViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasDescription = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Your workspace doesn't have a")
+            let _ = try viewCapture.inspect().find(
+                text: "Your workspace doesn't have a `.swiftlint.yml` configuration file. Creating one will help you:"
+            )
             return true
         }
         #expect(hasDescription == true, "ConfigRecommendationView should display description")

@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for ViolationListItem component
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ViolationListItemTests {
     
     // MARK: - Test Data Helpers
@@ -42,14 +43,35 @@ struct ViolationListItemTests {
         )
     }
     
+    private struct TestHostView: View {
+        let violation: Violation
+        let container: DependencyContainer
+        
+        var body: some View {
+            ViolationListItem(violation: violation)
+                .environmentObject(container)
+        }
+    }
+    
+    private struct ViewResult: @unchecked Sendable {
+        let view: TestHostView
+    }
+    
+    @MainActor
+    private func makeViolationListItemView(violation: Violation) -> ViewResult {
+        let container = DependencyContainer.createForTesting()
+        return ViewResult(view: TestHostView(violation: violation, container: container))
+    }
+
     // MARK: - Rendering Tests
     
     @Test("ViolationListItem displays rule ID")
     func testDisplaysRuleID() async throws {
         let violation = makeTestViolation(ruleID: "force_cast")
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -63,9 +85,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem displays violation message")
     func testDisplaysMessage() async throws {
         let violation = makeTestViolation(message: "Force cast should be avoided")
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -79,9 +102,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem displays file path")
     func testDisplaysFilePath() async throws {
         let violation = makeTestViolation(filePath: "Sources/MyFile.swift")
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -95,9 +119,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem displays line number")
     func testDisplaysLineNumber() async throws {
         let violation = makeTestViolation(line: 42)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -113,9 +138,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem shows severity badge for error")
     func testShowsSeverityBadgeForError() async throws {
         let violation = makeTestViolation(severity: .error)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // Find the SeverityBadge
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -137,9 +163,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem shows severity badge for warning")
     func testShowsSeverityBadgeForWarning() async throws {
         let violation = makeTestViolation(severity: .warning)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // Find the SeverityBadge
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -161,9 +188,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem shows suppressed label when suppressed")
     func testShowsSuppressedLabel() async throws {
         let violation = makeTestViolation(suppressed: true)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -177,9 +205,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem hides suppressed label when not suppressed")
     func testHidesSuppressedLabel() async throws {
         let violation = makeTestViolation(suppressed: false)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -194,9 +223,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem uses correct color for error severity")
     func testErrorSeverityColor() async throws {
         let violation = makeTestViolation(severity: .error)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // The severity indicator is a Circle with fill color
         // We can verify the view structure exists
@@ -212,9 +242,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem uses correct color for warning severity")
     func testWarningSeverityColor() async throws {
         let violation = makeTestViolation(severity: .warning)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // Verify the view structure exists
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -232,9 +263,10 @@ struct ViolationListItemTests {
     func testTruncatesLongMessages() async throws {
         let longMessage = String(repeating: "This is a very long message. ", count: 20)
         let violation = makeTestViolation(message: longMessage)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // The view should still render even with long messages
         // Note: ViewInspector may not find truncated text, but view should still render
@@ -252,9 +284,10 @@ struct ViolationListItemTests {
     func testTruncatesLongFilePaths() async throws {
         let longPath = "Sources/" + String(repeating: "Very/Long/Path/", count: 10) + "File.swift"
         let violation = makeTestViolation(filePath: longPath)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // The view should still render even with long paths
         let viewExists = await MainActor.run {
@@ -268,9 +301,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem handles violation without column")
     func testHandlesViolationWithoutColumn() async throws {
         let violation = makeTestViolation(column: nil)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // Should still display correctly without column
         // Extract ruleID within MainActor.run to avoid Swift 6 false positives
@@ -287,9 +321,10 @@ struct ViolationListItemTests {
     @Test("ViolationListItem handles violation with column")
     func testHandlesViolationWithColumn() async throws {
         let violation = makeTestViolation(column: 15)
-        let view = await MainActor.run {
-            ViolationListItem(violation: violation)
+        let result = await MainActor.run {
+            makeViolationListItemView(violation: violation)
         }
+        let view = result.view
         
         // Should display correctly with column
         // Extract ruleID within MainActor.run to avoid Swift 6 false positives

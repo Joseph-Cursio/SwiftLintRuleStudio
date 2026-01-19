@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ConfigDiffPreviewViewTests {
     
     // MARK: - Test Data Helpers
@@ -85,7 +86,9 @@ struct ConfigDiffPreviewViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasDescription = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(text: "Review the changes that will be made")
+            let _ = try viewCapture.inspect().find(
+                text: "Review the changes that will be made to your .swiftlint.yml file"
+            )
             return true
         }
         #expect(hasDescription == true, "ConfigDiffPreviewView should display description")

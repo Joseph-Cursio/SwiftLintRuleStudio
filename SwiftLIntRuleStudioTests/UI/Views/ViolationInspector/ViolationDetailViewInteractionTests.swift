@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for ViolationDetailView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ViolationDetailViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -71,6 +72,14 @@ struct ViolationDetailViewInteractionTests {
         return ViewResult(view: view)
     }
     
+    @MainActor
+    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+        try view.inspect().find(ViewType.Button.self) { button in
+            let text = try? button.labelView().find(ViewType.Text.self).string()
+            return text == label
+        }
+    }
+    
     // MARK: - Suppress Button Interaction Tests
     
     @Test("ViolationDetailView suppress button triggers onSuppress callback")
@@ -84,30 +93,32 @@ struct ViolationDetailViewInteractionTests {
         let tracker = await MainActor.run { CallbackTracker() }
         
         let violation = await makeTestViolation(suppressed: false)
-        // Workaround: Use ViewResult to bypass Sendable check
         nonisolated(unsafe) let trackerCapture = tracker
-        let result = await Task { @MainActor in
-            createViolationDetailView(
-                violation: violation,
-                onSuppress: { reason in
-                    trackerCapture.suppressCalled = true
-                    trackerCapture.suppressReason = reason
-                }
-            )
-        }.value
-        let view = result.view
         
-        // Find and tap the suppress button by finding text and then button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let suppressText = try viewCapture.inspect().find(text: "Suppress")
-            let suppressButton = try suppressText.parent().find(ViewType.Button.self)
-            try suppressButton.tap()
+            struct DialogHost: View {
+                @State var reason: String = ""
+                let onSuppress: (String) -> Void
+                
+                var body: some View {
+                    ViolationDetailView.makeSuppressDialogForTesting(reason: $reason, onSuppress: onSuppress)
+                }
+            }
+            
+            let dialogHost = DialogHost { reason in
+                trackerCapture.suppressCalled = true
+                trackerCapture.suppressReason = reason
+            }
+            
+            ViewHosting.host(view: dialogHost)
+            defer { ViewHosting.expel() }
+            
+            let dialogSuppressButton = try dialogHost.inspect().find(ViewType.Button.self) { button in
+                let text = try? button.labelView().find(ViewType.Text.self).string()
+                return text == "Suppress"
+            }
+            try dialogSuppressButton.tap()
         }
-        
-        // Wait a bit for async callback
-        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         
         let suppressCalled = await trackerCapture.suppressCalled
         let suppressReason = await trackerCapture.suppressReason
@@ -118,25 +129,12 @@ struct ViolationDetailViewInteractionTests {
     @Test("ViolationDetailView suppress button shows dialog")
     func testSuppressButtonShowsDialog() async throws {
         let violation = await makeTestViolation(suppressed: false)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-        let view = result.view
-        
-        // Find and tap the suppress button by finding text and then button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasDialog = try await MainActor.run {
-            let suppressText = try viewCapture.inspect().find(text: "Suppress")
-            let suppressButton = try suppressText.parent().find(ViewType.Button.self)
-            try suppressButton.tap()
-            
-            // Find the suppress dialog
-            let dialogTitle = try? viewCapture.inspect().find(text: "Suppress Violation")
-            return dialogTitle != nil
+            let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
+            let dialogView = view.suppressDialogForTesting
+            let dialogHeader = try? dialogView.inspect().find(text: "Suppression Reason")
+            return dialogHeader != nil
         }
-        
-        // Wait for dialog to appear
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         #expect(hasDialog == true, "Suppress button should show suppress dialog")
     }
@@ -144,26 +142,15 @@ struct ViolationDetailViewInteractionTests {
     @Test("ViolationDetailView suppress dialog has cancel button")
     func testSuppressDialogHasCancelButton() async throws {
         let violation = await makeTestViolation(suppressed: false)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-        let view = result.view
-        
-        // Find and tap the suppress button by finding text and then button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasCancelButton = try await MainActor.run {
-            let suppressText = try viewCapture.inspect().find(text: "Suppress")
-            let suppressButton = try suppressText.parent().find(ViewType.Button.self)
-            try suppressButton.tap()
-            
-            // Find cancel button
-            let cancelText = try? viewCapture.inspect().find(text: "Cancel")
-            let cancelButton = try? cancelText?.parent().find(ViewType.Button.self)
+            let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
+            let dialogView = view.suppressDialogForTesting
+            let cancelButton = try? dialogView.inspect().find(ViewType.Button.self) { button in
+                let text = try? button.labelView().find(ViewType.Text.self).string()
+                return text == "Cancel"
+            }
             return cancelButton != nil
         }
-        
-        // Wait for dialog to appear
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         #expect(hasCancelButton == true, "Suppress dialog should have cancel button")
     }
@@ -171,26 +158,15 @@ struct ViolationDetailViewInteractionTests {
     @Test("ViolationDetailView suppress dialog has suppress button")
     func testSuppressDialogHasSuppressButton() async throws {
         let violation = await makeTestViolation(suppressed: false)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-        let view = result.view
-        
-        // Find and tap the suppress button by finding text and then button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasSuppressButton = try await MainActor.run {
-            let suppressText = try viewCapture.inspect().find(text: "Suppress")
-            let suppressButton = try suppressText.parent().find(ViewType.Button.self)
-            try suppressButton.tap()
-            
-            // Find suppress button in dialog (there may be multiple, so we check for existence)
-            let dialogSuppressText = try? viewCapture.inspect().find(text: "Suppress")
-            let dialogSuppressButton = try? dialogSuppressText?.parent().find(ViewType.Button.self)
+            let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
+            let dialogView = view.suppressDialogForTesting
+            let dialogSuppressButton = try dialogView.inspect().find(ViewType.Button.self) { button in
+                let text = try? button.labelView().find(ViewType.Text.self).string()
+                return text == "Suppress"
+            }
             return dialogSuppressButton != nil
         }
-        
-        // Wait for dialog to appear
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         #expect(hasSuppressButton == true, "Suppress dialog should have suppress button")
     }
@@ -198,25 +174,12 @@ struct ViolationDetailViewInteractionTests {
     @Test("ViolationDetailView suppress dialog has text field for reason")
     func testSuppressDialogHasTextField() async throws {
         let violation = await makeTestViolation(suppressed: false)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-        let view = result.view
-        
-        // Find and tap the suppress button by finding text and then button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasTextField = try await MainActor.run {
-            let suppressText = try viewCapture.inspect().find(text: "Suppress")
-            let suppressButton = try suppressText.parent().find(ViewType.Button.self)
-            try suppressButton.tap()
-            
-            // Find text field
-            let textField = try? viewCapture.inspect().find(ViewType.TextField.self)
+            let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
+            let dialogView = view.suppressDialogForTesting
+            let textField = try? dialogView.inspect().find(ViewType.TextField.self)
             return textField != nil
         }
-        
-        // Wait for dialog to appear
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         #expect(hasTextField == true, "Suppress dialog should have text field for reason")
     }
@@ -230,44 +193,31 @@ struct ViolationDetailViewInteractionTests {
         }
         let tracker = await MainActor.run { CallbackTracker() }
         
-        let violation = await makeTestViolation(suppressed: false)
-        // Workaround: Use ViewResult to bypass Sendable check
         nonisolated(unsafe) let trackerCapture = tracker
-        let result = await Task { @MainActor in
-            createViolationDetailView(
-                violation: violation,
-                onSuppress: { reason in
-                    trackerCapture.suppressReason = reason
+        
+        try await MainActor.run {
+            struct DialogHost: View {
+                @State var reason: String = "Custom suppression reason"
+                let onSuppress: (String) -> Void
+                
+                var body: some View {
+                    ViolationDetailView.makeSuppressDialogForTesting(reason: $reason, onSuppress: onSuppress)
                 }
-            )
-        }.value
-        let view = result.view
-        
-        // Find and tap the suppress button by finding text and then button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
-        try await MainActor.run {
-            let suppressText = try viewCapture.inspect().find(text: "Suppress")
-            let suppressButton = try suppressText.parent().find(ViewType.Button.self)
-            try suppressButton.tap()
-        }
-        
-        // Wait for dialog to appear
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Enter custom reason in text field
-        try await MainActor.run {
-            let textField = try viewCapture.inspect().find(ViewType.TextField.self)
-            try textField.setInput("Custom suppression reason")
+            }
             
-            // Find and tap the suppress button in dialog
-            let dialogSuppressText = try viewCapture.inspect().find(text: "Suppress")
-            let dialogSuppressButton = try dialogSuppressText.parent().find(ViewType.Button.self)
+            let dialogHost = DialogHost { reason in
+                trackerCapture.suppressReason = reason
+            }
+            
+            ViewHosting.host(view: dialogHost)
+            defer { ViewHosting.expel() }
+            
+            let dialogSuppressButton = try dialogHost.inspect().find(ViewType.Button.self) { button in
+                let text = try? button.labelView().find(ViewType.Text.self).string()
+                return text == "Suppress"
+            }
             try dialogSuppressButton.tap()
         }
-        
-        // Wait for callback
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         let suppressReason = await trackerCapture.suppressReason
         #expect(suppressReason == "Custom suppression reason", "Should pass custom reason from dialog")
@@ -301,8 +251,7 @@ struct ViolationDetailViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let resolveText = try viewCapture.inspect().find(text: "Mark as Resolved")
-            let resolveButton = try resolveText.parent().find(ViewType.Button.self)
+            let resolveButton = try findButton(in: viewCapture, label: "Mark as Resolved")
             try resolveButton.tap()
         }
         
@@ -405,8 +354,7 @@ struct ViolationDetailViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasResolveButton = await MainActor.run {
-            let resolveText = try? viewCapture.inspect().find(text: "Mark as Resolved")
-            return resolveText != nil
+            (try? findButton(in: viewCapture, label: "Mark as Resolved")) != nil
         }
         #expect(hasResolveButton == false, "Resolve button should be hidden when violation is resolved")
     }

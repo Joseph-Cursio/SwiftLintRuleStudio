@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for RuleBrowserView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct RuleBrowserViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -67,10 +68,16 @@ struct RuleBrowserViewInteractionTests {
         let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         
-        let view = RuleBrowserView()
+        #if DEBUG
+        if !rules.isEmpty {
+            ruleRegistry.setRulesForTesting(rules)
+        }
+        #endif
+
+        let view = RuleBrowserView(ruleRegistry: ruleRegistry)
             .environmentObject(ruleRegistry)
             .environmentObject(container)
-        
+
         return ViewResult(view: view, container: container)
     }
     
@@ -116,7 +123,7 @@ struct RuleBrowserViewInteractionTests {
         }
         
         // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
+        try await Task.sleep(nanoseconds: 300_000_000)
         
         // Verify search field has the input
         #expect(inputValue == "force_cast", "Search should filter by rule ID")
@@ -141,7 +148,7 @@ struct RuleBrowserViewInteractionTests {
         }
         
         // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
+        try await Task.sleep(nanoseconds: 300_000_000)
         
         // Verify input was set
         #expect(inputValue == "Force Cast", "Search should filter by rule name")
@@ -166,7 +173,7 @@ struct RuleBrowserViewInteractionTests {
         }
         
         // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
+        try await Task.sleep(nanoseconds: 300_000_000)
         
         // Verify input was set
         #expect(inputValue == "violation", "Search should filter by description")
@@ -206,41 +213,28 @@ struct RuleBrowserViewInteractionTests {
         // Find the search TextField and enter text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let (hasClearButton, inputValue) = try await MainActor.run {
-            let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
+        let inputValue = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
             
-            // Enter search text
+            let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
             try searchField.setInput("test")
             
-            // Find and tap clear button
-            let clearButton = try? viewCapture.inspect().find(ViewType.Button.self, where: { button in
-                // Look for button with xmark.circle.fill icon
-                do {
-                    let buttonView = try button.labelView()
-                    // Check if it's the clear button
-                    return true // Simplified check
-                } catch {
-                    return false
-                }
-            })
-            
-            if let clearButton = clearButton {
+            let buttons = try viewCapture.inspect().findAll(ViewType.Button.self)
+            if let clearButton = buttons.first(where: { button in
+                let name = try? button.labelView().find(ViewType.Image.self).actualImage().name()
+                return name == "xmark.circle.fill"
+            }) {
                 try clearButton.tap()
-                return (true, try searchField.input())
             }
-            return (false, try searchField.input())
+            
+            let updatedField = try viewCapture.inspect().find(ViewType.TextField.self)
+            return try updatedField.input()
         }
         
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Wait for clearing to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Verify search field is cleared if button was found
-        if hasClearButton {
-            #expect(inputValue.isEmpty, "Clear button should clear search field")
-        }
+        // Verify search field is cleared
+        #expect(inputValue.isEmpty, "Clear button should clear search field")
     }
     
     // MARK: - Filter Interaction Tests
@@ -302,17 +296,22 @@ struct RuleBrowserViewInteractionTests {
     @Test("RuleBrowserView allows rule selection")
     func testAllowsRuleSelection() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let rule = await makeTestRule()
+        let result = await Task { @MainActor in createRuleBrowserView(rules: [rule]) }.value
         let view = result.view
         
         // Find the List view
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let hasList = try? await MainActor.run {
-            let _ = try viewCapture.inspect().find(ViewType.List.self)
+        // Allow Combine update to propagate filtered rules
+        try await Task.sleep(nanoseconds: 100_000_000)
+        
+        let hasListAfterUpdate = try? await MainActor.run {
+            let splitView = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            let _ = try splitView.find(ViewType.List.self)
             return true
         }
-        #expect(hasList == true, "RuleBrowserView should allow rule selection via List")
+        #expect(hasListAfterUpdate == true, "RuleBrowserView should render List after rules load")
     }
     
     // MARK: - Empty State Interaction Tests

@@ -33,11 +33,15 @@ class XcodeIntegrationService {
         in workspace: Workspace
     ) async throws -> Bool {
         // 1. Resolve file path
-        let fileURL = try resolveFilePath(path, in: workspace)
+        let fileURL = try resolveFileURL(path, in: workspace)
         
-        // 2. Validate file exists
-        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        // 2. Validate file exists and is a file
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDirectory) else {
             throw XcodeIntegrationError.fileNotFound(path: fileURL.path)
+        }
+        guard !isDirectory.boolValue else {
+            throw XcodeIntegrationError.invalidPath(path: fileURL.path)
         }
         
         // 3. Find associated Xcode project/workspace
@@ -53,14 +57,21 @@ class XcodeIntegrationService {
     }
     
     /// Resolve a file path (absolute or relative) to a full URL
-    private func resolveFilePath(_ path: String, in workspace: Workspace) throws -> URL {
+    func resolveFileURL(_ path: String, in workspace: Workspace) throws -> URL {
+        let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedPath.isEmpty else {
+            throw XcodeIntegrationError.invalidPath(path: path)
+        }
+        
+        let expandedPath = (trimmedPath as NSString).expandingTildeInPath
+        
         // If path is already absolute, use it directly
-        if path.hasPrefix("/") {
-            return URL(fileURLWithPath: path)
+        if expandedPath.hasPrefix("/") {
+            return URL(fileURLWithPath: expandedPath).standardizedFileURL
         }
         
         // Otherwise, resolve relative to workspace root
-        return workspace.path.appendingPathComponent(path)
+        return workspace.path.appendingPathComponent(expandedPath).standardizedFileURL
     }
     
     /// Find the closest Xcode project or workspace for a given file
@@ -232,6 +243,7 @@ class XcodeIntegrationService {
 /// Errors that can occur during Xcode integration
 enum XcodeIntegrationError: LocalizedError {
     case fileNotFound(path: String)
+    case invalidPath(path: String)
     case xcodeNotInstalled
     case failedToOpen
     
@@ -239,6 +251,8 @@ enum XcodeIntegrationError: LocalizedError {
         switch self {
         case .fileNotFound(let path):
             return "File not found: \(path)"
+        case .invalidPath(let path):
+            return "Invalid file path: \(path)"
         case .xcodeNotInstalled:
             return "Xcode is not installed"
         case .failedToOpen:

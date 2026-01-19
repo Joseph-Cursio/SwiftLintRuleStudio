@@ -16,6 +16,7 @@ import SwiftUI
 /// Run these tests to identify inconsistencies in the UI.
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct RuleDisplayConsistencyTests {
     
     // MARK: - Test Data Helpers

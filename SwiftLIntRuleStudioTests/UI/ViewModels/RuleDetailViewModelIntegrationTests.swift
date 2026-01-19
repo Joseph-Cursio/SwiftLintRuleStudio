@@ -362,6 +362,7 @@ struct RuleDetailViewModelIntegrationTests {
         
         var notificationReceived = false
         var receivedRuleId: String?
+        let expectedRuleId = await MainActor.run { rule.id }
         
         // Set up notification observer
         let observer = NotificationCenter.default.addObserver(
@@ -369,8 +370,10 @@ struct RuleDetailViewModelIntegrationTests {
             object: nil,
             queue: .main
         ) { notification in
-            notificationReceived = true
-            receivedRuleId = notification.userInfo?["ruleId"] as? String
+            if let ruleId = notification.userInfo?["ruleId"] as? String, ruleId == expectedRuleId {
+                notificationReceived = true
+                receivedRuleId = ruleId
+            }
         }
         defer { NotificationCenter.default.removeObserver(observer) }
         

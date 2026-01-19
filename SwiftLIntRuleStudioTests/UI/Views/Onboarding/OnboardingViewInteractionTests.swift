@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct OnboardingViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -25,6 +26,9 @@ struct OnboardingViewInteractionTests {
             let userDefaults = IsolatedUserDefaults.create(for: testName)
             let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             onboardingManager.currentStep = step
+            if step != .welcome {
+                onboardingManager.hasCompletedOnboarding = true
+            }
             
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
             let cacheManager = CacheManager.createForTesting()
@@ -42,6 +46,14 @@ struct OnboardingViewInteractionTests {
         }
     }
     
+    @MainActor
+    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+        try view.inspect().find(ViewType.Button.self) { button in
+            let text = try? button.labelView().find(ViewType.Text.self).string()
+            return text == label
+        }
+    }
+    
     // MARK: - Navigation Button Interaction Tests
     
     @Test("OnboardingView Next button advances to next step")
@@ -52,8 +64,13 @@ struct OnboardingViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let nextText = try viewCapture.inspect().find(text: "Next")
-            let nextButton = try nextText.parent().find(ViewType.Button.self)
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            try? viewCapture.inspect().callOnAppear()
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
+        try await MainActor.run {
+            let nextButton = try findButton(in: viewCapture, label: "Next")
             try nextButton.tap()
         }
         
@@ -75,8 +92,13 @@ struct OnboardingViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let backText = try viewCapture.inspect().find(text: "Back")
-            let backButton = try backText.parent().find(ViewType.Button.self)
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            try? viewCapture.inspect().callOnAppear()
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
+        try await MainActor.run {
+            let backButton = try findButton(in: viewCapture, label: "Back")
             try backButton.tap()
         }
         
@@ -98,8 +120,13 @@ struct OnboardingViewInteractionTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let getStartedText = try viewCapture.inspect().find(text: "Get Started")
-            let getStartedButton = try getStartedText.parent().find(ViewType.Button.self)
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            try? viewCapture.inspect().callOnAppear()
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
+        try await MainActor.run {
+            let getStartedButton = try findButton(in: viewCapture, label: "Get Started")
             try getStartedButton.tap()
         }
         
@@ -154,8 +181,7 @@ struct OnboardingViewInteractionTests {
         // Navigate to SwiftLint check
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let nextText1 = try viewCapture.inspect().find(text: "Next")
-            let nextButton1 = try nextText1.parent().find(ViewType.Button.self)
+            let nextButton1 = try findButton(in: viewCapture, label: "Next")
             try nextButton1.tap()
         }
         try await Task.sleep(nanoseconds: 100_000_000)
@@ -198,8 +224,7 @@ struct OnboardingViewInteractionTests {
         // Navigate back to SwiftLint check
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let backText1 = try viewCapture.inspect().find(text: "Back")
-            let backButton1 = try backText1.parent().find(ViewType.Button.self)
+            let backButton1 = try findButton(in: viewCapture, label: "Back")
             try backButton1.tap()
         }
         try await Task.sleep(nanoseconds: 100_000_000)
@@ -210,8 +235,7 @@ struct OnboardingViewInteractionTests {
         
         // Navigate back to welcome
         try await MainActor.run {
-            let backText2 = try viewCapture.inspect().find(text: "Back")
-            let backButton2 = try backText2.parent().find(ViewType.Button.self)
+            let backButton2 = try findButton(in: viewCapture, label: "Back")
             try backButton2.tap()
         }
         try await Task.sleep(nanoseconds: 100_000_000)

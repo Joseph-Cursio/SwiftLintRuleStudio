@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ConfigDiffPreviewViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -24,7 +25,7 @@ struct ConfigDiffPreviewViewInteractionTests {
     }
     
     @MainActor
-    private func createConfigDiffPreviewViewSync() -> (view: AnyView, tracker: CallbackTracker) {
+    private func createConfigDiffPreviewViewSync() -> (view: ConfigDiffPreviewView, tracker: CallbackTracker) {
         let tracker = CallbackTracker()
         
         let diff = YAMLConfigurationEngine.ConfigDiff(
@@ -42,32 +43,44 @@ struct ConfigDiffPreviewViewInteractionTests {
             onCancel: { tracker.cancelCalled = true }
         )
         
-        return (AnyView(view), tracker)
+        return (view, tracker)
+    }
+
+    @MainActor
+    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+        try view.inspect().find(ViewType.Button.self) { button in
+            let text = try? button.labelView().find(ViewType.Text.self).string()
+            return text == label
+        }
+    }
+
+    private struct ViewResult: @unchecked Sendable {
+        let view: ConfigDiffPreviewView
+        let tracker: CallbackTracker
     }
     
-    private func createConfigDiffPreviewView() async -> (view: AnyView, tracker: CallbackTracker) {
-        nonisolated(unsafe) var viewCapture: AnyView!
-        nonisolated(unsafe) var trackerCapture: CallbackTracker!
-        await MainActor.run {
+    private func createConfigDiffPreviewView() async -> ViewResult {
+        await Task { @MainActor in
             let result = createConfigDiffPreviewViewSync()
-            viewCapture = result.view
-            trackerCapture = result.tracker
-        }
-        return (viewCapture, trackerCapture)
+            return ViewResult(view: result.view, tracker: result.tracker)
+        }.value
     }
     
     // MARK: - Button Interaction Tests
     
     @Test("ConfigDiffPreviewView Cancel button calls onCancel")
     func testCancelButtonCallsOnCancel() async throws {
-        let (view, tracker) = await createConfigDiffPreviewView()
+        let result = await createConfigDiffPreviewView()
+        let view = result.view
+        let tracker = result.tracker
         
         // Find and tap Cancel button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let cancelButton = try viewCapture.inspect().find(text: "Cancel")
-            let button = try cancelButton.parent().find(ViewType.Button.self)
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            let button = try findButton(in: viewCapture, label: "Cancel")
             try button.tap()
         }
         
@@ -83,14 +96,17 @@ struct ConfigDiffPreviewViewInteractionTests {
     
     @Test("ConfigDiffPreviewView Save Changes button calls onSave")
     func testSaveChangesButtonCallsOnSave() async throws {
-        let (view, tracker) = await createConfigDiffPreviewView()
+        let result = await createConfigDiffPreviewView()
+        let view = result.view
+        let tracker = result.tracker
         
         // Find and tap Save Changes button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            let saveButton = try viewCapture.inspect().find(text: "Save Changes")
-            let button = try saveButton.parent().find(ViewType.Button.self)
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            let button = try findButton(in: viewCapture, label: "Save Changes")
             try button.tap()
         }
         
@@ -108,7 +124,8 @@ struct ConfigDiffPreviewViewInteractionTests {
     
     @Test("ConfigDiffPreviewView view mode picker switches views")
     func testViewModePickerSwitchesViews() async throws {
-        let (view, _) = await createConfigDiffPreviewView()
+        let result = await createConfigDiffPreviewView()
+        let view = result.view
         
         // Note: Interacting with the picker would require finding and tapping it
         // This is complex with ViewInspector, so we verify the structure exists

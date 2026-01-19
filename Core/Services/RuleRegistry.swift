@@ -89,6 +89,13 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
     func refreshRules() async throws {
         _ = try await loadRules()
     }
+
+#if DEBUG
+    /// Test-only helper to inject rules without hitting SwiftLint CLI.
+    func setRulesForTesting(_ rules: [Rule]) {
+        self.rules = rules
+    }
+#endif
     
     private func fetchRulesFromSwiftLint() async throws -> [Rule] {
         let output = try await swiftLintCLI.executeRulesCommand()

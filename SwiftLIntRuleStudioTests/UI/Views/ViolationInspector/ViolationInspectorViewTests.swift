@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ViolationInspectorViewTests {
     
     // MARK: - Test Data Helpers

@@ -13,6 +13,7 @@ import SwiftUI
 /// Interaction tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct ViolationInspectorViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -68,6 +69,7 @@ struct ViolationInspectorViewInteractionTests {
         
         return ViewResult(view: view, container: container)
     }
+
     
     // MARK: - Search Interaction Tests
     
@@ -270,13 +272,27 @@ struct ViolationInspectorViewInteractionTests {
     
     @Test("ViolationInspectorView allows violation selection")
     func testAllowsViolationSelection() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
+        let violations = [await makeTestViolation()]
+        let result = await Task { @MainActor in
+            let container = DependencyContainer.createForTesting()
+            let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
+            viewModel.violations = violations
+            viewModel.searchText = ""
+            let view = ViolationInspectorView(viewModel: viewModel)
+                .environmentObject(container)
+            return ViewResult(view: view, container: container)
+        }.value
         let view = result.view
         
         // Find the List view
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
+
         let hasList = try? await MainActor.run {
             let _ = try viewCapture.inspect().find(ViewType.List.self)
             return true

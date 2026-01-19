@@ -13,6 +13,7 @@ import SwiftUI
 /// Tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct OnboardingViewTests {
     
     // MARK: - Test Data Helpers
@@ -139,7 +140,9 @@ struct OnboardingViewTests {
         // Find description text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasDescription = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "A powerful tool for managing")
+            let _ = try view.inspect().find(
+                text: "A powerful tool for managing and configuring SwiftLint rules in your Swift projects."
+            )
             return true
         }
         #expect(hasDescription == true, "Welcome step should show description")
@@ -283,7 +286,9 @@ struct OnboardingViewTests {
         // Find completion message
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasMessage = try? await MainActor.run {
-            let _ = try view.inspect().find(text: "SwiftLint Rule Studio is ready to use")
+            let _ = try view.inspect().find(
+                text: "SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace."
+            )
             return true
         }
         #expect(hasMessage == true, "Complete step should show completion message")

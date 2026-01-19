@@ -10,6 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
+@Suite(.serialized)
 struct ViolationInspectorNewFeaturesTests {
     
     // MARK: - Test Data Helpers
@@ -125,10 +126,13 @@ struct ViolationInspectorNewFeaturesTests {
         let data = try Data(contentsOf: tempURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        let decoded = try decoder.decode([Violation].self, from: data)
+        let decoded = try await MainActor.run {
+            try decoder.decode([Violation].self, from: data)
+        }
         
         #expect(decoded.count == 1)
-        #expect(decoded.first?.ruleID == "test_rule")
+        let decodedRuleID = await MainActor.run { decoded.first?.ruleID }
+        #expect(decodedRuleID == "test_rule")
     }
     
     @Test("Exports violations to CSV format")
@@ -221,23 +225,30 @@ struct ViolationInspectorNewFeaturesTests {
         let data = try Data(contentsOf: tempURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        let decoded = try decoder.decode([Violation].self, from: data)
+        let decoded = try await MainActor.run {
+            try decoder.decode([Violation].self, from: data)
+        }
         
         #expect(decoded.count == 1)
         let exported = decoded.first!
+        let exportedData = await MainActor.run {
+            (ruleID: exported.ruleID, filePath: exported.filePath, line: exported.line,
+             column: exported.column, severity: exported.severity, message: exported.message,
+             suppressed: exported.suppressed, suppressionReason: exported.suppressionReason)
+        }
         let violationData = await MainActor.run {
             (ruleID: violation.ruleID, filePath: violation.filePath, line: violation.line,
              column: violation.column, severity: violation.severity, message: violation.message,
              suppressed: violation.suppressed, suppressionReason: violation.suppressionReason)
         }
-        #expect(exported.ruleID == violationData.ruleID)
-        #expect(exported.filePath == violationData.filePath)
-        #expect(exported.line == violationData.line)
-        #expect(exported.column == violationData.column)
-        #expect(exported.severity == violationData.severity)
-        #expect(exported.message == violationData.message)
-        #expect(exported.suppressed == violationData.suppressed)
-        #expect(exported.suppressionReason == violationData.suppressionReason)
+        #expect(exportedData.ruleID == violationData.ruleID)
+        #expect(exportedData.filePath == violationData.filePath)
+        #expect(exportedData.line == violationData.line)
+        #expect(exportedData.column == violationData.column)
+        #expect(exportedData.severity == violationData.severity)
+        #expect(exportedData.message == violationData.message)
+        #expect(exportedData.suppressed == violationData.suppressed)
+        #expect(exportedData.suppressionReason == violationData.suppressionReason)
     }
     
     // MARK: - Helper Methods
@@ -262,7 +273,9 @@ struct ViolationInspectorNewFeaturesTests {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         
-        let data = try encoder.encode(violations)
+        let data = try await MainActor.run {
+            try encoder.encode(violations)
+        }
         try data.write(to: url)
     }
     

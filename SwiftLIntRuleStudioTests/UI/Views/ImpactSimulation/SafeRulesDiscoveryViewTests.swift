@@ -11,6 +11,7 @@ import SwiftUI
 
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+@Suite(.serialized)
 struct SafeRulesDiscoveryViewTests {
     
     // Workaround type to bypass Sendable check for SwiftUI views
