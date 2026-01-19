@@ -18,7 +18,6 @@ excluded:
 # Disable rules that are too strict for this project
 disabled_rules:
   - todo                      # Allow TODO comments during development
-  - trailing_whitespace       # Can be handled by Xcode
   - trailing_newline          # Allow without strict enforcement
   - file_length               # Large views/services exceed limits
   - function_body_length      # Some helpers are intentionally long
@@ -53,6 +52,9 @@ custom_rules:
     severity: warning
 
 # Rule configurations
+trailing_whitespace:
+  ignores_empty_lines: true
+
 line_length:
   warning: 120
   error: 150

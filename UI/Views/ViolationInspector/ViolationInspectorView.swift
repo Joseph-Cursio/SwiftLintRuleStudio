@@ -302,7 +302,7 @@ struct ViolationInspectorView: View {
                     }
                     
                     // Clear filters
-                    if !viewModel.searchText.isEmpty || 
+                    if !viewModel.searchText.isEmpty ||
                        !viewModel.selectedRuleIDs.isEmpty ||
                        !viewModel.selectedSeverities.isEmpty {
                         Button {
@@ -379,7 +379,7 @@ struct ViolationInspectorView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            if !viewModel.searchText.isEmpty || 
+            if !viewModel.searchText.isEmpty ||
                !viewModel.selectedRuleIDs.isEmpty ||
                !viewModel.selectedSeverities.isEmpty {
                 Button("Clear Filters") {

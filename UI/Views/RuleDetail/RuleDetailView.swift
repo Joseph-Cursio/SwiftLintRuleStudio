@@ -721,81 +721,81 @@ struct RuleDetailView: View {
         <head>
             <meta charset="UTF-8">
             <style>
-                body { 
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
-                    font-size: 14px; 
-                    line-height: 1.6; 
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                    font-size: 14px;
+                    line-height: 1.6;
                     color: \(textColor);
                     margin: 0;
                     padding: 0;
                 }
-                h1 { 
-                    font-size: 20px; 
-                    font-weight: 600; 
-                    margin-top: 0; 
-                    margin-bottom: 16px; 
+                h1 {
+                    font-size: 20px;
+                    font-weight: 600;
+                    margin-top: 0;
+                    margin-bottom: 16px;
                     color: \(textColor);
                 }
-                h2 { 
-                    font-size: 18px; 
-                    font-weight: 600; 
-                    margin-top: 24px; 
-                    margin-bottom: 12px; 
+                h2 {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin-top: 24px;
+                    margin-bottom: 12px;
                     color: \(textColor);
                 }
-                h3 { 
-                    font-size: 16px; 
-                    font-weight: 600; 
-                    margin-top: 20px; 
-                    margin-bottom: 10px; 
+                h3 {
+                    font-size: 16px;
+                    font-weight: 600;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
                     color: \(textColor);
                 }
-                code { 
-                    font-family: 'SF Mono', Monaco, 'Courier New', monospace; 
-                    background-color: \(codeBgColor); 
-                    padding: 2px 6px; 
-                    border-radius: 3px; 
+                code {
+                    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+                    background-color: \(codeBgColor);
+                    padding: 2px 6px;
+                    border-radius: 3px;
                     font-size: 13px;
                     color: \(textColor);
                 }
-                pre { 
-                    background-color: \(codeBgColor); 
-                    padding: 12px; 
-                    border-radius: 6px; 
+                pre {
+                    background-color: \(codeBgColor);
+                    padding: 12px;
+                    border-radius: 6px;
                     overflow-x: auto;
                     margin: 12px 0;
                 }
-                pre code { 
-                    background: none; 
-                    padding: 0; 
+                pre code {
+                    background: none;
+                    padding: 0;
                     color: \(textColor);
                 }
-                table { 
-                    border-collapse: collapse; 
-                    width: 100%; 
-                    margin: 12px 0; 
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin: 12px 0;
                 }
-                th, td { 
-                    border: 1px solid \(tableBorderColor); 
-                    padding: 8px 12px; 
-                    text-align: left; 
+                th, td {
+                    border: 1px solid \(tableBorderColor);
+                    padding: 8px 12px;
+                    text-align: left;
                     color: \(textColor);
                 }
-                th { 
-                    background-color: \(tableHeaderBg); 
-                    font-weight: 600; 
+                th {
+                    background-color: \(tableHeaderBg);
+                    font-weight: 600;
                 }
-                p { 
-                    margin: 8px 0; 
+                p {
+                    margin: 8px 0;
                     color: \(textColor);
                 }
-                ul, ol { 
-                    margin: 8px 0; 
-                    padding-left: 24px; 
+                ul, ol {
+                    margin: 8px 0;
+                    padding-left: 24px;
                     color: \(textColor);
                 }
-                li { 
-                    margin: 4px 0; 
+                li {
+                    margin: 4px 0;
                     color: \(textColor);
                 }
                 strong {

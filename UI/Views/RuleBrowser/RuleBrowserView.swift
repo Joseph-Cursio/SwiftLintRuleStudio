@@ -346,7 +346,7 @@ struct RuleBrowserView: View {
             }
             
             // Skip horizontal rules (dividers)
-            if trimmed.hasPrefix("<hr") || trimmed.contains("<hr>") || 
+            if trimmed.hasPrefix("<hr") || trimmed.contains("<hr>") ||
                trimmed.hasPrefix("---") || trimmed == "---" {
                 continue
             }
@@ -454,10 +454,10 @@ struct RuleBrowserView: View {
         <head>
             <meta charset="UTF-8">
             <style>
-                body { 
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
-                    font-size: 14px; 
-                    line-height: 1.6; 
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                    font-size: 14px;
+                    line-height: 1.6;
                     color: \(textColor);
                     margin: 0;
                     padding: 0;
@@ -467,18 +467,18 @@ struct RuleBrowserView: View {
                 h1 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 16px; color: \(textColor); }
                 h2 { font-size: 18px; font-weight: 600; margin-top: 24px; margin-bottom: 12px; color: \(textColor); }
                 h3 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: \(textColor); }
-                code { 
-                    font-family: 'SF Mono', Monaco, 'Courier New', monospace; 
-                    background-color: \(codeBgColor); 
-                    padding: 2px 6px; 
-                    border-radius: 3px; 
+                code {
+                    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+                    background-color: \(codeBgColor);
+                    padding: 2px 6px;
+                    border-radius: 3px;
                     font-size: 13px;
                     color: \(textColor);
                 }
-                pre { 
-                    background-color: \(codeBgColor); 
-                    padding: 12px; 
-                    border-radius: 6px; 
+                pre {
+                    background-color: \(codeBgColor);
+                    padding: 12px;
+                    border-radius: 6px;
                     overflow-x: auto;
                     margin: 12px 0;
                 }
@@ -494,16 +494,16 @@ struct RuleBrowserView: View {
                 tr { display: block; width: 100%; }
                 thead, tbody { display: block; width: 100%; }
                 div { display: block; width: 100%; }
-                * { 
-                    max-width: 100% !important; 
-                    box-sizing: border-box !important; 
-                    float: none !important; 
+                * {
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                    float: none !important;
                     display: block !important;
                     width: 100% !important;
                 }
-                p, span, div, section, article { 
-                    display: block !important; 
-                    width: 100% !important; 
+                p, span, div, section, article {
+                    display: block !important;
+                    width: 100% !important;
                     float: none !important;
                 }
             </style>

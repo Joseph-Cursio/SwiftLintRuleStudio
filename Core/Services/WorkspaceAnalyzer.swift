@@ -301,8 +301,8 @@ class WorkspaceAnalyzer: ObservableObject {
         for case let fileURL as URL in enumerator {
             // Skip common build and dependency directories
             let path = fileURL.path
-            if path.contains("/.build/") || 
-               path.contains("/Pods/") || 
+            if path.contains("/.build/") ||
+               path.contains("/Pods/") ||
                path.contains("/node_modules/") ||
                path.contains("/.git/") {
                 enumerator.skipDescendants()
