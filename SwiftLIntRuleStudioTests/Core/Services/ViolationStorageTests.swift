@@ -426,27 +426,40 @@ struct ViolationStorageTests {
         try await storage.storeViolations([original], for: workspaceId)
         
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
-        let (count, idMatch, ruleIDMatch, filePathMatch, lineMatch, columnMatch, severityMatch, messageMatch) = await MainActor.run {
-            let violation = fetched.first!
-            return (
-                fetched.count,
-                violation.id == original.id,
-                violation.ruleID == original.ruleID,
-                violation.filePath == original.filePath,
-                violation.line == original.line,
-                violation.column == original.column,
-                violation.severity == original.severity,
-                violation.message == original.message
+        let captured = await MainActor.run {
+            fetched.first.map {
+                (
+                    count: fetched.count,
+                    id: $0.id,
+                    ruleID: $0.ruleID,
+                    filePath: $0.filePath,
+                    line: $0.line,
+                    column: $0.column,
+                    severity: $0.severity,
+                    message: $0.message
+                )
+            }
+        }
+        let unwrapped = try #require(captured)
+        let comparison = await MainActor.run {
+            (
+                idMatch: unwrapped.id == original.id,
+                ruleIDMatch: unwrapped.ruleID == original.ruleID,
+                filePathMatch: unwrapped.filePath == original.filePath,
+                lineMatch: unwrapped.line == original.line,
+                columnMatch: unwrapped.column == original.column,
+                severityMatch: unwrapped.severity == original.severity,
+                messageMatch: unwrapped.message == original.message
             )
         }
-        #expect(count == 1)
-        #expect(idMatch == true)
-        #expect(ruleIDMatch == true)
-        #expect(filePathMatch == true)
-        #expect(lineMatch == true)
-        #expect(columnMatch == true)
-        #expect(severityMatch == true)
-        #expect(messageMatch == true)
+        #expect(unwrapped.count == 1)
+        #expect(comparison.idMatch == true)
+        #expect(comparison.ruleIDMatch == true)
+        #expect(comparison.filePathMatch == true)
+        #expect(comparison.lineMatch == true)
+        #expect(comparison.columnMatch == true)
+        #expect(comparison.severityMatch == true)
+        #expect(comparison.messageMatch == true)
     }
     
     @Test("ViolationStorage handles duplicate IDs with INSERT OR REPLACE")
@@ -482,14 +495,24 @@ struct ViolationStorageTests {
         #expect(fetched.count == 1)
         
         // The stored violation should be the last one (violation2)
-        let (idMatch, ruleID, filePath, message) = await MainActor.run {
-            let stored = fetched.first!
-            return (stored.id == sharedID, stored.ruleID, stored.filePath, stored.message)
+        let stored = await MainActor.run {
+            fetched.first.map {
+                (id: $0.id, ruleID: $0.ruleID, filePath: $0.filePath, message: $0.message)
+            }
         }
-        #expect(idMatch == true)
-        #expect(ruleID == "rule2")
-        #expect(filePath == "File2.swift")
-        #expect(message == "Second message")
+        let unwrapped = try #require(stored)
+        let storedComparison = await MainActor.run {
+            (
+                idMatch: unwrapped.id == sharedID,
+                ruleID: unwrapped.ruleID,
+                filePath: unwrapped.filePath,
+                message: unwrapped.message
+            )
+        }
+        #expect(storedComparison.idMatch == true)
+        #expect(storedComparison.ruleID == "rule2")
+        #expect(storedComparison.filePath == "File2.swift")
+        #expect(storedComparison.message == "Second message")
     }
     
     @Test("ViolationStorage ensures all violations have unique IDs")

@@ -162,21 +162,14 @@ struct ContentViewTests {
             try dependencies.workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Recreate the view after updating state to ensure latest environment values
-        nonisolated(unsafe) var viewCapture: AnyView!
-        await MainActor.run {
-            viewCapture = AnyView(ContentView()
-                .environmentObject(ruleRegistry)
-                .environmentObject(dependencies))
-        }
-        let view = viewCapture
-        
         // Verify main interface is shown (NavigationSplitView with SidebarView)
         // SidebarView contains "SwiftLint Rule Studio" title
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewInspectorTarget = view
         let hasSidebarTitle = try? await MainActor.run {
-            _ = try viewInspectorTarget.inspect().find(text: "Rules")
+            let view = AnyView(ContentView()
+                .environmentObject(ruleRegistry)
+                .environmentObject(dependencies))
+            _ = try view.inspect().find(text: "Rules")
             return true
         }
         #expect(hasSidebarTitle == true, "ContentView should show main interface when workspace is open")

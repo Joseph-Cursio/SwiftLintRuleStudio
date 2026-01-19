@@ -471,8 +471,8 @@ struct RuleBrowserViewTests {
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have NavigationSplitView as root")
     }
     
-    @Test("RuleBrowserView has master-detail layout")
-    func testMasterDetailLayout() async throws {
+    @Test("RuleBrowserView has primary-detail layout")
+    func testPrimaryDetailLayout() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
         let view = result.view
@@ -484,7 +484,7 @@ struct RuleBrowserViewTests {
             _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
-        #expect(hasNavigationSplitView == true, "RuleBrowserView should have master-detail layout")
+        #expect(hasNavigationSplitView == true, "RuleBrowserView should have primary-detail layout")
     }
     
     // MARK: - Integration Tests

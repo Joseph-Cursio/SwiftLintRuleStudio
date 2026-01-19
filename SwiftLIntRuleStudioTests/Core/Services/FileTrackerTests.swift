@@ -20,7 +20,7 @@ struct FileTrackerTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         
         let fileURL = tempDir.appendingPathComponent("sample.txt")
-        try "initial".data(using: .utf8)?.write(to: fileURL)
+        try Data("initial".utf8).write(to: fileURL)
         
         let cacheURL = tempDir.appendingPathComponent("cache.json")
         let tracker = FileTracker(cacheURL: cacheURL)
@@ -30,7 +30,7 @@ struct FileTrackerTests {
         #expect(tracker.getMetadata(for: fileURL.path) != nil)
         
         // Modify file to change metadata
-        try "updated".data(using: .utf8)?.write(to: fileURL)
+        try Data("updated".utf8).write(to: fileURL)
         #expect(tracker.hasFileChanged(fileURL.path) == true)
         
         try tracker.updateTracking(for: fileURL.path)
@@ -45,7 +45,7 @@ struct FileTrackerTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         
         let fileURL = tempDir.appendingPathComponent("tracked.txt")
-        try "data".data(using: .utf8)?.write(to: fileURL)
+        try Data("data".utf8).write(to: fileURL)
         
         let tracker = FileTracker()
         try tracker.updateTracking(for: fileURL.path)
@@ -68,7 +68,7 @@ struct FileTrackerTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         
         let fileURL = tempDir.appendingPathComponent("persisted.txt")
-        try "cache".data(using: .utf8)?.write(to: fileURL)
+        try Data("cache".utf8).write(to: fileURL)
         
         let cacheURL = tempDir.appendingPathComponent("cache.json")
         let tracker = FileTracker(cacheURL: cacheURL)

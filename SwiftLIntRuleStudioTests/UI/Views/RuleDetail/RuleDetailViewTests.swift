@@ -47,9 +47,8 @@ struct RuleDetailViewTests {
             cacheManager: cacheManager
         )
         
-        let detailView = viewModel == nil
-            ? RuleDetailView(rule: rule)
-            : RuleDetailView(rule: rule, viewModel: viewModel!)
+        let detailView = viewModel.map { RuleDetailView(rule: rule, viewModel: $0) }
+            ?? RuleDetailView(rule: rule)
         let view = detailView.environmentObject(resolvedContainer)
         return ViewResult(view: view)
     }

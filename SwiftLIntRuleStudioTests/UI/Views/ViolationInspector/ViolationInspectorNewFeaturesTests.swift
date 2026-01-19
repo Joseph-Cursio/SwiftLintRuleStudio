@@ -230,7 +230,7 @@ struct ViolationInspectorNewFeaturesTests {
         }
         
         #expect(decoded.count == 1)
-        let exported = decoded.first!
+        let exported = try #require(decoded.first)
         let exportedData = await MainActor.run {
             (ruleID: exported.ruleID, filePath: exported.filePath, line: exported.line,
              column: exported.column, severity: exported.severity, message: exported.message,

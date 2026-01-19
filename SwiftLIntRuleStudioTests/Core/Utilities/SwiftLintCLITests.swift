@@ -85,7 +85,7 @@ struct SwiftLintCLITests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         
         let configURL = tempDir.appendingPathComponent(".swiftlint.yml")
-        try "rules: {}".data(using: .utf8)?.write(to: configURL)
+        try Data("rules: {}".utf8).write(to: configURL)
         
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
         let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
@@ -465,7 +465,7 @@ struct SwiftLintCLITests {
         
         let ruleId = "test_rule"
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")
-        try "Cached docs".data(using: .utf8)?.write(to: docFile)
+        try Data("Cached docs".utf8).write(to: docFile)
         
         try cacheManager.saveDocsDirectory(docsDir)
         try cacheManager.saveSwiftLintVersion("1.0.0")
@@ -488,14 +488,15 @@ struct SwiftLintCLITests {
         let ruleId = "existing_rule"
         let version = "9.9.9"
 
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
         let docsDir = appSupport
             .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
             .appendingPathComponent("rule_docs", isDirectory: true)
             .appendingPathComponent(version, isDirectory: true)
         try FileManager.default.createDirectory(at: docsDir, withIntermediateDirectories: true)
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")
-        try "Existing docs".data(using: .utf8)?.write(to: docFile)
+        try Data("Existing docs".utf8).write(to: docFile)
 
         let runner: SwiftLintCommandRunner = { _, arguments in
             if arguments == ["version"] {
@@ -525,7 +526,7 @@ struct SwiftLintCLITests {
                 let docsDir = URL(fileURLWithPath: arguments[pathIndex + 1], isDirectory: true)
                 try? FileManager.default.createDirectory(at: docsDir, withIntermediateDirectories: true)
                 let docFile = docsDir.appendingPathComponent("\(ruleId).md")
-                try? "Generated docs".data(using: .utf8)?.write(to: docFile)
+                try? Data("Generated docs".utf8).write(to: docFile)
             }
             return (Data(), Data())
         }

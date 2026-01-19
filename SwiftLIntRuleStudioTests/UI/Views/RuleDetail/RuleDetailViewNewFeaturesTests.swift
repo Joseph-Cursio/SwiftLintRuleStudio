@@ -63,7 +63,9 @@ struct RuleDetailViewNewFeaturesTests {
         _ = await makeTestRule(markdownDocumentation: markdown)
         
         // Test rationale extraction using the helper method
-        let rationale = await extractRationale(from: markdown)
+        let rationale = await MainActor.run {
+            RuleDetailView.extractRationaleForTesting(markdown)
+        }
         #expect(rationale != nil)
         #expect(rationale?.contains("helps prevent common mistakes") == true)
         #expect(rationale?.contains("improves code quality") == true)
@@ -79,7 +81,9 @@ struct RuleDetailViewNewFeaturesTests {
         This rule is important because it improves readability.
         """
         
-        let rationale = await extractRationale(from: markdown)
+        let rationale = await MainActor.run {
+            RuleDetailView.extractRationaleForTesting(markdown)
+        }
         #expect(rationale != nil)
         #expect(rationale?.contains("improves readability") == true)
     }
@@ -94,7 +98,9 @@ struct RuleDetailViewNewFeaturesTests {
         ## Examples
         """
         
-        let rationale = await extractRationale(from: markdown)
+        let rationale = await MainActor.run {
+            RuleDetailView.extractRationaleForTesting(markdown)
+        }
         #expect(rationale == nil)
     }
     
@@ -112,7 +118,9 @@ struct RuleDetailViewNewFeaturesTests {
         This should not be included.
         """
         
-        let rationale = await extractRationale(from: markdown)
+        let rationale = await MainActor.run {
+            RuleDetailView.extractRationaleForTesting(markdown)
+        }
         #expect(rationale != nil)
         #expect(rationale?.contains("rationale text") == true)
         #expect(rationale?.contains("should not be included") == false)
@@ -251,52 +259,6 @@ struct RuleDetailViewNewFeaturesTests {
     }
     
     // MARK: - Helper Methods
-    
-    // Test rationale extraction by checking view content
-    private func extractRationale(from markdown: String) -> String? {
-        // Replicate the logic from RuleDetailView for testing
-        guard !markdown.isEmpty else { return nil }
-        
-        let lines = markdown.components(separatedBy: .newlines)
-        var inRationaleSection = false
-        var rationaleLines: [String] = []
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            
-            if trimmed.hasPrefix("##") {
-                let sectionName = trimmed.lowercased()
-                if sectionName.contains("rationale") || sectionName.contains("why") {
-                    inRationaleSection = true
-                    continue
-                } else if inRationaleSection {
-                    break
-                }
-            }
-            
-            if inRationaleSection {
-                if trimmed.hasPrefix("```") {
-                    continue
-                }
-                
-                if rationaleLines.isEmpty && trimmed.isEmpty {
-                    continue
-                }
-                
-                if !trimmed.isEmpty {
-                    rationaleLines.append(trimmed)
-                } else if !rationaleLines.isEmpty {
-                    break
-                }
-            }
-        }
-        
-        if !rationaleLines.isEmpty {
-            return rationaleLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        
-        return nil
-    }
     
     // Test Swift Evolution link extraction
     private func extractSwiftEvolutionLinks(from markdown: String) -> [URL] {

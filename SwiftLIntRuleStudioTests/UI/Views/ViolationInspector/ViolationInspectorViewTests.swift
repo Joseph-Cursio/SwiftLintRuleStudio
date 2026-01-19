@@ -339,8 +339,8 @@ struct ViolationInspectorViewTests {
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have NavigationSplitView as root")
     }
     
-    @Test("ViolationInspectorView has master-detail layout")
-    func testMasterDetailLayout() async throws {
+    @Test("ViolationInspectorView has primary-detail layout")
+    func testPrimaryDetailLayout() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
         let view = result.view
@@ -352,7 +352,7 @@ struct ViolationInspectorViewTests {
             _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
             return true
         }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should have master-detail layout")
+        #expect(hasNavigationSplitView == true, "ViolationInspectorView should have primary-detail layout")
     }
 }
 

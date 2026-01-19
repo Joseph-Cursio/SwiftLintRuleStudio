@@ -22,9 +22,9 @@ struct OnboardingManagerIntegrationTests {
         // UserDefaults is thread-safe for our test use case
         nonisolated(unsafe) let userDefaultsCapture = userDefaults
         return try await MainActor.run {
-            let container = userDefaultsCapture != nil
-                ? DependencyContainer.createForTesting(userDefaults: userDefaultsCapture!)
-                : DependencyContainer.createForTesting()
+            let container = userDefaultsCapture.map {
+                DependencyContainer.createForTesting(userDefaults: $0)
+            } ?? DependencyContainer.createForTesting()
             return try operation(container)
         }
     }

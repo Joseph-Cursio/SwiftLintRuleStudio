@@ -111,7 +111,7 @@ struct SafeRulesDiscoveryViewTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
         let swiftFile = tempDir.appendingPathComponent("Test.swift")
-        try "struct Test {}".data(using: .utf8)?.write(to: swiftFile)
+        try Data("struct Test {}".utf8).write(to: swiftFile)
 
         let configURL = tempDir.appendingPathComponent(".swiftlint.yml")
         let configContent = """
@@ -122,7 +122,7 @@ struct SafeRulesDiscoveryViewTests {
           some_other_rule:
             enabled: false
         """
-        try configContent.data(using: .utf8)?.write(to: configURL)
+        try Data(configContent.utf8).write(to: configURL)
 
         let rules = [
             Rule(

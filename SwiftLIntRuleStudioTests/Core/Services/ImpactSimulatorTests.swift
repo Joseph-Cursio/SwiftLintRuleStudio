@@ -275,9 +275,15 @@ struct ImpactSimulatorTests {
         }
         
         // Use an actor to safely collect progress updates
+        struct ProgressUpdate {
+            let current: Int
+            let total: Int
+            let ruleId: String
+        }
+
         actor ProgressCollector {
-            var updates: [(Int, Int, String)] = []
-            func add(_ update: (Int, Int, String)) {
+            var updates: [ProgressUpdate] = []
+            func add(_ update: ProgressUpdate) {
                 updates.append(update)
             }
         }
@@ -291,7 +297,7 @@ struct ImpactSimulatorTests {
                 baseConfigPath: nil
             ) { @Sendable current, total, ruleId in
                 Task {
-                    await progressCollector.add((current, total, ruleId))
+                    await progressCollector.add(ProgressUpdate(current: current, total: total, ruleId: ruleId))
                 }
             }
         }
@@ -301,13 +307,13 @@ struct ImpactSimulatorTests {
         let progressUpdates = await progressCollector.updates
         
         #expect(progressUpdates.count == 3)
-        #expect(progressUpdates[0].0 == 0)
-        #expect(progressUpdates[0].1 == 3)
-        #expect(progressUpdates[0].2 == "rule1")
-        #expect(progressUpdates[1].0 == 1)
-        #expect(progressUpdates[1].2 == "rule2")
-        #expect(progressUpdates[2].0 == 2)
-        #expect(progressUpdates[2].2 == "rule3")
+        #expect(progressUpdates[0].current == 0)
+        #expect(progressUpdates[0].total == 3)
+        #expect(progressUpdates[0].ruleId == "rule1")
+        #expect(progressUpdates[1].current == 1)
+        #expect(progressUpdates[1].ruleId == "rule2")
+        #expect(progressUpdates[2].current == 2)
+        #expect(progressUpdates[2].ruleId == "rule3")
     }
     
     // MARK: - Safe Rule Detection Tests

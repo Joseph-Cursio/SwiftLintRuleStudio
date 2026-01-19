@@ -62,13 +62,12 @@ struct SwiftLintCLIIntegrationTests {
         
         // Verify version was cached
         let cachedVersion = try cacheManager.getCachedSwiftLintVersion()
-        #expect(cachedVersion != nil)
-        #expect(!cachedVersion!.isEmpty)
+        let unwrappedVersion = try #require(cachedVersion)
+        #expect(!unwrappedVersion.isEmpty)
         
         // Verify docs directory was cached
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedDir != nil)
-        #expect(FileManager.default.fileExists(atPath: cachedDir!.path))
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
+        #expect(FileManager.default.fileExists(atPath: cachedDir.path))
     }
     
     @Test("generateDocsForRule caches documentation and reuses it")
@@ -88,11 +87,10 @@ struct SwiftLintCLIIntegrationTests {
         #expect(!firstCall.isEmpty)
         
         // Get the cached directory
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedDir != nil)
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
         
         // Verify the file exists in the cached directory
-        let docFile = cachedDir!.appendingPathComponent("empty_count.md")
+        let docFile = cachedDir.appendingPathComponent("empty_count.md")
         #expect(FileManager.default.fileExists(atPath: docFile.path))
         
         // Second call - should use cache (same version)
@@ -132,12 +130,11 @@ struct SwiftLintCLIIntegrationTests {
         #expect(rule2 != rule3)
         
         // Verify all files exist in cached directory
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedDir != nil)
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
         
-        let file1 = cachedDir!.appendingPathComponent("empty_count.md")
-        let file2 = cachedDir!.appendingPathComponent("force_cast.md")
-        let file3 = cachedDir!.appendingPathComponent("line_length.md")
+        let file1 = cachedDir.appendingPathComponent("empty_count.md")
+        let file2 = cachedDir.appendingPathComponent("force_cast.md")
+        let file3 = cachedDir.appendingPathComponent("line_length.md")
         
         #expect(FileManager.default.fileExists(atPath: file1.path))
         #expect(FileManager.default.fileExists(atPath: file2.path))
@@ -186,12 +183,12 @@ struct SwiftLintCLIIntegrationTests {
         
         // Version should now be cached
         let cachedVersion = try cacheManager.getCachedSwiftLintVersion()
-        #expect(cachedVersion != nil)
-        #expect(!cachedVersion!.isEmpty)
+        let unwrappedVersion = try #require(cachedVersion)
+        #expect(!unwrappedVersion.isEmpty)
         
         // Version should match actual SwiftLint version
         let actualVersion = try await cli.getVersion()
-        #expect(cachedVersion == actualVersion)
+        #expect(unwrappedVersion == actualVersion)
     }
     
     @Test("generateDocsForRule saves docs directory to cache")
@@ -215,12 +212,11 @@ struct SwiftLintCLIIntegrationTests {
         _ = try await cli.generateDocsForRule(ruleId: "empty_count")
         
         // Directory should now be cached
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedDir != nil)
-        #expect(FileManager.default.fileExists(atPath: cachedDir!.path))
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
+        #expect(FileManager.default.fileExists(atPath: cachedDir.path))
         
         // Directory should contain the generated markdown file
-        let docFile = cachedDir!.appendingPathComponent("empty_count.md")
+        let docFile = cachedDir.appendingPathComponent("empty_count.md")
         #expect(FileManager.default.fileExists(atPath: docFile.path))
     }
     
@@ -243,16 +239,16 @@ struct SwiftLintCLIIntegrationTests {
         #expect(!markdown.isEmpty)
         
         // Verify file exists in cached directory
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedDir != nil)
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
         
-        let docFile = cachedDir!.appendingPathComponent("empty_count.md")
+        let docFile = cachedDir.appendingPathComponent("empty_count.md")
         #expect(FileManager.default.fileExists(atPath: docFile.path))
         
         // File should be readable
         let content = try? String(contentsOf: docFile, encoding: .utf8)
         #expect(content != nil)
-        #expect(!content!.isEmpty)
+        let unwrappedContent = try #require(content)
+        #expect(!unwrappedContent.isEmpty)
     }
     
     @Test("generateDocsForRule generates docs for all rules, not just enabled")
@@ -279,11 +275,10 @@ struct SwiftLintCLIIntegrationTests {
         #expect(optInRule != defaultRule)
         
         // Verify both files exist in cached directory
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedDir != nil)
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
         
-        let optInFile = cachedDir!.appendingPathComponent("empty_count.md")
-        let defaultFile = cachedDir!.appendingPathComponent("force_cast.md")
+        let optInFile = cachedDir.appendingPathComponent("empty_count.md")
+        let defaultFile = cachedDir.appendingPathComponent("force_cast.md")
         
         #expect(FileManager.default.fileExists(atPath: optInFile.path))
         #expect(FileManager.default.fileExists(atPath: defaultFile.path))
@@ -305,21 +300,21 @@ struct SwiftLintCLIIntegrationTests {
         
         // Verify version and directory are cached
         let cachedVersion = try cacheManager.getCachedSwiftLintVersion()
-        let cachedDir = cacheManager.getCachedDocsDirectory()
-        #expect(cachedVersion != nil)
-        #expect(cachedDir != nil)
+        let unwrappedVersion = try #require(cachedVersion)
+        let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
         
         // Create second CLI instance with same cache manager
         let cli2 = await SwiftLintCLI(cacheManager: cacheManager)
         
         // Should still have cached version and directory
         let version2 = try cacheManager.getCachedSwiftLintVersion()
-        let dir2 = cacheManager.getCachedDocsDirectory()
-        #expect(version2 == cachedVersion)
+        let unwrappedVersion2 = try #require(version2)
+        let dir2 = try #require(cacheManager.getCachedDocsDirectory())
+        #expect(unwrappedVersion2 == unwrappedVersion)
         #expect(dir2 == cachedDir)
         
         // Should be able to read from cached directory
-        let docFile = cachedDir!.appendingPathComponent("empty_count.md")
+        let docFile = cachedDir.appendingPathComponent("empty_count.md")
         #expect(FileManager.default.fileExists(atPath: docFile.path))
     }
 }

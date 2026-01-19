@@ -69,7 +69,7 @@ struct ImpactSimulatorWorkflowTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
         // Create Swift files
-        try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
+        _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
         
         // Create config with some disabled rules
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
@@ -138,12 +138,11 @@ struct ImpactSimulatorWorkflowTests {
             
             // Enable safe rules
             for ruleId in safeRuleIds {
-                if yamlConfig.rules[ruleId] == nil {
-                    yamlConfig.rules[ruleId] = RuleConfiguration(enabled: true)
-                } else {
-                    var ruleConfig = yamlConfig.rules[ruleId]!
+                if var ruleConfig = yamlConfig.rules[ruleId] {
                     ruleConfig.enabled = true
                     yamlConfig.rules[ruleId] = ruleConfig
+                } else {
+                    yamlConfig.rules[ruleId] = RuleConfiguration(enabled: true)
                 }
             }
             
@@ -160,20 +159,28 @@ struct ImpactSimulatorWorkflowTests {
         // If they're not there, the save might have failed or the engine doesn't support it yet
         // For now, we just verify the workflow completes without errors
         // Extract values inside MainActor context
-        let (rule1Exists, rule1Enabled, rule2Exists, rule2Enabled) = await MainActor.run {
-            let rule1Exists = updatedConfig.rules["safe_rule_1"] != nil
-            let rule1Enabled = updatedConfig.rules["safe_rule_1"]?.enabled
-            let rule2Exists = updatedConfig.rules["safe_rule_2"] != nil
-            let rule2Enabled = updatedConfig.rules["safe_rule_2"]?.enabled
-            return (rule1Exists, rule1Enabled, rule2Exists, rule2Enabled)
+        struct RuleEnablement {
+            let rule1Exists: Bool
+            let rule1Enabled: Bool?
+            let rule2Exists: Bool
+            let rule2Enabled: Bool?
+        }
+
+        let ruleEnablement = await MainActor.run {
+            RuleEnablement(
+                rule1Exists: updatedConfig.rules["safe_rule_1"] != nil,
+                rule1Enabled: updatedConfig.rules["safe_rule_1"]?.enabled,
+                rule2Exists: updatedConfig.rules["safe_rule_2"] != nil,
+                rule2Enabled: updatedConfig.rules["safe_rule_2"]?.enabled
+            )
         }
         
         // If rules are in the dict, they should be enabled
-        if rule1Exists {
-            #expect(rule1Enabled == true)
+        if ruleEnablement.rule1Exists {
+            #expect(ruleEnablement.rule1Enabled == true)
         }
-        if rule2Exists {
-            #expect(rule2Enabled == true)
+        if ruleEnablement.rule2Exists {
+            #expect(ruleEnablement.rule2Enabled == true)
         }
         
         // At minimum, verify the save operation completed
@@ -185,7 +192,7 @@ struct ImpactSimulatorWorkflowTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
-        try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
+        _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
         
         // Workspace.init should be Sendable, but Swift 6 has false positive
         let workspace = await MainActor.run {
@@ -244,9 +251,15 @@ struct ImpactSimulatorWorkflowTests {
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
         
         // Use an actor to safely collect progress updates
+        struct ProgressUpdate {
+            let current: Int
+            let total: Int
+            let ruleId: String
+        }
+
         actor ProgressCollector {
-            var updates: [(Int, Int, String)] = []
-            func add(_ update: (Int, Int, String)) {
+            var updates: [ProgressUpdate] = []
+            func add(_ update: ProgressUpdate) {
                 updates.append(update)
             }
         }
@@ -261,7 +274,7 @@ struct ImpactSimulatorWorkflowTests {
         ) { @Sendable current, total, ruleId in
             // Use Task to bridge from synchronous closure to async actor
             Task {
-                await progressCollector.add((current, total, ruleId))
+                await progressCollector.add(ProgressUpdate(current: current, total: total, ruleId: ruleId))
             }
         }
         
@@ -277,11 +290,11 @@ struct ImpactSimulatorWorkflowTests {
         }
         #expect(resultsCount == 5)
         #expect(progressUpdates.count == 5)
-        #expect(progressUpdates[0].0 == 0)
-        #expect(progressUpdates[0].1 == 5)
-        #expect(progressUpdates[0].2 == "rule1")
-        #expect(progressUpdates[4].0 == 4)
-        #expect(progressUpdates[4].2 == "rule5")
+        #expect(progressUpdates[0].current == 0)
+        #expect(progressUpdates[0].total == 5)
+        #expect(progressUpdates[0].ruleId == "rule1")
+        #expect(progressUpdates[4].current == 4)
+        #expect(progressUpdates[4].ruleId == "rule5")
     }
 }
 

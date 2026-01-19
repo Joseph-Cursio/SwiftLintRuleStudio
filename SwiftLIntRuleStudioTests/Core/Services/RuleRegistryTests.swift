@@ -9,6 +9,18 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+private enum RulesTable {
+    static let border = "+------------------------------------------+--------+-------------+" +
+        "------------------------+-------------+----------+----------------+---------------+"
+    static let header = "| identifier | opt-in | correctable | enabled in your config | kind | analyzer | " +
+        "uses sourcekit | configuration |"
+}
+
+private func makeRulesTableData(rows: [String]) -> Data {
+    let lines = [RulesTable.border, RulesTable.header, RulesTable.border] + rows + [RulesTable.border]
+    return Data(lines.joined(separator: "\n").utf8)
+}
+
 // Mock implementations for testing
 actor MockSwiftLintCLI: SwiftLintCLIProtocol {
     private let shouldFail: Bool
@@ -44,10 +56,8 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
             "/usr/local/bin/swiftlint",
             "/usr/bin/swiftlint"
         ]
-        for path in possiblePaths {
-            if FileManager.default.fileExists(atPath: path) {
-                return URL(fileURLWithPath: path)
-            }
+        for path in possiblePaths where FileManager.default.fileExists(atPath: path) {
+            return URL(fileURLWithPath: path)
         }
         // Fallback to /usr/local/bin/swiftlint for mock purposes
         return URL(fileURLWithPath: "/usr/local/bin/swiftlint")
@@ -64,11 +74,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         }
         
         // Default: return empty table format
-        return """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8) ?? Data()
+        return makeRulesTableData(rows: [])
     }
     
     func executeRuleDetailCommand(ruleId: String) throws -> Data {
@@ -96,7 +102,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
         
             if let number = value as? Int { }
         """
-        return mockDetail.data(using: .utf8) ?? Data()
+        return Data(mockDetail.utf8)
     }
     
     func generateDocsForRule(ruleId: String) throws -> String {
@@ -307,13 +313,9 @@ struct RuleRegistryTests {
     @Test("RuleRegistry parses table format with all fields")
     @MainActor
     func testParseTableFormatWithAllFields() async throws {
-        let tableData = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | force_cast | no | no | yes | lint | no | no | |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let tableData = makeRulesTableData(rows: [
+            "| force_cast | no | no | yes | lint | no | no | |"
+        ])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
         let mockCache = MockCacheManager()
@@ -332,13 +334,9 @@ struct RuleRegistryTests {
     @Test("RuleRegistry parses table format with minimal fields")
     @MainActor
     func testParseTableFormatWithMinimalFields() async throws {
-        let tableData = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | simple_rule | no | no | yes | style | no | no | |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let tableData = makeRulesTableData(rows: [
+            "| simple_rule | no | no | yes | style | no | no | |"
+        ])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
         let mockCache = MockCacheManager()
@@ -356,18 +354,14 @@ struct RuleRegistryTests {
     @Test("RuleRegistry maps all category types correctly")
     @MainActor
     func testCategoryMapping() async throws {
-        let tableData = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | style_rule | no | no | yes | style | no | no | |
-        | lint_rule | no | no | yes | lint | no | no | |
-        | metrics_rule | no | no | yes | metrics | no | no | |
-        | performance_rule | no | no | yes | performance | no | no | |
-        | idiomatic_rule | no | no | yes | idiomatic | no | no | |
-        | unknown_rule | no | no | yes | unknown_category | no | no | |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let tableData = makeRulesTableData(rows: [
+            "| style_rule | no | no | yes | style | no | no | |",
+            "| lint_rule | no | no | yes | lint | no | no | |",
+            "| metrics_rule | no | no | yes | metrics | no | no | |",
+            "| performance_rule | no | no | yes | performance | no | no | |",
+            "| idiomatic_rule | no | no | yes | idiomatic | no | no | |",
+            "| unknown_rule | no | no | yes | unknown_category | no | no | |"
+        ])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
         let mockCache = MockCacheManager()
@@ -387,14 +381,10 @@ struct RuleRegistryTests {
     @Test("RuleRegistry handles case-insensitive category names")
     @MainActor
     func testCaseInsensitiveCategoryMapping() async throws {
-        let tableData = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | uppercase_rule | no | no | yes | STYLE | no | no | |
-        | mixed_case_rule | no | no | yes | LiNt | no | no | |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let tableData = makeRulesTableData(rows: [
+            "| uppercase_rule | no | no | yes | STYLE | no | no | |",
+            "| mixed_case_rule | no | no | yes | LiNt | no | no | |"
+        ])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
         let mockCache = MockCacheManager()
@@ -410,15 +400,11 @@ struct RuleRegistryTests {
     @Test("RuleRegistry parses opt-in rules correctly")
     @MainActor
     func testOptInRuleParsing() async throws {
-        let tableData = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | opt_in_rule | yes | no | no | style | no | no | |
-        | default_rule | no | no | yes | style | no | no | |
-        | missing_opt_in | no | no | yes | style | no | no | |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let tableData = makeRulesTableData(rows: [
+            "| opt_in_rule | yes | no | no | style | no | no | |",
+            "| default_rule | no | no | yes | style | no | no | |",
+            "| missing_opt_in | no | no | yes | style | no | no | |"
+        ])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
         let mockCache = MockCacheManager()
@@ -435,15 +421,11 @@ struct RuleRegistryTests {
     @Test("RuleRegistry parses multiple rules")
     @MainActor
     func testParseMultipleRules() async throws {
-        let tableData = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | rule1 | no | no | yes | style | no | no | |
-        | rule2 | no | no | yes | lint | no | no | |
-        | rule3 | no | no | yes | metrics | no | no | |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let tableData = makeRulesTableData(rows: [
+            "| rule1 | no | no | yes | style | no | no | |",
+            "| rule2 | no | no | yes | lint | no | no | |",
+            "| rule3 | no | no | yes | metrics | no | no | |"
+        ])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
         let mockCache = MockCacheManager()
@@ -460,12 +442,7 @@ struct RuleRegistryTests {
     @Test("RuleRegistry handles empty table")
     @MainActor
     func testParseEmptyTable() async {
-        let emptyTable = """
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        | identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit | configuration |
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        +------------------------------------------+--------+-------------+------------------------+-------------+----------+----------------+---------------+
-        """.data(using: .utf8)!
+        let emptyTable = makeRulesTableData(rows: [])
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: emptyTable)
         let mockCache = MockCacheManager()
@@ -479,7 +456,7 @@ struct RuleRegistryTests {
     @Test("RuleRegistry throws error on invalid table format")
     @MainActor
     func testParseInvalidTable() async {
-        let invalidData = "not valid table format".data(using: .utf8)!
+        let invalidData = Data("not valid table format".utf8)
         
         let mockCLI = MockSwiftLintCLI(mockRulesData: invalidData)
         let mockCache = MockCacheManager()

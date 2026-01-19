@@ -1012,42 +1012,38 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol {
     }
     
     func suppressViolations(_ violationIds: [UUID], reason: String) throws {
-        for (index, violation) in storedViolations.enumerated() {
-            if violationIds.contains(violation.id) {
-                storedViolations[index] = Violation(
-                    id: violation.id,
-                    ruleID: violation.ruleID,
-                    filePath: violation.filePath,
-                    line: violation.line,
-                    column: violation.column,
-                    severity: violation.severity,
-                    message: violation.message,
-                    detectedAt: violation.detectedAt,
-                    resolvedAt: violation.resolvedAt,
-                    suppressed: true,
-                    suppressionReason: reason
-                )
-            }
+        for (index, violation) in storedViolations.enumerated() where violationIds.contains(violation.id) {
+            storedViolations[index] = Violation(
+                id: violation.id,
+                ruleID: violation.ruleID,
+                filePath: violation.filePath,
+                line: violation.line,
+                column: violation.column,
+                severity: violation.severity,
+                message: violation.message,
+                detectedAt: violation.detectedAt,
+                resolvedAt: violation.resolvedAt,
+                suppressed: true,
+                suppressionReason: reason
+            )
         }
     }
     
     func resolveViolations(_ violationIds: [UUID]) throws {
-        for (index, violation) in storedViolations.enumerated() {
-            if violationIds.contains(violation.id) {
-                storedViolations[index] = Violation(
-                    id: violation.id,
-                    ruleID: violation.ruleID,
-                    filePath: violation.filePath,
-                    line: violation.line,
-                    column: violation.column,
-                    severity: violation.severity,
-                    message: violation.message,
-                    detectedAt: violation.detectedAt,
-                    resolvedAt: Date(),
-                    suppressed: violation.suppressed,
-                    suppressionReason: violation.suppressionReason
-                )
-            }
+        for (index, violation) in storedViolations.enumerated() where violationIds.contains(violation.id) {
+            storedViolations[index] = Violation(
+                id: violation.id,
+                ruleID: violation.ruleID,
+                filePath: violation.filePath,
+                line: violation.line,
+                column: violation.column,
+                severity: violation.severity,
+                message: violation.message,
+                detectedAt: violation.detectedAt,
+                resolvedAt: Date(),
+                suppressed: violation.suppressed,
+                suppressionReason: violation.suppressionReason
+            )
         }
     }
     

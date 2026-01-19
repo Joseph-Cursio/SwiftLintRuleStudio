@@ -88,7 +88,7 @@ struct WorkspaceAnalyzerTests {
           }
         ]
         """
-        await setupMockCLI(mockCLI, output: mockViolationsJSON.data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
         // Capture mockStorage with nonisolated(unsafe) to pass into closure
         nonisolated(unsafe) let storage = mockStorage
@@ -117,7 +117,7 @@ struct WorkspaceAnalyzerTests {
         defer { Task { await cleanupTempWorkspace(workspace) } }
         
         // Setup mock to return empty array
-        await setupMockCLI(mockCLI, output: "[]".data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data("[]".utf8))
         
         // Capture mockStorage with nonisolated(unsafe) to pass into closure
         nonisolated(unsafe) let storage = mockStorage
@@ -165,7 +165,7 @@ struct WorkspaceAnalyzerTests {
           }
         ]
         """
-        await setupMockCLI(mockCLI, output: mockViolationsJSON.data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
         let (count, filesAnalyzed, hasForceCast, hasLineLength) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
@@ -205,7 +205,7 @@ struct WorkspaceAnalyzerTests {
           }
         ]
         """
-        await setupMockCLI(mockCLI, output: mockViolationsJSON.data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
         let (count, filePath) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
@@ -237,7 +237,7 @@ struct WorkspaceAnalyzerTests {
           }
         ]
         """
-        await setupMockCLI(mockCLI, output: mockViolationsJSON.data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
         let (count, column) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
@@ -256,7 +256,7 @@ struct WorkspaceAnalyzerTests {
         let workspace = try await createTempWorkspace()
         defer { Task { await cleanupTempWorkspace(workspace) } }
         
-        await setupMockCLI(mockCLI, output: "[]".data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data("[]".utf8))
         
         let (isAnalyzingBefore, isAnalyzingAfter) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
             let isAnalyzingBefore = analyzer.isAnalyzing
@@ -316,7 +316,7 @@ struct WorkspaceAnalyzerTests {
         let workspace = try await createTempWorkspace()
         defer { Task { await cleanupTempWorkspace(workspace) } }
         
-        await setupMockCLI(mockCLI, output: "invalid json".data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data("invalid json".utf8))
         
         await #expect(throws: WorkspaceAnalyzerError.self) {
             try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
@@ -348,7 +348,7 @@ struct WorkspaceAnalyzerTests {
         let workspace = try await createTempWorkspace()
         defer { Task { await cleanupTempWorkspace(workspace) } }
         
-        await setupMockCLI(mockCLI, output: "[]".data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data("[]".utf8))
         
         let (duration, startedAt, completedAt) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
@@ -384,7 +384,7 @@ struct WorkspaceAnalyzerTests {
           }
         ]
         """
-        await setupMockCLI(mockCLI, output: mockViolationsJSON.data(using: .utf8)!)
+        await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
         let (violationCount, filesAnalyzed) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
             let result = try await analyzer.analyzeFiles([file1, file2], in: workspace)
@@ -432,42 +432,38 @@ class MockViolationStorage: ViolationStorageProtocol {
     }
     
     func suppressViolations(_ violationIds: [UUID], reason: String) throws {
-        for (index, violation) in storedViolations.enumerated() {
-            if violationIds.contains(violation.id) {
-                storedViolations[index] = Violation(
-                    id: violation.id,
-                    ruleID: violation.ruleID,
-                    filePath: violation.filePath,
-                    line: violation.line,
-                    column: violation.column,
-                    severity: violation.severity,
-                    message: violation.message,
-                    detectedAt: violation.detectedAt,
-                    resolvedAt: violation.resolvedAt,
-                    suppressed: true,
-                    suppressionReason: reason
-                )
-            }
+        for (index, violation) in storedViolations.enumerated() where violationIds.contains(violation.id) {
+            storedViolations[index] = Violation(
+                id: violation.id,
+                ruleID: violation.ruleID,
+                filePath: violation.filePath,
+                line: violation.line,
+                column: violation.column,
+                severity: violation.severity,
+                message: violation.message,
+                detectedAt: violation.detectedAt,
+                resolvedAt: violation.resolvedAt,
+                suppressed: true,
+                suppressionReason: reason
+            )
         }
     }
     
     func resolveViolations(_ violationIds: [UUID]) throws {
-        for (index, violation) in storedViolations.enumerated() {
-            if violationIds.contains(violation.id) {
-                storedViolations[index] = Violation(
-                    id: violation.id,
-                    ruleID: violation.ruleID,
-                    filePath: violation.filePath,
-                    line: violation.line,
-                    column: violation.column,
-                    severity: violation.severity,
-                    message: violation.message,
-                    detectedAt: violation.detectedAt,
-                    resolvedAt: Date(),
-                    suppressed: violation.suppressed,
-                    suppressionReason: violation.suppressionReason
-                )
-            }
+        for (index, violation) in storedViolations.enumerated() where violationIds.contains(violation.id) {
+            storedViolations[index] = Violation(
+                id: violation.id,
+                ruleID: violation.ruleID,
+                filePath: violation.filePath,
+                line: violation.line,
+                column: violation.column,
+                severity: violation.severity,
+                message: violation.message,
+                detectedAt: violation.detectedAt,
+                resolvedAt: Date(),
+                suppressed: violation.suppressed,
+                suppressionReason: violation.suppressionReason
+            )
         }
     }
     

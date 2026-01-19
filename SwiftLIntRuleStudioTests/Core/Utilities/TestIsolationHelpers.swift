@@ -59,7 +59,9 @@ extension DependencyContainer {
         impactSimulator: ImpactSimulator? = nil
     ) -> DependencyContainer {
         // Create isolated UserDefaults if not provided
-        let testUserDefaults = userDefaults ?? UserDefaults(suiteName: "test.DependencyContainer.\(UUID().uuidString)")!
+        let testUserDefaults = userDefaults
+            ?? UserDefaults(suiteName: "test.DependencyContainer.\(UUID().uuidString)")
+            ?? .standard
         
         // Create OnboardingManager with isolated UserDefaults if not provided
         let testOnboardingManager = onboardingManager ?? OnboardingManager(userDefaults: testUserDefaults)

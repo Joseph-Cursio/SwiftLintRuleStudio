@@ -301,7 +301,7 @@ struct WorkspaceManagerIntegrationTests {
         let mockCLI = MockSwiftLintCLI()
         
         // Setup mock to return violations
-        let mockViolationsJSON = """
+        let mockViolationsJSON = Data("""
         [
           {
             "rule_id": "test_rule",
@@ -311,7 +311,7 @@ struct WorkspaceManagerIntegrationTests {
             "severity": "error"
           }
         ]
-        """.data(using: .utf8)!
+        """.utf8)
         await mockCLI.setMockLintOutput(mockViolationsJSON)
         
         // Workaround: Create analyzer and view model directly in MainActor.run to bypass protocol conformance false positive
@@ -431,7 +431,7 @@ struct WorkspaceManagerIntegrationTests {
         let mockCLI = MockSwiftLintCLI()
         
         // Setup mock to return violations
-        let mockViolationsJSON = """
+        let mockViolationsJSON = Data("""
         [
           {
             "rule_id": "test_rule",
@@ -441,7 +441,7 @@ struct WorkspaceManagerIntegrationTests {
             "severity": "error"
           }
         ]
-        """.data(using: .utf8)!
+        """.utf8)
         await mockCLI.setMockLintOutput(mockViolationsJSON)
         
         // Workaround: Create analyzer directly in MainActor.run to bypass protocol conformance false positive
@@ -501,7 +501,7 @@ struct WorkspaceManagerIntegrationTests {
         let mockCLI = MockSwiftLintCLI()
         
         // Setup mock violations
-        let mockViolationsJSON = """
+        let mockViolationsJSON = Data("""
         [
           {
             "rule_id": "rule_1",
@@ -518,7 +518,7 @@ struct WorkspaceManagerIntegrationTests {
             "severity": "warning"
           }
         ]
-        """.data(using: .utf8)!
+        """.utf8)
         await mockCLI.setMockLintOutput(mockViolationsJSON)
         
         // Workaround: Create analyzer directly in MainActor.run to bypass protocol conformance false positive
