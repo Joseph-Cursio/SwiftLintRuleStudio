@@ -342,4 +342,3 @@ struct ViolationListItemTests {
 // MARK: - ViewInspector Extensions
 
 extension ViolationListItem: Inspectable {}
-

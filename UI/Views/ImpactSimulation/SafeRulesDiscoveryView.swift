@@ -364,4 +364,3 @@ struct SafeRuleRow: View {
     SafeRulesDiscoveryView()
         .environmentObject(DependencyContainer())
 }
-

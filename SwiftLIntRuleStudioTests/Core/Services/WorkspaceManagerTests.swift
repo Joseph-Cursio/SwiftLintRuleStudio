@@ -527,4 +527,3 @@ struct WorkspaceManagerTests {
         #expect(missing3 == false)
     }
 }
-

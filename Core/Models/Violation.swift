@@ -60,4 +60,3 @@ struct ViolationFilter: Sendable {
         ViolationFilter()
     }
 }
-

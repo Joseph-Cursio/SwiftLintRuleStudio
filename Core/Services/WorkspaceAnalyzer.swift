@@ -437,4 +437,3 @@ extension Data {
         return digest.compactMap { String(format: "%02x", $0) }.joined()
     }
 }
-

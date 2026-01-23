@@ -93,4 +93,3 @@ class OnboardingManager: ObservableObject {
         currentStep = step
     }
 }
-

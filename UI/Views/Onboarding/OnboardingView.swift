@@ -456,4 +456,3 @@ struct OnboardingView: View {
         swiftLintCLI: swiftLintCLI
     )
 }
-

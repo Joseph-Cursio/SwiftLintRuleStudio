@@ -1239,4 +1239,3 @@ struct CodeBlock: View {
     }
     .frame(width: 800, height: 600)
 }
-

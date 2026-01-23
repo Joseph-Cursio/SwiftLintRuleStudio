@@ -208,4 +208,3 @@ struct ImpactSimulationViewTests {
         #expect(unsafeHasViolations == true)
     }
 }
-

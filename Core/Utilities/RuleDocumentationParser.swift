@@ -228,4 +228,3 @@ struct ParsedRuleDocumentation {
     let nonTriggeringExamples: [String]
     let fullMarkdown: String
 }
-

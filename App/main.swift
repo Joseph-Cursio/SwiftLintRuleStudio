@@ -8,4 +8,3 @@
 import SwiftUI
 
 SwiftLintRuleStudioApp.main()
-

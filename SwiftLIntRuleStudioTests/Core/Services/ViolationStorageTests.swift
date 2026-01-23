@@ -598,4 +598,3 @@ struct ViolationStorageTests {
         #expect(hasRule3 == false)
     }
 }
-

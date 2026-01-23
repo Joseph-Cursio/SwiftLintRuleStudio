@@ -153,4 +153,3 @@ enum CommonViewType {
     case navigationSplitView
     case navigationStack
 }
-

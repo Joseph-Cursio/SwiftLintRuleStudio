@@ -152,4 +152,3 @@ struct ConfigBenefitRow: View {
     
     return Preview()
 }
-

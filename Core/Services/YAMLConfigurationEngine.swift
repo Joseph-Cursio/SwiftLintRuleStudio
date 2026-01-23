@@ -570,4 +570,3 @@ enum YAMLConfigError: LocalizedError {
         }
     }
 }
-

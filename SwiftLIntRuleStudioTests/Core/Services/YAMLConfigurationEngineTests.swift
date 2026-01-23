@@ -536,7 +536,9 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (originalRulesCount, originalForceCastSeverity, originalIncluded, originalExcluded) = try await withEngine(configPath: configFile) { engine in
+        let (originalRulesCount, originalForceCastSeverity, originalIncluded, originalExcluded) = try await withEngine(
+            configPath: configFile
+        ) { engine in
             try engine.load()
             let config = engine.getConfig()
             return (config.rules.count, config.rules["force_cast"]?.severity, config.included, config.excluded)
@@ -551,7 +553,9 @@ struct YAMLConfigurationEngineTests {
             try engine.save(config: originalConfig, createBackup: false)
         }
         
-        let (reloadedRulesCount, reloadedForceCastSeverity, reloadedIncluded, reloadedExcluded) = try await withEngine(configPath: configFile) { engine in
+        let (reloadedRulesCount, reloadedForceCastSeverity, reloadedIncluded, reloadedExcluded) = try await withEngine(
+            configPath: configFile
+        ) { engine in
             try engine.load()
             let config = engine.getConfig()
             return (config.rules.count, config.rules["force_cast"]?.severity, config.included, config.excluded)
@@ -581,7 +585,12 @@ struct YAMLConfigurationEngineTests {
         let (hasLineLength, hasParams, paramsCount) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["line_length"] != nil, config.rules["line_length"]?.parameters != nil, config.rules["line_length"]?.parameters?.count ?? 0)
+            let lineLengthRule = config.rules["line_length"]
+            return (
+                lineLengthRule != nil,
+                lineLengthRule?.parameters != nil,
+                lineLengthRule?.parameters?.count ?? 0
+            )
         }
         #expect(hasLineLength == true)
         #expect(hasParams == true)
@@ -668,7 +677,12 @@ struct YAMLConfigurationEngineTests {
         let (hasParams, hasWarning, hasError) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["file_length"]?.parameters != nil, config.rules["file_length"]?.parameters?["warning"] != nil, config.rules["file_length"]?.parameters?["error"] != nil)
+            let fileLengthRule = config.rules["file_length"]
+            return (
+                fileLengthRule?.parameters != nil,
+                fileLengthRule?.parameters?["warning"] != nil,
+                fileLengthRule?.parameters?["error"] != nil
+            )
         }
         #expect(hasParams == true)
         #expect(hasWarning == true)
@@ -733,7 +747,12 @@ struct YAMLConfigurationEngineTests {
         let (hasParams, hasTypeLevel, hasFunctionLevel) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["nesting"]?.parameters != nil, config.rules["nesting"]?.parameters?["type_level"] != nil, config.rules["nesting"]?.parameters?["function_level"] != nil)
+            let nestingRule = config.rules["nesting"]
+            return (
+                nestingRule?.parameters != nil,
+                nestingRule?.parameters?["type_level"] != nil,
+                nestingRule?.parameters?["function_level"] != nil
+            )
         }
         #expect(hasParams == true)
         #expect(hasTypeLevel == true)
@@ -755,7 +774,12 @@ struct YAMLConfigurationEngineTests {
         let (includedCount, hasSources, hasTests, hasScripts) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.included?.count ?? 0, config.included?.contains("Sources") == true, config.included?.contains("Tests") == true, config.included?.contains("Scripts") == true)
+            return (
+                config.included?.count ?? 0,
+                config.included?.contains("Sources") == true,
+                config.included?.contains("Tests") == true,
+                config.included?.contains("Scripts") == true
+            )
         }
         #expect(includedCount == 3)
         #expect(hasSources == true)
@@ -778,7 +802,12 @@ struct YAMLConfigurationEngineTests {
         let (excludedCount, hasPods, hasBuild, hasGenerated) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.excluded?.count ?? 0, config.excluded?.contains("Pods") == true, config.excluded?.contains(".build") == true, config.excluded?.contains("Generated") == true)
+            return (
+                config.excluded?.count ?? 0,
+                config.excluded?.contains("Pods") == true,
+                config.excluded?.contains(".build") == true,
+                config.excluded?.contains("Generated") == true
+            )
         }
         #expect(excludedCount == 3)
         #expect(hasPods == true)
@@ -911,4 +940,3 @@ struct YAMLConfigurationEngineTests {
         #expect(addedRulesCount == 1)
     }
 }
-

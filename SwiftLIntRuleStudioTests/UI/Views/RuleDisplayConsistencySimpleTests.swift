@@ -177,4 +177,3 @@ struct RuleDisplayConsistencySimpleTests {
         #expect(enabledId == disabledId) // Same rule, different state
     }
 }
-

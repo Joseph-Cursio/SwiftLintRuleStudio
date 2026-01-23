@@ -92,7 +92,10 @@ struct WorkspaceAnalyzerTests {
         
         // Capture mockStorage with nonisolated(unsafe) to pass into closure
         nonisolated(unsafe) let storage = mockStorage
-        let (violationCount, firstRuleID, firstSeverity, storedCount) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (violationCount, firstRuleID, firstSeverity, storedCount) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
             let stored = storage.storedViolations
             // Extract all values inside MainActor context
@@ -121,7 +124,10 @@ struct WorkspaceAnalyzerTests {
         
         // Capture mockStorage with nonisolated(unsafe) to pass into closure
         nonisolated(unsafe) let storage = mockStorage
-        let (isEmpty, filesAnalyzed, storedIsEmpty) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (isEmpty, filesAnalyzed, storedIsEmpty) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
             // Access mockStorage inside MainActor context
             let stored = storage.storedViolations
@@ -167,7 +173,10 @@ struct WorkspaceAnalyzerTests {
         """
         await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
-        let (count, filesAnalyzed, hasForceCast, hasLineLength) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (count, filesAnalyzed, hasForceCast, hasLineLength) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
             let violationCount = result.violations.count
             let filesAnalyzed = result.filesAnalyzed
@@ -239,7 +248,10 @@ struct WorkspaceAnalyzerTests {
         """
         await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
-        let (count, column) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (count, column) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
             return (result.violations.count, result.violations.first?.column)
         }
@@ -258,7 +270,10 @@ struct WorkspaceAnalyzerTests {
         
         await setupMockCLI(mockCLI, output: Data("[]".utf8))
         
-        let (isAnalyzingBefore, isAnalyzingAfter) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (isAnalyzingBefore, isAnalyzingAfter) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let isAnalyzingBefore = analyzer.isAnalyzing
             
             let analysisTask = Task { @MainActor in
@@ -476,4 +491,3 @@ class MockViolationStorage: ViolationStorageProtocol {
         return violations.count
     }
 }
-

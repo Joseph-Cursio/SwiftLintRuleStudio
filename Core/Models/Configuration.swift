@@ -54,4 +54,3 @@ struct Workspace: Identifiable, Equatable {
         lhs.id == rhs.id && lhs.path == rhs.path
     }
 }
-

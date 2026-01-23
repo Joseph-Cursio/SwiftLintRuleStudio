@@ -204,4 +204,3 @@ struct ConfigDiffPreviewView: View {
         onCancel: {}
     )
 }
-

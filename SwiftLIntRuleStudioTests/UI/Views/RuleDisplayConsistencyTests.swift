@@ -259,4 +259,3 @@ struct RuleDisplayConsistencyTests {
 
 extension RuleListItem: Inspectable {}
 extension RuleDetailView: Inspectable {}
-

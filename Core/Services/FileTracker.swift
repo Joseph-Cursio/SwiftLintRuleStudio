@@ -143,4 +143,3 @@ enum FileTrackerError: LocalizedError {
         }
     }
 }
-

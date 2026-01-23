@@ -318,4 +318,3 @@ struct SwiftLintCLIIntegrationTests {
         #expect(FileManager.default.fileExists(atPath: docFile.path))
     }
 }
-

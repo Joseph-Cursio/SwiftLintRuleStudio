@@ -163,4 +163,3 @@ struct ImpactSimulatorIntegrationTests {
         return mockCLI
     }
 }
-

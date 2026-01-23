@@ -148,4 +148,3 @@ struct ConfigRecommendationViewInteractionTests {
         #expect(true, "Learn More button should open documentation")
     }
 }
-

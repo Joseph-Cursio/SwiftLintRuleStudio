@@ -60,9 +60,30 @@ struct RuleBrowserViewModelTests {
     @Test("RuleBrowserViewModel filters by search and status")
     func testSearchAndStatusFilters() {
         let rules = [
-            makeRule(.init(id: "force_cast", name: "Force Cast", description: "Avoid force casts", category: .lint, isOptIn: false, isEnabled: true)),
-            makeRule(.init(id: "trailing_whitespace", name: "Trailing Whitespace", description: "Remove whitespace", category: .style, isOptIn: false, isEnabled: false)),
-            makeRule(.init(id: "opt_in_rule", name: "Opt In Rule", description: "Loading...", category: .performance, isOptIn: true, isEnabled: false))
+            makeRule(.init(
+                id: "force_cast",
+                name: "Force Cast",
+                description: "Avoid force casts",
+                category: .lint,
+                isOptIn: false,
+                isEnabled: true
+            )),
+            makeRule(.init(
+                id: "trailing_whitespace",
+                name: "Trailing Whitespace",
+                description: "Remove whitespace",
+                category: .style,
+                isOptIn: false,
+                isEnabled: false
+            )),
+            makeRule(.init(
+                id: "opt_in_rule",
+                name: "Opt In Rule",
+                description: "Loading...",
+                category: .performance,
+                isOptIn: true,
+                isEnabled: false
+            ))
         ]
         
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
@@ -138,4 +159,3 @@ struct RuleBrowserViewModelTests {
         #expect(viewModel.selectedStatus == .all)
     }
 }
-

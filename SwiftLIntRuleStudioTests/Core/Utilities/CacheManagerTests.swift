@@ -242,4 +242,3 @@ struct CacheManagerTests {
         #expect(cacheManager.getCachedDocsDirectory() == nil)
     }
 }
-

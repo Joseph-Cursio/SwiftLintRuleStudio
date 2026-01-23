@@ -703,4 +703,3 @@ struct WorkspaceManagerIntegrationTests {
         #expect(firstPath == tempDir2)
     }
 }
-

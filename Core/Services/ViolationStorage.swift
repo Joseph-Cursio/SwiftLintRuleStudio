@@ -240,7 +240,9 @@ actor ViolationStorage: ViolationStorageProtocol {
         }
         
         if !duplicateIDs.isEmpty {
-            print("⚠️  Found \(duplicateIDs.count) unique duplicate IDs in violation set (total violations: \(violations.count), unique IDs: \(seenIDs.count))")
+            let message = "⚠️  Found \(duplicateIDs.count) unique duplicate IDs in violation set " +
+                "(total violations: \(violations.count), unique IDs: \(seenIDs.count))"
+            print(message)
         }
         
         // Commit transaction
@@ -336,7 +338,12 @@ actor ViolationStorage: ViolationStorageProtocol {
             throw ViolationStorageError.databaseNotOpen
         }
         let query = buildFilterQuery(filter: filter, workspaceId: workspaceId)
-        let sql = "SELECT id, workspace_id, rule_id, file_path, line, column, severity, message, detected_at, resolved_at, suppressed, suppression_reason FROM violations \(query.whereClause) ORDER BY detected_at DESC;"
+        let sql = [
+            "SELECT id, workspace_id, rule_id, file_path, line, column, severity, message,",
+            "detected_at, resolved_at, suppressed, suppression_reason",
+            "FROM violations \(query.whereClause)",
+            "ORDER BY detected_at DESC;"
+        ].joined(separator: " ")
         
         var statement: OpaquePointer?
         defer {

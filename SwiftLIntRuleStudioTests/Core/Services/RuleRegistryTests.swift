@@ -467,4 +467,3 @@ struct RuleRegistryTests {
         }
     }
 }
-

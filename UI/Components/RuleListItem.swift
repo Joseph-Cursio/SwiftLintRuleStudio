@@ -141,4 +141,3 @@ struct CategoryBadge: View {
     }
     .frame(width: 400, height: 200)
 }
-

@@ -310,12 +310,16 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
             
             if timeoutResult.didTimeout {
-                throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds. For very large projects, consider analyzing specific files or directories.")
+                let message = "SwiftLint command timed out after \(timeoutSeconds) seconds. " +
+                    "For very large projects, consider analyzing specific files or directories."
+                throw SwiftLintError.executionFailed(message: message)
             }
         } catch {
             let nsError = error as NSError
             if nsError.domain == NSCocoaErrorDomain && nsError.code == 4 {
-                throw SwiftLintError.executionFailed(message: "SwiftLint executable not found. Please ensure SwiftLint is installed (brew install swiftlint) and accessible.")
+                let message = "SwiftLint executable not found. " +
+                    "Please ensure SwiftLint is installed (brew install swiftlint) and accessible."
+                throw SwiftLintError.executionFailed(message: message)
             }
             throw SwiftLintError.executionFailed(message: "Failed to execute SwiftLint: \(error.localizedDescription)")
         }
@@ -558,4 +562,3 @@ enum SwiftLintError: LocalizedError {
         }
     }
 }
-

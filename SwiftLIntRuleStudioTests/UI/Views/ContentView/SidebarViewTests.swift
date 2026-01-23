@@ -228,4 +228,3 @@ struct SidebarViewTests {
         #expect(hasList == true, "SidebarView should have correct structure")
     }
 }
-

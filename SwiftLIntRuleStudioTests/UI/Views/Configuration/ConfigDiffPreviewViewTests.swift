@@ -250,4 +250,3 @@ struct ConfigDiffPreviewViewTests {
         #expect(hasSummary == true || hasFullDiff == true, "ConfigDiffPreviewView should display view mode picker")
     }
 }
-

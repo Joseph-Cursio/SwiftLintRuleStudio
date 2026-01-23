@@ -250,4 +250,3 @@ struct ContentViewTests {
         #expect(true, "ContentView should handle rule loading errors")
     }
 }
-

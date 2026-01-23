@@ -485,4 +485,3 @@ struct ImpactSimulatorTests {
         #expect(violationCount2 == 0)
     }
 }
-

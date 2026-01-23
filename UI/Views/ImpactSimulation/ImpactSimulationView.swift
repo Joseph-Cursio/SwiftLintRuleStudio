@@ -218,4 +218,3 @@ struct ViolationRow: View {
         onEnable: nil
     )
 }
-

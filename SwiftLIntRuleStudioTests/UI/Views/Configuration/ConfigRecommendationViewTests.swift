@@ -227,4 +227,3 @@ struct ConfigRecommendationViewTests {
         #expect(true, "ConfigRecommendationView should handle error display")
     }
 }
-

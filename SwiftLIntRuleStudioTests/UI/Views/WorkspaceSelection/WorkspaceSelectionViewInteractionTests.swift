@@ -209,4 +209,3 @@ struct WorkspaceSelectionViewInteractionTests {
         #expect(initialCount > 0, "Should have recent workspaces to remove")
     }
 }
-

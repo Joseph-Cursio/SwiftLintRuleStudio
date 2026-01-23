@@ -232,4 +232,3 @@ struct WorkspaceSelectionView: View {
     WorkspaceSelectionView(workspaceManager: WorkspaceManager())
         .frame(width: 600, height: 500)
 }
-

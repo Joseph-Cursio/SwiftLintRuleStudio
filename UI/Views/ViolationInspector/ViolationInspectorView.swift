@@ -513,4 +513,3 @@ struct StatisticBadge: View {
         }
     }
 }
-

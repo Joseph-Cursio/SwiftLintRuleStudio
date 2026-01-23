@@ -189,7 +189,9 @@ struct OnboardingManagerIntegrationTests {
         
         // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
         nonisolated(unsafe) let userDefaultsCapture5 = userDefaults
-        let (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2) = try await withContainer(userDefaults: userDefaultsCapture5) { container in
+        let (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2) = try await withContainer(
+            userDefaults: userDefaultsCapture5
+        ) { container in
             // First launch - should show onboarding
             let beforeCompleted = container.onboardingManager.hasCompletedOnboarding
             let beforeStep = container.onboardingManager.currentStep
@@ -268,4 +270,3 @@ struct OnboardingManagerIntegrationTests {
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
     }
 }
-

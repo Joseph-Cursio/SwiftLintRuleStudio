@@ -297,4 +297,3 @@ struct ImpactSimulatorWorkflowTests {
         #expect(progressUpdates[4].ruleId == "rule5")
     }
 }
-

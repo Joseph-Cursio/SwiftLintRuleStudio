@@ -221,9 +221,14 @@ struct OnboardingManagerTests {
         // Note: OnboardingManager.init() always starts at welcome, regardless of UserDefaults
         // This test verifies resetOnboarding() clears UserDefaults
         nonisolated(unsafe) let userDefaultsCapture = userDefaults
-        let (hasCompleted, currentStep, keyExists) = try await withOnboardingManager(userDefaults: userDefaults) { manager in
+        let (hasCompleted, currentStep, keyExists) = try await withOnboardingManager(
+            userDefaults: userDefaults
+        ) { manager in
             manager.resetOnboarding()
-            return (manager.hasCompletedOnboarding, manager.currentStep, userDefaultsCapture.object(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding") != nil)
+            let keyExists = userDefaultsCapture.object(
+                forKey: "com.swiftlintrulestudio.hasCompletedOnboarding"
+            ) != nil
+            return (manager.hasCompletedOnboarding, manager.currentStep, keyExists)
         }
         
         #expect(hasCompleted == false)
@@ -267,4 +272,3 @@ struct OnboardingManagerTests {
         #expect(completePrevious == .workspaceSelection)
     }
 }
-

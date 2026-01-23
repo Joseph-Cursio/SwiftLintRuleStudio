@@ -469,4 +469,3 @@ private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
     func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
     func getVersion() throws -> String { "0.0.0" }
 }
-

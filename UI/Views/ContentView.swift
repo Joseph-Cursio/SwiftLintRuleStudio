@@ -155,4 +155,3 @@ struct SidebarView: View {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
-

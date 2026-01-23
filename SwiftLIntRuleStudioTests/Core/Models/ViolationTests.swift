@@ -79,4 +79,3 @@ struct ViolationTests {
         #expect(decoded.line == violation.line)
     }
 }
-

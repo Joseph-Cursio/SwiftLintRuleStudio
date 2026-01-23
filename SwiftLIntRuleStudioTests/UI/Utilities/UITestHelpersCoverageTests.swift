@@ -306,4 +306,3 @@ struct UITestHelpersCoverageTests {
         #expect(viewTypeFound == false)
     }
 }
-

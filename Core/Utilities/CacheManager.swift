@@ -107,4 +107,3 @@ struct CacheManager: CacheManagerProtocol {
         }
     }
 }
-

@@ -137,4 +137,3 @@ struct ConfigDiffPreviewViewInteractionTests {
         #expect(hasSummaryText == true, "View mode picker should switch views")
     }
 }
-

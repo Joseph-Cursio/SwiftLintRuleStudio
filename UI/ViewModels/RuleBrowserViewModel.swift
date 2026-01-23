@@ -184,4 +184,3 @@ enum SortOption: String, CaseIterable, Identifiable {
         }
     }
 }
-

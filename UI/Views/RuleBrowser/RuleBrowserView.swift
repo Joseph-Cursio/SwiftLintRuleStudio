@@ -554,4 +554,3 @@ extension RuleBrowserView {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
-

@@ -536,4 +536,3 @@ struct SwiftLintCLITests {
         #expect(content == "Generated docs")
     }
 }
-

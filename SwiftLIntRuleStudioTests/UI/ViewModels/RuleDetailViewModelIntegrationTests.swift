@@ -656,4 +656,3 @@ struct TestError: Error, CustomStringConvertible {
         message
     }
 }
-

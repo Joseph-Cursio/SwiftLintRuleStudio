@@ -232,4 +232,3 @@ enum RuleConfigurationError: LocalizedError {
         }
     }
 }
-

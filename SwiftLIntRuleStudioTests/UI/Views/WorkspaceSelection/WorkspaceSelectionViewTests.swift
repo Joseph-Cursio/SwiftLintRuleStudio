@@ -247,4 +247,3 @@ struct WorkspaceSelectionViewTests {
         #expect(hasVStack == true, "WorkspaceSelectionView should have file picker")
     }
 }
-

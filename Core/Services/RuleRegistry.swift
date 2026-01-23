@@ -312,7 +312,11 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
                                         // Start timeout task
                                         timeoutGroup.addTask { @Sendable in
                                             try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-                                            throw NSError(domain: "RuleRegistry", code: 3, userInfo: [NSLocalizedDescriptionKey: "Rule detail fetch timed out for \(ruleId)"])
+                                            throw NSError(
+                                                domain: "RuleRegistry",
+                                                code: 3,
+                                                userInfo: [NSLocalizedDescriptionKey: "Rule detail fetch timed out for \(ruleId)"]
+                                            )
                                         }
                                         
                                         // Return first completed result (either success or timeout)
@@ -594,4 +598,3 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
         )
     }
 }
-

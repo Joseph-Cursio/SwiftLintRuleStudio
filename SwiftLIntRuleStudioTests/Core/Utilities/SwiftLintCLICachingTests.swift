@@ -121,4 +121,3 @@ struct SwiftLintCLICachingTests {
         #expect(cacheManager.getCachedDocsDirectory() == nil)
     }
 }
-

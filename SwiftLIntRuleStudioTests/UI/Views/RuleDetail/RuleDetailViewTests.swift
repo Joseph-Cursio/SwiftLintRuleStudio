@@ -390,4 +390,3 @@ struct RuleDetailViewTests {
         #expect(wrapped.contains("<p>Body</p>"))
     }
 }
-
