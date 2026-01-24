@@ -109,7 +109,11 @@ struct AnyCodable: Codable, Hashable {
         case let array as [Any]:
             try container.encode(array.map { AnyCodable($0) })
         default:
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [], debugDescription: "Unsupported type"))
+            let context = EncodingError.Context(
+                codingPath: [],
+                debugDescription: "Unsupported type"
+            )
+            throw EncodingError.invalidValue(value, context)
         }
     }
     

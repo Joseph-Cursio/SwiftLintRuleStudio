@@ -61,18 +61,32 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (included, excluded, reporter, rulesCount, hasLineLength) = try await MainActor.run {
+        struct ConfigSnapshot {
+            let included: [String]?
+            let excluded: [String]?
+            let reporter: String?
+            let rulesCount: Int
+            let hasLineLength: Bool
+        }
+
+        let snapshot = try await MainActor.run {
             let engine = YAMLConfigurationEngine(configPath: configFile)
             try engine.load()
             let config = engine.getConfig()
-            return (config.included, config.excluded, config.reporter, config.rules.count, config.rules["line_length"] != nil)
+            return ConfigSnapshot(
+                included: config.included,
+                excluded: config.excluded,
+                reporter: config.reporter,
+                rulesCount: config.rules.count,
+                hasLineLength: config.rules["line_length"] != nil
+            )
         }
         
-        #expect(included == ["Sources"])
-        #expect(excluded == ["Pods"])
-        #expect(reporter == "xcode")
-        #expect(rulesCount == 1)
-        #expect(hasLineLength == true)
+        #expect(snapshot.included == ["Sources"])
+        #expect(snapshot.excluded == ["Pods"])
+        #expect(snapshot.reporter == "xcode")
+        #expect(snapshot.rulesCount == 1)
+        #expect(snapshot.hasLineLength == true)
     }
     
     @Test("YAMLConfigurationEngine handles non-existent file")
@@ -90,7 +104,11 @@ struct YAMLConfigurationEngineTests {
             // Should not throw - returns empty config
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.isEmpty, config.included, config.excluded)
+            return (
+                config.rules.isEmpty,
+                config.included,
+                config.excluded
+            )
         }
         
         #expect(rulesEmpty == true)
@@ -111,16 +129,20 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (rulesCount, forceCastSeverity, hasLineLengthParams) = try await MainActor.run {
+        let parseSnapshot = try await MainActor.run {
             let engine = YAMLConfigurationEngine(configPath: configFile)
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.count, config.rules["force_cast"]?.severity, config.rules["line_length"]?.parameters != nil)
+            return (
+                rulesCount: config.rules.count,
+                forceCastSeverity: config.rules["force_cast"]?.severity,
+                hasLineLengthParams: config.rules["line_length"]?.parameters != nil
+            )
         }
         
-        #expect(rulesCount == 2)
-        #expect(forceCastSeverity == .error)
-        #expect(hasLineLengthParams == true)
+        #expect(parseSnapshot.rulesCount == 2)
+        #expect(parseSnapshot.forceCastSeverity == .error)
+        #expect(parseSnapshot.hasLineLengthParams == true)
     }
     
     @Test("YAMLConfigurationEngine parses boolean rule configuration")
@@ -138,7 +160,11 @@ struct YAMLConfigurationEngineTests {
             let engine = YAMLConfigurationEngine(configPath: configFile)
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.count, config.rules["force_cast"]?.enabled, config.rules["line_length"]?.enabled)
+            return (
+                config.rules.count,
+                config.rules["force_cast"]?.enabled,
+                config.rules["line_length"]?.enabled
+            )
         }
         
         #expect(rulesCount == 2)
@@ -190,7 +216,11 @@ struct YAMLConfigurationEngineTests {
         let (rulesCount, forceCastEnabled, included) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let loadedConfig = engine.getConfig()
-            return (loadedConfig.rules.count, loadedConfig.rules["force_cast"]?.enabled, loadedConfig.included)
+            return (
+                rulesCount: loadedConfig.rules.count,
+                forceCastEnabled: loadedConfig.rules["force_cast"]?.enabled,
+                included: loadedConfig.included
+            )
         }
         
         #expect(rulesCount == 1)
@@ -221,8 +251,12 @@ struct YAMLConfigurationEngineTests {
         
         // Check backup was created (backup files now use timestamped names)
         let configDir = configFile.deletingLastPathComponent()
-        let backupFiles = try FileManager.default.contentsOfDirectory(at: configDir, includingPropertiesForKeys: nil)
-            .filter { $0.lastPathComponent.hasPrefix(configFile.lastPathComponent) && $0.lastPathComponent.hasSuffix(".backup") }
+        let backupFiles = try FileManager.default
+            .contentsOfDirectory(at: configDir, includingPropertiesForKeys: nil)
+            .filter {
+                $0.lastPathComponent.hasPrefix(configFile.lastPathComponent)
+                    && $0.lastPathComponent.hasSuffix(".backup")
+            }
         #expect(!backupFiles.isEmpty, "Backup file should be created")
         
         // Cleanup backup
@@ -268,18 +302,25 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (hasChanges, addedRules, removedRules, modifiedRules) = try await withEngine(configPath: configFile) { engine in
+        let diffSnapshot = try await withEngine(
+            configPath: configFile
+        ) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.rules["line_length"] = RuleConfiguration(enabled: true)
             let diff = engine.generateDiff(proposedConfig: config)
-            return (diff.hasChanges, diff.addedRules, diff.removedRules, diff.modifiedRules)
+            return (
+                hasChanges: diff.hasChanges,
+                addedRules: diff.addedRules,
+                removedRules: diff.removedRules,
+                modifiedRules: diff.modifiedRules
+            )
         }
         
-        #expect(hasChanges == true)
-        #expect(addedRules.contains("line_length"))
-        #expect(removedRules.isEmpty)
-        #expect(modifiedRules.isEmpty)
+        #expect(diffSnapshot.hasChanges == true)
+        #expect(diffSnapshot.addedRules.contains("line_length"))
+        #expect(diffSnapshot.removedRules.isEmpty)
+        #expect(diffSnapshot.modifiedRules.isEmpty)
     }
     
     @Test("YAMLConfigurationEngine generates diff for removed rules")
@@ -293,18 +334,23 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (hasChanges, removedRules, addedRules, modifiedRules) = try await withEngine(configPath: configFile) { engine in
+        let removedSnapshot = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.rules.removeValue(forKey: "line_length")
             let diff = engine.generateDiff(proposedConfig: config)
-            return (diff.hasChanges, diff.removedRules, diff.addedRules, diff.modifiedRules)
+            return (
+                hasChanges: diff.hasChanges,
+                removedRules: diff.removedRules,
+                addedRules: diff.addedRules,
+                modifiedRules: diff.modifiedRules
+            )
         }
         
-        #expect(hasChanges == true)
-        #expect(removedRules.contains("line_length"))
-        #expect(addedRules.isEmpty)
-        #expect(modifiedRules.isEmpty)
+        #expect(removedSnapshot.hasChanges == true)
+        #expect(removedSnapshot.removedRules.contains("line_length"))
+        #expect(removedSnapshot.addedRules.isEmpty)
+        #expect(removedSnapshot.modifiedRules.isEmpty)
     }
     
     @Test("YAMLConfigurationEngine generates diff for modified rules")
@@ -318,18 +364,23 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (hasChanges, modifiedRules, addedRules, removedRules) = try await withEngine(configPath: configFile) { engine in
+        let modifiedSnapshot = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.rules["force_cast"] = RuleConfiguration(enabled: true, severity: .error)
             let diff = engine.generateDiff(proposedConfig: config)
-            return (diff.hasChanges, diff.modifiedRules, diff.addedRules, diff.removedRules)
+            return (
+                hasChanges: diff.hasChanges,
+                modifiedRules: diff.modifiedRules,
+                addedRules: diff.addedRules,
+                removedRules: diff.removedRules
+            )
         }
         
-        #expect(hasChanges == true)
-        #expect(modifiedRules.contains("force_cast"))
-        #expect(addedRules.isEmpty)
-        #expect(removedRules.isEmpty)
+        #expect(modifiedSnapshot.hasChanges == true)
+        #expect(modifiedSnapshot.modifiedRules.contains("force_cast"))
+        #expect(modifiedSnapshot.addedRules.isEmpty)
+        #expect(modifiedSnapshot.removedRules.isEmpty)
     }
     
     @Test("YAMLConfigurationEngine detects no changes in diff")
@@ -342,17 +393,22 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (hasChanges, addedRules, removedRules, modifiedRules) = try await withEngine(configPath: configFile) { engine in
+        let diffSnapshot = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             let diff = engine.generateDiff(proposedConfig: config)
-            return (diff.hasChanges, diff.addedRules, diff.removedRules, diff.modifiedRules)
+            return (
+                diff.hasChanges,
+                diff.addedRules,
+                diff.removedRules,
+                diff.modifiedRules
+            )
         }
         
-        #expect(hasChanges == false)
-        #expect(addedRules.isEmpty)
-        #expect(removedRules.isEmpty)
-        #expect(modifiedRules.isEmpty)
+        #expect(diffSnapshot.0 == false)
+        #expect(diffSnapshot.1.isEmpty)
+        #expect(diffSnapshot.2.isEmpty)
+        #expect(diffSnapshot.3.isEmpty)
     }
     
     // MARK: - Validation Tests
@@ -541,7 +597,12 @@ struct YAMLConfigurationEngineTests {
         ) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.count, config.rules["force_cast"]?.severity, config.included, config.excluded)
+            return (
+                config.rules.count,
+                config.rules["force_cast"]?.severity,
+                config.included,
+                config.excluded
+            )
         }
         
         // Save and reload
@@ -558,7 +619,12 @@ struct YAMLConfigurationEngineTests {
         ) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.count, config.rules["force_cast"]?.severity, config.included, config.excluded)
+            return (
+                config.rules.count,
+                config.rules["force_cast"]?.severity,
+                config.included,
+                config.excluded
+            )
         }
         
         // Verify rules are preserved
@@ -611,14 +677,18 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (hasLineLength, hasParams, severity) = try await withEngine(configPath: configFile) { engine in
+        let ruleSnapshot = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["line_length"] != nil, config.rules["line_length"]?.parameters != nil, config.rules["line_length"]?.severity)
+            return (
+                hasRule: config.rules["line_length"] != nil,
+                hasParams: config.rules["line_length"]?.parameters != nil,
+                severity: config.rules["line_length"]?.severity
+            )
         }
-        #expect(hasLineLength == true)
-        #expect(hasParams == true)
-        #expect(severity == nil)
+        #expect(ruleSnapshot.hasRule == true)
+        #expect(ruleSnapshot.hasParams == true)
+        #expect(ruleSnapshot.severity == nil)
     }
     
     @Test("YAMLConfigurationEngine handles disabled rules with parameters")
@@ -633,13 +703,16 @@ struct YAMLConfigurationEngineTests {
         let configFile = try createTempConfigFile(content: yamlContent)
         defer { cleanupTempFile(configFile) }
         
-        let (enabled, hasParams) = try await withEngine(configPath: configFile) { engine in
+        let disabledSnapshot = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["line_length"]?.enabled, config.rules["line_length"]?.parameters != nil)
+            return (
+                enabled: config.rules["line_length"]?.enabled,
+                hasParams: config.rules["line_length"]?.parameters != nil
+            )
         }
-        #expect(enabled == false)
-        #expect(hasParams == true)
+        #expect(disabledSnapshot.enabled == false)
+        #expect(disabledSnapshot.hasParams == true)
     }
     
     @Test("YAMLConfigurationEngine handles empty rules dictionary")
@@ -656,7 +729,10 @@ struct YAMLConfigurationEngineTests {
         let (rulesEmpty, included) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.isEmpty, config.included)
+            return (
+                config.rules.isEmpty,
+                config.included
+            )
         }
         #expect(rulesEmpty == true)
         #expect(included == ["Sources"])
@@ -704,7 +780,10 @@ struct YAMLConfigurationEngineTests {
         let (hasParams, hasName) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["custom_rules"]?.parameters != nil, config.rules["custom_rules"]?.parameters?["name"] != nil)
+            return (
+                config.rules["custom_rules"]?.parameters != nil,
+                config.rules["custom_rules"]?.parameters?["name"] != nil
+            )
         }
         #expect(hasParams == true)
         #expect(hasName == true)
@@ -726,7 +805,10 @@ struct YAMLConfigurationEngineTests {
         let (hasParams, hasPaths) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["excluded"]?.parameters != nil, config.rules["excluded"]?.parameters?["paths"] != nil)
+            return (
+                config.rules["excluded"]?.parameters != nil,
+                config.rules["excluded"]?.parameters?["paths"] != nil
+            )
         }
         #expect(hasParams == true)
         #expect(hasPaths == true)
@@ -829,7 +911,10 @@ struct YAMLConfigurationEngineTests {
         let (reporter, forceCastEnabled) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.reporter, config.rules["force_cast"]?.enabled)
+            return (
+                config.reporter,
+                config.rules["force_cast"]?.enabled
+            )
         }
         #expect(reporter == "xcode")
         #expect(forceCastEnabled == false)
@@ -867,7 +952,10 @@ struct YAMLConfigurationEngineTests {
         let (dashesEnabled, underscoresEnabled) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules["rule-with-dashes"]?.enabled, config.rules["rule_with_underscores"]?.enabled)
+            return (
+                config.rules["rule-with-dashes"]?.enabled,
+                config.rules["rule_with_underscores"]?.enabled
+            )
         }
         #expect(dashesEnabled == true)
         #expect(underscoresEnabled == false)
@@ -887,7 +975,12 @@ struct YAMLConfigurationEngineTests {
         let (rulesCount, included, excluded, reporter) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.count, config.included, config.excluded, config.reporter)
+            return (
+                config.rules.count,
+                config.included,
+                config.excluded,
+                config.reporter
+            )
         }
         #expect(rulesCount == 2)
         #expect(included == nil)
@@ -910,7 +1003,11 @@ struct YAMLConfigurationEngineTests {
         let (rulesEmpty, included, excluded) = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (config.rules.isEmpty, config.included, config.excluded)
+            return (
+                config.rules.isEmpty,
+                config.included,
+                config.excluded
+            )
         }
         #expect(rulesEmpty == true)
         #expect(included == ["Sources"])
@@ -934,7 +1031,10 @@ struct YAMLConfigurationEngineTests {
             var config = engine.getConfig()
             config.rules["rule_d"] = RuleConfiguration(enabled: true)
             let diff = engine.generateDiff(proposedConfig: config)
-            return (diff.addedRules, diff.addedRules.count)
+            return (
+                diff.addedRules,
+                diff.addedRules.count
+            )
         }
         #expect(addedRules.contains("rule_d"))
         #expect(addedRulesCount == 1)

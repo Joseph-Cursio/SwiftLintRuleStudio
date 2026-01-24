@@ -199,7 +199,10 @@ struct WorkspaceSelectionViewTests {
             _ = try view.inspect().find(text: "Close Workspace")
             return true
         }
-        #expect(hasCloseButton == true, "WorkspaceSelectionView should show Close Workspace button when workspace is open")
+        #expect(
+            hasCloseButton == true,
+            "WorkspaceSelectionView should show Close Workspace button when workspace is open"
+        )
     }
     
     @Test("WorkspaceSelectionView hides Close Workspace button when no workspace")

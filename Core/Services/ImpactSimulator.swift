@@ -206,7 +206,9 @@ class ImpactSimulator {
         let tempConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
         
         // Load base config if it exists
-        let configPathToUse = baseConfigPath ?? workspace.configPath ?? workspace.path.appendingPathComponent(".swiftlint.yml")
+        let configPathToUse = baseConfigPath
+            ?? workspace.configPath
+            ?? workspace.path.appendingPathComponent(".swiftlint.yml")
         let yamlEngine = YAMLConfigurationEngine(configPath: configPathToUse)
         
         if fileManager.fileExists(atPath: configPathToUse.path) {

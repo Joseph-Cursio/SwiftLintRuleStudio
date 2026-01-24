@@ -67,7 +67,9 @@ struct OnboardingManagerIntegrationTests {
         // First container instance with isolated UserDefaults
         // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
         nonisolated(unsafe) let userDefaultsCapture4 = userDefaults
-        let (hasCompleted1, hasCompleted2, hasManager2) = try await withContainer(userDefaults: userDefaultsCapture4) { container1 in
+        let (hasCompleted1, hasCompleted2, hasManager2) = try await withContainer(
+            userDefaults: userDefaultsCapture4
+        ) { container1 in
             let before = container1.onboardingManager.hasCompletedOnboarding
             
             // Complete onboarding (note: OnboardingManager.completeOnboarding() doesn't persist to UserDefaults,

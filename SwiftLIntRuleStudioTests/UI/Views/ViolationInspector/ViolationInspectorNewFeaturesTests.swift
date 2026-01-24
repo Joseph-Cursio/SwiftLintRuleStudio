@@ -280,7 +280,19 @@ struct ViolationInspectorNewFeaturesTests {
     }
     
     private func exportToCSV(violations: [Violation], url: URL) async throws {
-        var csv = "Rule ID,File Path,Line,Column,Severity,Message,Detected At,Resolved At,Suppressed,Suppression Reason\n"
+        let header = [
+            "Rule ID",
+            "File Path",
+            "Line",
+            "Column",
+            "Severity",
+            "Message",
+            "Detected At",
+            "Resolved At",
+            "Suppressed",
+            "Suppression Reason"
+        ].joined(separator: ",")
+        var csv = "\(header)\n"
         
         // Access violation properties on MainActor
         let violationData = await MainActor.run {

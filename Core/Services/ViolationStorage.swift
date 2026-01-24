@@ -265,7 +265,13 @@ actor ViolationStorage: ViolationStorageProtocol {
               let statement = deleteStatement else {
             throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
         }
-        try bindText(workspaceId.uuidString, index: 1, statement: statement, errorMessage: "Failed to allocate memory for delete workspace ID")
+        let deleteError = "Failed to allocate memory for delete workspace ID"
+        try bindText(
+            workspaceId.uuidString,
+            index: 1,
+            statement: statement,
+            errorMessage: deleteError
+        )
         guard sqlite3_step(statement) == SQLITE_DONE else {
             let errorMsg = String(cString: sqlite3_errmsg(db))
             throw ViolationStorageError.sqlError(errorMsg)
@@ -276,7 +282,8 @@ actor ViolationStorage: ViolationStorageProtocol {
     private func prepareInsertStatement(db: OpaquePointer) throws -> OpaquePointer {
         let insertSQL = """
         INSERT OR REPLACE INTO violations
-        (id, workspace_id, rule_id, file_path, line, column, severity, message, detected_at, resolved_at, suppressed, suppression_reason)
+        (id, workspace_id, rule_id, file_path, line, column, severity, message,
+         detected_at, resolved_at, suppressed, suppression_reason)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """
         var statement: OpaquePointer?
@@ -298,18 +305,24 @@ actor ViolationStorage: ViolationStorageProtocol {
 
     private func bindViolation(_ violation: Violation, workspaceId: UUID, statement: OpaquePointer) throws {
         let idString = violation.id.uuidString
-        try bindText(idString, index: 1, statement: statement, errorMessage: "Failed to allocate memory for violation ID")
-        try bindText(workspaceId.uuidString, index: 2, statement: statement, errorMessage: "Failed to allocate memory for workspace ID")
-        try bindText(violation.ruleID, index: 3, statement: statement, errorMessage: "Failed to allocate memory for rule ID")
-        try bindText(violation.filePath, index: 4, statement: statement, errorMessage: "Failed to allocate memory for file path")
+        let idError = "Failed to allocate memory for violation ID"
+        let workspaceError = "Failed to allocate memory for workspace ID"
+        let ruleError = "Failed to allocate memory for rule ID"
+        let filePathError = "Failed to allocate memory for file path"
+        try bindText(idString, index: 1, statement: statement, errorMessage: idError)
+        try bindText(workspaceId.uuidString, index: 2, statement: statement, errorMessage: workspaceError)
+        try bindText(violation.ruleID, index: 3, statement: statement, errorMessage: ruleError)
+        try bindText(violation.filePath, index: 4, statement: statement, errorMessage: filePathError)
         sqlite3_bind_int(statement, 5, Int32(violation.line))
         if let column = violation.column {
             sqlite3_bind_int(statement, 6, Int32(column))
         } else {
             sqlite3_bind_null(statement, 6)
         }
-        try bindText(violation.severity.rawValue, index: 7, statement: statement, errorMessage: "Failed to allocate memory for severity")
-        try bindText(violation.message, index: 8, statement: statement, errorMessage: "Failed to allocate memory for message")
+        let severityError = "Failed to allocate memory for severity"
+        let messageError = "Failed to allocate memory for message"
+        try bindText(violation.severity.rawValue, index: 7, statement: statement, errorMessage: severityError)
+        try bindText(violation.message, index: 8, statement: statement, errorMessage: messageError)
         sqlite3_bind_double(statement, 9, violation.detectedAt.timeIntervalSince1970)
         if let resolvedAt = violation.resolvedAt {
             sqlite3_bind_double(statement, 10, resolvedAt.timeIntervalSince1970)
@@ -318,7 +331,8 @@ actor ViolationStorage: ViolationStorageProtocol {
         }
         sqlite3_bind_int(statement, 11, violation.suppressed ? 1 : 0)
         if let reason = violation.suppressionReason {
-            try bindText(reason, index: 12, statement: statement, errorMessage: "Failed to allocate memory for suppression reason")
+            let suppressionError = "Failed to allocate memory for suppression reason"
+            try bindText(reason, index: 12, statement: statement, errorMessage: suppressionError)
         } else {
             sqlite3_bind_null(statement, 12)
         }
@@ -333,7 +347,10 @@ actor ViolationStorage: ViolationStorageProtocol {
     
     // swiftlint:disable:next async_without_await
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func fetchViolations(filter: ViolationFilter, workspaceId: UUID?) async throws -> [Violation] { // swiftlint:disable:this async_without_await
+    func fetchViolations(
+        filter: ViolationFilter,
+        workspaceId: UUID?
+    ) async throws -> [Violation] { // swiftlint:disable:this async_without_await
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -356,7 +373,8 @@ actor ViolationStorage: ViolationStorageProtocol {
             throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
         }
         
-        try bindParameters(query.parameters, to: statement, errorMessagePrefix: "Failed to allocate memory for parameter")
+        let bindError = "Failed to allocate memory for parameter"
+        try bindParameters(query.parameters, to: statement, errorMessagePrefix: bindError)
         
         var violations: [Violation] = []
         
@@ -505,7 +523,10 @@ actor ViolationStorage: ViolationStorageProtocol {
     
     // swiftlint:disable:next async_without_await
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int { // swiftlint:disable:this async_without_await
+    func getViolationCount(
+        filter: ViolationFilter,
+        workspaceId: UUID?
+    ) async throws -> Int { // swiftlint:disable:this async_without_await
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -523,7 +544,8 @@ actor ViolationStorage: ViolationStorageProtocol {
             throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
         }
         
-        try bindParameters(query.parameters, to: statement, errorMessagePrefix: "Failed to allocate memory for count parameter")
+        let countError = "Failed to allocate memory for count parameter"
+        try bindParameters(query.parameters, to: statement, errorMessagePrefix: countError)
         
         guard sqlite3_step(statement) == SQLITE_ROW else {
             throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
@@ -610,11 +632,17 @@ actor ViolationStorage: ViolationStorageProtocol {
         }
 
         let line = Int(sqlite3_column_int(statement, 4))
-        let column = sqlite3_column_type(statement, 5) == SQLITE_NULL ? nil : Int(sqlite3_column_int(statement, 5))
+        let column = sqlite3_column_type(statement, 5) == SQLITE_NULL
+            ? nil
+            : Int(sqlite3_column_int(statement, 5))
         let detectedAt = Date(timeIntervalSince1970: sqlite3_column_double(statement, 8))
-        let resolvedAt = sqlite3_column_type(statement, 9) == SQLITE_NULL ? nil : Date(timeIntervalSince1970: sqlite3_column_double(statement, 9))
+        let resolvedAt = sqlite3_column_type(statement, 9) == SQLITE_NULL
+            ? nil
+            : Date(timeIntervalSince1970: sqlite3_column_double(statement, 9))
         let suppressed = sqlite3_column_int(statement, 10) != 0
-        let suppressionReason = sqlite3_column_type(statement, 11) == SQLITE_NULL ? nil : String(cString: sqlite3_column_text(statement, 11))
+        let suppressionReason = sqlite3_column_type(statement, 11) == SQLITE_NULL
+            ? nil
+            : String(cString: sqlite3_column_text(statement, 11))
         let severity = Severity(rawValue: String(cString: severityString)) ?? .warning
 
         return Violation(

@@ -110,10 +110,12 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
         print("Parsed \(rules.count) rules from SwiftLint output")
 
         guard !rules.isEmpty else {
+            let message = "No rules found in SwiftLint output. " +
+                "Make sure SwiftLint is installed and accessible."
             throw NSError(
                 domain: "RuleRegistry",
                 code: 2,
-                userInfo: [NSLocalizedDescriptionKey: "No rules found in SwiftLint output. Make sure SwiftLint is installed and accessible."]
+                userInfo: [NSLocalizedDescriptionKey: message]
             )
         }
 
@@ -312,19 +314,21 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
                                         // Start timeout task
                                         timeoutGroup.addTask { @Sendable in
                                             try await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+                                            let message = "Rule detail fetch timed out for \(ruleId)"
                                             throw NSError(
                                                 domain: "RuleRegistry",
                                                 code: 3,
-                                                userInfo: [NSLocalizedDescriptionKey: "Rule detail fetch timed out for \(ruleId)"]
+                                                userInfo: [NSLocalizedDescriptionKey: message]
                                             )
                                         }
                                         
                                         // Return first completed result (either success or timeout)
                                         guard let result = try await timeoutGroup.next() else {
+                                            let message = "Rule detail fetch cancelled for \(ruleId)"
                                             throw NSError(
                                                 domain: "RuleRegistry",
                                                 code: 4,
-                                                userInfo: [NSLocalizedDescriptionKey: "Rule detail fetch cancelled for \(ruleId)"]
+                                                userInfo: [NSLocalizedDescriptionKey: message]
                                             )
                                         }
                                         timeoutGroup.cancelAll()

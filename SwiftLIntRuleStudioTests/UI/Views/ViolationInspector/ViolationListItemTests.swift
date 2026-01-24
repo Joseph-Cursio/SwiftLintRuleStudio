@@ -215,7 +215,10 @@ struct ViolationListItemTests {
         let hasSuppressed = await MainActor.run {
             (try? viewCapture.inspect().find(text: "Suppressed")) != nil
         }
-        #expect(hasSuppressed == false, "ViolationListItem should not show 'Suppressed' label when violation is not suppressed")
+        #expect(
+            hasSuppressed == false,
+            "ViolationListItem should not show 'Suppressed' label when violation is not suppressed"
+        )
     }
     
     // MARK: - Severity Color Tests

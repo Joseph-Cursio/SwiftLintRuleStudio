@@ -43,7 +43,11 @@ struct SafeRulesDiscoveryViewTests {
         workspaceURL: URL
     ) throws -> ViewResult {
         let cacheManager = CacheManager.createForTesting()
-        let ruleRegistry = RuleRegistry(swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager), cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let ruleRegistry = RuleRegistry(
+            swiftLintCLI: swiftLintCLI,
+            cacheManager: cacheManager
+        )
         ruleRegistry.setRulesForTesting(rules)
 
         let mockImpactSimulator = MockImpactSimulator(
@@ -94,7 +98,8 @@ struct SafeRulesDiscoveryViewTests {
             let inspector = try viewCapture.inspect()
             let hasHeader = (try? inspector.find(text: "Discover Safe Rules")) != nil
             let hasEmptyTitle = (try? inspector.find(text: "No Safe Rules Discovered")) != nil
-            let hasEmptySubtitle = (try? inspector.find(text: "Click 'Discover Safe Rules' to analyze disabled rules in your workspace")) != nil
+            let emptySubtitle = "Click 'Discover Safe Rules' to analyze disabled rules in your workspace"
+            let hasEmptySubtitle = (try? inspector.find(text: emptySubtitle)) != nil
             return (hasHeader, hasEmptyTitle, hasEmptySubtitle)
         }
         

@@ -127,7 +127,8 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
         let fileExists = await waitForFile(at: docFile, attempts: 50, delayNanoseconds: 100_000_000)
         
         guard fileExists else {
-            throw SwiftLintError.executionFailed(message: "Documentation file not found for rule: \(ruleId) after generation")
+            let message = "Documentation file not found for rule: \(ruleId) after generation"
+            throw SwiftLintError.executionFailed(message: message)
         }
         
         // Wait for content to be readable (up to 2 more seconds)
@@ -394,7 +395,8 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
             
             if timeoutResult.didTimeout {
-                throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds.")
+                let message = "SwiftLint command timed out after \(timeoutSeconds) seconds."
+                throw SwiftLintError.executionFailed(message: message)
             }
         } catch {
             let nsError = error as NSError
@@ -417,7 +419,10 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
             }
             
             let lowercased = errorMessage.lowercased()
-            if lowercased.contains("error:") && !lowercased.contains("warning:") && !lowercased.contains("is not a valid rule identifier") {
+            let isError = lowercased.contains("error:")
+            let isWarning = lowercased.contains("warning:")
+            let isInvalidRule = lowercased.contains("is not a valid rule identifier")
+            if isError && !isWarning && !isInvalidRule {
                 throw SwiftLintError.executionFailed(message: errorMessage)
             }
         }
@@ -489,7 +494,8 @@ actor SwiftLintCLI: SwiftLintCLIProtocol {
                     try await Task.sleep(nanoseconds: timeoutNanoseconds)
                     await onTimeout()
                     print("⏰ Timeout reached")
-                    throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after \(timeoutSeconds) seconds.")
+                    let message = "SwiftLint command timed out after \(timeoutSeconds) seconds."
+                    throw SwiftLintError.executionFailed(message: message)
                 }
                 
                 if let result = try await group.next() {

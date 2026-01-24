@@ -293,10 +293,10 @@ struct OnboardingViewTests {
         
         // Find completion message
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
+        let completionMessage = "SwiftLint Rule Studio is ready to use. " +
+            "Start by browsing rules or inspecting violations in your workspace."
         let hasMessage = try? await MainActor.run {
-            _ = try view.inspect().find(
-                text: "SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace."
-            )
+            _ = try view.inspect().find(text: completionMessage)
             return true
         }
         #expect(hasMessage == true, "Complete step should show completion message")

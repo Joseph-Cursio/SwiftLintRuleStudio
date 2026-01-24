@@ -463,26 +463,35 @@ struct RuleDetailViewModelIntegrationTests {
         try await Task { @MainActor in
             try yamlEngine.load()
         }.value
-        let (hasNewRuleInConfig, newRuleEnabled, newRuleSeverity, hasExistingRule, existingRuleEnabled, existingRuleSeverity) = await MainActor.run {
+        struct RuleConfigSnapshot {
+            let hasNewRule: Bool
+            let newRuleEnabled: Bool?
+            let newRuleSeverity: Severity?
+            let hasExistingRule: Bool
+            let existingRuleEnabled: Bool?
+            let existingRuleSeverity: Severity?
+        }
+
+        let snapshot = await MainActor.run {
             let config = yamlEngine.getConfig()
-            return (
-                config.rules["new_rule"] != nil,
-                config.rules["new_rule"]?.enabled,
-                config.rules["new_rule"]?.severity,
-                config.rules["existing_rule"] != nil,
-                config.rules["existing_rule"]?.enabled,
-                config.rules["existing_rule"]?.severity
+            return RuleConfigSnapshot(
+                hasNewRule: config.rules["new_rule"] != nil,
+                newRuleEnabled: config.rules["new_rule"]?.enabled,
+                newRuleSeverity: config.rules["new_rule"]?.severity,
+                hasExistingRule: config.rules["existing_rule"] != nil,
+                existingRuleEnabled: config.rules["existing_rule"]?.enabled,
+                existingRuleSeverity: config.rules["existing_rule"]?.severity
             )
         }
         
-        #expect(hasNewRuleInConfig == true)
-        #expect(newRuleEnabled == true)
-        #expect(newRuleSeverity == .error)
+        #expect(snapshot.hasNewRule == true)
+        #expect(snapshot.newRuleEnabled == true)
+        #expect(snapshot.newRuleSeverity == .error)
         
         // Step 8: Verify existing rule was preserved
-        #expect(hasExistingRule == true)
-        #expect(existingRuleEnabled == true)
-        #expect(existingRuleSeverity == .warning)
+        #expect(snapshot.hasExistingRule == true)
+        #expect(snapshot.existingRuleEnabled == true)
+        #expect(snapshot.existingRuleSeverity == .warning)
     }
     
     @Test("Multiple rules configuration workflow")
@@ -564,14 +573,18 @@ struct RuleDetailViewModelIntegrationTests {
         try await Task { @MainActor in
             try yamlEngine2.load()
         }.value
-        let (hasTestRule, testRuleEnabled, testRuleSeverity) = await MainActor.run {
+        let testRuleSnapshot = await MainActor.run {
             let config = yamlEngine2.getConfig()
-            return (config.rules["test_rule"] != nil, config.rules["test_rule"]?.enabled, config.rules["test_rule"]?.severity)
+            return (
+                hasRule: config.rules["test_rule"] != nil,
+                enabled: config.rules["test_rule"]?.enabled,
+                severity: config.rules["test_rule"]?.severity
+            )
         }
         
-        #expect(hasTestRule == true)
-        #expect(testRuleEnabled == true)
-        #expect(testRuleSeverity == .error)
+        #expect(testRuleSnapshot.hasRule == true)
+        #expect(testRuleSnapshot.enabled == true)
+        #expect(testRuleSnapshot.severity == .error)
         
         // Create new ViewModel and verify it loads the saved config
         let viewModel2 = await createRuleDetailViewModel(rule: rule, yamlEngine: yamlEngine2)

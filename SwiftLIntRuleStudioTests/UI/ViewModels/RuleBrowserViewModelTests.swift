@@ -108,9 +108,30 @@ struct RuleBrowserViewModelTests {
     @Test("RuleBrowserViewModel filters by category and sorts")
     func testCategoryAndSorting() {
         let rules = [
-            makeRule(.init(id: "b_rule", name: "Beta", description: "B", category: .style, isOptIn: false, isEnabled: true)),
-            makeRule(.init(id: "a_rule", name: "Alpha", description: "A", category: .lint, isOptIn: false, isEnabled: true)),
-            makeRule(.init(id: "c_rule", name: "Gamma", description: "C", category: .style, isOptIn: false, isEnabled: true))
+            makeRule(.init(
+                id: "b_rule",
+                name: "Beta",
+                description: "B",
+                category: .style,
+                isOptIn: false,
+                isEnabled: true
+            )),
+            makeRule(.init(
+                id: "a_rule",
+                name: "Alpha",
+                description: "A",
+                category: .lint,
+                isOptIn: false,
+                isEnabled: true
+            )),
+            makeRule(.init(
+                id: "c_rule",
+                name: "Gamma",
+                description: "C",
+                category: .style,
+                isOptIn: false,
+                isEnabled: true
+            ))
         ]
         
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
@@ -126,9 +147,30 @@ struct RuleBrowserViewModelTests {
     @Test("RuleBrowserViewModel categoryCounts respect filters")
     func testCategoryCounts() {
         let rules = [
-            makeRule(.init(id: "a_rule", name: "Alpha Rule", description: "Alpha", category: .lint, isOptIn: false, isEnabled: true)),
-            makeRule(.init(id: "b_rule", name: "Beta Rule", description: "Beta", category: .style, isOptIn: false, isEnabled: false)),
-            makeRule(.init(id: "c_rule", name: "Gamma Rule", description: "Gamma", category: .performance, isOptIn: true, isEnabled: true))
+            makeRule(.init(
+                id: "a_rule",
+                name: "Alpha Rule",
+                description: "Alpha",
+                category: .lint,
+                isOptIn: false,
+                isEnabled: true
+            )),
+            makeRule(.init(
+                id: "b_rule",
+                name: "Beta Rule",
+                description: "Beta",
+                category: .style,
+                isOptIn: false,
+                isEnabled: false
+            )),
+            makeRule(.init(
+                id: "c_rule",
+                name: "Gamma Rule",
+                description: "Gamma",
+                category: .performance,
+                isOptIn: true,
+                isEnabled: true
+            ))
         ]
         
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
@@ -145,7 +187,14 @@ struct RuleBrowserViewModelTests {
     @Test("RuleBrowserViewModel clearFilters resets state")
     func testClearFilters() {
         let rules = [
-            makeRule(.init(id: "rule", name: "Rule", description: "Rule", category: .lint, isOptIn: false, isEnabled: true))
+            makeRule(.init(
+                id: "rule",
+                name: "Rule",
+                description: "Rule",
+                category: .lint,
+                isOptIn: false,
+                isEnabled: true
+            ))
         ]
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
         

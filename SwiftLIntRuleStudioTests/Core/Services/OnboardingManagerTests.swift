@@ -173,7 +173,9 @@ struct OnboardingManagerTests {
         let userDefaults = IsolatedUserDefaults.create(for: "testCompleteOnboarding")
         defer { IsolatedUserDefaults.cleanup(userDefaults) }
         
-        let (beforeCompleted, afterCompleted, afterStep) = try await withOnboardingManager(userDefaults: userDefaults) { manager in
+        let (beforeCompleted, afterCompleted, afterStep) = try await withOnboardingManager(
+            userDefaults: userDefaults
+        ) { manager in
             let before = manager.hasCompletedOnboarding
             
             manager.completeOnboarding()
@@ -258,17 +260,24 @@ struct OnboardingManagerTests {
     @Test("OnboardingStep has correct previous steps")
     func testStepPreviousSteps() async throws {
         // Extract values to avoid Swift 6 false positive
-        let (welcomePrevious, swiftLintCheckPrevious, workspaceSelectionPrevious, completePrevious) = await MainActor.run {
-            return (
-                OnboardingManager.OnboardingStep.welcome.previous,
-                OnboardingManager.OnboardingStep.swiftLintCheck.previous,
-                OnboardingManager.OnboardingStep.workspaceSelection.previous,
-                OnboardingManager.OnboardingStep.complete.previous
+        struct PreviousSteps {
+            let welcome: OnboardingManager.OnboardingStep?
+            let swiftLintCheck: OnboardingManager.OnboardingStep?
+            let workspaceSelection: OnboardingManager.OnboardingStep?
+            let complete: OnboardingManager.OnboardingStep?
+        }
+
+        let previousSteps = await MainActor.run {
+            PreviousSteps(
+                welcome: OnboardingManager.OnboardingStep.welcome.previous,
+                swiftLintCheck: OnboardingManager.OnboardingStep.swiftLintCheck.previous,
+                workspaceSelection: OnboardingManager.OnboardingStep.workspaceSelection.previous,
+                complete: OnboardingManager.OnboardingStep.complete.previous
             )
         }
-        #expect(welcomePrevious == nil)
-        #expect(swiftLintCheckPrevious == .welcome)
-        #expect(workspaceSelectionPrevious == .swiftLintCheck)
-        #expect(completePrevious == .workspaceSelection)
+        #expect(previousSteps.welcome == nil)
+        #expect(previousSteps.swiftLintCheck == .welcome)
+        #expect(previousSteps.workspaceSelection == .swiftLintCheck)
+        #expect(previousSteps.complete == .workspaceSelection)
     }
 }

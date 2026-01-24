@@ -391,17 +391,22 @@ struct RuleDetailViewModelTests {
         }
         
         // Verify saved - extract all values inside MainActor context
-        let (hasRule, isEnabled, severity, pendingChanges) = try await MainActor.run {
+        let snapshot = try await MainActor.run {
             try yamlEngine.load()
             let config = yamlEngine.getConfig()
             let ruleConfig = config.rules["test_rule"]
-            return (ruleConfig != nil, ruleConfig?.enabled == true, ruleConfig?.severity == .error, viewModel.pendingChanges == nil)
+            return (
+                hasRule: ruleConfig != nil,
+                isEnabled: ruleConfig?.enabled == true,
+                severityMatch: ruleConfig?.severity == .error,
+                pendingChangesCleared: viewModel.pendingChanges == nil
+            )
         }
         
-        #expect(hasRule == true)
-        #expect(isEnabled == true)
-        #expect(severity == true)
-        #expect(pendingChanges == true)
+        #expect(snapshot.hasRule == true)
+        #expect(snapshot.isEnabled == true)
+        #expect(snapshot.severityMatch == true)
+        #expect(snapshot.pendingChangesCleared == true)
     }
     
     @Test("RuleDetailViewModel saves disabled rule to config")

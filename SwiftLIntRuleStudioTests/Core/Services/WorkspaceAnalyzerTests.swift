@@ -216,7 +216,10 @@ struct WorkspaceAnalyzerTests {
         """
         await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
-        let (count, filePath) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (count, filePath) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
             return (result.violations.count, result.violations.first?.filePath)
         }
@@ -305,7 +308,10 @@ struct WorkspaceAnalyzerTests {
         // Make CLI hang to test cancellation
         await setupMockCLI(mockCLI, output: Data(), shouldHang: true)
         
-        let isAnalyzing = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let isAnalyzing = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let analysisTask = Task { @MainActor in
                 try await analyzer.analyze(workspace: workspace)
             }
@@ -365,7 +371,10 @@ struct WorkspaceAnalyzerTests {
         
         await setupMockCLI(mockCLI, output: Data("[]".utf8))
         
-        let (duration, startedAt, completedAt) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (duration, startedAt, completedAt) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyze(workspace: workspace)
             return (result.duration, result.startedAt, result.completedAt)
         }
@@ -401,7 +410,10 @@ struct WorkspaceAnalyzerTests {
         """
         await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
         
-        let (violationCount, filesAnalyzed) = try await withWorkspaceAnalyzer(swiftLintCLI: mockCLI, violationStorage: mockStorage) { analyzer in
+        let (violationCount, filesAnalyzed) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
             let result = try await analyzer.analyzeFiles([file1, file2], in: workspace)
             return (result.violations.count, result.filesAnalyzed)
         }

@@ -199,7 +199,10 @@ struct ContentViewTests {
             _ = try viewCapture.inspect().find(text: "SwiftLint Configuration File Missing")
             return true
         }
-        #expect(hasConfigRecommendation == true, "ContentView should show config recommendation when config file missing")
+        #expect(
+            hasConfigRecommendation == true,
+            "ContentView should show config recommendation when config file missing"
+        )
     }
     
     @Test("ContentView shows default detail view when workspace open")

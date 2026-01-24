@@ -74,7 +74,8 @@ class DependencyContainer: ObservableObject {
         )
         
         // Initialize Xcode integration service
-        self.xcodeIntegrationService = xcodeIntegrationService ?? XcodeIntegrationService(workspaceManager: self.workspaceManager)
+        self.xcodeIntegrationService = xcodeIntegrationService
+            ?? XcodeIntegrationService(workspaceManager: self.workspaceManager)
         
         // Forward changes from child ObservableObjects to trigger view updates
         self.onboardingManager.objectWillChange

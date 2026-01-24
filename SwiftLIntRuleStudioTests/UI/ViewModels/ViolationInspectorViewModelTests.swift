@@ -133,7 +133,10 @@ struct ViolationInspectorViewModelTests {
         let mockAnalyzer = await MainActor.run {
             MockWorkspaceAnalyzer(mockStorage: mockStorageCapture)
         }
-        let viewModel = await createViolationInspectorViewModel(violationStorage: mockStorage, workspaceAnalyzer: mockAnalyzer)
+        let viewModel = await createViolationInspectorViewModel(
+            violationStorage: mockStorage,
+            workspaceAnalyzer: mockAnalyzer
+        )
         
         let workspaceId = UUID()
         // Workspace.init should be Sendable, but Swift 6 has false positive
@@ -184,7 +187,10 @@ struct ViolationInspectorViewModelTests {
         let mockAnalyzer = await MainActor.run {
             MockWorkspaceAnalyzer(mockStorage: mockStorageCapture)
         }
-        let viewModel = await createViolationInspectorViewModel(violationStorage: mockStorage, workspaceAnalyzer: mockAnalyzer)
+        let viewModel = await createViolationInspectorViewModel(
+            violationStorage: mockStorage,
+            workspaceAnalyzer: mockAnalyzer
+        )
         
         let workspaceId = UUID()
         // Workspace.init should be Sendable, but Swift 6 has false positive
@@ -228,7 +234,10 @@ struct ViolationInspectorViewModelTests {
         await MainActor.run {
             mockAnalyzer.shouldFail = true
         }
-        let viewModel = await createViolationInspectorViewModel(violationStorage: mockStorage, workspaceAnalyzer: mockAnalyzer)
+        let viewModel = await createViolationInspectorViewModel(
+            violationStorage: mockStorage,
+            workspaceAnalyzer: mockAnalyzer
+        )
         
         let workspaceId = UUID()
         // Workspace.init should be Sendable, but Swift 6 has false positive
@@ -408,12 +417,16 @@ struct ViolationInspectorViewModelTests {
             viewModel.clearFilters()
         }
         
-        let (searchTextEmpty, ruleIDsEmpty, severitiesEmpty) = await MainActor.run {
-            return (viewModel.searchText.isEmpty, viewModel.selectedRuleIDs.isEmpty, viewModel.selectedSeverities.isEmpty)
+        let cleared = await MainActor.run {
+            (
+                searchTextEmpty: viewModel.searchText.isEmpty,
+                ruleIDsEmpty: viewModel.selectedRuleIDs.isEmpty,
+                severitiesEmpty: viewModel.selectedSeverities.isEmpty
+            )
         }
-        #expect(searchTextEmpty == true)
-        #expect(ruleIDsEmpty == true)
-        #expect(severitiesEmpty == true)
+        #expect(cleared.searchTextEmpty == true)
+        #expect(cleared.ruleIDsEmpty == true)
+        #expect(cleared.severitiesEmpty == true)
     }
     
     // MARK: - Sorting Tests

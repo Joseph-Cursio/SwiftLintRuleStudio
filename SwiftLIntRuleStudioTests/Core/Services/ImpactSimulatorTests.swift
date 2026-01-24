@@ -476,12 +476,17 @@ struct ImpactSimulatorTests {
         
         // Should have 3 results, but rule2 should have error indicator
         // Extract properties inside MainActor context
-        let (resultsCount, violationCount0, violationCount1, violationCount2) = await MainActor.run {
-            return (result.results.count, result.results[0].violationCount, result.results[1].violationCount, result.results[2].violationCount)
+        let counts = await MainActor.run {
+            (
+                resultsCount: result.results.count,
+                violationCount0: result.results[0].violationCount,
+                violationCount1: result.results[1].violationCount,
+                violationCount2: result.results[2].violationCount
+            )
         }
-        #expect(resultsCount == 3)
-        #expect(violationCount0 == 0)
-        #expect(violationCount1 == -1) // Error indicator
-        #expect(violationCount2 == 0)
+        #expect(counts.resultsCount == 3)
+        #expect(counts.violationCount0 == 0)
+        #expect(counts.violationCount1 == -1) // Error indicator
+        #expect(counts.violationCount2 == 0)
     }
 }

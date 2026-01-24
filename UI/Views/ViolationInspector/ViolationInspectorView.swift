@@ -31,7 +31,10 @@ struct ViolationInspectorView: View {
             } else {
                 // Last resort: create in-memory storage again (should work after fix)
                 // This will crash if there's a fundamental issue, but that's better than silent failure
-                fatalError("Failed to initialize ViolationStorage: \(error). This indicates a critical database configuration issue.")
+                fatalError(
+                    "Failed to initialize ViolationStorage: \(error). " +
+                        "This indicates a critical database configuration issue."
+                )
             }
         }
         _viewModel = StateObject(wrappedValue: ViolationInspectorViewModel(violationStorage: tempStorage))
@@ -471,7 +474,19 @@ struct ViolationInspectorView: View {
     }
     
     private func exportToCSV(url: URL) throws {
-        var csv = "Rule ID,File Path,Line,Column,Severity,Message,Detected At,Resolved At,Suppressed,Suppression Reason\n"
+        let header = [
+            "Rule ID",
+            "File Path",
+            "Line",
+            "Column",
+            "Severity",
+            "Message",
+            "Detected At",
+            "Resolved At",
+            "Suppressed",
+            "Suppression Reason"
+        ].joined(separator: ",")
+        var csv = "\(header)\n"
         
         for violation in viewModel.filteredViolations {
             let line = [
