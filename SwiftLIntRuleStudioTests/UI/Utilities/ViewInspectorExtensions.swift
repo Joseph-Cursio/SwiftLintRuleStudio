@@ -9,10 +9,6 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-private struct InspectableViewWrapper<ViewType: ViewInspector.BaseViewType>: @unchecked Sendable {
-    let view: InspectableView<ViewType>
-}
-
 // MARK: - ViewInspector Extensions
 
 // Extension for InspectableView to add common interaction helpers
@@ -128,15 +124,13 @@ extension InspectableView {
     ///   - text: The text to wait for
     ///   - timeout: Maximum time to wait in nanoseconds (default: 1 second)
     /// - Returns: True if text appears, false if timeout
+    @MainActor
     func waitForText(_ text: String, timeout: UInt64 = 1_000_000_000) async -> Bool {
-        let wrapper = InspectableViewWrapper(view: self)
-        return await UIAsyncTestHelpers.waitForConditionAsync(
+        return await UIAsyncTestHelpers.waitForConditionOnMainActor(
             timeout: TimeInterval(timeout) / 1_000_000_000,
             interval: 0.05
         ) {
-            await MainActor.run {
-                wrapper.view.containsText(text)
-            }
+            containsText(text)
         }
     }
 }
