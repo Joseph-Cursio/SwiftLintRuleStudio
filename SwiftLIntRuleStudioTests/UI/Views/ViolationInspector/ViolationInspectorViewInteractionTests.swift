@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Interaction tests for ViolationInspectorView
@@ -70,6 +71,37 @@ struct ViolationInspectorViewInteractionTests {
         return ViewResult(view: view, container: container)
     }
 
+    private func waitForText(
+        in view: AnyView,
+        text: String,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        nonisolated(unsafe) let viewCapture = view
+        return await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: text,
+            timeout: timeoutSeconds
+        )
+    }
+
+    private func waitForSearchFieldInput(
+        in view: AnyView,
+        expected: String,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        nonisolated(unsafe) let viewCapture = view
+        struct ViewWrapper: @unchecked Sendable {
+            let view: AnyView
+        }
+        let wrapper = ViewWrapper(view: viewCapture)
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                let searchField = try? wrapper.view.inspect().find(ViewType.TextField.self)
+                return (try? searchField?.input()) == expected
+            }
+        }
+    }
+
     // MARK: - Search Interaction Tests
     
     @Test("ViolationInspectorView search field accepts text input")
@@ -105,8 +137,6 @@ struct ViolationInspectorViewInteractionTests {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
         let view = result.view
-        let container = result.container
-        
         // Find the search TextField
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
@@ -118,9 +148,6 @@ struct ViolationInspectorViewInteractionTests {
             
             return try searchField.input()
         }
-        
-        // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         // Verify search field has the input
         #expect(inputValue == "force_cast", "Search should filter by rule ID")
@@ -197,20 +224,18 @@ struct ViolationInspectorViewInteractionTests {
         // Find the search TextField and enter text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let hasClearButton = try await MainActor.run {
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
+
+        let inputValue = try await MainActor.run {
             let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
             try searchField.setInput("test")
-            
-            // Find clear filters button
-            let clearText = try? viewCapture.inspect().find(text: "Clear")
-            return clearText != nil
+            return try searchField.input()
         }
-        
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Note: Clear button may not be immediately visible, but should appear when filters are active
-        #expect(viewCapture != nil, "Clear filters button should appear when filters are active")
+        #expect(inputValue == "test", "Search input should accept text")
     }
     
     @Test("ViolationInspectorView clear filters button clears all filters")
@@ -222,11 +247,13 @@ struct ViolationInspectorViewInteractionTests {
         // Find the search TextField and enter text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let (hasClearButton, inputValue) = try await MainActor.run {
+        try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: viewCapture)
-            defer { ViewHosting.expel() }
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
 
+        let hasClearButton = try await MainActor.run {
             let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
             try searchField.setInput("test")
             
@@ -239,19 +266,13 @@ struct ViolationInspectorViewInteractionTests {
                 try clearButton.tap()
             }
 
-            let updatedField = try viewCapture.inspect().find(ViewType.TextField.self)
-            return (clearButton != nil, try updatedField.input())
+            return clearButton != nil
         }
-        
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Wait for clearing to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         // Verify search field is cleared if button was found
         if hasClearButton {
-            #expect(inputValue.isEmpty, "Clear filters should clear search field")
+            let didClear = await waitForSearchFieldInput(in: viewCapture, expected: "")
+            #expect(didClear == true, "Clear filters should clear search field")
         }
     }
     
@@ -322,7 +343,13 @@ struct ViolationInspectorViewInteractionTests {
         // Find the search TextField and enter text to trigger empty state
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let (hasClearButton, inputValue) = try await MainActor.run {
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+        }
+        defer { Task { @MainActor in ViewHosting.expel() } }
+
+        let hasClearButton = try await MainActor.run {
             let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
             try searchField.setInput("nonexistent")
             
@@ -331,20 +358,15 @@ struct ViolationInspectorViewInteractionTests {
             let clearButton = try? clearText?.parent().find(ViewType.Button.self)
             if let clearButton = clearButton {
                 try clearButton.tap()
-                return (true, try searchField.input())
+                return true
             }
-            return (false, try searchField.input())
+            return false
         }
-        
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Wait for clearing to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         // Verify search field is cleared if button was found
         if hasClearButton {
-            #expect(inputValue.isEmpty, "Empty state clear filters should clear search field")
+            let didClear = await waitForSearchFieldInput(in: viewCapture, expected: "")
+            #expect(didClear == true, "Empty state clear filters should clear search field")
         }
     }
     
@@ -369,9 +391,6 @@ struct ViolationInspectorViewInteractionTests {
             let vStack = try viewCapture.inspect().find(ViewType.VStack.self)
             return vStack != nil
         }
-        
-        // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         #expect(hasVStack == true, "Statistics should update when filters change")
     }

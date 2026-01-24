@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Interaction tests for ViolationDetailView
@@ -70,6 +71,17 @@ struct ViolationDetailViewInteractionTests {
         .environmentObject(container)
         
         return ViewResult(view: view)
+    }
+
+    private func waitForCondition(
+        timeoutSeconds: TimeInterval = 1.0,
+        condition: @escaping @MainActor () -> Bool
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                condition()
+            }
+        }
     }
     
     @MainActor
@@ -255,10 +267,9 @@ struct ViolationDetailViewInteractionTests {
             try resolveButton.tap()
         }
         
-        // Wait a bit for async callback
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        let resolveCalled = await trackerCapture.resolveCalled
+        let resolveCalled = await waitForCondition {
+            trackerCapture.resolveCalled
+        }
         #expect(resolveCalled == true, "Resolve button should trigger onResolve callback")
     }
     

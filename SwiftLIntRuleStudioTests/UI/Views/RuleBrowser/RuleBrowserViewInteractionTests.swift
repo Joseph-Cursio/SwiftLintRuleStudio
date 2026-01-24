@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Interaction tests for RuleBrowserView
@@ -80,6 +81,54 @@ struct RuleBrowserViewInteractionTests {
 
         return ViewResult(view: view, container: container)
     }
+
+    private func waitForText(
+        in view: AnyView,
+        text: String,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        nonisolated(unsafe) let viewCapture = view
+        return await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: text,
+            timeout: timeoutSeconds
+        )
+    }
+
+    private func waitForList(
+        in view: AnyView,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        nonisolated(unsafe) let viewCapture = view
+        struct ViewWrapper: @unchecked Sendable {
+            let view: AnyView
+        }
+        let wrapper = ViewWrapper(view: viewCapture)
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                let splitView = try? wrapper.view.inspect().find(ViewType.NavigationSplitView.self)
+                return (try? splitView?.find(ViewType.List.self)) != nil
+            }
+        }
+    }
+
+    private func waitForSearchFieldInput(
+        in view: AnyView,
+        expected: String,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        nonisolated(unsafe) let viewCapture = view
+        struct ViewWrapper: @unchecked Sendable {
+            let view: AnyView
+        }
+        let wrapper = ViewWrapper(view: viewCapture)
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                let searchField = try? wrapper.view.inspect().find(ViewType.TextField.self)
+                return (try? searchField?.input()) == expected
+            }
+        }
+    }
     
     // MARK: - Search Interaction Tests
     
@@ -122,9 +171,6 @@ struct RuleBrowserViewInteractionTests {
             return try searchField.input()
         }
         
-        // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 300_000_000)
-        
         // Verify search field has the input
         #expect(inputValue == "force_cast", "Search should filter by rule ID")
     }
@@ -146,9 +192,6 @@ struct RuleBrowserViewInteractionTests {
             
             return try searchField.input()
         }
-        
-        // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 300_000_000)
         
         // Verify input was set
         #expect(inputValue == "Force Cast", "Search should filter by rule name")
@@ -172,9 +215,6 @@ struct RuleBrowserViewInteractionTests {
             return try searchField.input()
         }
         
-        // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 300_000_000)
-        
         // Verify input was set
         #expect(inputValue == "violation", "Search should filter by description")
     }
@@ -196,9 +236,6 @@ struct RuleBrowserViewInteractionTests {
             
             return try searchField.input()
         }
-        
-        // Wait for filtering to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
         
         // Verify input was set
         #expect(inputValue == "FORCE_CAST", "Search should accept case insensitive input")
@@ -259,9 +296,6 @@ struct RuleBrowserViewInteractionTests {
             return navigationSplitView != nil
         }
         
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
         #expect(hasNavigationSplitView == true, "Clear filters button should appear when filters are active")
     }
     
@@ -285,9 +319,6 @@ struct RuleBrowserViewInteractionTests {
             return navigationSplitView != nil
         }
         
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
         #expect(hasNavigationSplitView == true, "Clear filters should clear all filters")
     }
     
@@ -303,14 +334,7 @@ struct RuleBrowserViewInteractionTests {
         // Find the List view
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        // Allow Combine update to propagate filtered rules
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        let hasListAfterUpdate = try? await MainActor.run {
-            let splitView = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
-            _ = try splitView.find(ViewType.List.self)
-            return true
-        }
+        let hasListAfterUpdate = await waitForList(in: viewCapture)
         #expect(hasListAfterUpdate == true, "RuleBrowserView should render List after rules load")
     }
     
@@ -325,7 +349,7 @@ struct RuleBrowserViewInteractionTests {
         // Find the search TextField and enter text to trigger empty state
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
-        let (hasClearButton, inputValue) = try await MainActor.run {
+        let hasClearButton = try await MainActor.run {
             let searchField = try viewCapture.inspect().find(ViewType.TextField.self)
             try searchField.setInput("nonexistent")
             
@@ -336,21 +360,15 @@ struct RuleBrowserViewInteractionTests {
                 let button = try? clearButton.parent().find(ViewType.Button.self)
                 if let button = button {
                     try button.tap()
-                    return (true, try searchField.input())
+                    return true
                 }
             }
-            return (false, try searchField.input())
+            return false
         }
         
-        // Wait for UI update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Wait for clearing to occur
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Verify search field is cleared if button was found
         if hasClearButton {
-            #expect(inputValue.isEmpty, "Empty state clear filters should clear search field")
+            let didClear = await waitForSearchFieldInput(in: viewCapture, expected: "")
+            #expect(didClear == true, "Empty state clear filters should clear search field")
         }
     }
 
@@ -370,11 +388,7 @@ struct RuleBrowserViewInteractionTests {
             return true
         }
 
-        try await Task.sleep(nanoseconds: 100_000_000)
-
-        let hasEmptyState = try await MainActor.run {
-            (try? viewCapture.inspect().find(text: "No rules found")) != nil
-        }
+        let hasEmptyState = await waitForText(in: viewCapture, text: "No rules found")
 
         #expect(hasGuidance == true, "Search input should be applied")
         #expect(hasEmptyState == true, "Empty state should show no rules message")

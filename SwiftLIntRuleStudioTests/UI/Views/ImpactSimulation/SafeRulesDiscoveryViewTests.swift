@@ -220,12 +220,18 @@ struct SafeRulesDiscoveryViewTests {
         }
         #expect(didTapDiscover == true)
 
-        try await Task.sleep(nanoseconds: 200_000_000)
-
+        let didComplete = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 4.0) {
+            let (findCalls, simulateCalls) = await MainActor.run {
+                let mock = container.impactSimulator as? MockImpactSimulator
+                return (mock?.findSafeRulesCalls ?? 0, mock?.simulateRuleCalls ?? 0)
+            }
+            return findCalls >= 1 && simulateCalls >= 2
+        }
         let (findCalls, simulateCalls) = await MainActor.run {
             let mock = container.impactSimulator as? MockImpactSimulator
             return (mock?.findSafeRulesCalls ?? 0, mock?.simulateRuleCalls ?? 0)
         }
+        #expect(didComplete == true)
         #expect(findCalls == 1)
         #expect(simulateCalls == 2)
 
@@ -265,23 +271,31 @@ struct SafeRulesDiscoveryViewTests {
         }
         defer { Task { @MainActor in ViewHosting.expel() } }
 
-        @MainActor
-        func waitForText(_ text: String) async -> Bool {
-            for _ in 0..<60 {
-                let found = (try? viewCapture.inspect().find(text: text)) != nil
-                if found {
-                    return true
-                }
-                try? await Task.sleep(nanoseconds: 100_000_000)
-            }
-            return false
-        }
-
-        let hasSummary = await waitForText("Found 2 safe rules")
-        let hasSelectAll = await waitForText("Select All")
-        let hasDeselectAll = await waitForText("Deselect All")
-        let hasRule1 = await waitForText("safe_rule_1")
-        let hasRule2 = await waitForText("safe_rule_2")
+        let hasSummary = await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: "Found 2 safe rules",
+            timeout: 3.0
+        )
+        let hasSelectAll = await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: "Select All",
+            timeout: 3.0
+        )
+        let hasDeselectAll = await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: "Deselect All",
+            timeout: 3.0
+        )
+        let hasRule1 = await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: "safe_rule_1",
+            timeout: 3.0
+        )
+        let hasRule2 = await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: "safe_rule_2",
+            timeout: 3.0
+        )
 
         #expect(hasSummary == true)
         #expect(hasSelectAll == true)

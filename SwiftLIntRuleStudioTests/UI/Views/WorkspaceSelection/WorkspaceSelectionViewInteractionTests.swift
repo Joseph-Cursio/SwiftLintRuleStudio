@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Interaction tests for WorkspaceSelectionView
@@ -33,6 +34,30 @@ struct WorkspaceSelectionViewInteractionTests {
             return text == label
         }
     }
+
+    private func waitForWorkspace(
+        _ workspaceManager: WorkspaceManager,
+        exists: Bool,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                (workspaceManager.currentWorkspace != nil) == exists
+            }
+        }
+    }
+
+    private func waitForRecentWorkspaces(
+        _ workspaceManager: WorkspaceManager,
+        isEmpty: Bool,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                workspaceManager.recentWorkspaces.isEmpty == isEmpty
+            }
+        }
+    }
     
     // MARK: - Button Interaction Tests
     
@@ -50,9 +75,6 @@ struct WorkspaceSelectionViewInteractionTests {
             try openButton.tap()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
         // Verify button is tappable (no crash)
         #expect(true, "Open Workspace button should trigger file picker")
     }
@@ -69,8 +91,8 @@ struct WorkspaceSelectionViewInteractionTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
+        #expect(didOpenWorkspace == true, "Workspace should open before closing")
         
         // Recreate the view after opening workspace so the button is visible
         let view = await MainActor.run {
@@ -84,14 +106,8 @@ struct WorkspaceSelectionViewInteractionTests {
             try closeButton.tap()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Verify workspace is closed
-        let currentWorkspace = await MainActor.run {
-            workspaceManager.currentWorkspace
-        }
-        #expect(currentWorkspace == nil, "Close Workspace button should close workspace")
+        let didCloseWorkspace = await waitForWorkspace(workspaceManager, exists: false)
+        #expect(didCloseWorkspace == true, "Close Workspace button should close workspace")
     }
     
     // MARK: - Recent Workspace Interaction Tests
@@ -109,8 +125,8 @@ struct WorkspaceSelectionViewInteractionTests {
             workspaceManager.closeWorkspace()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
+        #expect(didRegisterRecent == true, "Recent workspaces should register")
         
         // Recreate the view after recent workspaces update
         let view = await MainActor.run {
@@ -141,14 +157,8 @@ struct WorkspaceSelectionViewInteractionTests {
             workspaceManager.closeWorkspace()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Verify recent workspaces exist
-        let hasRecentWorkspaces = await MainActor.run {
-            !workspaceManager.recentWorkspaces.isEmpty
-        }
-        #expect(hasRecentWorkspaces == true, "Should have recent workspaces")
+        let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
+        #expect(didRegisterRecent == true, "Should have recent workspaces")
         
         // Recreate the view after recent workspaces update
         let view = await MainActor.run {
@@ -162,14 +172,8 @@ struct WorkspaceSelectionViewInteractionTests {
             try clearButton.tap()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
-        // Verify recent workspaces are cleared
-        let isEmpty = await MainActor.run {
-            workspaceManager.recentWorkspaces.isEmpty
-        }
-        #expect(isEmpty == true, "Clear button should clear recent workspaces")
+        let didClear = await waitForRecentWorkspaces(workspaceManager, isEmpty: true)
+        #expect(didClear == true, "Clear button should clear recent workspaces")
     }
     
     @Test("WorkspaceSelectionView remove button removes workspace from recent")
@@ -185,12 +189,11 @@ struct WorkspaceSelectionViewInteractionTests {
             workspaceManager.closeWorkspace()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
+        let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
         let initialCount = await MainActor.run {
             workspaceManager.recentWorkspaces.count
         }
+        #expect(didRegisterRecent == true, "Should have recent workspaces")
         
         // Recreate the view after recent workspaces update
         let view = await MainActor.run {

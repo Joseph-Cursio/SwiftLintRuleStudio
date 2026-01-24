@@ -16,9 +16,6 @@ excluded:
 # Disable rules that are too strict for this project
 disabled_rules:
   - todo                      # Allow TODO comments during development
-  - file_length               # Large views/services exceed limits
-  - function_body_length      # Some helpers are intentionally long
-  - type_body_length          # Several core types exceed limits
 
 # Opt-in rules (enable specific rules that are valuable)
 opt_in_rules:

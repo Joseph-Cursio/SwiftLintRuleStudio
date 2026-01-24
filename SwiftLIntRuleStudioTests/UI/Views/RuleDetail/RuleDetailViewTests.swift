@@ -336,17 +336,11 @@ struct RuleDetailViewTests {
 
         viewModel.updateEnabled(false)
 
-        func waitForText(_ text: String) async -> Bool {
-            for _ in 0..<20 {
-                let found = (try? viewCapture.inspect().find(text: text)) != nil
-                if found {
-                    return true
-                }
-                try? await Task.sleep(nanoseconds: 50_000_000)
-            }
-            return false
-        }
-        let hasSimulateText = await waitForText("Simulate Impact")
+        let hasSimulateText = await UIAsyncTestHelpers.waitForText(
+            in: viewCapture,
+            text: "Simulate Impact",
+            timeout: 1.0
+        )
 
         #expect(hasSimulateButton == true)
         #expect(hasSimulateText == true)

@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Interaction tests for ConfigDiffPreviewView
@@ -65,6 +66,17 @@ struct ConfigDiffPreviewViewInteractionTests {
             return ViewResult(view: result.view, tracker: result.tracker)
         }.value
     }
+
+    private func waitForCondition(
+        timeoutSeconds: TimeInterval = 1.0,
+        condition: @escaping @MainActor () -> Bool
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                condition()
+            }
+        }
+    }
     
     // MARK: - Button Interaction Tests
     
@@ -84,11 +96,8 @@ struct ConfigDiffPreviewViewInteractionTests {
             try button.tap()
         }
         
-        // Wait for callback
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
         // Verify callback was called
-        let cancelCalled = await MainActor.run {
+        let cancelCalled = await waitForCondition {
             tracker.cancelCalled
         }
         #expect(cancelCalled == true, "Cancel button should call onCancel")
@@ -110,11 +119,8 @@ struct ConfigDiffPreviewViewInteractionTests {
             try button.tap()
         }
         
-        // Wait for callback
-        try await Task.sleep(nanoseconds: 100_000_000)
-        
         // Verify callback was called
-        let saveCalled = await MainActor.run {
+        let saveCalled = await waitForCondition {
             tracker.saveCalled
         }
         #expect(saveCalled == true, "Save Changes button should call onSave")

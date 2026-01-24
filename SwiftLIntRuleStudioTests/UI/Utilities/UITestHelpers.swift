@@ -270,14 +270,48 @@ enum UIAsyncTestHelpers {
         }
         return false
     }
+
+    /// Waits for an async condition to become true
+    static func waitForConditionAsync(
+        timeout: TimeInterval = 1.0,
+        interval: TimeInterval = 0.05,
+        condition: @escaping () async -> Bool
+    ) async -> Bool {
+        let startTime = Date()
+        while Date().timeIntervalSince(startTime) < timeout {
+            if await condition() {
+                return true
+            }
+            try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        }
+        return false
+    }
+
+    /// Waits for a MainActor condition to become true
+    @MainActor
+    static func waitForConditionOnMainActor(
+        timeout: TimeInterval = 1.0,
+        interval: TimeInterval = 0.05,
+        condition: @escaping () -> Bool
+    ) async -> Bool {
+        let startTime = Date()
+        while Date().timeIntervalSince(startTime) < timeout {
+            if condition() {
+                return true
+            }
+            try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        }
+        return false
+    }
     
     /// Waits for text to appear in a view
+    @MainActor
     static func waitForText(
         in view: some View,
         text: String,
         timeout: TimeInterval = 1.0
     ) async -> Bool {
-        return await waitForCondition(timeout: timeout) {
+        return await waitForConditionOnMainActor(timeout: timeout) {
             do {
                 let inspectable = try view.inspect()
                 return inspectable.containsText(text)

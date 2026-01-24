@@ -385,8 +385,9 @@ struct RuleDetailViewModelIntegrationTests {
             try await viewModel.saveConfiguration()
         }.value
         
-        // Give notification time to post
-        try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        _ = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 1.0) {
+            notificationReceived
+        }
         
         #expect(notificationReceived == true)
         #expect(receivedRuleId == "test_rule")

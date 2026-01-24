@@ -21,12 +21,33 @@ private func makeRulesTableData(rows: [String]) -> Data {
     return Data(lines.joined(separator: "\n").utf8)
 }
 
+private final class HangGate: @unchecked Sendable {
+    private var continuation: CheckedContinuation<Void, Never>?
+    private let lock = NSLock()
+
+    func wait() async {
+        await withCheckedContinuation { continuation in
+            lock.lock()
+            self.continuation = continuation
+            lock.unlock()
+        }
+    }
+
+    func open() {
+        lock.lock()
+        continuation?.resume()
+        continuation = nil
+        lock.unlock()
+    }
+}
+
 // Mock implementations for testing
 actor MockSwiftLintCLI: SwiftLintCLIProtocol {
     private let shouldFail: Bool
     private let mockRulesData: Data?
     private var mockLintOutput: Data = Data()
     private var shouldHang: Bool = false
+    private let hangGate = HangGate()
     var lintCommandHandler: (@Sendable (URL?, URL) async throws -> Data)?
     
     init(shouldFail: Bool = false, mockRulesData: Data? = nil) {
@@ -40,6 +61,9 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
     
     func setShouldHang(_ value: Bool) {
         shouldHang = value
+        if !value {
+            hangGate.open()
+        }
     }
     
     func setLintCommandHandler(_ handler: @escaping @Sendable (URL?, URL) async throws -> Data) {
@@ -135,7 +159,12 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
     
     func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
         if shouldHang {
-            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            return await withTaskCancellationHandler {
+                await hangGate.wait()
+                return Data()
+            } onCancel: {
+                hangGate.open()
+            }
         }
         
         if shouldFail {

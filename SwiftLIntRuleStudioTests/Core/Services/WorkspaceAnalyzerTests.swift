@@ -57,6 +57,18 @@ struct WorkspaceAnalyzerTests {
             Workspace(path: tempDir)
         }
     }
+
+    private func waitForAnalyzingState(
+        _ analyzer: WorkspaceAnalyzer,
+        expected: Bool,
+        timeoutSeconds: TimeInterval = 0.2
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds, interval: 0.02) {
+            await MainActor.run {
+                analyzer.isAnalyzing == expected
+            }
+        }
+    }
     
     private func cleanupTempWorkspace(_ workspace: Workspace) async {
         let path = await MainActor.run { workspace.path }
@@ -283,8 +295,7 @@ struct WorkspaceAnalyzerTests {
                 try await analyzer.analyze(workspace: workspace)
             }
             
-            // Give it a moment to start
-            try await Task.sleep(nanoseconds: 10_000_000) // 10ms
+            _ = await waitForAnalyzingState(analyzer, expected: true)
             
             // Note: Due to async nature, we can't reliably test isAnalyzing during execution
             // but we can verify it's false after completion
@@ -316,8 +327,7 @@ struct WorkspaceAnalyzerTests {
                 try await analyzer.analyze(workspace: workspace)
             }
             
-            // Cancel after a short delay
-            try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            _ = await waitForAnalyzingState(analyzer, expected: true)
             analyzer.cancelAnalysis()
             
             // Task should be cancelled

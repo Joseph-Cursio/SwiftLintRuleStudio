@@ -328,9 +328,34 @@ struct SwiftLintCLITests {
 
     @Test("SwiftLintCLI readWithTimeout handles timeout")
     func testReadWithTimeoutTimeout() async throws {
+        final class HangGate: @unchecked Sendable {
+            private var continuation: CheckedContinuation<Void, Never>?
+            private let lock = NSLock()
+
+            func wait() async {
+                await withCheckedContinuation { continuation in
+                    lock.lock()
+                    self.continuation = continuation
+                    lock.unlock()
+                }
+            }
+
+            func open() {
+                lock.lock()
+                continuation?.resume()
+                continuation = nil
+                lock.unlock()
+            }
+        }
+
+        let gate = HangGate()
         let read: @Sendable () async -> (Data, Data) = {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            return (Data(), Data())
+            return await withTaskCancellationHandler {
+                await gate.wait()
+                return (Data(), Data())
+            } onCancel: {
+                gate.open()
+            }
         }
         actor TimeoutTracker {
             var didTimeout = false

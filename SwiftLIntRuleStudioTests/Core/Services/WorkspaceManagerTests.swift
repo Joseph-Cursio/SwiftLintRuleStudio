@@ -308,10 +308,12 @@ struct WorkspaceManagerTests {
         let (initialTime, updatedTime) = try await withWorkspaceManagerAsync { manager in
             try manager.openWorkspace(at: tempDir)
             let initial = manager.recentWorkspaces.first?.lastAnalyzed
-            
-            // Wait a moment
-            try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-            
+            if let initial {
+                _ = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 1.0, interval: 0.01) {
+                    Date().timeIntervalSince(initial) >= 0.01
+                }
+            }
+
             // Re-open workspace
             try manager.openWorkspace(at: tempDir)
             let updated = manager.recentWorkspaces.first?.lastAnalyzed

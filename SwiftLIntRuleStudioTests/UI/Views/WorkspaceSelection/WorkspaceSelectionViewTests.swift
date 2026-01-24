@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Tests for WorkspaceSelectionView
@@ -40,6 +41,30 @@ struct WorkspaceSelectionViewTests {
             // Use nonisolated(unsafe) to bypass Sendable check for SwiftUI views
             nonisolated(unsafe) let viewCapture = view
             return (viewCapture, workspaceManager)
+        }
+    }
+
+    private func waitForWorkspace(
+        _ workspaceManager: WorkspaceManager,
+        exists: Bool,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                (workspaceManager.currentWorkspace != nil) == exists
+            }
+        }
+    }
+
+    private func waitForRecentWorkspaces(
+        _ workspaceManager: WorkspaceManager,
+        isEmpty: Bool,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                workspaceManager.recentWorkspaces.isEmpty == isEmpty
+            }
         }
     }
     
@@ -98,8 +123,8 @@ struct WorkspaceSelectionViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
+        #expect(didOpenWorkspace == true, "Workspace should open")
         
         // Verify current workspace section is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -138,8 +163,8 @@ struct WorkspaceSelectionViewTests {
             workspaceManager.closeWorkspace()
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
+        #expect(didRegisterRecent == true, "Recent workspaces should register")
         
         // Verify recent workspaces section is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -190,8 +215,8 @@ struct WorkspaceSelectionViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
+        #expect(didOpenWorkspace == true, "Workspace should open")
         
         // Verify Close Workspace button is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block

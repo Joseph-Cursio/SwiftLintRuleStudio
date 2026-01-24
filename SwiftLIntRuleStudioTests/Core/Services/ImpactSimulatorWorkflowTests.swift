@@ -278,11 +278,15 @@ struct ImpactSimulatorWorkflowTests {
             }
         }
         
-        // Wait a moment for all progress updates to be collected
-        try await Task.sleep(nanoseconds: 50_000_000) // 0.05 seconds
-        
-        // Get the collected updates
-        let progressUpdates = await progressCollector.updates
+        var progressUpdates: [ProgressUpdate] = []
+        let didCollectAll = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 1.0) {
+            let updates = await progressCollector.updates
+            progressUpdates = updates
+            return updates.count == ruleIds.count
+        }
+        if !didCollectAll {
+            progressUpdates = await progressCollector.updates
+        }
         
         // Extract results count inside MainActor context
         let resultsCount = await MainActor.run {

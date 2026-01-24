@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Tests for ConfigRecommendationView
@@ -30,6 +31,18 @@ struct ConfigRecommendationViewTests {
             let view = ConfigRecommendationView(workspaceManager: workspaceManager)
             
             return (view, workspaceManager)
+        }
+    }
+
+    private func waitForConfigFileMissing(
+        _ workspaceManager: WorkspaceManager,
+        expected: Bool,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                workspaceManager.configFileMissing == expected
+            }
         }
     }
     
@@ -64,8 +77,8 @@ struct ConfigRecommendationViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Verify recommendation is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -89,8 +102,8 @@ struct ConfigRecommendationViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find header text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -114,8 +127,8 @@ struct ConfigRecommendationViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find description text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -145,8 +158,8 @@ struct ConfigRecommendationViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find benefit text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -172,8 +185,8 @@ struct ConfigRecommendationViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find Create button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -197,8 +210,8 @@ struct ConfigRecommendationViewTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find Learn More button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block

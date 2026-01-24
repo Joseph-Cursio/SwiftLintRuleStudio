@@ -8,6 +8,7 @@
 import Testing
 import ViewInspector
 import SwiftUI
+import Foundation
 @testable import SwiftLIntRuleStudio
 
 // Tests for SidebarView
@@ -50,6 +51,18 @@ struct SidebarViewTests {
             .environmentObject(ruleRegistry)
         
         return ViewResult(view: view, dependencies: dependencies)
+    }
+
+    private func waitForWorkspace(
+        _ workspaceManager: WorkspaceManager,
+        exists: Bool,
+        timeoutSeconds: TimeInterval = 1.0
+    ) async -> Bool {
+        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+            await MainActor.run {
+                (workspaceManager.currentWorkspace != nil) == exists
+            }
+        }
     }
     
     // MARK: - Initialization Tests
@@ -101,8 +114,8 @@ struct SidebarViewTests {
             try dependencies.workspaceManager.openWorkspace(at: tempDir)
         }
         
-        // Wait for state update
-        try await Task.sleep(nanoseconds: 100_000_000)
+        let didOpenWorkspace = await waitForWorkspace(dependencies.workspaceManager, exists: true)
+        #expect(didOpenWorkspace == true, "Workspace should open")
         
         // Verify workspace section is shown
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
