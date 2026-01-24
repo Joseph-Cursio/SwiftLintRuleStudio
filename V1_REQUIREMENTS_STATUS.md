@@ -454,8 +454,20 @@ This document tracks the implementation status of features required for v1.0 rel
 - Impact simulation is fully implemented with comprehensive test coverage (21 tests)
 - All critical P0 features for v1.0 are now complete
 - Focus should shift to remaining Phase 2 features (Xcode integration)
+- **Remaining gaps**:
+  - Xcode integration ("Open in Xcode", file:line URL generation)
+  - Rule Detail missing sections (Why this matters, Related rules, Swift Evolution links, violations count)
+  - Violation Inspector enhancements (grouping, bulk ops, export, navigation, keyboard shortcuts)
+  - YAML engine UI polish (undo, explain changes, dry-run UI, optional Git integration)
+  - Exclusion path recommendations (v1.1)
 
 ## Recent Updates
+
+**January 23, 2026:**
+- ✅ Refactored large files into focused extensions to comply with SwiftLint `file_length`, `function_body_length`, and `type_body_length`
+- ✅ Consolidated async UI wait helpers to reduce flaky tests (polling over fixed sleeps)
+- ✅ Stabilized test suite with controllable hang stubs for timeout simulations
+- ✅ SwiftLint rules now only disable `todo`
 
 **December 26, 2025:**
 - ✅ Completed Swift 6 migration with targeted strict concurrency
