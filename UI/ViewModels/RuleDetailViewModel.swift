@@ -56,8 +56,26 @@ class RuleDetailViewModel: ObservableObject {
         
         // Update local state from config
         if let ruleConfig = config.rules[rule.id] {
-            self.isEnabled = ruleConfig.enabled
             self.severity = ruleConfig.severity
+            if rule.isOptIn {
+                self.isEnabled = ruleConfig.enabled
+                    && (config.optInRules?.contains(rule.id) ?? false)
+            } else {
+                self.isEnabled = ruleConfig.enabled
+            }
+        } else if let onlyRules = config.onlyRules {
+            self.isEnabled = onlyRules.contains(rule.id)
+            self.severity = rule.defaultSeverity
+        } else if config.disabledRules?.contains(rule.id) == true {
+            self.isEnabled = false
+            self.severity = rule.defaultSeverity
+        } else if rule.isOptIn {
+            if let optInRules = config.optInRules {
+                self.isEnabled = optInRules.contains(rule.id)
+            } else {
+                self.isEnabled = false
+            }
+            self.severity = rule.defaultSeverity
         } else {
             // Rule not in config - check if it's opt-in or default
             // Default rules are enabled by default, opt-in rules are disabled
@@ -148,11 +166,41 @@ class RuleDetailViewModel: ObservableObject {
                     ruleConfig.severity = sev
                 }
                 config.rules[rule.id] = ruleConfig
+
+                if rule.isOptIn {
+                    var optInRules = config.optInRules ?? []
+                    if !optInRules.contains(rule.id) {
+                        optInRules.append(rule.id)
+                        config.optInRules = optInRules
+                    }
+                }
+
+                if var disabledRules = config.disabledRules {
+                    disabledRules.removeAll { $0 == rule.id }
+                    config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
+                }
+
+                if var onlyRules = config.onlyRules {
+                    if !onlyRules.contains(rule.id) {
+                        onlyRules.append(rule.id)
+                        config.onlyRules = onlyRules
+                    }
+                }
             } else {
                 // Disable rule - set enabled: false (keep in config to explicitly disable)
                 var ruleConfig = config.rules[rule.id] ?? RuleConfiguration(enabled: false)
                 ruleConfig.enabled = false
                 config.rules[rule.id] = ruleConfig
+
+                if rule.isOptIn, var optInRules = config.optInRules {
+                    optInRules.removeAll { $0 == rule.id }
+                    config.optInRules = optInRules.isEmpty ? nil : optInRules
+                }
+
+                if var onlyRules = config.onlyRules {
+                    onlyRules.removeAll { $0 == rule.id }
+                    config.onlyRules = onlyRules.isEmpty ? nil : onlyRules
+                }
             }
             
             // Validate before saving

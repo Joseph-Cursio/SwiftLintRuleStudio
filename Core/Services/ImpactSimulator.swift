@@ -66,7 +66,8 @@ class ImpactSimulator {
     func simulateRule(
         ruleId: String,
         workspace: Workspace,
-        baseConfigPath: URL?
+        baseConfigPath: URL?,
+        isOptIn: Bool = false
     ) async throws -> RuleImpactResult {
         let startTime = Date()
         
@@ -75,7 +76,8 @@ class ImpactSimulator {
             ruleId: ruleId,
             enabled: true,
             baseConfigPath: baseConfigPath,
-            workspace: workspace
+            workspace: workspace,
+            isOptIn: isOptIn
         )
         
         defer {
@@ -122,6 +124,7 @@ class ImpactSimulator {
         ruleIds: [String],
         workspace: Workspace,
         baseConfigPath: URL?,
+        optInRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> BatchSimulationResult {
         let startTime = Date()
@@ -135,7 +138,8 @@ class ImpactSimulator {
                 let result = try await simulateRule(
                     ruleId: ruleId,
                     workspace: workspace,
-                    baseConfigPath: baseConfigPath
+                    baseConfigPath: baseConfigPath,
+                    isOptIn: optInRuleIds.contains(ruleId)
                 )
                 results.append(result)
             } catch {
@@ -172,12 +176,14 @@ class ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?,
         disabledRuleIds: [String],
+        optInRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> [String] {
         let batchResult = try await simulateRules(
             ruleIds: disabledRuleIds,
             workspace: workspace,
             baseConfigPath: baseConfigPath,
+            optInRuleIds: optInRuleIds,
             progressHandler: progressHandler
         )
         
@@ -194,7 +200,8 @@ class ImpactSimulator {
         ruleId: String,
         enabled: Bool,
         baseConfigPath: URL?,
-        workspace: Workspace
+        workspace: Workspace,
+        isOptIn: Bool
     ) throws -> URL {
         // Create temporary directory for config
         let tempDir = fileManager.temporaryDirectory
@@ -225,6 +232,23 @@ class ImpactSimulator {
             // Rule exists, update it to enabled
             ruleConfig.enabled = true
             config.rules[ruleId] = ruleConfig
+        }
+
+        // Ensure opt-in rules are enabled via opt_in_rules
+        if isOptIn {
+            var optInRules = config.optInRules ?? []
+            if !optInRules.contains(ruleId) {
+                optInRules.append(ruleId)
+                config.optInRules = optInRules
+            }
+        }
+
+        // Ensure only_rules includes this rule if configured
+        if var onlyRules = config.onlyRules {
+            if !onlyRules.contains(ruleId) {
+                onlyRules.append(ruleId)
+                config.onlyRules = onlyRules
+            }
         }
         
         // Remove from disabled rules list if present

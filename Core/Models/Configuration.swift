@@ -13,12 +13,20 @@ struct SwiftLintConfiguration: Codable {
     var included: [String]?
     var excluded: [String]?
     var reporter: String?
+    var disabledRules: [String]?
+    var optInRules: [String]?
+    var analyzerRules: [String]?
+    var onlyRules: [String]?
     
     init() {
         self.rules = [:]
         self.included = nil
         self.excluded = nil
         self.reporter = nil
+        self.disabledRules = nil
+        self.optInRules = nil
+        self.analyzerRules = nil
+        self.onlyRules = nil
     }
 }
 

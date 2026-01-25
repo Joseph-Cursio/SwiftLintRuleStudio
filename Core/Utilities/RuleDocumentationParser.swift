@@ -206,10 +206,10 @@ struct RuleDocumentationParser {
         private mutating func handleSectionHeader(_ trimmed: String) -> Bool {
             guard trimmed.hasPrefix("##") else { return false }
             let sectionName = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces).lowercased()
-            if sectionName.contains("triggering") {
-                currentSection = .triggering
-            } else if sectionName.contains("non triggering") || sectionName.contains("non-triggering") {
+            if sectionName.contains("non triggering") || sectionName.contains("non-triggering") {
                 currentSection = .nonTriggering
+            } else if sectionName.contains("triggering") {
+                currentSection = .triggering
             } else {
                 currentSection = nil
             }

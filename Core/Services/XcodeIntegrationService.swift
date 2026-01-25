@@ -186,7 +186,7 @@ class XcodeIntegrationService {
     }
     
     /// Generate xcode:// URL for opening file
-    private func generateXcodeURL(
+    func generateXcodeURL(
         fileURL: URL,
         line: Int,
         column: Int?,

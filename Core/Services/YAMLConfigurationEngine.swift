@@ -108,6 +108,10 @@ class YAMLConfigurationEngine {
             currentConfig.included = parsed.included
             currentConfig.excluded = parsed.excluded
             currentConfig.reporter = parsed.reporter
+            currentConfig.disabledRules = parsed.disabledRules
+            currentConfig.optInRules = parsed.optInRules
+            currentConfig.analyzerRules = parsed.analyzerRules
+            currentConfig.onlyRules = parsed.onlyRules
             
             // Extract comments from original content
             extractComments(from: originalContent)

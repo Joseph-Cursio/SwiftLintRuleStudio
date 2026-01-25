@@ -86,6 +86,18 @@ extension YAMLConfigurationEngine {
         if let reporter = dict["reporter"] as? String {
             config.reporter = reporter
         }
+        if let disabledRules = dict["disabled_rules"] as? [String] {
+            config.disabledRules = disabledRules
+        }
+        if let optInRules = dict["opt_in_rules"] as? [String] {
+            config.optInRules = optInRules
+        }
+        if let analyzerRules = dict["analyzer_rules"] as? [String] {
+            config.analyzerRules = analyzerRules
+        }
+        if let onlyRules = dict["only_rules"] as? [String] {
+            config.onlyRules = onlyRules
+        }
         
         return config
     }

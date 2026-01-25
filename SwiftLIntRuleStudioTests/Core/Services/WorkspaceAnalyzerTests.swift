@@ -431,6 +431,79 @@ struct WorkspaceAnalyzerTests {
         #expect(violationCount >= 0) // May be 0 or more depending on mock
         #expect(filesAnalyzed == 2)
     }
+
+    @Test("WorkspaceAnalyzer analyzeChangedFiles skips .build files")
+    func testAnalyzeChangedFilesSkipsBuildFiles() async throws {
+        let mockCLI = createMockSwiftLintCLI()
+        let mockStorage = createMockViolationStorage()
+        let workspace = try await createTempWorkspace()
+        defer { Task { await cleanupTempWorkspace(workspace) } }
+
+        let workspaceURL = await MainActor.run { workspace.path }
+        let goodFile = workspaceURL.appendingPathComponent("Good.swift")
+        try "// swift".write(to: goodFile, atomically: true, encoding: .utf8)
+
+        let buildDir = workspaceURL.appendingPathComponent(".build", isDirectory: true)
+        try FileManager.default.createDirectory(at: buildDir, withIntermediateDirectories: true)
+        let buildFile = buildDir.appendingPathComponent("Bad.swift")
+        try "// swift".write(to: buildFile, atomically: true, encoding: .utf8)
+
+        let mockViolationsJSON = """
+        [
+          {
+            "file": "\(goodFile.path)",
+            "line": 1,
+            "character": 1,
+            "severity": "warning",
+            "rule_id": "rule_one",
+            "reason": "Good file"
+          },
+          {
+            "file": "\(buildFile.path)",
+            "line": 1,
+            "character": 1,
+            "severity": "warning",
+            "rule_id": "rule_two",
+            "reason": "Build file"
+          }
+        ]
+        """
+        await setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
+
+        let (count, hasBuildFile) = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
+            let result = try await analyzer.analyzeChangedFiles(in: workspace)
+            let hasBuild = result.violations.contains { $0.filePath.contains(".build") }
+            return (result.violations.count, hasBuild)
+        }
+
+        #expect(count <= 1)
+        #expect(hasBuildFile == false)
+    }
+
+    @Test("WorkspaceAnalyzer computes config hash when config exists")
+    func testAnalyzeWorkspaceConfigHash() async throws {
+        let mockCLI = createMockSwiftLintCLI()
+        let mockStorage = createMockViolationStorage()
+        let workspace = try await createTempWorkspace()
+        defer { Task { await cleanupTempWorkspace(workspace) } }
+
+        let configPath = await MainActor.run { workspace.path.appendingPathComponent(".swiftlint.yml") }
+        try "rules: {}".write(to: configPath, atomically: true, encoding: .utf8)
+        await setupMockCLI(mockCLI, output: Data("[]".utf8))
+
+        let configHash = try await withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
+            let result = try await analyzer.analyze(workspace: workspace, configPath: configPath)
+            return result.configHash
+        }
+
+        #expect(configHash?.isEmpty == false)
+    }
 }
 
 // MARK: - Mock Implementations

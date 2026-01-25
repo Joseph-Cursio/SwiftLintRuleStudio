@@ -456,6 +456,17 @@ struct SwiftLintCLITests {
         }
     }
 
+    @Test("SwiftLintCLI executeCommandViaShell falls back to shell execution")
+    func testExecuteCommandViaShellFallbackUsesShell() async throws {
+        let fileExists: SwiftLintFileExists = { _ in false }
+        let cacheManager = await MainActor.run { CacheManager.createForTesting() }
+        let cli = await SwiftLintCLI(cacheManager: cacheManager, fileExists: fileExists)
+
+        let output = try await cli.executeCommandViaShell(command: "echo", arguments: ["hello"])
+        let outputString = String(data: output, encoding: .utf8)
+        #expect(outputString?.contains("hello") == true)
+    }
+
     @Test("SwiftLintCLI ignores warning stderr")
     func testWarningStderrDoesNotFail() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in

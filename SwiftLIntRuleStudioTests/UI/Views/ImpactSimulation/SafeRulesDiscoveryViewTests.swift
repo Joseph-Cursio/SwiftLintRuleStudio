@@ -352,7 +352,11 @@ struct SafeRulesDiscoveryViewTests {
             config.disabledRules = ["rule_1", "rule_2"]
             config.rules["rule_1"] = RuleConfiguration(enabled: false)
             
-            SafeRulesDiscoveryView.applyEnableRules(config: &config, ruleIds: ["rule_1", "rule_2"])
+            SafeRulesDiscoveryView.applyEnableRules(
+                config: &config,
+                ruleIds: ["rule_1", "rule_2"],
+                optInRuleIds: []
+            )
             
             let rule1Enabled = config.rules["rule_1"]?.enabled == true
             let rule2Enabled = config.rules["rule_2"]?.enabled == true
@@ -450,6 +454,7 @@ final class MockImpactSimulator: ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?,
         disabledRuleIds: [String],
+        optInRuleIds: Set<String>,
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> [String] {
         await Task.yield()
@@ -463,7 +468,8 @@ final class MockImpactSimulator: ImpactSimulator {
     override func simulateRule(
         ruleId: String,
         workspace: Workspace,
-        baseConfigPath: URL?
+        baseConfigPath: URL?,
+        isOptIn: Bool
     ) async throws -> RuleImpactResult {
         await Task.yield()
         simulateRuleCalls += 1

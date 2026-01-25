@@ -198,14 +198,14 @@ extension RuleRegistry {
         var currentExample: [String] = []
 
         for line in lines {
-            if line.contains("Triggering Examples") {
-                inTriggeringExamples = true
-                inNonTriggeringExamples = false
-                continue
-            }
             if line.contains("Non-Triggering Examples") || line.contains("Non Triggering Examples") {
                 inNonTriggeringExamples = true
                 inTriggeringExamples = false
+                continue
+            }
+            if line.contains("Triggering Examples") {
+                inTriggeringExamples = true
+                inNonTriggeringExamples = false
                 continue
             }
             if line.contains("Configuration") || line.isEmpty {

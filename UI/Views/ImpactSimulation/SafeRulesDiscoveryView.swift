@@ -203,10 +203,15 @@ struct SafeRulesDiscoveryView: View {
         
         Task {
             do {
-                // Get all disabled rules from registry
-                let allRules = dependencies.ruleRegistry.rules
-                let disabledRules = allRules.filter { !$0.isEnabled }
-                let disabledRuleIds = disabledRules.map { $0.id }
+                var allRules = dependencies.ruleRegistry.rules
+                if allRules.isEmpty {
+                    allRules = try await dependencies.ruleRegistry.loadRules()
+                }
+                let optInRuleIds = Set(allRules.filter { $0.isOptIn }.map { $0.id })
+                let config = loadConfiguration(for: workspace)
+                let disabledRuleIds = allRules
+                    .filter { !isRuleEnabled($0, config: config) }
+                    .map { $0.id }
                 
                 guard !disabledRuleIds.isEmpty else {
                     await MainActor.run {
@@ -219,7 +224,8 @@ struct SafeRulesDiscoveryView: View {
                 let safeRuleIds = try await dependencies.impactSimulator.findSafeRules(
                     workspace: workspace,
                     baseConfigPath: workspace.configPath,
-                    disabledRuleIds: disabledRuleIds
+                    disabledRuleIds: disabledRuleIds,
+                    optInRuleIds: optInRuleIds
                 ) { current, total, ruleId in
                     Task { @MainActor in
                         discoveryProgress = DiscoveryProgress(current: current, total: total, ruleId: ruleId)
@@ -229,10 +235,12 @@ struct SafeRulesDiscoveryView: View {
                 // Get full results for safe rules
                 var results: [RuleImpactResult] = []
                 for ruleId in safeRuleIds {
+                    let isOptIn = optInRuleIds.contains(ruleId)
                     let result = try await dependencies.impactSimulator.simulateRule(
                         ruleId: ruleId,
                         workspace: workspace,
-                        baseConfigPath: workspace.configPath
+                        baseConfigPath: workspace.configPath,
+                        isOptIn: isOptIn
                     )
                     results.append(result)
                 }
@@ -253,6 +261,39 @@ struct SafeRulesDiscoveryView: View {
             }
         }
     }
+
+    private func loadConfiguration(for workspace: Workspace) -> YAMLConfigurationEngine.YAMLConfig {
+        let configPath = workspace.configPath ?? workspace.path.appendingPathComponent(".swiftlint.yml")
+        let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+        do {
+            try yamlEngine.load()
+            return yamlEngine.getConfig()
+        } catch {
+            return YAMLConfigurationEngine.YAMLConfig()
+        }
+    }
+
+    private func isRuleEnabled(_ rule: Rule, config: YAMLConfigurationEngine.YAMLConfig) -> Bool {
+        if let onlyRules = config.onlyRules {
+            return onlyRules.contains(rule.id)
+        }
+        if rule.isOptIn {
+            if let ruleConfig = config.rules[rule.id], ruleConfig.enabled == false {
+                return false
+            }
+            if let optInRules = config.optInRules {
+                return optInRules.contains(rule.id)
+            }
+            return false
+        }
+        if config.disabledRules?.contains(rule.id) == true {
+            return false
+        }
+        if let ruleConfig = config.rules[rule.id] {
+            return ruleConfig.enabled
+        }
+        return true
+    }
     
     private func enableSelectedRules() {
         guard let workspace = dependencies.workspaceManager.currentWorkspace,
@@ -267,7 +308,12 @@ struct SafeRulesDiscoveryView: View {
                 let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
                 try yamlEngine.load()
                 var config = yamlEngine.getConfig()
-                Self.applyEnableRules(config: &config, ruleIds: Array(selectedRules))
+                let optInRuleIds = Set(dependencies.ruleRegistry.rules.filter { $0.isOptIn }.map { $0.id })
+                Self.applyEnableRules(
+                    config: &config,
+                    ruleIds: Array(selectedRules),
+                    optInRuleIds: optInRuleIds
+                )
                 
                 try yamlEngine.save(config: config, createBackup: true)
                 
@@ -294,7 +340,8 @@ struct SafeRulesDiscoveryView: View {
 
     static func applyEnableRules(
         config: inout YAMLConfigurationEngine.YAMLConfig,
-        ruleIds: [String]
+        ruleIds: [String],
+        optInRuleIds: Set<String>
     ) {
         for ruleId in ruleIds {
             if config.rules[ruleId] == nil {
@@ -309,6 +356,21 @@ struct SafeRulesDiscoveryView: View {
             if var disabledRules = config.disabledRules {
                 disabledRules.removeAll { $0 == ruleId }
                 config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
+            }
+
+            if optInRuleIds.contains(ruleId) {
+                var optInRules = config.optInRules ?? []
+                if !optInRules.contains(ruleId) {
+                    optInRules.append(ruleId)
+                    config.optInRules = optInRules
+                }
+            }
+
+            if var onlyRules = config.onlyRules {
+                if !onlyRules.contains(ruleId) {
+                    onlyRules.append(ruleId)
+                    config.onlyRules = onlyRules
+                }
             }
         }
     }

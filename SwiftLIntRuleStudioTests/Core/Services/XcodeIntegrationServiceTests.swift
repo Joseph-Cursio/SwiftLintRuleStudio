@@ -210,6 +210,47 @@ struct XcodeIntegrationServiceTests {
             #expect(projectURL == nil)
         }
     }
+
+    @Test("XcodeIntegrationError provides descriptions")
+    func testXcodeIntegrationErrorDescriptions() {
+        let errors: [XcodeIntegrationError] = [
+            .fileNotFound(path: "/tmp/missing.swift"),
+            .invalidPath(path: ""),
+            .xcodeNotInstalled,
+            .failedToOpen
+        ]
+        for error in errors {
+            #expect(error.errorDescription?.isEmpty == false)
+        }
+    }
+
+    @Test("XcodeIntegrationService generates xcode:// URL")
+    func testGenerateXcodeURL() async throws {
+        let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
+
+        let fileURL = workspace.appendingPathComponent("TestFile.swift")
+        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
+
+        try await withService { service, _ in
+            let url = service.generateXcodeURL(
+                fileURL: fileURL,
+                line: 42,
+                column: 3,
+                projectURL: nil
+            )
+            #expect(url?.scheme == "xcode")
+            #expect(url?.absoluteString.contains("line=42") == true)
+            #expect(url?.absoluteString.contains("column=3") == true)
+        }
+    }
+
+    @Test("XcodeIntegrationService checks for Xcode installation")
+    func testIsXcodeInstalledReturnsBool() async throws {
+        try await withService { service, _ in
+            let _ = service.isXcodeInstalled()
+        }
+    }
     
     @Test("Caches project locations")
     func testProjectCaching() async throws {

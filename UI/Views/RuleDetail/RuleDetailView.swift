@@ -219,7 +219,8 @@ struct RuleDetailView: View {
                 let result = try await dependencies.impactSimulator.simulateRule(
                     ruleId: rule.id,
                     workspace: workspace,
-                    baseConfigPath: workspace.configPath
+                    baseConfigPath: workspace.configPath,
+                    isOptIn: rule.isOptIn
                 )
                 
                 await MainActor.run {
