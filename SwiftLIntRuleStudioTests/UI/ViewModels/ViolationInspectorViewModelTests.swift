@@ -879,6 +879,34 @@ struct ViolationInspectorViewModelTests {
         }
         #expect(currentId == previousId)
     }
+
+    @Test("ViolationInspectorViewModel selects first when next called without selection")
+    func testSelectNextWithoutSelection() async throws {
+        let mockStorage = createMockViolationStorage()
+        let viewModel = await createViolationInspectorViewModel(violationStorage: mockStorage)
+        
+        let workspaceId = UUID()
+        let violations = [
+            createTestViolation(id: UUID(), ruleID: "rule1"),
+            createTestViolation(id: UUID(), ruleID: "rule2")
+        ]
+        
+        try await mockStorage.storeViolations(violations, for: workspaceId)
+        try await viewModel.loadViolations(for: workspaceId)
+        
+        await MainActor.run {
+            viewModel.selectedViolationId = nil
+            viewModel.selectNextViolation()
+        }
+        
+        let selectedId = await MainActor.run {
+            viewModel.selectedViolationId
+        }
+        let expectedId = await MainActor.run {
+            violations.first?.id
+        }
+        #expect(selectedId == expectedId)
+    }
     
     @Test("ViolationInspectorViewModel handles previous violation at start of list")
     func testSelectPreviousAtStart() async throws {
@@ -912,6 +940,61 @@ struct ViolationInspectorViewModelTests {
             viewModel.selectedViolationId
         }
         #expect(currentId == previousId)
+    }
+
+    @Test("ViolationInspectorViewModel selects last when previous called without selection")
+    func testSelectPreviousWithoutSelection() async throws {
+        let mockStorage = createMockViolationStorage()
+        let viewModel = await createViolationInspectorViewModel(violationStorage: mockStorage)
+        
+        let workspaceId = UUID()
+        let violations = [
+            createTestViolation(id: UUID(), ruleID: "rule1"),
+            createTestViolation(id: UUID(), ruleID: "rule2")
+        ]
+        
+        try await mockStorage.storeViolations(violations, for: workspaceId)
+        try await viewModel.loadViolations(for: workspaceId)
+        
+        await MainActor.run {
+            viewModel.selectedViolationId = nil
+            viewModel.selectPreviousViolation()
+        }
+        
+        let selectedId = await MainActor.run {
+            viewModel.selectedViolationId
+        }
+        let expectedId = await MainActor.run {
+            violations.last?.id
+        }
+        #expect(selectedId == expectedId)
+    }
+
+    @Test("ViolationInspectorViewModel syncs selection from multi-select")
+    func testSelectionSyncFromSet() async throws {
+        let mockStorage = createMockViolationStorage()
+        let viewModel = await createViolationInspectorViewModel(violationStorage: mockStorage)
+
+        let workspaceId = UUID()
+        let violations = [
+            createTestViolation(id: UUID(), ruleID: "rule1"),
+            createTestViolation(id: UUID(), ruleID: "rule2")
+        ]
+
+        try await mockStorage.storeViolations(violations, for: workspaceId)
+        try await viewModel.loadViolations(for: workspaceId)
+
+        let selectedId = await MainActor.run {
+            violations[1].id
+        }
+        await MainActor.run {
+            viewModel.selectedViolationIds = [selectedId]
+        }
+
+        let primaryId = await MainActor.run {
+            viewModel.selectedViolationId
+        }
+        #expect(primaryId == selectedId)
     }
     
     @Test("ViolationInspectorViewModel combines multiple filters")

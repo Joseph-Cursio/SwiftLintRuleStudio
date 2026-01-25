@@ -11,8 +11,6 @@ import UniformTypeIdentifiers
 struct ViolationInspectorView: View {
     @EnvironmentObject var dependencies: DependencyContainer
     @StateObject private var viewModel: ViolationInspectorViewModel
-    @State private var selectedViolationId: UUID?
-    @State private var workspaceId: UUID?
     
     init() {
         // Create temporary storage for initialization
@@ -52,7 +50,7 @@ struct ViolationInspectorView: View {
             violationListView
         } detail: {
             // Detail: Violation Detail or Empty State
-            if let selectedViolationId = selectedViolationId,
+            if let selectedViolationId = viewModel.selectedViolationId,
                let violation = viewModel.filteredViolations.first(where: { $0.id == selectedViolationId }) {
                 ViolationDetailView(
                     violation: violation,
@@ -107,13 +105,6 @@ struct ViolationInspectorView: View {
                 }
             }
         }
-        .onChange(of: viewModel.filteredViolations) {
-            // Clear selection if selected violation is no longer in filtered list
-            if let selectedId = selectedViolationId,
-               !viewModel.filteredViolations.contains(where: { $0.id == selectedId }) {
-                self.selectedViolationId = nil
-            }
-        }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -124,8 +115,26 @@ struct ViolationInspectorView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 
-                Button {
-                    exportViolations()
+                Menu {
+                    Section("Filtered") {
+                        Button("Export Filtered as JSON") {
+                            exportViolations(scope: .filtered, format: .json)
+                        }
+                        Button("Export Filtered as CSV") {
+                            exportViolations(scope: .filtered, format: .csv)
+                        }
+                    }
+
+                    Section("Selected") {
+                        Button("Export Selected as JSON") {
+                            exportViolations(scope: .selected, format: .json)
+                        }
+                        .disabled(viewModel.selectedViolationIds.isEmpty)
+                        Button("Export Selected as CSV") {
+                            exportViolations(scope: .selected, format: .csv)
+                        }
+                        .disabled(viewModel.selectedViolationIds.isEmpty)
+                    }
                 } label: {
                     Label("Export", systemImage: "square.and.arrow.up")
                 }
@@ -143,6 +152,20 @@ struct ViolationInspectorView: View {
                     Label("Previous", systemImage: "chevron.left")
                 }
                 .keyboardShortcut(.leftArrow, modifiers: .command)
+
+                Menu {
+                    Button("Select All") {
+                        viewModel.selectAll()
+                    }
+                    .keyboardShortcut("a", modifiers: .command)
+                    Button("Clear Selection") {
+                        viewModel.deselectAll()
+                    }
+                    .keyboardShortcut("a", modifiers: [.command, .shift])
+                } label: {
+                    Label("Selection", systemImage: "checkmark.circle")
+                }
+                .disabled(viewModel.filteredViolations.isEmpty)
                 
                 if !viewModel.selectedViolationIds.isEmpty {
                     Menu {
@@ -154,6 +177,7 @@ struct ViolationInspectorView: View {
                         } label: {
                             Label("Suppress Selected", systemImage: "eye.slash")
                         }
+                        .keyboardShortcut("s", modifiers: [.command, .shift])
                         
                         Button {
                             Task {
@@ -162,6 +186,7 @@ struct ViolationInspectorView: View {
                         } label: {
                             Label("Mark as Resolved", systemImage: "checkmark.circle")
                         }
+                        .keyboardShortcut("r", modifiers: [.command, .shift])
                     } label: {
                         Label("Actions", systemImage: "ellipsis.circle")
                     }
@@ -189,7 +214,7 @@ struct ViolationInspectorView: View {
                 emptyStateView
             } else {
                 if viewModel.groupingOption == .none {
-                    List(selection: $selectedViolationId) {
+                    List(selection: $viewModel.selectedViolationIds) {
                         ForEach(viewModel.filteredViolations, id: \.id) { violation in
                             ViolationListItem(violation: violation)
                                 .tag(violation.id)
@@ -413,10 +438,10 @@ struct ViolationInspectorView: View {
     }
     
     private var groupedViolationListView: some View {
-        List(selection: $selectedViolationId) {
+        List(selection: $viewModel.selectedViolationIds) {
             let grouped = groupViolations(viewModel.filteredViolations, by: viewModel.groupingOption)
             
-            ForEach(grouped.keys.sorted(), id: \.self) { groupKey in
+            ForEach(orderedGroupKeys(for: grouped, option: viewModel.groupingOption), id: \.self) { groupKey in
                 Section(header: Text(groupKey).font(.headline)) {
                     ForEach(grouped[groupKey] ?? [], id: \.id) { violation in
                         ViolationListItem(violation: violation)
@@ -428,6 +453,24 @@ struct ViolationInspectorView: View {
         .listStyle(.sidebar)
     }
     
+    private func orderedGroupKeys(
+        for grouped: [String: [Violation]],
+        option: ViolationGroupingOption
+    ) -> [String] {
+        switch option {
+        case .none:
+            return grouped.keys.sorted()
+        case .severity:
+            let preferredOrder = ["Error", "Warning"]
+            let ordered = preferredOrder.filter { grouped[$0] != nil }
+            let remaining = grouped.keys.filter { !preferredOrder.contains($0) }
+                .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+            return ordered + remaining
+        case .file, .rule:
+            return grouped.keys.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        }
+    }
+
     private func groupViolations(_ violations: [Violation], by option: ViolationGroupingOption) -> [String: [Violation]] {
         switch option {
         case .none:
@@ -441,10 +484,13 @@ struct ViolationInspectorView: View {
         }
     }
     
-    private func exportViolations() {
+    private func exportViolations(scope: ViolationExportScope, format: ViolationExportFormat) {
+        let violationsToExport = violationsForExport(scope: scope)
+        guard !violationsToExport.isEmpty else { return }
+
         let panel = NSSavePanel()
-        panel.allowedContentTypes = [.json, .commaSeparatedText]
-        panel.nameFieldStringValue = "violations_\(Date().timeIntervalSince1970)"
+        panel.allowedContentTypes = format == .json ? [.json] : [.commaSeparatedText]
+        panel.nameFieldStringValue = exportFileName(scope: scope, format: format)
         panel.canCreateDirectories = true
         
         panel.begin { response in
@@ -452,10 +498,11 @@ struct ViolationInspectorView: View {
             
             Task {
                 do {
-                    if url.pathExtension == "json" {
-                        try exportToJSON(url: url)
-                    } else {
-                        try exportToCSV(url: url)
+                    switch format {
+                    case .json:
+                        try exportToJSON(violations: violationsToExport, url: url)
+                    case .csv:
+                        try exportToCSV(violations: violationsToExport, url: url)
                     }
                 } catch {
                     print("Export failed: \(error)")
@@ -463,17 +510,36 @@ struct ViolationInspectorView: View {
             }
         }
     }
+
+    private func violationsForExport(scope: ViolationExportScope) -> [Violation] {
+        switch scope {
+        case .filtered:
+            return viewModel.filteredViolations
+        case .selected:
+            let selected = viewModel.selectedViolationIds
+            return viewModel.filteredViolations.filter { selected.contains($0.id) }
+        }
+    }
+
+    private func exportFileName(scope: ViolationExportScope, format: ViolationExportFormat) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd_HHmmss"
+        let timestamp = formatter.string(from: Date())
+        let scopeLabel = scope.rawValue.lowercased()
+        let extensionLabel = format == .json ? "json" : "csv"
+        return "violations_\(scopeLabel)_\(timestamp).\(extensionLabel)"
+    }
     
-    private func exportToJSON(url: URL) throws {
+    private func exportToJSON(violations: [Violation], url: URL) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         
-        let data = try encoder.encode(viewModel.filteredViolations)
+        let data = try encoder.encode(violations)
         try data.write(to: url)
     }
     
-    private func exportToCSV(url: URL) throws {
+    private func exportToCSV(violations: [Violation], url: URL) throws {
         let header = [
             "Rule ID",
             "File Path",
@@ -488,7 +554,7 @@ struct ViolationInspectorView: View {
         ].joined(separator: ",")
         var csv = "\(header)\n"
         
-        for violation in viewModel.filteredViolations {
+        for violation in violations {
             let line = [
                 violation.ruleID,
                 violation.filePath,
@@ -506,6 +572,16 @@ struct ViolationInspectorView: View {
         
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
+}
+
+private enum ViolationExportScope: String {
+    case filtered = "Filtered"
+    case selected = "Selected"
+}
+
+private enum ViolationExportFormat {
+    case json
+    case csv
 }
 
 // MARK: - Supporting Views

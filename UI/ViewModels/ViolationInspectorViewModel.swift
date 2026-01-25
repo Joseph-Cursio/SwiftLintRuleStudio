@@ -15,8 +15,12 @@ class ViolationInspectorViewModel: ObservableObject {
     
     @Published var violations: [Violation] = []
     @Published var filteredViolations: [Violation] = []
-    @Published var selectedViolationId: UUID?
-    @Published var selectedViolationIds: Set<UUID> = []
+    @Published var selectedViolationId: UUID? {
+        didSet { syncSelectionFromSingle() }
+    }
+    @Published var selectedViolationIds: Set<UUID> = [] {
+        didSet { syncSelectionFromSet() }
+    }
     @Published var isAnalyzing: Bool = false
     
     // Filter properties
@@ -82,6 +86,7 @@ class ViolationInspectorViewModel: ObservableObject {
     private var workspaceId: UUID?
     private var currentWorkspace: Workspace?
     private var isInitialized = false
+    private var isUpdatingSelection = false
     
     // MARK: - Initialization
     
@@ -168,21 +173,25 @@ class ViolationInspectorViewModel: ObservableObject {
     }
     
     func selectNextViolation() {
-        guard let currentId = selectedViolationId,
-              let currentIndex = filteredViolations.firstIndex(where: { $0.id == currentId }),
-              currentIndex < filteredViolations.count - 1 else {
-            return
+        guard !filteredViolations.isEmpty else { return }
+        if let currentId = selectedViolationId,
+           let currentIndex = filteredViolations.firstIndex(where: { $0.id == currentId }),
+           currentIndex < filteredViolations.count - 1 {
+            setPrimarySelection(filteredViolations[currentIndex + 1].id)
+        } else if selectedViolationId == nil {
+            setPrimarySelection(filteredViolations.first?.id)
         }
-        selectedViolationId = filteredViolations[currentIndex + 1].id
     }
     
     func selectPreviousViolation() {
-        guard let currentId = selectedViolationId,
-              let currentIndex = filteredViolations.firstIndex(where: { $0.id == currentId }),
-              currentIndex > 0 else {
-            return
+        guard !filteredViolations.isEmpty else { return }
+        if let currentId = selectedViolationId,
+           let currentIndex = filteredViolations.firstIndex(where: { $0.id == currentId }),
+           currentIndex > 0 {
+            setPrimarySelection(filteredViolations[currentIndex - 1].id)
+        } else if selectedViolationId == nil {
+            setPrimarySelection(filteredViolations.last?.id)
         }
-        selectedViolationId = filteredViolations[currentIndex - 1].id
     }
     
     func selectAll() {
@@ -261,6 +270,7 @@ class ViolationInspectorViewModel: ObservableObject {
         // Grouping is handled in the view layer, not here
         // We keep filteredViolations flat for now
         filteredViolations = filtered
+        updateSelectionForFilteredViolations(filtered)
     }
     
     private func sortViolations(_ violations: [Violation]) -> [Violation] {
@@ -296,6 +306,64 @@ class ViolationInspectorViewModel: ObservableObject {
         }
         
         return sorted
+    }
+
+    private func syncSelectionFromSet() {
+        guard isInitialized, !isUpdatingSelection else { return }
+        isUpdatingSelection = true
+
+        if selectedViolationIds.isEmpty {
+            selectedViolationId = nil
+        } else if let currentId = selectedViolationId, selectedViolationIds.contains(currentId) {
+            // Keep current selection
+        } else {
+            selectedViolationId = filteredViolations.first { selectedViolationIds.contains($0.id) }?.id
+        }
+
+        isUpdatingSelection = false
+    }
+
+    private func syncSelectionFromSingle() {
+        guard isInitialized, !isUpdatingSelection else { return }
+        isUpdatingSelection = true
+
+        if let selectedViolationId {
+            selectedViolationIds = [selectedViolationId]
+        } else {
+            selectedViolationIds.removeAll()
+        }
+
+        isUpdatingSelection = false
+    }
+
+    private func updateSelectionForFilteredViolations(_ filtered: [Violation]) {
+        guard isInitialized, !isUpdatingSelection else { return }
+        let filteredIds = Set(filtered.map { $0.id })
+        let hasInvalidSelection = !selectedViolationIds.isSubset(of: filteredIds)
+            || (selectedViolationId != nil && !filteredIds.contains(selectedViolationId!))
+
+        guard hasInvalidSelection else { return }
+
+        isUpdatingSelection = true
+        selectedViolationIds = selectedViolationIds.intersection(filteredIds)
+
+        if let currentSelectedId = selectedViolationId, !selectedViolationIds.contains(currentSelectedId) {
+            selectedViolationId = selectedViolationIds.isEmpty
+                ? nil
+                : filtered.first { selectedViolationIds.contains($0.id) }?.id
+        } else if selectedViolationId == nil {
+            selectedViolationId = filtered.first { selectedViolationIds.contains($0.id) }?.id
+        }
+
+        isUpdatingSelection = false
+    }
+
+    private func setPrimarySelection(_ id: UUID?) {
+        guard isInitialized else { return }
+        isUpdatingSelection = true
+        selectedViolationId = id
+        selectedViolationIds = id.map { [$0] } ?? []
+        isUpdatingSelection = false
     }
 }
 
