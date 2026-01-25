@@ -3,7 +3,7 @@ import SQLite3
 
 extension ViolationStorage {
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws { // swiftlint:disable:this async_without_await
+    func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -172,7 +172,7 @@ extension ViolationStorage {
     }
     
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func suppressViolations(_ violationIds: [UUID], reason: String) async throws { // swiftlint:disable:this async_without_await
+    func suppressViolations(_ violationIds: [UUID], reason: String) async throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -225,7 +225,7 @@ extension ViolationStorage {
     }
     
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func resolveViolations(_ violationIds: [UUID]) async throws { // swiftlint:disable:this async_without_await
+    func resolveViolations(_ violationIds: [UUID]) async throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -274,7 +274,7 @@ extension ViolationStorage {
     }
     
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    func deleteViolations(for workspaceId: UUID) async throws { // swiftlint:disable:this async_without_await
+    func deleteViolations(for workspaceId: UUID) async throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }

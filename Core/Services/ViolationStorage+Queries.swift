@@ -6,7 +6,7 @@ extension ViolationStorage {
     func fetchViolations(
         filter: ViolationFilter,
         workspaceId: UUID?
-    ) async throws -> [Violation] { // swiftlint:disable:this async_without_await
+    ) async throws -> [Violation] {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -47,7 +47,7 @@ extension ViolationStorage {
     func getViolationCount(
         filter: ViolationFilter,
         workspaceId: UUID?
-    ) async throws -> Int { // swiftlint:disable:this async_without_await
+    ) async throws -> Int {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }

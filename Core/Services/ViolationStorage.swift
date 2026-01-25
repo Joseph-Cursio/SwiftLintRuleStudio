@@ -10,7 +10,6 @@ import SQLite3
 
 // SQLITE_TRANSIENT is a function pointer constant that tells SQLite to copy the string
 // In Swift, we need to define it ourselves
-// swiftlint:disable:next identifier_name
 private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Protocol for violation storage operations
