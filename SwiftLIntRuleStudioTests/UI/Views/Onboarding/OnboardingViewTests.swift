@@ -10,10 +10,13 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // Tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct OnboardingViewTests {
     
     // MARK: - Test Data Helpers
@@ -372,6 +375,70 @@ struct OnboardingViewTests {
         }
         #expect(hasGetStarted == true, "OnboardingView should show Get Started button on complete step")
     }
+
+    @Test("OnboardingView shows disabled workspace prompt when none selected")
+    func testWorkspaceSelectionShowsDisabledPrompt() async throws {
+        let view = (await createOnboardingView(testName: #function, step: .workspaceSelection)).view
+
+        let hasPrompt = try await MainActor.run {
+            _ = try view.inspect().find(text: "Select a Workspace")
+            _ = try view.inspect().find(text: "Choose a directory to continue")
+            return true
+        }
+        #expect(hasPrompt == true, "Workspace selection should show disabled prompt when no workspace")
+    }
+
+    @Test("OnboardingView Complete button advances to complete step")
+    func testCompleteButtonAdvancesStep() async throws {
+        let result = await createOnboardingView(testName: #function, step: .workspaceSelection)
+        let view = result.view
+        let onboardingManager = result.onboardingManager
+        let workspaceManager = result.workspaceManager
+
+        let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
+
+        try await MainActor.run {
+            try workspaceManager.openWorkspace(at: tempDir)
+        }
+
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            onboardingManager.currentStep = .workspaceSelection
+            let inspector = try view.inspect()
+            let button = try inspector.find(ViewType.Button.self) { button in
+                (try? button.labelView().text().string()) == "Complete"
+            }
+            try button.tap()
+        }
+
+        let currentStep = await MainActor.run { onboardingManager.currentStep }
+        #expect(currentStep == .complete, "Complete button should advance onboarding step")
+    }
+
+    @Test("OnboardingView Get Started button completes onboarding")
+    func testGetStartedCompletesOnboarding() async throws {
+        let result = await createOnboardingView(testName: #function, step: .complete)
+        let view = result.view
+        let onboardingManager = result.onboardingManager
+
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            onboardingManager.currentStep = .complete
+            let inspector = try view.inspect()
+            let button = try inspector.find(ViewType.Button.self) { button in
+                (try? button.labelView().text().string()) == "Get Started"
+            }
+            try button.tap()
+        }
+
+        let didComplete = await MainActor.run { onboardingManager.hasCompletedOnboarding }
+        #expect(didComplete == true, "Get Started should complete onboarding")
+    }
     
     // MARK: - Step Transition Tests
     
@@ -405,3 +472,4 @@ struct OnboardingViewTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
+// swiftlint:enable file_length

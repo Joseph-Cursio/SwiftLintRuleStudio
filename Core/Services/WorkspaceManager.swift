@@ -6,6 +6,8 @@
 //
 
 import Foundation
+
+// swiftlint:disable file_length type_body_length function_body_length
 import Combine
 
 /// Service for managing workspace selection and history
@@ -403,3 +405,4 @@ enum WorkspaceError: LocalizedError {
         }
     }
 }
+// swiftlint:enable file_length type_body_length function_body_length

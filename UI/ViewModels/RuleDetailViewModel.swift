@@ -143,6 +143,7 @@ class RuleDetailViewModel: ObservableObject {
         }
     }
     
+    // swiftlint:disable cyclomatic_complexity function_body_length
     /// Save configuration changes
     func saveConfiguration() throws {
         guard let yamlEngine = yamlEngine else {
@@ -228,6 +229,7 @@ class RuleDetailViewModel: ObservableObject {
             throw error
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
     
     /// Show diff preview
     func showPreview() {

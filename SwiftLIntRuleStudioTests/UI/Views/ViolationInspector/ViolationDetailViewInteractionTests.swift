@@ -15,6 +15,7 @@ import Foundation
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct ViolationDetailViewInteractionTests {
     
     // MARK: - Test Data Helpers

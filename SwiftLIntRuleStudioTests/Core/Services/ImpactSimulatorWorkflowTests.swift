@@ -64,6 +64,7 @@ struct ImpactSimulatorWorkflowTests {
     // MARK: - End-to-End Workflow Tests
     
     @Test("Full workflow: discover safe rules and enable them")
+    // swiftlint:disable:next function_body_length
     func testFullWorkflowDiscoverAndEnable() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
@@ -234,6 +235,7 @@ struct ImpactSimulatorWorkflowTests {
     }
     
     @Test("Workflow: batch simulation with progress tracking")
+    // swiftlint:disable:next function_body_length
     func testBatchSimulationWithProgress() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }

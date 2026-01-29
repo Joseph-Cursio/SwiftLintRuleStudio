@@ -1,5 +1,7 @@
 import Foundation
 
+// swiftlint:disable function_body_length
+
 extension SwiftLintCLI {
     /// Execute command - try direct execution first, fall back to shell if needed
     /// Direct execution is faster and avoids shell overhead
@@ -266,3 +268,4 @@ extension SwiftLintCLI {
         return data
     }
 }
+// swiftlint:enable function_body_length

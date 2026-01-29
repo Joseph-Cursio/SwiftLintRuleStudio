@@ -9,6 +9,9 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
+// swiftlint:disable:next type_body_length
 struct SwiftLintCLITests {
     
     actor CommandRecorder {

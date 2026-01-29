@@ -10,9 +10,12 @@ import SwiftUI
 import ViewInspector
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable function_body_length file_length
+
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct SafeRulesDiscoveryViewTests {
     
     // Workaround type to bypass Sendable check for SwiftUI views
@@ -494,3 +497,4 @@ private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
     func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
     func getVersion() throws -> String { "0.0.0" }
 }
+// swiftlint:enable function_body_length file_length

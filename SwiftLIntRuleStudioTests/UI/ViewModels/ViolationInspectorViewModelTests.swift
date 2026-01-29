@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  ViolationInspectorViewModelTests.swift
 //  SwiftLintRuleStudioTests
@@ -11,6 +12,7 @@ import Testing
 
 // ViolationInspectorViewModel is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct ViolationInspectorViewModelTests {
     
     // MARK: - Test Helpers
@@ -1034,7 +1036,6 @@ struct ViolationInspectorViewModelTests {
         #expect(filePath == "File1.swift")
     }
 }
-
 // MARK: - Mock Implementation
 
 @MainActor
@@ -1152,3 +1153,4 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol {
         return violations.count
     }
 }
+// swiftlint:enable file_length

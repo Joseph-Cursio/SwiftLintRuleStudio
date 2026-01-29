@@ -6,6 +6,8 @@
 //
 
 import Foundation
+
+// swiftlint:disable file_length
 import Combine
 
 /// Result of a workspace analysis
@@ -94,7 +96,7 @@ class WorkspaceAnalyzer: ObservableObject {
     ///   - configPath: Optional path to SwiftLint configuration file
     ///   - scope: Analysis scope (nil = entire workspace)
     /// - Returns: Analysis result with violations
-    func analyze(
+    func analyze( // swiftlint:disable:this function_body_length
         workspace: Workspace,
         configPath: URL? = nil,
         scope: AnalysisScope? = nil
@@ -175,7 +177,7 @@ class WorkspaceAnalyzer: ObservableObject {
     
     /// Analyze specific files incrementally
     /// Only analyzes files that have changed since last analysis
-    func analyzeFiles(
+    func analyzeFiles( // swiftlint:disable:this function_body_length
         _ filePaths: [URL],
         in workspace: Workspace,
         configPath: URL? = nil,

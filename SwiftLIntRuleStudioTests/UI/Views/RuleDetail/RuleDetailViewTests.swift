@@ -10,7 +10,10 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length function_body_length vertical_whitespace
+
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct RuleDetailViewTests {
     
     struct ViewResult: @unchecked Sendable {
@@ -20,6 +23,8 @@ struct RuleDetailViewTests {
             self.view = AnyView(view)
         }
     }
+
+    
     
     private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
         func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
@@ -196,6 +201,191 @@ struct RuleDetailViewTests {
             return (try? inspector.find(text: "+ 2 more")) != nil
         }
         #expect(hasOverflow == true)
+    }
+
+    @Test("RuleDetailView processes markdown content for display")
+    func testProcessContentForDisplay() async throws {
+        let rule = await MainActor.run {
+            Rule(
+                id: "test_rule",
+                name: "Test Rule",
+                description: "Test description",
+                category: .lint,
+                isOptIn: false,
+                severity: .warning,
+                parameters: nil,
+                triggeringExamples: [],
+                nonTriggeringExamples: [],
+                documentation: nil,
+                isEnabled: false,
+                supportsAutocorrection: false,
+                minimumSwiftVersion: nil,
+                defaultSeverity: .warning,
+                markdownDocumentation: nil
+            )
+        }
+
+        let content = """
+        # Title
+        * **Enabled by default:** Yes
+        * **Default configuration:** warning
+        <table>
+        <tr><td>ignore</td></tr>
+        </table>
+        Body text
+        """
+        let processed = await MainActor.run {
+            RuleDetailView(rule: rule).processContentForDisplay(content: content)
+        }
+
+        #expect(processed.contains("Title") == false)
+        #expect(processed.contains("Enabled by default") == false)
+        #expect(processed.contains("<table>") == false)
+        #expect(processed.contains("Body text") == true)
+    }
+
+    @Test("RuleDetailView converts markdown to HTML")
+    func testConvertMarkdownToHTML() async throws {
+        let rule = await MainActor.run {
+            Rule(
+                id: "test_rule",
+                name: "Test Rule",
+                description: "Test description",
+                category: .lint,
+                isOptIn: false,
+                severity: .warning,
+                parameters: nil,
+                triggeringExamples: [],
+                nonTriggeringExamples: [],
+                documentation: nil,
+                isEnabled: false,
+                supportsAutocorrection: false,
+                minimumSwiftVersion: nil,
+                defaultSeverity: .warning,
+                markdownDocumentation: nil
+            )
+        }
+
+        let content = """
+        # Heading
+        ```swift
+        let value = 1
+        ```
+        """
+        let html = await MainActor.run {
+            RuleDetailView(rule: rule).convertMarkdownToHTML(content: content)
+        }
+
+        #expect(html.contains("<h1>Heading</h1>") == true)
+        #expect(html.contains("language-swift") == true)
+        #expect(html.contains("let value = 1") == true)
+    }
+
+    @Test("RuleDetailView wraps HTML with dark mode styles")
+    func testWrapHTMLInDocumentDarkMode() async throws {
+        let rule = await MainActor.run {
+            Rule(
+                id: "test_rule",
+                name: "Test Rule",
+                description: "Test description",
+                category: .lint,
+                isOptIn: false,
+                severity: .warning,
+                parameters: nil,
+                triggeringExamples: [],
+                nonTriggeringExamples: [],
+                documentation: nil,
+                isEnabled: false,
+                supportsAutocorrection: false,
+                minimumSwiftVersion: nil,
+                defaultSeverity: .warning,
+                markdownDocumentation: nil
+            )
+        }
+
+        let html = await MainActor.run {
+            RuleDetailView(rule: rule).wrapHTMLInDocument(body: "<p>Body</p>", colorScheme: .dark)
+        }
+
+        #expect(html.contains("#FFFFFF") == true)
+        #expect(html.contains("<p>Body</p>") == true)
+    }
+
+    @Test("RuleDetailView hides short description when markdown contains it")
+    func testDescriptionHiddenWhenInMarkdown() async throws {
+        let markdown = """
+        # Rule
+
+        This is the description.
+        """
+        let rule = await MainActor.run {
+            Rule(
+                id: "desc_rule",
+                name: "Desc Rule",
+                description: "This is the description.",
+                category: .lint,
+                isOptIn: false,
+                severity: .warning,
+                parameters: nil,
+                triggeringExamples: [],
+                nonTriggeringExamples: [],
+                documentation: nil,
+                isEnabled: false,
+                supportsAutocorrection: false,
+                minimumSwiftVersion: nil,
+                defaultSeverity: .warning,
+                markdownDocumentation: markdown
+            )
+        }
+
+        let result = await Task { @MainActor in createView(for: rule) }.value
+        let view = result.view
+
+        nonisolated(unsafe) let viewCapture = view
+        let hasDescription = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            return (try? viewCapture.inspect().find(text: rule.description)) != nil
+        }
+
+        #expect(hasDescription == false)
+    }
+
+    @Test("RuleDetailView shows fallback when description missing")
+    func testDescriptionFallbackWhenMissing() async throws {
+        let rule = await MainActor.run {
+            Rule(
+                id: "empty_desc",
+                name: "Empty Desc",
+                description: "No description available",
+                category: .lint,
+                isOptIn: false,
+                severity: .warning,
+                parameters: nil,
+                triggeringExamples: [],
+                nonTriggeringExamples: [],
+                documentation: nil,
+                isEnabled: false,
+                supportsAutocorrection: false,
+                minimumSwiftVersion: nil,
+                defaultSeverity: .warning,
+                markdownDocumentation: nil
+            )
+        }
+
+        let result = await Task { @MainActor in createView(for: rule) }.value
+        let view = result.view
+
+        nonisolated(unsafe) let viewCapture = view
+        let hasFallback = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            return (try? viewCapture.inspect().find(text: "No description available")) != nil
+        }
+
+        #expect(hasFallback == true)
     }
 
     @Test("RuleDetailView shows Swift Evolution links")
@@ -384,3 +574,4 @@ struct RuleDetailViewTests {
         #expect(wrapped.contains("<p>Body</p>"))
     }
 }
+// swiftlint:enable file_length function_body_length vertical_whitespace

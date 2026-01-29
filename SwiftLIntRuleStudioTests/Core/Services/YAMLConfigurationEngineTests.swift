@@ -9,8 +9,11 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // YAMLConfigurationEngine is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct YAMLConfigurationEngineTests {
     
     // MARK: - Test Helpers
@@ -1040,3 +1043,4 @@ struct YAMLConfigurationEngineTests {
         #expect(addedRulesCount == 1)
     }
 }
+// swiftlint:enable file_length

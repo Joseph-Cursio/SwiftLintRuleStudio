@@ -11,10 +11,12 @@ import SwiftUI
 import Foundation
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
 // Interaction tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct ViolationInspectorViewInteractionTests {
     
     // MARK: - Test Data Helpers
@@ -398,3 +400,4 @@ struct ViolationInspectorViewInteractionTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
+// swiftlint:enable file_length

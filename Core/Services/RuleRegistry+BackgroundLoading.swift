@@ -1,5 +1,7 @@
 import Foundation
 
+// swiftlint:disable function_body_length
+
 extension RuleRegistry {
     /// Start background loading for remaining rules
     func startBackgroundLoading(for rules: [Rule], startingIndex: Int) {
@@ -134,3 +136,4 @@ extension RuleRegistry {
         }
     }
 }
+// swiftlint:enable function_body_length

@@ -9,7 +9,10 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // ViolationStorage is an actor (not @MainActor), so tests don't need @MainActor
+// swiftlint:disable:next type_body_length
 struct ViolationStorageTests {
     
     // MARK: - Test Helpers
@@ -446,6 +449,7 @@ struct ViolationStorageTests {
     }
     
     @Test("ViolationStorage preserves violation metadata")
+    // swiftlint:disable:next function_body_length
     func testPreserveViolationMetadata() async throws {
         let storage = try await createIsolatedStorage()
         let workspaceId = UUID()

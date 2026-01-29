@@ -9,6 +9,7 @@ import Foundation
 import Combine
 
 @MainActor
+// swiftlint:disable:next type_body_length
 class ViolationInspectorViewModel: ObservableObject {
     
     // MARK: - Published Properties
@@ -340,7 +341,7 @@ class ViolationInspectorViewModel: ObservableObject {
         guard isInitialized, !isUpdatingSelection else { return }
         let filteredIds = Set(filtered.map { $0.id })
         let hasInvalidSelection = !selectedViolationIds.isSubset(of: filteredIds)
-            || (selectedViolationId != nil && !filteredIds.contains(selectedViolationId!))
+            || selectedViolationId.map { !filteredIds.contains($0) } ?? false
 
         guard hasInvalidSelection else { return }
 

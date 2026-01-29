@@ -11,6 +11,7 @@ import SwiftUI
 @testable import SwiftLIntRuleStudio
 
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct ViolationInspectorNewFeaturesTests {
     
     // MARK: - Test Data Helpers

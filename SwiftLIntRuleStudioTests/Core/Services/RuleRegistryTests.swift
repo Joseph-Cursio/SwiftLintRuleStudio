@@ -9,6 +9,8 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 private enum RulesTable {
     static let border = "+------------------------------------------+--------+-------------+" +
         "------------------------+-------------+----------+----------------+---------------+"
@@ -196,12 +198,35 @@ actor RuleDetailsSwiftLintCLI: SwiftLintCLIProtocol {
         self.detail = detail
     }
 
-    func detectSwiftLintPath() async throws -> URL { throw SwiftLintError.notFound }
-    func executeRulesCommand() async throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId: String) async throws -> Data { Data(detail.utf8) }
-    func generateDocsForRule(ruleId: String) async throws -> String { docs }
-    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data { Data() }
-    func getVersion() async throws -> String { "0.0.0" }
+    func detectSwiftLintPath() async throws -> URL {
+        await Task.yield()
+        throw SwiftLintError.notFound
+    }
+
+    func executeRulesCommand() async throws -> Data {
+        await Task.yield()
+        return Data()
+    }
+
+    func executeRuleDetailCommand(ruleId: String) async throws -> Data {
+        await Task.yield()
+        return Data(detail.utf8)
+    }
+
+    func generateDocsForRule(ruleId: String) async throws -> String {
+        await Task.yield()
+        return docs
+    }
+
+    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
+        await Task.yield()
+        return Data()
+    }
+
+    func getVersion() async throws -> String {
+        await Task.yield()
+        return "0.0.0"
+    }
 }
 
 final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
@@ -250,6 +275,7 @@ final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
     }
 }
 
+// swiftlint:disable:next type_body_length
 struct RuleRegistryTests {
     
     @Test("RuleRegistry initializes with empty rules")

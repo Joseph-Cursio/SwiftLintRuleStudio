@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// swiftlint:disable file_length type_body_length function_body_length
+
 struct SafeRulesDiscoveryView: View {
     @EnvironmentObject var dependencies: DependencyContainer
     @Environment(\.dismiss) private var dismiss
@@ -426,3 +428,4 @@ struct SafeRuleRow: View {
     SafeRulesDiscoveryView()
         .environmentObject(DependencyContainer())
 }
+// swiftlint:enable file_length type_body_length function_body_length

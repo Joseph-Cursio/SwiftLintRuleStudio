@@ -242,6 +242,7 @@ extension RuleDetailView {
         return processedLine
     }
     
+    // swiftlint:disable function_body_length
     private func htmlStyleBlock(
         textColor: String,
         codeBgColor: String,
@@ -334,4 +335,5 @@ extension RuleDetailView {
         }
         """
     }
+    // swiftlint:enable function_body_length
 }

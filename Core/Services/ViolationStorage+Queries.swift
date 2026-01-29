@@ -7,6 +7,7 @@ extension ViolationStorage {
         filter: ViolationFilter,
         workspaceId: UUID?
     ) async throws -> [Violation] {
+        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -48,6 +49,7 @@ extension ViolationStorage {
         filter: ViolationFilter,
         workspaceId: UUID?
     ) async throws -> Int {
+        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }

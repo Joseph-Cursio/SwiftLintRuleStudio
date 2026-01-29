@@ -249,6 +249,43 @@ struct ViolationInspectorViewTests {
         }
         #expect(viewCapture != nil, "ViolationInspectorView should show empty detail view")
     }
+
+    @Test("ViolationInspectorView shows detail when violation selected")
+    func testShowsDetailWhenViolationSelected() async throws {
+        let result = try await Task { @MainActor in
+            let violation = Violation(
+                id: UUID(),
+                ruleID: "force_cast",
+                filePath: "Test.swift",
+                line: 10,
+                column: 5,
+                severity: .error,
+                message: "Test violation message"
+            )
+            let container = DependencyContainer.createForTesting()
+            let storage = try ViolationStorage(useInMemory: true)
+            let viewModel = ViolationInspectorViewModel(violationStorage: storage)
+
+            viewModel.violations = [violation]
+            viewModel.filteredViolations = [violation]
+            viewModel.selectedViolationId = violation.id
+
+            let view = ViolationInspectorView(viewModel: viewModel)
+                .environmentObject(container)
+            return ViewResult(view: view)
+        }.value
+
+        let view = result.view
+        nonisolated(unsafe) let viewCapture = view
+        let hasDetail = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: viewCapture)
+            defer { ViewHosting.expel() }
+            return (try? viewCapture.inspect().find(text: "Rule: force_cast")) != nil
+        }
+
+        #expect(hasDetail == true, "Selected violation should show detail view")
+    }
     
     // MARK: - List View Tests
     

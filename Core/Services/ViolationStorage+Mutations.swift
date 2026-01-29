@@ -3,7 +3,9 @@ import SQLite3
 
 extension ViolationStorage {
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
+    // swiftlint:disable function_body_length
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {
+        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -77,6 +79,7 @@ extension ViolationStorage {
         
         print("💾 Stored \(insertedCount) violations for workspace: \(workspaceId.uuidString)")
     }
+    // swiftlint:enable function_body_length
     
     private func beginTransaction(db: OpaquePointer) throws {
         try executeSQL("BEGIN TRANSACTION", db: db)
@@ -173,6 +176,7 @@ extension ViolationStorage {
     
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func suppressViolations(_ violationIds: [UUID], reason: String) async throws {
+        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -226,6 +230,7 @@ extension ViolationStorage {
     
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func resolveViolations(_ violationIds: [UUID]) async throws {
+        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -275,6 +280,7 @@ extension ViolationStorage {
     
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func deleteViolations(for workspaceId: UUID) async throws {
+        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }

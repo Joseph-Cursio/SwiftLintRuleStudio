@@ -9,8 +9,11 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // WorkspaceAnalyzer is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct WorkspaceAnalyzerTests {
     
     // Helper to run WorkspaceAnalyzer operations on MainActor

@@ -10,6 +10,8 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
+extension ConfigDiffPreviewView: Inspectable {}
+
 // Tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -24,8 +26,9 @@ struct ConfigDiffPreviewViewTests {
     }
     
     private func createConfigDiffPreviewView(
-        diff: YAMLConfigurationEngine.ConfigDiff? = nil
-    ) async -> (view: some View, tracker: CallbackTracker) {
+        diff: YAMLConfigurationEngine.ConfigDiff? = nil,
+        initialView: ConfigDiffPreviewView.DiffViewMode = .summary
+    ) async -> (view: ConfigDiffPreviewView, tracker: CallbackTracker) {
         return await MainActor.run {
             let tracker = CallbackTracker()
             
@@ -41,7 +44,8 @@ struct ConfigDiffPreviewViewTests {
                 diff: diff ?? defaultDiff,
                 ruleName: "Test Rule",
                 onSave: { tracker.saveCalled = true },
-                onCancel: { tracker.cancelCalled = true }
+                onCancel: { tracker.cancelCalled = true },
+                selectedView: initialView
             )
             
             // Use nonisolated(unsafe) to bypass Sendable check for SwiftUI views
@@ -118,11 +122,14 @@ struct ConfigDiffPreviewViewTests {
             before: "",
             after: ""
         )
-        let (view, _) = await createConfigDiffPreviewView(diff: diff)
+        let (view, _) = await createConfigDiffPreviewView(diff: diff, initialView: .summary)
         
         // Find added rules section
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasAddedRules = try? await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
             _ = try view.inspect().find(text: "Rules to be Added")
             return true
         }
@@ -138,7 +145,7 @@ struct ConfigDiffPreviewViewTests {
             before: "",
             after: ""
         )
-        let (view, _) = await createConfigDiffPreviewView(diff: diff)
+        let (view, _) = await createConfigDiffPreviewView(diff: diff, initialView: .summary)
         
         // Find removed rules section
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -158,7 +165,7 @@ struct ConfigDiffPreviewViewTests {
             before: "",
             after: ""
         )
-        let (view, _) = await createConfigDiffPreviewView(diff: diff)
+        let (view, _) = await createConfigDiffPreviewView(diff: diff, initialView: .summary)
         
         // Find modified rules section
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -178,7 +185,7 @@ struct ConfigDiffPreviewViewTests {
             before: "",
             after: ""
         )
-        let (view, _) = await createConfigDiffPreviewView(diff: diff)
+        let (view, _) = await createConfigDiffPreviewView(diff: diff, initialView: .summary)
         
         // Find no changes message
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -203,6 +210,30 @@ struct ConfigDiffPreviewViewTests {
             return true
         }
         #expect(hasNavigationStack == true, "ConfigDiffPreviewView should display full diff view when selected")
+    }
+
+    @Test("ConfigDiffPreviewView switches to full diff view")
+    func testSwitchesToFullDiffView() async throws {
+        let diff = YAMLConfigurationEngine.ConfigDiff(
+            addedRules: [],
+            removedRules: [],
+            modifiedRules: [],
+            before: "",
+            after: ""
+        )
+        let (view, _) = await createConfigDiffPreviewView(diff: diff, initialView: .full)
+
+        let hasEmptyConfig = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            let inspector = try view.inspect()
+            _ = try inspector.find(text: "Before")
+            _ = try inspector.find(text: "After")
+            return (try? inspector.find(text: "(empty configuration)")) != nil
+        }
+
+        #expect(hasEmptyConfig == true, "Full diff should show empty configuration text")
     }
     
     // MARK: - Action Buttons Tests
@@ -231,6 +262,42 @@ struct ConfigDiffPreviewViewTests {
             return true
         }
         #expect(hasSaveButton == true, "ConfigDiffPreviewView should display Save Changes button")
+    }
+
+    @Test("ConfigDiffPreviewView Cancel button triggers callback")
+    func testCancelButtonTriggersCallback() async throws {
+        let (view, tracker) = await createConfigDiffPreviewView()
+
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            let inspector = try view.inspect()
+            let button = try inspector.find(ViewType.Button.self) { button in
+                (try? button.labelView().text().string()) == "Cancel"
+            }
+            try button.tap()
+        }
+
+        #expect(tracker.cancelCalled == true, "Cancel callback should be invoked")
+    }
+
+    @Test("ConfigDiffPreviewView Save button triggers callback")
+    func testSaveButtonTriggersCallback() async throws {
+        let (view, tracker) = await createConfigDiffPreviewView()
+
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            let inspector = try view.inspect()
+            let button = try inspector.find(ViewType.Button.self) { button in
+                (try? button.labelView().text().string()) == "Save Changes"
+            }
+            try button.tap()
+        }
+
+        #expect(tracker.saveCalled == true, "Save callback should be invoked")
     }
     
     // MARK: - View Mode Picker Tests

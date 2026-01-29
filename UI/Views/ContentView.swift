@@ -12,6 +12,7 @@ struct ContentView: View {
     @EnvironmentObject var dependencies: DependencyContainer
     @State private var errorMessage: String?
     @State private var showError: Bool = false
+    @State private var didApplyUITestOverrides = false
     
     var body: some View {
         Group {
@@ -61,6 +62,10 @@ struct ContentView: View {
         .onAppear {
             // Check config file when view appears
             dependencies.workspaceManager.checkConfigFileExists()
+            if !didApplyUITestOverrides {
+                didApplyUITestOverrides = true
+                applyUITestOverrides()
+            }
         }
         .alert("Error Loading Rules", isPresented: $showError) {
             Button("OK") {
@@ -80,6 +85,43 @@ struct ContentView: View {
         } message: {
             Text(errorMessage ?? "Unknown error occurred while loading SwiftLint rules.")
         }
+    }
+
+    private func applyUITestOverrides() {
+        let processInfo = ProcessInfo.processInfo
+        guard processInfo.arguments.contains("-uiTesting") else { return }
+
+        let environment = processInfo.environment
+        if environment["UI_TEST_SKIP_ONBOARDING"] == "1" {
+            dependencies.onboardingManager.completeOnboarding()
+        }
+
+        if environment["UI_TEST_WORKSPACE"] == "1" {
+            do {
+                let workspaceURL = try createUITestWorkspace()
+                try dependencies.workspaceManager.openWorkspace(at: workspaceURL)
+            } catch {
+                print("UI test workspace setup failed: \(error)")
+            }
+        }
+    }
+
+    private func createUITestWorkspace() throws -> URL {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SwiftLintRuleStudioUITests", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+        let swiftFile = tempDir.appendingPathComponent("TestFile.swift")
+        let content = """
+        import Foundation
+
+        struct UITestStruct {
+            let value: String
+        }
+        """
+        try content.write(to: swiftFile, atomically: true, encoding: .utf8)
+        return tempDir
     }
 }
 
@@ -117,12 +159,14 @@ struct SidebarView: View {
             } label: {
                 Label("Rules", systemImage: "list.bullet.rectangle")
             }
+            .accessibilityIdentifier("SidebarRulesLink")
             
             NavigationLink {
                 ViolationInspectorView()
             } label: {
                 Label("Violations", systemImage: "exclamationmark.triangle")
             }
+            .accessibilityIdentifier("SidebarViolationsLink")
             
             NavigationLink {
                 Text("Dashboard")
@@ -136,6 +180,7 @@ struct SidebarView: View {
             } label: {
                 Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark")
             }
+            .accessibilityIdentifier("SidebarSafeRulesLink")
         }
         .navigationTitle("SwiftLint Rule Studio")
     }

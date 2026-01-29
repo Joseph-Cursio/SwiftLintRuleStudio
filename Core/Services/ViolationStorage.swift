@@ -8,9 +8,9 @@
 import Foundation
 import SQLite3
 
-// SQLITE_TRANSIENT is a function pointer constant that tells SQLite to copy the string
+// sqliteTransient is a function pointer constant that tells SQLite to copy the string
 // In Swift, we need to define it ourselves
-private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Protocol for violation storage operations
 protocol ViolationStorageProtocol {
@@ -45,8 +45,6 @@ actor ViolationStorage: ViolationStorageProtocol {
         self.database = databaseHandle
     }
 
-    
-    
     deinit {
         // Deinit cannot be async, but closing the database is a synchronous operation
         // Accessing database directly in deinit is safe since deinit runs when actor is being deallocated

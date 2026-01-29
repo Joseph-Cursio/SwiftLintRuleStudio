@@ -9,8 +9,11 @@ import Testing
 import Foundation
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // ImpactSimulator is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct ImpactSimulatorTests {
     
     // MARK: - Test Helpers

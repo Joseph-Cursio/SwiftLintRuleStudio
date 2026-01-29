@@ -13,11 +13,25 @@ struct ConfigDiffPreviewView: View {
     let onSave: () -> Void
     let onCancel: () -> Void
     
-    @State private var selectedView: DiffViewMode = .summary
+    @State var selectedView: DiffViewMode = .summary
     
     enum DiffViewMode {
         case summary
         case full
+    }
+
+    init(
+        diff: YAMLConfigurationEngine.ConfigDiff,
+        ruleName: String,
+        onSave: @escaping () -> Void,
+        onCancel: @escaping () -> Void,
+        selectedView: DiffViewMode = .summary
+    ) {
+        self.diff = diff
+        self.ruleName = ruleName
+        self.onSave = onSave
+        self.onCancel = onCancel
+        self._selectedView = State(initialValue: selectedView)
     }
     
     var body: some View {

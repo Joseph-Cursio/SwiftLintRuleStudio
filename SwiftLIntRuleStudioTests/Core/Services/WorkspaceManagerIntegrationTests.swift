@@ -9,8 +9,11 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct WorkspaceManagerIntegrationTests {
     
     // Helper to access DependencyContainer on MainActor with isolated UserDefaults
@@ -483,6 +486,7 @@ struct WorkspaceManagerIntegrationTests {
     // MARK: - Full Workflow Integration Tests
     
     @Test("Complete workflow: open workspace -> analyze -> view violations")
+    // swiftlint:disable:next function_body_length
     func testCompleteWorkflow() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }

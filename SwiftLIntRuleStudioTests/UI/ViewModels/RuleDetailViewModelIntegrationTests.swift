@@ -9,8 +9,11 @@ import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // RuleDetailViewModel, YAMLConfigurationEngine, and WorkspaceManager are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct RuleDetailViewModelIntegrationTests {
     
     // MARK: - Test Helpers
@@ -276,6 +279,7 @@ struct RuleDetailViewModelIntegrationTests {
     }
     
     @Test("RuleDetailViewModel handles workspace switch")
+    // swiftlint:disable:next function_body_length
     func testRuleDetailViewModelHandlesWorkspaceSwitch() async throws {
         let tempDir1 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         let tempDir2 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -396,6 +400,7 @@ struct RuleDetailViewModelIntegrationTests {
     // MARK: - Full Workflow Integration Tests
     
     @Test("Complete workflow: open workspace -> configure rule -> save -> verify")
+    // swiftlint:disable:next function_body_length
     func testCompleteRuleConfigurationWorkflow() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }

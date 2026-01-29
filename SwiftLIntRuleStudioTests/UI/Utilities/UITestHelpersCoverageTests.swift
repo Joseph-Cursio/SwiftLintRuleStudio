@@ -11,9 +11,11 @@ import ViewInspector
 @testable import SwiftLIntRuleStudio
 
 @Suite(.serialized)
+// swiftlint:disable:next type_body_length
 struct UITestHelpersCoverageTests {
     
     @Test("UITestDataFactory creates rules and violations")
+    // swiftlint:disable:next function_body_length
     func testDataFactoryRulesAndViolations() async throws {
         let rule = await UITestDataFactory.createTestRule(
             id: "rule_id",
@@ -190,6 +192,7 @@ struct UITestHelpersCoverageTests {
     }
     
     @Test("ViewInspector extensions support common interactions")
+    // swiftlint:disable:next function_body_length
     func testViewInspectorExtensions() async throws {
         struct ButtonView: View {
             var body: some View {

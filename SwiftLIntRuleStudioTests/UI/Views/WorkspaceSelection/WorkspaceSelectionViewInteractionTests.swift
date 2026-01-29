@@ -143,6 +143,40 @@ struct WorkspaceSelectionViewInteractionTests {
         }
         #expect(hasRecentWorkspaces == true, "Recent workspace row should be tappable")
     }
+
+    @Test("WorkspaceSelectionView taps recent workspace row to open")
+    func testTappingRecentWorkspaceRowOpensWorkspace() async throws {
+        let (_, workspaceManager) = await createWorkspaceSelectionView()
+
+        let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
+
+        try await MainActor.run {
+            try workspaceManager.openWorkspace(at: tempDir)
+            workspaceManager.closeWorkspace()
+        }
+
+        let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
+        #expect(didRegisterRecent == true, "Recent workspaces should register")
+
+        let view = await MainActor.run {
+            WorkspaceSelectionView(workspaceManager: workspaceManager)
+        }
+
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            let inspector = try view.inspect()
+            let row = try inspector.find(ViewType.HStack.self) { hstack in
+                (try? hstack.find(text: tempDir.lastPathComponent)) != nil
+            }
+            try row.callOnTapGesture()
+        }
+
+        let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
+        #expect(didOpenWorkspace == true, "Tapping recent workspace row should open workspace")
+    }
     
     @Test("WorkspaceSelectionView Clear button clears recent workspaces")
     func testClearButtonClearsRecentWorkspaces() async throws {
@@ -210,5 +244,42 @@ struct WorkspaceSelectionViewInteractionTests {
         }
         #expect(hasRecentWorkspaces == true, "Remove button should remove workspace from recent")
         #expect(initialCount > 0, "Should have recent workspaces to remove")
+    }
+
+    @Test("WorkspaceSelectionView remove button tap removes recent workspace")
+    func testRemoveButtonTapRemovesWorkspace() async throws {
+        let (_, workspaceManager) = await createWorkspaceSelectionView()
+
+        let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
+
+        try await MainActor.run {
+            try workspaceManager.openWorkspace(at: tempDir)
+            workspaceManager.closeWorkspace()
+        }
+
+        let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
+        let initialCount = await MainActor.run { workspaceManager.recentWorkspaces.count }
+        #expect(didRegisterRecent == true, "Should have recent workspaces")
+
+        let view = await MainActor.run {
+            WorkspaceSelectionView(workspaceManager: workspaceManager)
+        }
+
+        try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: view)
+            defer { ViewHosting.expel() }
+            let inspector = try view.inspect()
+            let nameText = try inspector.find(text: tempDir.lastPathComponent)
+            let row = try nameText.parent().parent()
+            let removeButton = try row.find(ViewType.Button.self)
+            try removeButton.tap()
+        }
+
+        let didRemove = await waitForRecentWorkspaces(workspaceManager, isEmpty: true)
+        let newCount = await MainActor.run { workspaceManager.recentWorkspaces.count }
+        #expect(didRemove == true, "Remove button should remove recent workspace")
+        #expect(newCount == max(0, initialCount - 1), "Recent workspace count should decrease")
     }
 }

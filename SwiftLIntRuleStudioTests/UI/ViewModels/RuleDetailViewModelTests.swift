@@ -9,8 +9,11 @@ import Testing
 import Foundation
 @testable import SwiftLIntRuleStudio
 
+// swiftlint:disable file_length
+
 // RuleDetailViewModel and YAMLConfigurationEngine are @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
+// swiftlint:disable:next type_body_length
 struct RuleDetailViewModelTests {
     
     // Helper to create YAMLConfigurationEngine on MainActor
@@ -148,6 +151,56 @@ struct RuleDetailViewModelTests {
         let isEnabled = await MainActor.run { viewModel.isEnabled }
         #expect(isEnabled == false)
     }
+
+    @Test("RuleDetailViewModel honors only_rules when loading config")
+    func testLoadConfigurationOnlyRules() async throws {
+        let configContent = """
+        only_rules:
+          - special_rule
+        """
+        let configPath = try createTempConfigFile(content: configContent)
+        defer { cleanupTempFile(configPath) }
+
+        let yamlEngine = await createYAMLConfigurationEngine(configPath: configPath)
+        let rule = createTestRule(id: "special_rule", isOptIn: false)
+        let viewModel = await createRuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
+
+        try await MainActor.run {
+            try viewModel.loadConfiguration()
+        }
+
+        let (isEnabled, severity, defaultSeverity) = await MainActor.run {
+            return (viewModel.isEnabled, viewModel.severity, rule.defaultSeverity)
+        }
+
+        #expect(isEnabled == true)
+        #expect(severity == defaultSeverity)
+    }
+
+    @Test("RuleDetailViewModel handles disabled_rules without explicit config")
+    func testLoadConfigurationDisabledRules() async throws {
+        let configContent = """
+        disabled_rules:
+          - disabled_rule
+        """
+        let configPath = try createTempConfigFile(content: configContent)
+        defer { cleanupTempFile(configPath) }
+
+        let yamlEngine = await createYAMLConfigurationEngine(configPath: configPath)
+        let rule = createTestRule(id: "disabled_rule", isOptIn: false)
+        let viewModel = await createRuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
+
+        try await MainActor.run {
+            try viewModel.loadConfiguration()
+        }
+
+        let (isEnabled, severity, defaultSeverity) = await MainActor.run {
+            return (viewModel.isEnabled, viewModel.severity, rule.defaultSeverity)
+        }
+
+        #expect(isEnabled == false)
+        #expect(severity == defaultSeverity)
+    }
     
     @Test("RuleDetailViewModel handles missing config file")
     func testLoadConfigurationMissingFile() async throws {
@@ -228,6 +281,61 @@ struct RuleDetailViewModelTests {
         
         #expect(hasPendingChanges == true)
         #expect(severity == .error)
+    }
+
+    @Test("RuleDetailViewModel cancelChanges reloads original state")
+    func testCancelChangesReloadsState() async throws {
+        let configContent = """
+        rules:
+          test_rule:
+            enabled: true
+            severity: error
+        """
+        let configPath = try createTempConfigFile(content: configContent)
+        defer { cleanupTempFile(configPath) }
+
+        let yamlEngine = await createYAMLConfigurationEngine(configPath: configPath)
+        let rule = createTestRule(id: "test_rule", isOptIn: false)
+        let viewModel = await createRuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
+
+        try await MainActor.run {
+            try viewModel.loadConfiguration()
+            viewModel.updateEnabled(false)
+        }
+
+        await MainActor.run {
+            viewModel.cancelChanges()
+        }
+
+        let (isEnabled, severity, pendingChanges) = await MainActor.run {
+            return (viewModel.isEnabled, viewModel.severity, viewModel.pendingChanges)
+        }
+
+        #expect(isEnabled == true)
+        #expect(severity == .error)
+        #expect(pendingChanges == nil)
+    }
+
+    @Test("RuleDetailViewModel showPreview sets flag")
+    func testShowPreviewSetsFlag() async throws {
+        let configPath = try createTempConfigFile(content: "")
+        defer { cleanupTempFile(configPath) }
+
+        let yamlEngine = await createYAMLConfigurationEngine(configPath: configPath)
+        let rule = createTestRule(id: "test_rule", isOptIn: false)
+        let viewModel = await createRuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
+
+        await MainActor.run {
+            viewModel.updateEnabled(true)
+            viewModel.showPreview()
+        }
+
+        let (showDiffPreview, pendingChanges) = await MainActor.run {
+            return (viewModel.showDiffPreview, viewModel.pendingChanges)
+        }
+
+        #expect(showDiffPreview == true)
+        #expect(pendingChanges != nil)
     }
     
     @Test("RuleDetailViewModel clears pending changes when reverted")

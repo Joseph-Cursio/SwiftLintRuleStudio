@@ -248,7 +248,7 @@ struct XcodeIntegrationServiceTests {
     @Test("XcodeIntegrationService checks for Xcode installation")
     func testIsXcodeInstalledReturnsBool() async throws {
         try await withService { service, _ in
-            let _ = service.isXcodeInstalled()
+            _ = service.isXcodeInstalled()
         }
     }
     
