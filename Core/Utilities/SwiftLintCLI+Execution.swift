@@ -1,7 +1,5 @@
 import Foundation
 
-// swiftlint:disable function_body_length
-
 extension SwiftLintCLI {
     /// Execute command - try direct execution first, fall back to shell if needed
     /// Direct execution is faster and avoids shell overhead
@@ -11,95 +9,13 @@ extension SwiftLintCLI {
             return try processCommandOutput(stdout: stdout, stderr: stderr)
         }
         
-        // Try to find SwiftLint path for direct execution
-        let swiftLintPath: URL
-        do {
-            swiftLintPath = try await detectSwiftLintPath()
-            print("✅ Using SwiftLint at: \(swiftLintPath.path)")
-        } catch {
-            // Fall back to shell if we can't find SwiftLint directly
-            print("⚠️  SwiftLint not found in standard paths, using shell execution")
+        guard let swiftLintPath = await resolveSwiftLintPath() else {
             return try await executeCommandViaShellFallback(command: command, arguments: arguments)
         }
-        
-        // Execute SwiftLint directly (faster, no shell overhead)
-        let environment = Self.buildEnvironment(base: ProcessInfo.processInfo.environment)
-
-        if let processRunner = processRunner {
-            let (stdout, stderr) = try await processRunner(swiftLintPath, arguments, environment)
-            return try processCommandOutput(stdout: stdout, stderr: stderr)
-        }
-
-        let process = Process()
-        process.executableURL = swiftLintPath
-        process.arguments = arguments
-        process.environment = environment
-        
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-        process.standardOutput = outputPipe
-        process.standardError = errorPipe
-        
-        var outputData = Data()
-        var errorData = Data()
-        
-        do {
-            let startTime = Date()
-            print("🚀 Starting SwiftLint process...")
-            
-            // Start reading output BEFORE running process
-            // This prevents the pipe buffer from filling up and blocking SwiftLint
-            let outputTask = Task.detached {
-                outputPipe.fileHandleForReading.readDataToEndOfFile()
-            }
-            
-            let errorTask = Task.detached {
-                errorPipe.fileHandleForReading.readDataToEndOfFile()
-            }
-            
-            try process.run()
-            
-            // Close write ends immediately so process knows when to finish
-            outputPipe.fileHandleForWriting.closeFile()
-            errorPipe.fileHandleForWriting.closeFile()
-            
-            // Wait for reading to complete with timeout
-            let timeoutSeconds: UInt64 = 300
-            let timeoutResult = try await Self.readWithTimeout(
-                timeoutSeconds: timeoutSeconds,
-                read: {
-                    let stdout = await outputTask.value
-                    let stderr = await errorTask.value
-                    return (stdout, stderr)
-                },
-                onTimeout: {
-                    process.terminate()
-                    try? await Task.sleep(nanoseconds: 100_000_000)
-                    process.terminate()
-                }
-            )
-            outputData = timeoutResult.stdout
-            errorData = timeoutResult.stderr
-            
-            let elapsed = Date().timeIntervalSince(startTime)
-            print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
-            
-            if timeoutResult.didTimeout {
-                let message = "SwiftLint command timed out after \(timeoutSeconds) seconds. " +
-                    "For very large projects, consider analyzing specific files or directories."
-                throw SwiftLintError.executionFailed(message: message)
-            }
-        } catch {
-            let nsError = error as NSError
-            if nsError.domain == NSCocoaErrorDomain && nsError.code == 4 {
-                let message = "SwiftLint executable not found. " +
-                    "Please ensure SwiftLint is installed (brew install swiftlint) and accessible."
-                throw SwiftLintError.executionFailed(message: message)
-            }
-            throw SwiftLintError.executionFailed(message: "Failed to execute SwiftLint: \(error.localizedDescription)")
-        }
-        
-        return try processCommandOutput(stdout: outputData, stderr: errorData)
+        return try await runDirectProcess(
+            swiftLintPath: swiftLintPath,
+            arguments: arguments
+        )
     }
     
     /// Fallback: Execute command via shell - works better with sandboxed apps
@@ -108,79 +24,7 @@ extension SwiftLintCLI {
         let shellPath = "/bin/zsh"
         
         let commandString = Self.buildShellCommand(command: command, arguments: arguments)
-        
-        let environment = Self.buildEnvironment(base: ProcessInfo.processInfo.environment)
-
-        if let shellRunner = shellRunner {
-            let (stdout, stderr) = try await shellRunner(commandString, arguments, environment)
-            return try processCommandOutput(stdout: stdout, stderr: stderr)
-        }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: shellPath)
-        process.arguments = ["-c", commandString]
-        process.environment = environment
-        
-        let outputPipe = Pipe()
-        let errorPipe = Pipe()
-        process.standardOutput = outputPipe
-        process.standardError = errorPipe
-        
-        var outputData = Data()
-        var errorData = Data()
-        
-        do {
-            let startTime = Date()
-            print("🚀 Starting SwiftLint process (via shell)...")
-            
-            try process.run()
-            
-            // Close write ends after process starts so it knows when to finish
-            outputPipe.fileHandleForWriting.closeFile()
-            errorPipe.fileHandleForWriting.closeFile()
-            
-            // Wait for process to complete by reading output with timeout
-            let timeoutSeconds: UInt64 = 300
-            let timeoutResult = try await Self.readWithTimeout(
-                timeoutSeconds: timeoutSeconds,
-                read: {
-                    async let stdout = Self.readChunks(
-                        read: { outputPipe.fileHandleForReading.availableData },
-                        sleep: { try? await Task.sleep(nanoseconds: $0) },
-                        intervalNs: 10_000_000
-                    )
-                    async let stderr = Self.readChunks(
-                        read: { errorPipe.fileHandleForReading.availableData },
-                        sleep: { try? await Task.sleep(nanoseconds: $0) },
-                        intervalNs: 10_000_000
-                    )
-                    return await (stdout, stderr)
-                },
-                onTimeout: {
-                    process.terminate()
-                    try? await Task.sleep(nanoseconds: 100_000_000)
-                    process.terminate()
-                }
-            )
-            outputData = timeoutResult.stdout
-            errorData = timeoutResult.stderr
-            
-            let elapsed = Date().timeIntervalSince(startTime)
-            print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
-            
-            if timeoutResult.didTimeout {
-                let message = "SwiftLint command timed out after \(timeoutSeconds) seconds."
-                throw SwiftLintError.executionFailed(message: message)
-            }
-        } catch {
-            let nsError = error as NSError
-            if nsError.domain == NSCocoaErrorDomain && nsError.code == 4 {
-                throw SwiftLintError.executionFailed(message: "SwiftLint executable not found.")
-            }
-            throw SwiftLintError.executionFailed(message: "Failed to execute SwiftLint: \(error.localizedDescription)")
-        }
-        
-        return try processCommandOutput(stdout: outputData, stderr: errorData)
+        return try await runShellProcess(shellPath: shellPath, commandString: commandString)
     }
     
     private func processCommandOutput(stdout: Data, stderr: Data) throws -> Data {
@@ -268,4 +112,168 @@ extension SwiftLintCLI {
         return data
     }
 }
-// swiftlint:enable function_body_length
+
+private extension SwiftLintCLI {
+    func resolveSwiftLintPath() async -> URL? {
+        do {
+            let path = try await detectSwiftLintPath()
+            print("✅ Using SwiftLint at: \(path.path)")
+            return path
+        } catch {
+            print("⚠️  SwiftLint not found in standard paths, using shell execution")
+            return nil
+        }
+    }
+
+    func runDirectProcess(swiftLintPath: URL, arguments: [String]) async throws -> Data {
+        let environment = Self.buildEnvironment(base: ProcessInfo.processInfo.environment)
+        if let processRunner = processRunner {
+            let (stdout, stderr) = try await processRunner(swiftLintPath, arguments, environment)
+            return try processCommandOutput(stdout: stdout, stderr: stderr)
+        }
+
+        let process = Process()
+        process.executableURL = swiftLintPath
+        process.arguments = arguments
+        process.environment = environment
+
+        let output = try await runProcess(
+            process,
+            label: "SwiftLint process...",
+            useChunkedRead: false
+        )
+        if output.didTimeout {
+            let message = "SwiftLint command timed out after 300 seconds. " +
+                "For very large projects, consider analyzing specific files or directories."
+            throw SwiftLintError.executionFailed(message: message)
+        }
+        return try processCommandOutput(stdout: output.stdout, stderr: output.stderr)
+    }
+
+    func runShellProcess(shellPath: String, commandString: String) async throws -> Data {
+        let environment = Self.buildEnvironment(base: ProcessInfo.processInfo.environment)
+        if let shellRunner = shellRunner {
+            let (stdout, stderr) = try await shellRunner(commandString, [], environment)
+            return try processCommandOutput(stdout: stdout, stderr: stderr)
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: shellPath)
+        process.arguments = ["-c", commandString]
+        process.environment = environment
+
+        let output = try await runProcess(
+            process,
+            label: "SwiftLint process (via shell)...",
+            useChunkedRead: true
+        )
+        if output.didTimeout {
+            throw SwiftLintError.executionFailed(message: "SwiftLint command timed out after 300 seconds.")
+        }
+        return try processCommandOutput(stdout: output.stdout, stderr: output.stderr)
+    }
+
+    struct ProcessOutput {
+        let stdout: Data
+        let stderr: Data
+        let didTimeout: Bool
+    }
+
+    func runProcess(
+        _ process: Process,
+        label: String,
+        useChunkedRead: Bool
+    ) async throws -> ProcessOutput {
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        configureProcess(process, outputPipe: outputPipe, errorPipe: errorPipe)
+
+        let startTime = Date()
+        print("🚀 Starting \(label)")
+
+        do {
+            try process.run()
+            closeWriteEnds(outputPipe: outputPipe, errorPipe: errorPipe)
+
+            let timeoutResult = try await readProcessOutput(
+                outputPipe: outputPipe,
+                errorPipe: errorPipe,
+                useChunkedRead: useChunkedRead,
+                onTimeout: { await self.terminateProcess(process) }
+            )
+            logCompletionTime(startTime: startTime)
+            return ProcessOutput(
+                stdout: timeoutResult.stdout,
+                stderr: timeoutResult.stderr,
+                didTimeout: timeoutResult.didTimeout
+            )
+        } catch {
+            throw handleProcessError(error)
+        }
+    }
+
+    func logCompletionTime(startTime: Date) {
+        let elapsed = Date().timeIntervalSince(startTime)
+        print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
+    }
+}
+
+private extension SwiftLintCLI {
+    func configureProcess(_ process: Process, outputPipe: Pipe, errorPipe: Pipe) {
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+    }
+
+    func closeWriteEnds(outputPipe: Pipe, errorPipe: Pipe) {
+        outputPipe.fileHandleForWriting.closeFile()
+        errorPipe.fileHandleForWriting.closeFile()
+    }
+
+    func readProcessOutput(
+        outputPipe: Pipe,
+        errorPipe: Pipe,
+        useChunkedRead: Bool,
+        onTimeout: @Sendable @escaping () async -> Void
+    ) async throws -> ReadWithTimeoutResult {
+        try await Self.readWithTimeout(
+            timeoutSeconds: 300,
+            read: {
+                if useChunkedRead {
+                    async let stdout = Self.readChunks(
+                        read: { outputPipe.fileHandleForReading.availableData },
+                        sleep: { try? await Task.sleep(nanoseconds: $0) },
+                        intervalNs: 10_000_000
+                    )
+                    async let stderr = Self.readChunks(
+                        read: { errorPipe.fileHandleForReading.availableData },
+                        sleep: { try? await Task.sleep(nanoseconds: $0) },
+                        intervalNs: 10_000_000
+                    )
+                    return await (stdout, stderr)
+                }
+                let outputTask = Task.detached {
+                    outputPipe.fileHandleForReading.readDataToEndOfFile()
+                }
+                let errorTask = Task.detached {
+                    errorPipe.fileHandleForReading.readDataToEndOfFile()
+                }
+                return (await outputTask.value, await errorTask.value)
+            },
+            onTimeout: onTimeout
+        )
+    }
+
+    func terminateProcess(_ process: Process) async {
+        process.terminate()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        process.terminate()
+    }
+
+    func handleProcessError(_ error: Error) -> SwiftLintError {
+        let nsError = error as NSError
+        if nsError.domain == NSCocoaErrorDomain && nsError.code == 4 {
+            return SwiftLintError.executionFailed(message: "SwiftLint executable not found.")
+        }
+        return SwiftLintError.executionFailed(message: "Failed to execute SwiftLint: \(error.localizedDescription)")
+    }
+}

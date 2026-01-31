@@ -10,72 +10,50 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
+private func makeTestViolation(
+    id: UUID = UUID(),
+    ruleID: String = "test_rule",
+    filePath: String = "Test.swift",
+    line: Int = 10,
+    column: Int? = 5,
+    severity: Severity = .error,
+    message: String = "Test violation message",
+    suppressed: Bool = false,
+    resolvedAt: Date? = nil
+) async -> Violation {
+    await ViolationDetailViewTestHelpers.makeTestViolation(
+        id: id,
+        ruleID: ruleID,
+        filePath: filePath,
+        line: line,
+        column: column,
+        severity: severity,
+        message: message,
+        suppressed: suppressed,
+        resolvedAt: resolvedAt
+    )
+}
+
+@MainActor
+private func createViolationDetailView(
+    violation: Violation
+) -> ViolationDetailViewTestHelpers.ViewResult {
+    ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+}
+
 // Tests for ViolationDetailView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
-// swiftlint:disable:next type_body_length
 struct ViolationDetailViewTests {
-    
-    // MARK: - Test Data Helpers
-    
-    private func makeTestViolation(
-        id: UUID = UUID(),
-        ruleID: String = "test_rule",
-        filePath: String = "Test.swift",
-        line: Int = 10,
-        column: Int? = 5,
-        severity: Severity = .error,
-        message: String = "Test violation message",
-        suppressed: Bool = false,
-        resolvedAt: Date? = nil
-    ) async -> Violation {
-        await MainActor.run {
-            Violation(
-                id: id,
-                ruleID: ruleID,
-                filePath: filePath,
-                line: line,
-                column: column,
-                severity: severity,
-                message: message,
-                detectedAt: Date(),
-                resolvedAt: resolvedAt,
-                suppressed: suppressed
-            )
-        }
-    }
-    
-    // Workaround type to bypass Sendable check for SwiftUI views
-    struct ViewResult: @unchecked Sendable {
-        let view: AnyView
-        
-        init(view: some View) {
-            self.view = AnyView(view)
-        }
-    }
-    
-    // Workaround for Swift 6 strict concurrency: Return ViewResult instead of 'some View'
-    @MainActor
-    private func createViolationDetailView(violation: Violation) -> ViewResult {
-        let container = DependencyContainer.createForTesting()
-        let view = ViolationDetailView(
-            violation: violation,
-            onSuppress: { _ in },
-            onResolve: {}
-        )
-        .environmentObject(container)
-        
-        return ViewResult(view: view)
-    }
-    
     // MARK: - Header Tests
     
     @Test("ViolationDetailView displays rule ID in header")
     func testDisplaysRuleIDInHeader() async throws {
-        let violation = await makeTestViolation(ruleID: "force_cast")
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(ruleID: "force_cast")
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -89,9 +67,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView displays severity badge")
     func testDisplaysSeverityBadge() async throws {
-        let violation = await makeTestViolation(severity: .error)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(severity: .error)
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // Find severity badge (should show "ERROR")
@@ -113,9 +92,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView shows suppressed label when suppressed")
     func testShowsSuppressedLabel() async throws {
-        let violation = await makeTestViolation(suppressed: true)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(suppressed: true)
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -129,9 +109,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView shows resolved label when resolved")
     func testShowsResolvedLabel() async throws {
-        let violation = await makeTestViolation(resolvedAt: Date())
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(resolvedAt: Date())
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -147,9 +128,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView displays file path in location section")
     func testDisplaysFilePath() async throws {
-        let violation = await makeTestViolation(filePath: "Sources/MyFile.swift")
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(filePath: "Sources/MyFile.swift")
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -163,9 +145,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView displays line number in location section")
     func testDisplaysLineNumber() async throws {
-        let violation = await makeTestViolation(line: 42)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(line: 42)
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -179,9 +162,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView displays column when available")
     func testDisplaysColumn() async throws {
-        let violation = await makeTestViolation(column: 15)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(column: 15)
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -195,9 +179,10 @@ struct ViolationDetailViewTests {
     
     @Test("ViolationDetailView shows Open in Xcode button")
     func testShowsOpenInXcodeButton() async throws {
-        let violation = await makeTestViolation()
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation()
+        let result = await Task { @MainActor in
+            ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
+        }.value
         let view = result.view
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block

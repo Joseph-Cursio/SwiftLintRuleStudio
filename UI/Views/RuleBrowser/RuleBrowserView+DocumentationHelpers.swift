@@ -1,7 +1,5 @@
 import SwiftUI
 
-// swiftlint:disable function_body_length
-
 extension RuleBrowserView {
     @ViewBuilder
     func documentationTextView(markdown: String, colorScheme: ColorScheme) -> some View {
@@ -153,83 +151,38 @@ extension RuleBrowserView {
     func convertMarkdownToHTML(content: String) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
-        var inCodeBlock = false
-        var codeBlockLanguage = ""
+        var state = MarkdownConversionState()
 
         for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            let hasHTMLTags = trimmed.contains("<") && trimmed.contains(">")
-
-            // Handle markdown code blocks
-            if line.hasPrefix("```") {
-                if inCodeBlock {
-                    processedLines.append("</code></pre>")
-                    inCodeBlock = false
-                    codeBlockLanguage = ""
-                } else {
-                    let language = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-                    codeBlockLanguage = language.isEmpty ? "" : " class=\"language-\(language)\""
-                    processedLines.append("<pre><code\(codeBlockLanguage)>")
-                    inCodeBlock = true
-                }
+            if handleCodeBlockDelimiter(line, state: &state, output: &processedLines) {
                 continue
             }
 
-            if inCodeBlock {
-                let escaped = line
-                    .replacingOccurrences(of: "&", with: "&amp;")
-                    .replacingOccurrences(of: "<", with: "&lt;")
-                    .replacingOccurrences(of: ">", with: "&gt;")
-                processedLines.append(escaped)
+            if state.inCodeBlock {
+                processedLines.append(escapeCodeLine(line))
                 continue
             }
 
-            if hasHTMLTags {
+            if shouldPreserveHTML(line) {
                 processedLines.append(line)
                 continue
             }
 
-            // Convert markdown headers
-            if line.hasPrefix("# ") {
-                let text = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-                processedLines.append("<h1>\(text)</h1>")
-            } else if line.hasPrefix("## ") {
-                let text = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-                processedLines.append("<h2>\(text)</h2>")
-            } else if line.hasPrefix("### ") {
-                let text = String(line.dropFirst(4)).trimmingCharacters(in: .whitespaces)
-                processedLines.append("<h3>\(text)</h3>")
-            } else if trimmed.isEmpty {
-                processedLines.append("<br>")
-            } else {
-                var processedLine = line
-
-                // Convert inline code
-                processedLine = processedLine.replacingOccurrences(
-                    of: #"`([^`]+)`"#,
-                    with: "<code>$1</code>",
-                    options: .regularExpression
-                )
-
-                // Convert bold
-                processedLine = processedLine.replacingOccurrences(
-                    of: #"\*\*([^*]+)\*\*"#,
-                    with: "<strong>$1</strong>",
-                    options: .regularExpression
-                )
-
-                // Convert italic
-                processedLine = processedLine.replacingOccurrences(
-                    of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
-                    with: "<em>$1</em>",
-                    options: .regularExpression
-                )
-
-                processedLines.append(processedLine)
+            if let header = convertHeaderLine(line) {
+                processedLines.append(header)
+                continue
             }
+
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty {
+                processedLines.append("<br>")
+                continue
+            }
+
+            processedLines.append(convertInlineMarkdown(line))
         }
 
-        if inCodeBlock {
+        if state.inCodeBlock {
             processedLines.append("</code></pre>")
         }
 
@@ -240,8 +193,21 @@ extension RuleBrowserView {
         let isDarkMode = colorScheme == .dark
         let textColor = isDarkMode ? "#FFFFFF" : "#000000"
         let codeBgColor = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
+        return htmlTemplate
+            .replacingOccurrences(of: "__TEXT_COLOR__", with: textColor)
+            .replacingOccurrences(of: "__CODE_BG_COLOR__", with: codeBgColor)
+            .replacingOccurrences(of: "__BODY__", with: body)
+    }
+}
 
-        return """
+private extension RuleBrowserView {
+    struct MarkdownConversionState {
+        var inCodeBlock = false
+        var codeBlockLanguage = ""
+    }
+
+    var htmlTemplate: String {
+        """
         <!DOCTYPE html>
         <html>
         <head>
@@ -251,36 +217,36 @@ extension RuleBrowserView {
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
                     font-size: 14px;
                     line-height: 1.6;
-                    color: \(textColor);
+                    color: __TEXT_COLOR__;
                     margin: 0;
                     padding: 0;
                     display: block !important;
                     width: 100% !important;
                 }
-                h1 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 16px; color: \(textColor); }
-                h2 { font-size: 18px; font-weight: 600; margin-top: 24px; margin-bottom: 12px; color: \(textColor); }
-                h3 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: \(textColor); }
+                h1 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 16px; color: __TEXT_COLOR__; }
+                h2 { font-size: 18px; font-weight: 600; margin-top: 24px; margin-bottom: 12px; color: __TEXT_COLOR__; }
+                h3 { font-size: 16px; font-weight: 600; margin-top: 20px; margin-bottom: 10px; color: __TEXT_COLOR__; }
                 code {
                     font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-                    background-color: \(codeBgColor);
+                    background-color: __CODE_BG_COLOR__;
                     padding: 2px 6px;
                     border-radius: 3px;
                     font-size: 13px;
-                    color: \(textColor);
+                    color: __TEXT_COLOR__;
                 }
                 pre {
-                    background-color: \(codeBgColor);
+                    background-color: __CODE_BG_COLOR__;
                     padding: 12px;
                     border-radius: 6px;
                     overflow-x: auto;
                     margin: 12px 0;
                 }
-                pre code { background: none; padding: 0; color: \(textColor); }
-                p { margin: 8px 0; color: \(textColor); }
-                ul, ol { margin: 8px 0; padding-left: 24px; color: \(textColor); list-style-position: inside; }
-                li { margin: 4px 0; color: \(textColor); display: list-item; }
-                strong { color: \(textColor); }
-                em { color: \(textColor); }
+                pre code { background: none; padding: 0; color: __TEXT_COLOR__; }
+                p { margin: 8px 0; color: __TEXT_COLOR__; }
+                ul, ol { margin: 8px 0; padding-left: 24px; color: __TEXT_COLOR__; list-style-position: inside; }
+                li { margin: 4px 0; color: __TEXT_COLOR__; display: list-item; }
+                strong { color: __TEXT_COLOR__; }
+                em { color: __TEXT_COLOR__; }
                 hr { display: none; }
                 table { border: none; border-collapse: collapse; width: 100%; display: block; }
                 td, th { border: none; display: block; width: 100%; padding: 4px; }
@@ -302,10 +268,76 @@ extension RuleBrowserView {
             </style>
         </head>
         <body>
-        \(body)
+        __BODY__
         </body>
         </html>
         """
     }
+
+    func handleCodeBlockDelimiter(
+        _ line: String,
+        state: inout MarkdownConversionState,
+        output: inout [String]
+    ) -> Bool {
+        guard line.hasPrefix("```") else { return false }
+        if state.inCodeBlock {
+            output.append("</code></pre>")
+            state.inCodeBlock = false
+            state.codeBlockLanguage = ""
+        } else {
+            let language = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+            state.codeBlockLanguage = language.isEmpty ? "" : " class=\"language-\(language)\""
+            output.append("<pre><code\(state.codeBlockLanguage)>")
+            state.inCodeBlock = true
+        }
+        return true
+    }
+
+    func escapeCodeLine(_ line: String) -> String {
+        line
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+    }
+
+    func shouldPreserveHTML(_ line: String) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        return trimmed.contains("<") && trimmed.contains(">")
+    }
+
+    func convertHeaderLine(_ line: String) -> String? {
+        if line.hasPrefix("# ") {
+            let text = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+            return "<h1>\(text)</h1>"
+        }
+        if line.hasPrefix("## ") {
+            let text = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+            return "<h2>\(text)</h2>"
+        }
+        if line.hasPrefix("### ") {
+            let text = String(line.dropFirst(4)).trimmingCharacters(in: .whitespaces)
+            return "<h3>\(text)</h3>"
+        }
+        return nil
+    }
+
+    func convertInlineMarkdown(_ line: String) -> String {
+        var processedLine = line
+        processedLine = processedLine.replacingOccurrences(
+            of: #"`([^`]+)`"#,
+            with: "<code>$1</code>",
+            options: .regularExpression
+        )
+        processedLine = processedLine.replacingOccurrences(
+            of: #"\*\*([^*]+)\*\*"#,
+            with: "<strong>$1</strong>",
+            options: .regularExpression
+        )
+        processedLine = processedLine.replacingOccurrences(
+            of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
+            with: "<em>$1</em>",
+            options: .regularExpression
+        )
+        return processedLine
+    }
 }
-// swiftlint:enable function_body_length

@@ -242,19 +242,26 @@ extension RuleDetailView {
         return processedLine
     }
     
-    // swiftlint:disable function_body_length
     private func htmlStyleBlock(
         textColor: String,
         codeBgColor: String,
         tableBorderColor: String,
         tableHeaderBg: String
     ) -> String {
+        htmlStyleTemplate
+            .replacingOccurrences(of: "__TEXT_COLOR__", with: textColor)
+            .replacingOccurrences(of: "__CODE_BG_COLOR__", with: codeBgColor)
+            .replacingOccurrences(of: "__TABLE_BORDER__", with: tableBorderColor)
+            .replacingOccurrences(of: "__TABLE_HEADER_BG__", with: tableHeaderBg)
+    }
+
+    private var htmlStyleTemplate: String {
         """
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             font-size: 14px;
             line-height: 1.6;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
             margin: 0;
             padding: 0;
         }
@@ -263,32 +270,32 @@ extension RuleDetailView {
             font-weight: 600;
             margin-top: 0;
             margin-bottom: 16px;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         h2 {
             font-size: 18px;
             font-weight: 600;
             margin-top: 24px;
             margin-bottom: 12px;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         h3 {
             font-size: 16px;
             font-weight: 600;
             margin-top: 20px;
             margin-bottom: 10px;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         code {
             font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-            background-color: \(codeBgColor);
+            background-color: __CODE_BG_COLOR__;
             padding: 2px 6px;
             border-radius: 3px;
             font-size: 13px;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         pre {
-            background-color: \(codeBgColor);
+            background-color: __CODE_BG_COLOR__;
             padding: 12px;
             border-radius: 6px;
             overflow-x: auto;
@@ -297,7 +304,7 @@ extension RuleDetailView {
         pre code {
             background: none;
             padding: 0;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         table {
             border-collapse: collapse;
@@ -305,35 +312,34 @@ extension RuleDetailView {
             margin: 12px 0;
         }
         th, td {
-            border: 1px solid \(tableBorderColor);
+            border: 1px solid __TABLE_BORDER__;
             padding: 8px 12px;
             text-align: left;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         th {
-            background-color: \(tableHeaderBg);
+            background-color: __TABLE_HEADER_BG__;
             font-weight: 600;
         }
         p {
             margin: 8px 0;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         ul, ol {
             margin: 8px 0;
             padding-left: 24px;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         li {
             margin: 4px 0;
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         strong {
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         em {
-            color: \(textColor);
+            color: __TEXT_COLOR__;
         }
         """
     }
-    // swiftlint:enable function_body_length
 }

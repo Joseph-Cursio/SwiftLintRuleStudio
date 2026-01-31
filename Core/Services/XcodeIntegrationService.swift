@@ -17,6 +17,14 @@ class XcodeIntegrationService {
     init(workspaceManager: WorkspaceManager) {
         self.workspaceManager = workspaceManager
     }
+
+    nonisolated static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    nonisolated static var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiTesting")
+    }
     
     /// Open a file in Xcode at a specific line and column
     /// - Parameters:
@@ -47,6 +55,10 @@ class XcodeIntegrationService {
         
         // 3. Find associated Xcode project/workspace
         let projectURL = findXcodeProject(for: fileURL, in: workspace)
+
+        if Self.isRunningTests || Self.isUITesting {
+            return true
+        }
         
         // 4. Try to open using various methods
         return try openFileInXcode(

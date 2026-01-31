@@ -1,513 +1,99 @@
-//
-//  YAMLConfigurationEngineTests.swift
-//  SwiftLintRuleStudioTests
-//
-//  Tests for YAML Configuration Engine
-//
-
 import Foundation
 import Testing
 @testable import SwiftLIntRuleStudio
 
-// swiftlint:disable file_length
-
 // YAMLConfigurationEngine is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
-// swiftlint:disable:next type_body_length
 struct YAMLConfigurationEngineTests {
-    
-    // MARK: - Test Helpers
-    
-    // Helper to create and use YAMLConfigurationEngine on MainActor
-    private func withEngine<T: Sendable>(configPath: URL, operation: @MainActor (YAMLConfigurationEngine) throws -> T) async throws -> T {
-        try await MainActor.run {
-            let engine = YAMLConfigurationEngine(configPath: configPath)
-            return try operation(engine)
-        }
-    }
-    
-    private func createTempConfigFile(content: String) throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        
-        let configFile = tempDir.appendingPathComponent(".swiftlint.yml")
-        try content.write(to: configFile, atomically: true, encoding: .utf8)
-        return configFile
-    }
-    
-    private func cleanupTempFile(_ url: URL) {
-        try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
-    }
-    
-    // MARK: - Loading Tests
-    
-    @Test("YAMLConfigurationEngine loads existing configuration file")
-    func testLoadExistingFile() async throws {
-        let yamlContent = """
-        disabled_rules:
-          - force_cast
-        opt_in_rules:
-          - empty_count
-        included:
-          - Sources
-        excluded:
-          - Pods
-        reporter: xcode
-        rules:
-          line_length:
-            warning: 120
-            error: 200
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        struct ConfigSnapshot {
-            let included: [String]?
-            let excluded: [String]?
-            let reporter: String?
-            let rulesCount: Int
-            let hasLineLength: Bool
-        }
-
-        let snapshot = try await MainActor.run {
-            let engine = YAMLConfigurationEngine(configPath: configFile)
-            try engine.load()
-            let config = engine.getConfig()
-            return ConfigSnapshot(
-                included: config.included,
-                excluded: config.excluded,
-                reporter: config.reporter,
-                rulesCount: config.rules.count,
-                hasLineLength: config.rules["line_length"] != nil
-            )
-        }
-        
-        #expect(snapshot.included == ["Sources"])
-        #expect(snapshot.excluded == ["Pods"])
-        #expect(snapshot.reporter == "xcode")
-        #expect(snapshot.rulesCount == 1)
-        #expect(snapshot.hasLineLength == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles non-existent file")
-    func testLoadNonExistentFile() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-        
-        let configFile = tempDir.appendingPathComponent(".swiftlint.yml")
-        
-        let (rulesEmpty, included, excluded) = try await MainActor.run {
-            let engine = YAMLConfigurationEngine(configPath: configFile)
-            // Should not throw - returns empty config
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.isEmpty,
-                config.included,
-                config.excluded
-            )
-        }
-        
-        #expect(rulesEmpty == true)
-        #expect(included == nil)
-        #expect(excluded == nil)
-    }
-    
-    @Test("YAMLConfigurationEngine parses simple rule configuration")
-    func testParseSimpleRuleConfig() async throws {
-        let yamlContent = """
-        rules:
-          force_cast:
-            severity: error
-          line_length:
-            warning: 120
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let parseSnapshot = try await MainActor.run {
-            let engine = YAMLConfigurationEngine(configPath: configFile)
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                rulesCount: config.rules.count,
-                forceCastSeverity: config.rules["force_cast"]?.severity,
-                hasLineLengthParams: config.rules["line_length"]?.parameters != nil
-            )
-        }
-        
-        #expect(parseSnapshot.rulesCount == 2)
-        #expect(parseSnapshot.forceCastSeverity == .error)
-        #expect(parseSnapshot.hasLineLengthParams == true)
-    }
-    
-    @Test("YAMLConfigurationEngine parses boolean rule configuration")
-    func testParseBooleanRuleConfig() async throws {
-        let yamlContent = """
-        rules:
-          force_cast: false
-          line_length: true
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (rulesCount, forceCastEnabled, lineLengthEnabled) = try await MainActor.run {
-            let engine = YAMLConfigurationEngine(configPath: configFile)
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.count,
-                config.rules["force_cast"]?.enabled,
-                config.rules["line_length"]?.enabled
-            )
-        }
-        
-        #expect(rulesCount == 2)
-        #expect(forceCastEnabled == false)
-        #expect(lineLengthEnabled == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles empty configuration")
-    func testLoadEmptyConfiguration() async throws {
-        let yamlContent = ""
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        // Empty YAML should throw an error
-        await #expect(throws: YAMLConfigError.self) {
-            try await MainActor.run {
-                let engine = YAMLConfigurationEngine(configPath: configFile)
-                try engine.load()
-            }
-        }
-    }
-    
-    // MARK: - Saving Tests
-    
-    @Test("YAMLConfigurationEngine saves configuration to file")
-    func testSaveConfiguration() async throws {
-        let configFile = try createTempConfigFile(content: "")
-        defer { cleanupTempFile(configFile) }
-        
-        // Delete the empty file first
-        try? FileManager.default.removeItem(at: configFile)
-        
-        let config = await MainActor.run {
-            var config = YAMLConfigurationEngine.YAMLConfig()
-            config.rules["force_cast"] = RuleConfiguration(enabled: false, severity: .error)
-            config.included = ["Sources"]
-            return config
-        }
-        
-        try await withEngine(configPath: configFile) { engine in
-            try engine.save(config: config, createBackup: false)
-        }
-        
-        // Verify file was created
-        #expect(FileManager.default.fileExists(atPath: configFile.path))
-        
-        // Reload and verify
-        let (rulesCount, forceCastEnabled, included) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let loadedConfig = engine.getConfig()
-            return (
-                rulesCount: loadedConfig.rules.count,
-                forceCastEnabled: loadedConfig.rules["force_cast"]?.enabled,
-                included: loadedConfig.included
-            )
-        }
-        
-        #expect(rulesCount == 1)
-        #expect(forceCastEnabled == false)
-        #expect(included == ["Sources"])
-    }
-    
-    @Test("YAMLConfigurationEngine creates backup when saving")
-    func testSaveCreatesBackup() async throws {
-        let yamlContent = """
-        rules:
-          force_cast: false
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let config = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            var config = engine.getConfig()
-            config.rules["line_length"] = RuleConfiguration(enabled: true)
-            return config
-        }
-        
-        try await withEngine(configPath: configFile) { engine in
-            try engine.save(config: config, createBackup: true)
-        }
-        
-        // Check backup was created (backup files now use timestamped names)
-        let configDir = configFile.deletingLastPathComponent()
-        let backupFiles = try FileManager.default
-            .contentsOfDirectory(at: configDir, includingPropertiesForKeys: nil)
-            .filter {
-                $0.lastPathComponent.hasPrefix(configFile.lastPathComponent)
-                    && $0.lastPathComponent.hasSuffix(".backup")
-            }
-        #expect(!backupFiles.isEmpty, "Backup file should be created")
-        
-        // Cleanup backup
-        for backupFile in backupFiles {
-            try? FileManager.default.removeItem(at: backupFile)
-        }
-    }
-    
-    @Test("YAMLConfigurationEngine performs atomic write")
-    func testAtomicWrite() async throws {
-        let configFile = try createTempConfigFile(content: "")
-        defer { cleanupTempFile(configFile) }
-        
-        try? FileManager.default.removeItem(at: configFile)
-        
-        let config = await MainActor.run {
-            var config = YAMLConfigurationEngine.YAMLConfig()
-            config.rules["test_rule"] = RuleConfiguration(enabled: true)
-            return config
-        }
-        
-        try await withEngine(configPath: configFile) { engine in
-            try engine.save(config: config, createBackup: false)
-        }
-        
-        // Verify temp file doesn't exist (was moved)
-        let tempFile = configFile.appendingPathExtension("tmp")
-        #expect(!FileManager.default.fileExists(atPath: tempFile.path))
-        
-        // Verify final file exists
-        #expect(FileManager.default.fileExists(atPath: configFile.path))
-    }
-    
-    // MARK: - Diff Generation Tests
-    
-    @Test("YAMLConfigurationEngine generates diff for added rules")
-    func testDiffAddedRules() async throws {
-        let yamlContent = """
-        rules:
-          force_cast: false
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let diffSnapshot = try await withEngine(
-            configPath: configFile
-        ) { engine in
-            try engine.load()
-            var config = engine.getConfig()
-            config.rules["line_length"] = RuleConfiguration(enabled: true)
-            let diff = engine.generateDiff(proposedConfig: config)
-            return (
-                hasChanges: diff.hasChanges,
-                addedRules: diff.addedRules,
-                removedRules: diff.removedRules,
-                modifiedRules: diff.modifiedRules
-            )
-        }
-        
-        #expect(diffSnapshot.hasChanges == true)
-        #expect(diffSnapshot.addedRules.contains("line_length"))
-        #expect(diffSnapshot.removedRules.isEmpty)
-        #expect(diffSnapshot.modifiedRules.isEmpty)
-    }
-    
-    @Test("YAMLConfigurationEngine generates diff for removed rules")
-    func testDiffRemovedRules() async throws {
-        let yamlContent = """
-        rules:
-          force_cast: false
-          line_length: true
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let removedSnapshot = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            var config = engine.getConfig()
-            config.rules.removeValue(forKey: "line_length")
-            let diff = engine.generateDiff(proposedConfig: config)
-            return (
-                hasChanges: diff.hasChanges,
-                removedRules: diff.removedRules,
-                addedRules: diff.addedRules,
-                modifiedRules: diff.modifiedRules
-            )
-        }
-        
-        #expect(removedSnapshot.hasChanges == true)
-        #expect(removedSnapshot.removedRules.contains("line_length"))
-        #expect(removedSnapshot.addedRules.isEmpty)
-        #expect(removedSnapshot.modifiedRules.isEmpty)
-    }
-    
-    @Test("YAMLConfigurationEngine generates diff for modified rules")
-    func testDiffModifiedRules() async throws {
-        let yamlContent = """
-        rules:
-          force_cast:
-            severity: warning
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let modifiedSnapshot = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            var config = engine.getConfig()
-            config.rules["force_cast"] = RuleConfiguration(enabled: true, severity: .error)
-            let diff = engine.generateDiff(proposedConfig: config)
-            return (
-                hasChanges: diff.hasChanges,
-                modifiedRules: diff.modifiedRules,
-                addedRules: diff.addedRules,
-                removedRules: diff.removedRules
-            )
-        }
-        
-        #expect(modifiedSnapshot.hasChanges == true)
-        #expect(modifiedSnapshot.modifiedRules.contains("force_cast"))
-        #expect(modifiedSnapshot.addedRules.isEmpty)
-        #expect(modifiedSnapshot.removedRules.isEmpty)
-    }
-    
-    @Test("YAMLConfigurationEngine detects no changes in diff")
-    func testDiffNoChanges() async throws {
-        let yamlContent = """
-        rules:
-          force_cast: false
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let diffSnapshot = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            let diff = engine.generateDiff(proposedConfig: config)
-            return (
-                diff.hasChanges,
-                diff.addedRules,
-                diff.removedRules,
-                diff.modifiedRules
-            )
-        }
-        
-        #expect(diffSnapshot.0 == false)
-        #expect(diffSnapshot.1.isEmpty)
-        #expect(diffSnapshot.2.isEmpty)
-        #expect(diffSnapshot.3.isEmpty)
-    }
-    
     // MARK: - Validation Tests
-    
+
     @Test("YAMLConfigurationEngine validates severity values")
     func testValidateSeverity() async throws {
-        let configFile = try createTempConfigFile(content: "")
-        defer { cleanupTempFile(configFile) }
-        
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: "")
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
         try? FileManager.default.removeItem(at: configFile)
-        
-        // Valid severities should pass
+
         let config1 = await MainActor.run {
             var config = YAMLConfigurationEngine.YAMLConfig()
             config.rules["test_rule"] = RuleConfiguration(enabled: true, severity: .warning)
             return config
         }
-        
-        // Should not throw
-        try await withEngine(configPath: configFile) { engine in
+
+        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.validate(config1)
         }
-        
+
         let config2 = await MainActor.run {
             var config = YAMLConfigurationEngine.YAMLConfig()
             config.rules["test_rule"] = RuleConfiguration(enabled: true, severity: .error)
             return config
         }
-        try await withEngine(configPath: configFile) { engine in
+        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.validate(config2)
         }
     }
-    
+
     @Test("YAMLConfigurationEngine validates included paths")
     func testValidateIncludedPaths() async throws {
-        let configFile = try createTempConfigFile(content: "")
-        defer { cleanupTempFile(configFile) }
-        
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: "")
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
         try? FileManager.default.removeItem(at: configFile)
-        
+
         let config = await MainActor.run {
             var config = YAMLConfigurationEngine.YAMLConfig()
             config.included = ["Sources", "Tests"]
             return config
         }
-        
-        // Should not throw
-        try await withEngine(configPath: configFile) { engine in
+
+        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.validate(config)
         }
     }
-    
+
     @Test("YAMLConfigurationEngine rejects empty included paths")
     func testValidateEmptyIncludedPaths() async throws {
-        let configFile = try createTempConfigFile(content: "")
-        defer { cleanupTempFile(configFile) }
-        
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: "")
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
         try? FileManager.default.removeItem(at: configFile)
-        
+
         let config = await MainActor.run {
             var config = YAMLConfigurationEngine.YAMLConfig()
             config.included = [""]
             return config
         }
-        
-        // Should throw validation error
+
         await #expect(throws: YAMLConfigError.self) {
-            try await withEngine(configPath: configFile) { engine in
+            try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.validate(config)
             }
         }
     }
-    
+
     @Test("YAMLConfigurationEngine rejects empty excluded paths")
     func testValidateEmptyExcludedPaths() async throws {
-        let configFile = try createTempConfigFile(content: "")
-        defer { cleanupTempFile(configFile) }
-        
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: "")
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
         try? FileManager.default.removeItem(at: configFile)
-        
+
         let config = await MainActor.run {
             var config = YAMLConfigurationEngine.YAMLConfig()
             config.excluded = [""]
             return config
         }
-        
-        // Should throw validation error
+
         await #expect(throws: YAMLConfigError.self) {
-            try await withEngine(configPath: configFile) { engine in
+            try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.validate(config)
             }
         }
     }
-    
+
     // MARK: - Comment Preservation Tests
-    
+
     @Test("YAMLConfigurationEngine extracts comments from YAML")
     func testExtractComments() async throws {
         let yamlContent = """
@@ -518,23 +104,21 @@ struct YAMLConfigurationEngineTests {
         included:
           - Sources
         """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let rulesCount = try await withEngine(configPath: configFile) { engine in
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        let rulesCount = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             return config.rules.count
         }
-        
-        // Comments should be extracted (basic implementation)
-        // More sophisticated comment preservation can be tested later
+
         #expect(rulesCount == 1)
     }
-    
+
     // MARK: - Error Handling Tests
-    
+
     @Test("YAMLConfigurationEngine handles invalid YAML")
     func testInvalidYAML() async throws {
         let invalidYAML = """
@@ -543,41 +127,38 @@ struct YAMLConfigurationEngineTests {
           - yaml
           structure
         """
-        
-        let configFile = try createTempConfigFile(content: invalidYAML)
-        defer { cleanupTempFile(configFile) }
-        
-        // Should throw parse error
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: invalidYAML)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
         await #expect(throws: YAMLConfigError.self) {
-            try await withEngine(configPath: configFile) { engine in
+            try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.load()
             }
         }
     }
-    
+
     @Test("YAMLConfigurationEngine handles malformed rule configuration")
     func testMalformedRuleConfig() async throws {
-        // This test verifies the engine handles edge cases gracefully
         let yamlContent = """
         rules:
           force_cast:
             invalid_field: value
         """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        // Should still parse (invalid fields are ignored)
-        let hasForceCast = try await withEngine(configPath: configFile) { engine in
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        let hasForceCast = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             return config.rules["force_cast"] != nil
         }
         #expect(hasForceCast == true)
     }
-    
+
     // MARK: - Round-Trip Tests
-    
+
     @Test("YAMLConfigurationEngine preserves configuration in round-trip")
     func testRoundTrip() async throws {
         let yamlContent = """
@@ -591,52 +172,32 @@ struct YAMLConfigurationEngineTests {
         excluded:
           - Pods
         """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (originalRulesCount, originalForceCastSeverity, originalIncluded, originalExcluded) = try await withEngine(
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        let originalSnapshot = try await loadRoundTripSnapshot(configFile: configFile)
+
+        let originalConfig = try await YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.count,
-                config.rules["force_cast"]?.severity,
-                config.included,
-                config.excluded
-            )
-        }
-        
-        // Save and reload
-        let originalConfig = try await withEngine(configPath: configFile) { engine in
             try engine.load()
             return engine.getConfig()
         }
-        try await withEngine(configPath: configFile) { engine in
-            try engine.save(config: originalConfig, createBackup: false)
-        }
-        
-        let (reloadedRulesCount, reloadedForceCastSeverity, reloadedIncluded, reloadedExcluded) = try await withEngine(
+        try await YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.count,
-                config.rules["force_cast"]?.severity,
-                config.included,
-                config.excluded
-            )
+            try engine.save(config: originalConfig, createBackup: false)
         }
-        
-        // Verify rules are preserved
-        #expect(reloadedRulesCount == originalRulesCount)
-        #expect(reloadedForceCastSeverity == originalForceCastSeverity)
-        #expect(reloadedIncluded == originalIncluded)
-        #expect(reloadedExcluded == originalExcluded)
+
+        let reloadedSnapshot = try await loadRoundTripSnapshot(configFile: configFile)
+
+        #expect(reloadedSnapshot.rulesCount == originalSnapshot.rulesCount)
+        #expect(reloadedSnapshot.forceCastSeverity == originalSnapshot.forceCastSeverity)
+        #expect(reloadedSnapshot.included == originalSnapshot.included)
+        #expect(reloadedSnapshot.excluded == originalSnapshot.excluded)
     }
-    
+
     @Test("YAMLConfigurationEngine handles complex rule parameters")
     func testComplexRuleParameters() async throws {
         let yamlContent = """
@@ -647,11 +208,13 @@ struct YAMLConfigurationEngineTests {
             ignores_urls: true
             ignores_function_declarations: false
         """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (hasLineLength, hasParams, paramsCount) = try await withEngine(configPath: configFile) { engine in
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        let (hasLineLength, hasParams, paramsCount) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+            configPath: configFile
+        ) { engine in
             try engine.load()
             let config = engine.getConfig()
             let lineLengthRule = config.rules["line_length"]
@@ -665,382 +228,28 @@ struct YAMLConfigurationEngineTests {
         #expect(hasParams == true)
         #expect(paramsCount >= 3)
     }
-    
-    // MARK: - Edge Case Tests
-    
-    @Test("YAMLConfigurationEngine handles rules with only parameters, no severity")
-    func testRulesWithOnlyParameters() async throws {
-        let yamlContent = """
-        rules:
-          line_length:
-            warning: 120
-            error: 200
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let ruleSnapshot = try await withEngine(configPath: configFile) { engine in
+
+    private struct RoundTripSnapshot {
+        let rulesCount: Int
+        let forceCastSeverity: Severity?
+        let included: [String]?
+        let excluded: [String]?
+    }
+
+    private func loadRoundTripSnapshot(
+        configFile: URL
+    ) async throws -> RoundTripSnapshot {
+        try await YAMLConfigurationEngineTestHelpers.withEngine(
+            configPath: configFile
+        ) { engine in
             try engine.load()
             let config = engine.getConfig()
-            return (
-                hasRule: config.rules["line_length"] != nil,
-                hasParams: config.rules["line_length"]?.parameters != nil,
-                severity: config.rules["line_length"]?.severity
+            return RoundTripSnapshot(
+                rulesCount: config.rules.count,
+                forceCastSeverity: config.rules["force_cast"]?.severity,
+                included: config.included,
+                excluded: config.excluded
             )
         }
-        #expect(ruleSnapshot.hasRule == true)
-        #expect(ruleSnapshot.hasParams == true)
-        #expect(ruleSnapshot.severity == nil)
-    }
-    
-    @Test("YAMLConfigurationEngine handles disabled rules with parameters")
-    func testDisabledRulesWithParameters() async throws {
-        let yamlContent = """
-        rules:
-          line_length:
-            enabled: false
-            warning: 120
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let disabledSnapshot = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                enabled: config.rules["line_length"]?.enabled,
-                hasParams: config.rules["line_length"]?.parameters != nil
-            )
-        }
-        #expect(disabledSnapshot.enabled == false)
-        #expect(disabledSnapshot.hasParams == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles empty rules dictionary")
-    func testEmptyRulesDictionary() async throws {
-        let yamlContent = """
-        rules: {}
-        included:
-          - Sources
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (rulesEmpty, included) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.isEmpty,
-                config.included
-            )
-        }
-        #expect(rulesEmpty == true)
-        #expect(included == ["Sources"])
-    }
-    
-    @Test("YAMLConfigurationEngine handles numeric rule parameters")
-    func testNumericRuleParameters() async throws {
-        let yamlContent = """
-        rules:
-          file_length:
-            warning: 400
-            error: 1000
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (hasParams, hasWarning, hasError) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            let fileLengthRule = config.rules["file_length"]
-            return (
-                fileLengthRule?.parameters != nil,
-                fileLengthRule?.parameters?["warning"] != nil,
-                fileLengthRule?.parameters?["error"] != nil
-            )
-        }
-        #expect(hasParams == true)
-        #expect(hasWarning == true)
-        #expect(hasError == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles string rule parameters")
-    func testStringRuleParameters() async throws {
-        let yamlContent = """
-        rules:
-          custom_rules:
-            name: "My Custom Rule"
-            regex: ".*"
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (hasParams, hasName) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules["custom_rules"]?.parameters != nil,
-                config.rules["custom_rules"]?.parameters?["name"] != nil
-            )
-        }
-        #expect(hasParams == true)
-        #expect(hasName == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles array rule parameters")
-    func testArrayRuleParameters() async throws {
-        let yamlContent = """
-        rules:
-          excluded:
-            paths:
-              - Pods
-              - Generated
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (hasParams, hasPaths) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules["excluded"]?.parameters != nil,
-                config.rules["excluded"]?.parameters?["paths"] != nil
-            )
-        }
-        #expect(hasParams == true)
-        #expect(hasPaths == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles nested rule configurations")
-    func testNestedRuleConfigurations() async throws {
-        let yamlContent = """
-        rules:
-          nesting:
-            type_level: 2
-            function_level: 3
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (hasParams, hasTypeLevel, hasFunctionLevel) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            let nestingRule = config.rules["nesting"]
-            return (
-                nestingRule?.parameters != nil,
-                nestingRule?.parameters?["type_level"] != nil,
-                nestingRule?.parameters?["function_level"] != nil
-            )
-        }
-        #expect(hasParams == true)
-        #expect(hasTypeLevel == true)
-        #expect(hasFunctionLevel == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles multiple included paths")
-    func testMultipleIncludedPaths() async throws {
-        let yamlContent = """
-        included:
-          - Sources
-          - Tests
-          - Scripts
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (includedCount, hasSources, hasTests, hasScripts) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.included?.count ?? 0,
-                config.included?.contains("Sources") == true,
-                config.included?.contains("Tests") == true,
-                config.included?.contains("Scripts") == true
-            )
-        }
-        #expect(includedCount == 3)
-        #expect(hasSources == true)
-        #expect(hasTests == true)
-        #expect(hasScripts == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles multiple excluded paths")
-    func testMultipleExcludedPaths() async throws {
-        let yamlContent = """
-        excluded:
-          - Pods
-          - .build
-          - Generated
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (excludedCount, hasPods, hasBuild, hasGenerated) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.excluded?.count ?? 0,
-                config.excluded?.contains("Pods") == true,
-                config.excluded?.contains(".build") == true,
-                config.excluded?.contains("Generated") == true
-            )
-        }
-        #expect(excludedCount == 3)
-        #expect(hasPods == true)
-        #expect(hasBuild == true)
-        #expect(hasGenerated == true)
-    }
-    
-    @Test("YAMLConfigurationEngine handles reporter configuration")
-    func testReporterConfiguration() async throws {
-        let yamlContent = """
-        reporter: xcode
-        rules:
-          force_cast: false
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (reporter, forceCastEnabled) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.reporter,
-                config.rules["force_cast"]?.enabled
-            )
-        }
-        #expect(reporter == "xcode")
-        #expect(forceCastEnabled == false)
-    }
-    
-    @Test("YAMLConfigurationEngine handles very large configuration")
-    func testLargeConfiguration() async throws {
-        var yamlContent = "rules:\n"
-        for i in 1...50 {
-            yamlContent += "  rule_\(i): true\n"
-        }
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let rulesCount = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return config.rules.count
-        }
-        #expect(rulesCount == 50)
-    }
-    
-    @Test("YAMLConfigurationEngine handles rules with special characters in names")
-    func testRulesWithSpecialCharacters() async throws {
-        let yamlContent = """
-        rules:
-          "rule-with-dashes": true
-          "rule_with_underscores": false
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (dashesEnabled, underscoresEnabled) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules["rule-with-dashes"]?.enabled,
-                config.rules["rule_with_underscores"]?.enabled
-            )
-        }
-        #expect(dashesEnabled == true)
-        #expect(underscoresEnabled == false)
-    }
-    
-    @Test("YAMLConfigurationEngine handles configuration with only rules")
-    func testConfigurationWithOnlyRules() async throws {
-        let yamlContent = """
-        rules:
-          force_cast: false
-          line_length: true
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (rulesCount, included, excluded, reporter) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.count,
-                config.included,
-                config.excluded,
-                config.reporter
-            )
-        }
-        #expect(rulesCount == 2)
-        #expect(included == nil)
-        #expect(excluded == nil)
-        #expect(reporter == nil)
-    }
-    
-    @Test("YAMLConfigurationEngine handles configuration with only included/excluded")
-    func testConfigurationWithOnlyPaths() async throws {
-        let yamlContent = """
-        included:
-          - Sources
-        excluded:
-          - Pods
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (rulesEmpty, included, excluded) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            let config = engine.getConfig()
-            return (
-                config.rules.isEmpty,
-                config.included,
-                config.excluded
-            )
-        }
-        #expect(rulesEmpty == true)
-        #expect(included == ["Sources"])
-        #expect(excluded == ["Pods"])
-    }
-    
-    @Test("YAMLConfigurationEngine preserves rule order in diff")
-    func testRuleOrderInDiff() async throws {
-        let yamlContent = """
-        rules:
-          rule_a: true
-          rule_b: false
-          rule_c: true
-        """
-        
-        let configFile = try createTempConfigFile(content: yamlContent)
-        defer { cleanupTempFile(configFile) }
-        
-        let (addedRules, addedRulesCount) = try await withEngine(configPath: configFile) { engine in
-            try engine.load()
-            var config = engine.getConfig()
-            config.rules["rule_d"] = RuleConfiguration(enabled: true)
-            let diff = engine.generateDiff(proposedConfig: config)
-            return (
-                diff.addedRules,
-                diff.addedRules.count
-            )
-        }
-        #expect(addedRules.contains("rule_d"))
-        #expect(addedRulesCount == 1)
     }
 }
-// swiftlint:enable file_length

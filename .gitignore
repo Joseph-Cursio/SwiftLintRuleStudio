@@ -2,3 +2,4 @@
 DerivedData/
 SwiftLIntRuleStudio.xcodeproj/project.xcworkspace/xcuserdata/
 SwiftLIntRuleStudio.xcodeproj/xcuserdata/
+*.xcresult

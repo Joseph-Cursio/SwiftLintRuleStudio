@@ -13,7 +13,7 @@ typealias SwiftLintProcessRunner = @Sendable (URL, [String], [String: String]) a
 typealias SwiftLintShellRunner = @Sendable (String, [String], [String: String]) async throws -> (Data, Data)
 
 /// Protocol for SwiftLint CLI operations
-protocol SwiftLintCLIProtocol {
+protocol SwiftLintCLIProtocol: Sendable {
     func detectSwiftLintPath() async throws -> URL
     func executeRulesCommand() async throws -> Data
     func executeRuleDetailCommand(ruleId: String) async throws -> Data

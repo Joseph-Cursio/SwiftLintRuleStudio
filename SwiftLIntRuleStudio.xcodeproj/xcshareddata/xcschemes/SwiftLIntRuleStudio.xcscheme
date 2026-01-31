@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "2620"
-   version = "1.7">
+   version = "1.8">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -49,13 +50,22 @@
          </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
-  <TestAction
-     buildConfiguration = "Debug"
-     selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-     selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-     shouldUseLaunchSchemeArgsEnv = "YES"
-     enableThreadSanitizer = "NO"
-     parallelizeTests = "NO">
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES"
+      parallelizeTests = "NO">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "703886462EFC3A3400F2A033"
+            BuildableName = "SwiftLIntRuleStudio.app"
+            BlueprintName = "SwiftLIntRuleStudio"
+            ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -68,7 +78,7 @@
             </BuildableReference>
          </TestableReference>
          <TestableReference
-         skipped = "NO">
+            skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7038865F2EFC3A3500F2A033"
@@ -78,15 +88,6 @@
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "703886462EFC3A3400F2A033"
-            BuildableName = "SwiftLIntRuleStudio.app"
-            BlueprintName = "SwiftLIntRuleStudio"
-            ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -96,7 +97,7 @@
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
-      enableThreadSanitizer = "NO"
+      debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">

@@ -21,6 +21,7 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
+        terminateIfRunning(XCUIApplication())
     }
 
     private func terminateIfRunning(_ app: XCUIApplication) {
@@ -37,8 +38,6 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments.append("-uiTesting")
-        app.launchArguments.append(contentsOf: ["-ApplePersistenceIgnoreState", "YES"])
-        app.launchArguments.append(contentsOf: ["-NSDisableAutomaticTermination", "YES"])
         if skipOnboarding {
             app.launchEnvironment["UI_TEST_SKIP_ONBOARDING"] = "1"
         }
@@ -49,6 +48,22 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
         app.activate()
         _ = app.wait(for: .runningForeground, timeout: 5)
         return app
+    }
+
+    private func waitForMainWindow(
+        in app: XCUIApplication,
+        timeout: TimeInterval = 10
+    ) -> XCUIElement {
+        let predicate = NSPredicate(format: "count > 0")
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: app.windows)
+        _ = XCTWaiter.wait(for: [expectation], timeout: timeout)
+
+        let window = app.windows.element(boundBy: 0)
+        if !window.exists {
+            app.activate()
+            _ = window.waitForExistence(timeout: 2)
+        }
+        return window
     }
 
     private func findElement(
@@ -91,12 +106,11 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
     @MainActor
     func testOnboardingFlow() throws {
         let app = launchApp()
-        let window = app.windows.firstMatch
-        if !window.waitForExistence(timeout: 5) {
-            print("UI hierarchy (onboarding): \(app.debugDescription)")
-            throw XCTSkip("No window available for UI flow assertions.")
+        let window = waitForMainWindow(in: app)
+        if !window.exists {
+            XCTFail("No window available for UI flow assertions. \(app.debugDescription)")
+            return
         }
-        XCTAssertTrue(window.exists)
 
         let welcomeTitle = findElement(in: window, identifier: "OnboardingWelcomeTitle")
         XCTAssertTrue(welcomeTitle.waitForExistence(timeout: 5))
@@ -124,12 +138,11 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
     @MainActor
     func testMainNavigation() throws {
         let app = launchApp(skipOnboarding: true, createWorkspace: true)
-        let window = app.windows.firstMatch
-        if !window.waitForExistence(timeout: 5) {
-            print("UI hierarchy (main nav): \(app.debugDescription)")
-            throw XCTSkip("No window available for UI navigation assertions.")
+        let window = waitForMainWindow(in: app)
+        if !window.exists {
+            XCTFail("No window available for UI navigation assertions. \(app.debugDescription)")
+            return
         }
-        XCTAssertTrue(window.exists)
 
         let rulesRow = findElement(in: window, identifier: "SidebarRulesLink")
         XCTAssertTrue(rulesRow.waitForExistence(timeout: 5))

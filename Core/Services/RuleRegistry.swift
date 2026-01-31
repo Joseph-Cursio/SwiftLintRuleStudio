@@ -31,6 +31,14 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
         self.swiftLintCLI = swiftLintCLI
         self.cacheManager = cacheManager
     }
+
+    deinit {
+        backgroundLoadingTask?.cancel()
+    }
+
+    nonisolated static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
     
     func loadRules() async throws -> [Rule] {
         // Cancel any existing background loading

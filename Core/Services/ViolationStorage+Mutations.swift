@@ -3,7 +3,6 @@ import SQLite3
 
 extension ViolationStorage {
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
-    // swiftlint:disable function_body_length
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {
         await Task.yield()
         guard let db = database else {
@@ -22,37 +21,61 @@ extension ViolationStorage {
         }
         
         let deleted = try deleteExistingViolations(for: workspaceId, db: db)
-        if deleted > 0 {
-            print("🗑️  Deleted \(deleted) existing violations for workspace before inserting new ones")
-        }
+        logDeletedViolations(deleted)
 
         let statement = try prepareInsertStatement(db: db)
         defer { sqlite3_finalize(statement) }
+
+        let insertionResult = try insertViolations(
+            violations,
+            workspaceId: workspaceId,
+            db: db,
+            statement: statement
+        )
+        logDuplicateViolations(insertionResult, total: violations.count)
         
+        // Commit transaction
+        try executeSQL("COMMIT", db: db)
+        transactionCommitted = true
+        
+        print("💾 Stored \(insertionResult.insertedCount) violations for workspace: \(workspaceId.uuidString)")
+    }
+    
+    private func beginTransaction(db: OpaquePointer) throws {
+        try executeSQL("BEGIN TRANSACTION", db: db)
+    }
+
+    private struct InsertionResult {
+        let insertedCount: Int
+        let duplicateIDs: Set<String>
+        let uniqueCount: Int
+    }
+
+    private func insertViolations(
+        _ violations: [Violation],
+        workspaceId: UUID,
+        db: OpaquePointer,
+        statement: OpaquePointer
+    ) throws -> InsertionResult {
         var insertedCount = 0
         var seenIDs = Set<String>()
         var duplicateIDs = Set<String>()
-        
+
         for (index, violation) in violations.enumerated() {
             resetStatement(statement, shouldReset: index > 0)
-            
-            // Check for duplicate IDs
-            let idString = violation.id.uuidString
-            if seenIDs.contains(idString) {
-                duplicateIDs.insert(idString)
-                if duplicateIDs.count <= 3 {
-                    print("⚠️  Duplicate violation ID found: \(idString) at index \(index)")
-                }
-            } else {
-                seenIDs.insert(idString)
-            }
-            
+            trackDuplicateIDs(
+                violation: violation,
+                index: index,
+                seenIDs: &seenIDs,
+                duplicateIDs: &duplicateIDs
+            )
+
             try bindViolation(
                 violation,
                 workspaceId: workspaceId,
                 statement: statement
             )
-            
+
             let stepResult = sqlite3_step(statement)
             if stepResult == SQLITE_DONE {
                 insertedCount += 1
@@ -62,27 +85,43 @@ extension ViolationStorage {
                 sqlite3_reset(statement)
                 throw ViolationStorageError.sqlError("Failed to insert violation at index \(index): \(errorMsg)")
             }
-            
-            // Note: We don't reset here - we'll reset at the start of the next iteration
-            // This is more efficient and ensures proper state management
         }
-        
-        if !duplicateIDs.isEmpty {
-            let message = "⚠️  Found \(duplicateIDs.count) unique duplicate IDs in violation set " +
-                "(total violations: \(violations.count), unique IDs: \(seenIDs.count))"
-            print(message)
-        }
-        
-        // Commit transaction
-        try executeSQL("COMMIT", db: db)
-        transactionCommitted = true
-        
-        print("💾 Stored \(insertedCount) violations for workspace: \(workspaceId.uuidString)")
+
+        return InsertionResult(
+            insertedCount: insertedCount,
+            duplicateIDs: duplicateIDs,
+            uniqueCount: seenIDs.count
+        )
     }
-    // swiftlint:enable function_body_length
-    
-    private func beginTransaction(db: OpaquePointer) throws {
-        try executeSQL("BEGIN TRANSACTION", db: db)
+
+    private func trackDuplicateIDs(
+        violation: Violation,
+        index: Int,
+        seenIDs: inout Set<String>,
+        duplicateIDs: inout Set<String>
+    ) {
+        let idString = violation.id.uuidString
+        if seenIDs.contains(idString) {
+            duplicateIDs.insert(idString)
+            if duplicateIDs.count <= 3 {
+                print("⚠️  Duplicate violation ID found: \(idString) at index \(index)")
+            }
+        } else {
+            seenIDs.insert(idString)
+        }
+    }
+
+    private func logDeletedViolations(_ deleted: Int) {
+        if deleted > 0 {
+            print("🗑️  Deleted \(deleted) existing violations for workspace before inserting new ones")
+        }
+    }
+
+    private func logDuplicateViolations(_ result: InsertionResult, total: Int) {
+        guard !result.duplicateIDs.isEmpty else { return }
+        let message = "⚠️  Found \(result.duplicateIDs.count) unique duplicate IDs in violation set " +
+            "(total violations: \(total), unique IDs: \(result.uniqueCount))"
+        print(message)
     }
     
     private func deleteExistingViolations(for workspaceId: UUID, db: OpaquePointer) throws -> Int {
