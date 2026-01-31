@@ -51,7 +51,7 @@ struct ViolationDetailView: View {
         .sheet(isPresented: $showSuppressDialog) {
             suppressDialog
         }
-        .alert("Error Opening File", isPresented: $showErrorAlert) {
+        .alert("Error Opening File", isPresented: TestGuard.alertBinding($showErrorAlert)) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)

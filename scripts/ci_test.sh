@@ -8,6 +8,9 @@ cd "$PROJECT_ROOT"
 xcodebuild \
   -scheme SwiftLIntRuleStudio \
   -configuration Debug \
+  -destination "platform=macOS" \
   test \
   ENABLE_THREAD_SANITIZER=NO \
   -parallel-testing-enabled NO
+
+swiftlint lint

@@ -86,7 +86,7 @@ struct ConfigRecommendationView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.blue.opacity(0.3), lineWidth: 1)
             )
-            .alert("Error Creating Config File", isPresented: $showError) {
+            .alert("Error Creating Config File", isPresented: TestGuard.alertBinding($showError)) {
                 Button("OK") {
                     errorMessage = nil
                     showError = false

@@ -186,7 +186,7 @@ struct RuleDetailView: View {
         } message: {
             Text("Rule configuration has been saved to your workspace's .swiftlint.yml file.")
         }
-        .alert("Error", isPresented: $showError) {
+        .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
             Button("OK") {
                 viewModel.saveError = nil
             }

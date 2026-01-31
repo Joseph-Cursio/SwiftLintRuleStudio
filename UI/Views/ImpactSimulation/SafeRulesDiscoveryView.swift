@@ -76,7 +76,7 @@ struct SafeRulesDiscoveryView: View {
             }
         }
         .frame(width: 800, height: 600)
-        .alert("Error", isPresented: $showError) {
+        .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
             Button("OK") {
                 errorMessage = nil
                 showError = false

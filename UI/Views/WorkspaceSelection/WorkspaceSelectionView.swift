@@ -74,7 +74,7 @@ struct WorkspaceSelectionView: View {
         ) { result in
             handleFilePickerResult(result)
         }
-        .alert("Workspace Selection Error", isPresented: $showError) {
+        .alert("Workspace Selection Error", isPresented: TestGuard.alertBinding($showError)) {
             Button("OK") {
                 errorMessage = nil
                 showError = false

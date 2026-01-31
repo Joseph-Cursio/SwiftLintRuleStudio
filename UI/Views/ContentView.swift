@@ -67,7 +67,7 @@ struct ContentView: View {
                 applyUITestOverrides()
             }
         }
-        .alert("Error Loading Rules", isPresented: $showError) {
+        .alert("Error Loading Rules", isPresented: TestGuard.alertBinding($showError)) {
             Button("OK") {
                 errorMessage = nil
                 showError = false
