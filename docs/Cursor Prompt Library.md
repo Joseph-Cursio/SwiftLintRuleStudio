@@ -311,10 +311,7 @@ Then apply changes across all relevant files.
 
 ---
 
-# If you want, I can also generate:
-- a **Cursor command palette cheat sheet**  
-- a **Claude → Cursor → Xcode workflow guide**  
-- a **feature-by-feature prompt sequence**  
-- a **starter project structure** you can paste into Cursor  
+## Related Documents
 
-Just tell me what direction you want to explore next.
+- **Claude Prompt Library** - Strategic prompts for architecture, reasoning, and system modeling
+- **PRD - SwiftLint Rule Studio** - Full product requirements document with architecture details

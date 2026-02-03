@@ -220,13 +220,7 @@ Include unit tests, integration tests, performance tests, and UI tests.
 
 ---
 
-# 🧠 Want the Cursor Prompt Library next?
-I can generate a **Cursor Prompt Library** that pairs with this one — tactical prompts that turn Claude’s strategic output into concrete Swift code, SwiftUI components, services, and tests.
+## Related Documents
 
-Or, if you prefer, I can produce:
-
-- a **Claude → Cursor → Xcode workflow guide**  
-- a **feature-by-feature prompt sequence**  
-- a **prompt library embedded directly into your PRD**  
-
-Just tell me where you want to go.
+- **Cursor Prompt Library** - Tactical prompts for turning Claude's architectural output into concrete Swift code
+- **PRD - SwiftLint Rule Studio** - Full product requirements document with architecture details
