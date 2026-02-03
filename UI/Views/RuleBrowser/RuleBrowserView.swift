@@ -44,9 +44,6 @@ struct RuleBrowserView: View {
                 RuleDetailView(rule: selectedRule)
                         .id(selectedRuleId) // Force view recreation when selection changes
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                        // NavigationSplitView detail column adds default padding (~20-24 points on macOS)
-                        // We use negative padding to align content with the toolbar's left edge
-                        .padding(.leading, -300) // Fixed value to align with toolbar
             } else {
                     // Empty view - no message shown
                     Color.clear

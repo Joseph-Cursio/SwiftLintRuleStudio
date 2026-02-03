@@ -185,12 +185,12 @@ extension RuleDetailView {
             }
             .padding(.vertical)
             .padding(.trailing)
-            .padding(.leading, 0) // No left padding
+            .padding(.leading)
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)
         }
     }
-    
+
     var examplesView: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Examples")
@@ -265,7 +265,7 @@ extension RuleDetailView {
                 }
                 .padding(.vertical)
                 .padding(.trailing)
-                .padding(.leading, 0) // No left padding
+                .padding(.leading)
             }
             .frame(maxHeight: 500)
             .background(Color(NSColor.controlBackgroundColor))

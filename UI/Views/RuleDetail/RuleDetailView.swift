@@ -81,7 +81,7 @@ struct RuleDetailView: View {
             .padding(.top, 8) // Minimal top padding
             .padding(.bottom)
             .padding(.trailing)
-            .padding(.leading, 0) // No left padding - NavigationSplitView may add its own
+            .padding(.leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .navigationTitle(rule.name)
