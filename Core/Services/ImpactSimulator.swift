@@ -223,7 +223,11 @@ class ImpactSimulator {
         }
         
         var config = yamlEngine.getConfig()
-        
+
+        // Ensure default exclusions are present so simulations
+        // don't count violations in build artifacts or dependencies
+        config.excluded = DefaultExclusions.mergedWith(existing: config.excluded)
+
         // Enable the specific rule
         if config.rules[ruleId] == nil {
             // Rule not in config, add it as enabled

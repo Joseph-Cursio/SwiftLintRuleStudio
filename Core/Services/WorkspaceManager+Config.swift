@@ -42,6 +42,7 @@ extension WorkspaceManager {
 }
 
 private extension WorkspaceManager {
+    // NOTE: Keep the excluded list below aligned with DefaultExclusions.directories
     static let defaultConfigTemplate = """
     # SwiftLint Configuration
     # This configuration follows best practices for excluding third-party code

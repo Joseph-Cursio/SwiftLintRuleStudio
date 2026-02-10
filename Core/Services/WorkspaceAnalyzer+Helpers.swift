@@ -155,10 +155,7 @@ extension WorkspaceAnalyzer {
 
         for case let fileURL as URL in enumerator {
             let path = fileURL.path
-            if path.contains("/.build/") ||
-                path.contains("/Pods/") ||
-                path.contains("/node_modules/") ||
-                path.contains("/.git/") {
+            if DefaultExclusions.pathPatterns.contains(where: { path.contains($0) }) {
                 enumerator.skipDescendants()
                 continue
             }

@@ -97,12 +97,6 @@ private extension WorkspaceManager {
     }
 
     func shouldSkipWorkspaceScan(path: String) -> Bool {
-        if path.contains("/.build/") ||
-            path.contains("/Pods/") ||
-            path.contains("/node_modules/") ||
-            path.contains("/.git/") {
-            return true
-        }
-        return false
+        DefaultExclusions.pathPatterns.contains(where: { path.contains($0) })
     }
 }
