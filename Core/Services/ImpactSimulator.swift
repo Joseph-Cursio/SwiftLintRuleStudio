@@ -225,8 +225,18 @@ class ImpactSimulator {
         var config = yamlEngine.getConfig()
 
         // Ensure default exclusions are present so simulations
-        // don't count violations in build artifacts or dependencies
-        config.excluded = DefaultExclusions.mergedWith(existing: config.excluded)
+        // don't count violations in build artifacts or dependencies.
+        // Because the temp config lives outside the workspace, SwiftLint
+        // resolves relative excluded paths against the temp directory
+        // (not the workspace). Convert them to absolute paths so they
+        // resolve correctly regardless of where the config file sits.
+        let merged = DefaultExclusions.mergedWith(existing: config.excluded)
+        config.excluded = merged.map { entry in
+            if entry.hasPrefix("/") {
+                return entry  // already absolute
+            }
+            return workspace.path.appendingPathComponent(entry).path
+        }
 
         // Enable the specific rule
         if config.rules[ruleId] == nil {
