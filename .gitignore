@@ -1,4 +1,5 @@
 .DS_Store
+*.xcuserstate
 DerivedData/
 SwiftLIntRuleStudio.xcodeproj/project.xcworkspace/xcuserdata/
 SwiftLIntRuleStudio.xcodeproj/xcuserdata/
