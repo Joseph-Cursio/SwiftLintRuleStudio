@@ -13,7 +13,9 @@ import SQLite3
 private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Protocol for violation storage operations
-protocol ViolationStorageProtocol {
+/// All methods are async, so callers properly await across isolation boundaries
+/// whether the conforming type is @MainActor or a standalone actor.
+protocol ViolationStorageProtocol: Sendable {
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws
     func fetchViolations(filter: ViolationFilter, workspaceId: UUID?) async throws -> [Violation]
     func suppressViolations(_ violationIds: [UUID], reason: String) async throws

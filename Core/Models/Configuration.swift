@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents a SwiftLint configuration
-struct SwiftLintConfiguration: Codable {
+struct SwiftLintConfiguration: Codable, Sendable {
     var rules: [String: RuleConfiguration]
     var included: [String]?
     var excluded: [String]?
@@ -31,7 +31,7 @@ struct SwiftLintConfiguration: Codable {
 }
 
 /// Configuration for a single rule
-struct RuleConfiguration: Codable, Equatable {
+struct RuleConfiguration: Codable, Equatable, Sendable {
     var enabled: Bool
     var severity: Severity?
     var parameters: [String: AnyCodable]?
@@ -44,7 +44,7 @@ struct RuleConfiguration: Codable, Equatable {
 }
 
 /// Represents a workspace/project
-struct Workspace: Identifiable, Equatable {
+struct Workspace: Identifiable, Equatable, Sendable {
     let id: UUID
     let path: URL
     let name: String

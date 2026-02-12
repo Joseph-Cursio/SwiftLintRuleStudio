@@ -137,17 +137,13 @@ struct RuleDetailView: View {
                 }
             }
             
+        }
+        .task {
             // Fetch rule details if documentation is missing
-            if rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true {
-                Task {
-                    await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
-                    // Update local state when rule is updated
-                    if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
-                        await MainActor.run {
-                            currentRule = updatedRule
-                        }
-                    }
-                }
+            guard rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true else { return }
+            await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
+            if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
+                currentRule = updatedRule
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in

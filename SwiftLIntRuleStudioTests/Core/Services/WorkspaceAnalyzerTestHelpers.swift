@@ -70,7 +70,8 @@ enum WorkspaceAnalyzerTestHelpers {
     }
 }
 
-final class MockViolationStorage: ViolationStorageProtocol {
+// @unchecked Sendable: Test mock with controlled single-threaded access in tests
+final class MockViolationStorage: ViolationStorageProtocol, @unchecked Sendable {
     var storedViolations: [Violation] = []
 
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {

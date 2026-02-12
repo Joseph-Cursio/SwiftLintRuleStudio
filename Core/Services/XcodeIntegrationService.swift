@@ -40,7 +40,6 @@ class XcodeIntegrationService {
         column: Int?,
         in workspace: Workspace
     ) async throws -> Bool {
-        await Task.yield()
         // 1. Resolve file path
         let fileURL = try resolveFileURL(path, in: workspace)
         

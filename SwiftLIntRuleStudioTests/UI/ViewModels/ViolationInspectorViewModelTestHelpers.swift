@@ -77,7 +77,8 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
     }
 }
 
-class MockViolationStorageForViewModel: ViolationStorageProtocol {
+// @unchecked Sendable: Test mock with controlled single-threaded access in tests
+class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sendable {
     var storedViolations: [Violation] = []
     var storedWorkspaceIds: [UUID] = []
 

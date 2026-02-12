@@ -12,8 +12,9 @@ struct ConfigDiffPreviewView: View {
     let ruleName: String
     let onSave: () -> Void
     let onCancel: () -> Void
-    
+
     @State var selectedView: DiffViewMode = .summary
+    @State private var showCopiedFeedback = false
     
     enum DiffViewMode {
         case summary
@@ -86,6 +87,16 @@ struct ConfigDiffPreviewView: View {
                         Text("Full Diff").tag(DiffViewMode.full)
                     }
                     .pickerStyle(.segmented)
+
+                    Button {
+                        copyForPR()
+                    } label: {
+                        Label(
+                            showCopiedFeedback ? "Copied!" : "Copy for PR",
+                            systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc"
+                        )
+                    }
+                    .disabled(showCopiedFeedback)
                 }
             }
         }
@@ -198,6 +209,18 @@ struct ConfigDiffPreviewView: View {
                 }
             }
             .padding()
+        }
+    }
+
+    private func copyForPR() {
+        let generator = PRCommentGenerator()
+        let markdown = generator.generateMarkdown(from: diff)
+        generator.copyToClipboard(markdown)
+
+        showCopiedFeedback = true
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            showCopiedFeedback = false
         }
     }
 }

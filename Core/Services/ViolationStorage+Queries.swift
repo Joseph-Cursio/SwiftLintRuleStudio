@@ -2,12 +2,10 @@ import Foundation
 import SQLite3
 
 extension ViolationStorage {
-    // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func fetchViolations(
         filter: ViolationFilter,
         workspaceId: UUID?
     ) async throws -> [Violation] {
-        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -44,12 +42,10 @@ extension ViolationStorage {
         return violations
     }
     
-    // Actor methods must be async per protocol, but don't need await internally (already isolated)
     func getViolationCount(
         filter: ViolationFilter,
         workspaceId: UUID?
     ) async throws -> Int {
-        await Task.yield()
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
