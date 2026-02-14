@@ -13,4 +13,7 @@ extension Notification.Name {
     
     /// Posted when workspace changes
     static let workspaceDidChange = Notification.Name("workspaceDidChange")
+
+    /// Posted when a configuration version is restored from backup
+    static let configurationDidRestore = Notification.Name("configurationDidRestore")
 }

@@ -145,8 +145,15 @@ extension RuleDetailView {
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 200)
+
+                    if let parameters = rule.parameters, !parameters.isEmpty {
+                        RuleParameterEditor(
+                            parameters: parameters,
+                            values: $viewModel.parameterValues
+                        )
+                    }
                 }
-                
+
                 if viewModel.pendingChanges != nil {
                     HStack {
                         Image(systemName: "exclamationmark.circle.fill")

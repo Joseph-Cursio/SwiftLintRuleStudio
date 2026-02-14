@@ -181,6 +181,26 @@ struct SidebarView: View {
                 Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark")
             }
             .accessibilityIdentifier("SidebarSafeRulesLink")
+
+            NavigationLink {
+                ConfigVersionHistoryView(
+                    service: dependencies.configVersionHistoryService,
+                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                )
+            } label: {
+                Label("Version History", systemImage: "clock.arrow.circlepath")
+            }
+            .accessibilityIdentifier("SidebarVersionHistoryLink")
+
+            NavigationLink {
+                ConfigComparisonView(
+                    service: dependencies.configComparisonService,
+                    currentWorkspace: dependencies.workspaceManager.currentWorkspace
+                )
+            } label: {
+                Label("Compare Configs", systemImage: "arrow.left.arrow.right")
+            }
+            .accessibilityIdentifier("SidebarCompareConfigsLink")
         }
         .navigationTitle("SwiftLint Rule Studio")
     }

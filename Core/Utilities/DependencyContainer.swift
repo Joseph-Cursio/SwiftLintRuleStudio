@@ -20,7 +20,17 @@ class DependencyContainer: ObservableObject {
     let onboardingManager: OnboardingManager
     let impactSimulator: ImpactSimulator
     let xcodeIntegrationService: XcodeIntegrationService
-    
+
+    // Phase 1 YAML Configuration Services
+    let configurationValidator: ConfigurationValidatorProtocol
+    let configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol
+    let configurationTemplateManager: ConfigurationTemplateManagerProtocol
+    let prCommentGenerator: PRCommentGeneratorProtocol
+
+    // Phase 2 YAML Configuration Services
+    let configVersionHistoryService: ConfigVersionHistoryServiceProtocol
+    let configComparisonService: ConfigComparisonServiceProtocol
+
     private var cancellables = Set<AnyCancellable>()
     
     init(
@@ -32,6 +42,12 @@ class DependencyContainer: ObservableObject {
         onboardingManager: OnboardingManager? = nil,
         impactSimulator: ImpactSimulator? = nil,
         xcodeIntegrationService: XcodeIntegrationService? = nil,
+        configurationValidator: ConfigurationValidatorProtocol? = nil,
+        configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol? = nil,
+        configurationTemplateManager: ConfigurationTemplateManagerProtocol? = nil,
+        prCommentGenerator: PRCommentGeneratorProtocol? = nil,
+        configVersionHistoryService: ConfigVersionHistoryServiceProtocol? = nil,
+        configComparisonService: ConfigComparisonServiceProtocol? = nil,
         userDefaults: UserDefaults? = nil
     ) {
         let cache = cacheManager ?? CacheManager()
@@ -76,7 +92,23 @@ class DependencyContainer: ObservableObject {
         // Initialize Xcode integration service
         self.xcodeIntegrationService = xcodeIntegrationService
             ?? XcodeIntegrationService(workspaceManager: self.workspaceManager)
-        
+
+        // Initialize Phase 1 YAML Configuration Services
+        self.configurationValidator = configurationValidator
+            ?? ConfigurationValidator(ruleRegistry: registry)
+        self.configurationHealthAnalyzer = configurationHealthAnalyzer
+            ?? ConfigurationHealthAnalyzer()
+        self.configurationTemplateManager = configurationTemplateManager
+            ?? ConfigurationTemplateManager()
+        self.prCommentGenerator = prCommentGenerator
+            ?? PRCommentGenerator()
+
+        // Initialize Phase 2 YAML Configuration Services
+        self.configVersionHistoryService = configVersionHistoryService
+            ?? ConfigVersionHistoryService()
+        self.configComparisonService = configComparisonService
+            ?? ConfigComparisonService()
+
         // Forward changes from child ObservableObjects to trigger view updates
         self.onboardingManager.objectWillChange
             .sink { [weak self] _ in

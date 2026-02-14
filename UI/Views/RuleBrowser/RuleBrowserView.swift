@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RuleBrowserView: View {
     @EnvironmentObject var ruleRegistry: RuleRegistry
+    @EnvironmentObject var dependencies: DependencyContainer
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
@@ -72,12 +73,48 @@ struct RuleBrowserView: View {
         return VStack(spacing: 0) {
             // Search and Filters
             searchAndFiltersView
-            
+
             Divider()
-            
+
+            // Bulk Operation Toolbar (shown in multi-select mode)
+            if viewModel.isMultiSelectMode {
+                BulkOperationToolbar(
+                    selectedCount: viewModel.selectedRuleIds.count,
+                    onEnableAll: {
+                        if let engine = currentYAMLEngine {
+                            viewModel.enableSelectedRules(yamlEngine: engine)
+                        }
+                    },
+                    onDisableAll: {
+                        if let engine = currentYAMLEngine {
+                            viewModel.disableSelectedRules(yamlEngine: engine)
+                        }
+                    },
+                    onSetSeverity: { severity in
+                        if let engine = currentYAMLEngine {
+                            viewModel.setSeverityForSelected(severity, yamlEngine: engine)
+                        }
+                    },
+                    onPreview: {
+                        viewModel.showBulkDiffPreview = true
+                    },
+                    onClearSelection: {
+                        viewModel.clearSelection()
+                    }
+                )
+            }
+
             // Rules List
             if viewModel.filteredRules.isEmpty {
                 emptyStateView
+            } else if viewModel.isMultiSelectMode {
+                List(selection: $viewModel.selectedRuleIds) {
+                    ForEach(viewModel.filteredRules, id: \.id) { rule in
+                        RuleListItem(rule: rule)
+                            .tag(rule.id)
+                    }
+                }
+                .listStyle(.sidebar)
             } else {
                 List(selection: $selectedRuleId) {
                     ForEach(viewModel.filteredRules, id: \.id) { rule in
@@ -91,6 +128,22 @@ struct RuleBrowserView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
+                    viewModel.toggleMultiSelect()
+                } label: {
+                    Label(
+                        viewModel.isMultiSelectMode ? "Exit Multi-Select" : "Multi-Select",
+                        systemImage: viewModel.isMultiSelectMode
+                            ? "checklist.checked" : "checklist"
+                    )
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                RulePresetPicker { preset in
+                    viewModel.applyPreset(preset)
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
                     viewModel.clearFilters()
                 } label: {
                     Label("Clear Filters", systemImage: "xmark.circle")
@@ -98,6 +151,32 @@ struct RuleBrowserView: View {
                 .disabled(!hasActiveFilters)
             }
         }
+        .sheet(isPresented: $viewModel.showBulkDiffPreview) {
+            if let diff = viewModel.bulkDiff {
+                ConfigDiffPreviewView(
+                    diff: diff,
+                    ruleName: "\(viewModel.selectedRuleIds.count) rules"
+                ) {
+                    if let engine = currentYAMLEngine {
+                        do {
+                            try viewModel.saveBulkChanges(yamlEngine: engine)
+                            viewModel.showBulkDiffPreview = false
+                            viewModel.isMultiSelectMode = false
+                        } catch {
+                            print("Error saving bulk changes: \(error)")
+                        }
+                    }
+                } onCancel: {
+                    viewModel.showBulkDiffPreview = false
+                }
+            }
+        }
+    }
+
+    private var currentYAMLEngine: YAMLConfigurationEngine? {
+        guard let workspace = dependencies.workspaceManager.currentWorkspace,
+              let configPath = workspace.configPath else { return nil }
+        return YAMLConfigurationEngine(configPath: configPath)
     }
     
     private var searchAndFiltersView: some View {

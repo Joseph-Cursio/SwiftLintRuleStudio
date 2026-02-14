@@ -12,23 +12,25 @@ import Combine
 class RuleDetailViewModel: ObservableObject {
     
     // MARK: - Published Properties
-    
+
     @Published var isEnabled: Bool
     @Published var severity: Severity?
+    @Published var parameterValues: [String: AnyCodable] = [:]
     @Published var isSaving: Bool = false
     @Published var saveError: Error?
     @Published var showDiffPreview: Bool = false
     @Published var pendingChanges: PendingRuleChanges?
-    
+
     // MARK: - Properties
-    
+
     let rule: Rule
     var yamlEngine: YAMLConfigurationEngine?
     var workspaceManager: WorkspaceManager?
-    
+
     // Track original state to detect changes
     private var originalEnabled: Bool
     private var originalSeverity: Severity?
+    private var originalParameters: [String: AnyCodable]?
     
     // MARK: - Initialization
     
@@ -42,6 +44,10 @@ class RuleDetailViewModel: ObservableObject {
         self.severity = rule.severity
         self.originalEnabled = rule.isEnabled
         self.originalSeverity = rule.severity
+        self.originalParameters = rule.configuredParameters
+        if let configured = rule.configuredParameters {
+            self.parameterValues = configured
+        }
     }
     
     // MARK: - Public Methods
@@ -85,9 +91,19 @@ class RuleDetailViewModel: ObservableObject {
             self.severity = rule.defaultSeverity
         }
         
+        // Load parameter values from config
+        if let ruleConfig = config.rules[rule.id],
+           let params = ruleConfig.parameters {
+            self.parameterValues = params
+        } else {
+            // Fall back to defaults from rule definition
+            self.parameterValues = defaultParameterValues()
+        }
+
         // Update original state
         self.originalEnabled = self.isEnabled
         self.originalSeverity = self.severity
+        self.originalParameters = self.parameterValues.isEmpty ? nil : self.parameterValues
     }
     
     /// Update enabled state
@@ -101,6 +117,22 @@ class RuleDetailViewModel: ObservableObject {
         severity = newSeverity
         updatePendingChanges()
     }
+
+    /// Update a single parameter value
+    func updateParameter(_ name: String, value: AnyCodable) {
+        parameterValues[name] = value
+        updatePendingChanges()
+    }
+
+    /// Get default parameter values from rule definition
+    func defaultParameterValues() -> [String: AnyCodable] {
+        guard let params = rule.parameters else { return [:] }
+        var defaults: [String: AnyCodable] = [:]
+        for param in params {
+            defaults[param.name] = param.defaultValue
+        }
+        return defaults
+    }
     
     /// Generate diff for pending changes
     func generateDiff() -> YAMLConfigurationEngine.ConfigDiff? {
@@ -112,17 +144,20 @@ class RuleDetailViewModel: ObservableObject {
             var proposedConfig = currentConfig
             
             // Apply current state changes
+            let params = parameterValues.isEmpty ? nil : parameterValues
             if isEnabled {
                 // Enable rule
                 if var existing = proposedConfig.rules[rule.id] {
                     existing.enabled = true
                     existing.severity = severity
+                    existing.parameters = params
                     proposedConfig.rules[rule.id] = existing
                 } else {
                     // New rule configuration
                     proposedConfig.rules[rule.id] = RuleConfiguration(
                         enabled: true,
-                        severity: severity
+                        severity: severity,
+                        parameters: params
                     )
                 }
             } else {
@@ -181,15 +216,30 @@ class RuleDetailViewModel: ObservableObject {
     // MARK: - Private Methods
     
     private func updatePendingChanges() {
+        let hasParameterChanges = parametersHaveChanged()
         // Check if there are actual changes from original state
-        if isEnabled != originalEnabled || severity != originalSeverity {
+        if isEnabled != originalEnabled || severity != originalSeverity || hasParameterChanges {
+            let currentParams = parameterValues.isEmpty ? nil : parameterValues
             pendingChanges = PendingRuleChanges(
                 enabled: isEnabled,
-                severity: severity
+                severity: severity,
+                parameters: currentParams
             )
         } else {
             pendingChanges = nil
         }
+    }
+
+    private func parametersHaveChanged() -> Bool {
+        let currentParams = parameterValues.isEmpty ? nil : parameterValues
+        if currentParams == nil && originalParameters == nil { return false }
+        guard let current = currentParams, let original = originalParameters else { return true }
+        if current.count != original.count { return true }
+        for (key, value) in current {
+            guard let originalValue = original[key] else { return true }
+            if value != originalValue { return true }
+        }
+        return false
     }
 
     private func applyRuleChanges(to config: inout YAMLConfigurationEngine.YAMLConfig) {
@@ -205,6 +255,9 @@ class RuleDetailViewModel: ObservableObject {
         ruleConfig.enabled = true
         if let sev = severity {
             ruleConfig.severity = sev
+        }
+        if !parameterValues.isEmpty {
+            ruleConfig.parameters = parameterValues
         }
         config.rules[rule.id] = ruleConfig
         addOptInRuleIfNeeded(to: &config)
@@ -258,6 +311,7 @@ class RuleDetailViewModel: ObservableObject {
     private func finalizeSaveSuccess() {
         originalEnabled = isEnabled
         originalSeverity = severity
+        originalParameters = parameterValues.isEmpty ? nil : parameterValues
         pendingChanges = nil
         saveError = nil
         NotificationCenter.default.post(
@@ -273,6 +327,7 @@ class RuleDetailViewModel: ObservableObject {
 struct PendingRuleChanges {
     let enabled: Bool?
     let severity: Severity?
+    var parameters: [String: AnyCodable]?
 }
 
 enum RuleConfigurationError: LocalizedError {

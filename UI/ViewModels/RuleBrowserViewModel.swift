@@ -31,7 +31,13 @@ class RuleBrowserViewModel: ObservableObject {
         }
     }
     @Published private(set) var filteredRules: [Rule] = []
-    
+
+    // Multi-select / bulk operations
+    @Published var isMultiSelectMode: Bool = false
+    @Published var selectedRuleIds: Set<String> = Set()
+    @Published var bulkDiff: YAMLConfigurationEngine.ConfigDiff?
+    @Published var showBulkDiffPreview: Bool = false
+
     private var cancellables = Set<AnyCancellable>()
     
     init(ruleRegistry: RuleRegistry) {
@@ -146,6 +152,174 @@ class RuleBrowserViewModel: ObservableObject {
         selectedCategory = nil
         selectedStatus = .all
         // updateFilteredRules() will be called automatically via Combine
+    }
+
+    /// Apply a rule preset by filtering to show only the preset's rules
+    /// - Parameter preset: The preset to apply
+    func applyPreset(_ preset: RulePreset) {
+        // Clear existing filters first
+        selectedCategory = nil
+        selectedStatus = .all
+
+        // Build search query from preset rule IDs
+        // We join with OR-style matching by searching for preset name
+        // This is a simple approach - a more sophisticated one would
+        // add a dedicated preset filter
+        searchText = ""
+
+        // Filter to show only preset rules by updating directly
+        let presetRuleIds = Set(preset.ruleIds)
+        let allRules = ruleRegistry.rules
+
+        filteredRules = allRules.filter { rule in
+            presetRuleIds.contains(rule.id)
+        }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    /// Get rules matching a specific preset
+    /// - Parameter preset: The preset to get rules for
+    /// - Returns: Array of rules matching the preset's rule IDs
+    func rules(for preset: RulePreset) -> [Rule] {
+        let presetRuleIds = Set(preset.ruleIds)
+        return ruleRegistry.rules.filter { presetRuleIds.contains($0.id) }
+    }
+
+    /// Check if a rule belongs to a specific preset
+    /// - Parameters:
+    ///   - rule: The rule to check
+    ///   - preset: The preset to check against
+    /// - Returns: True if the rule is in the preset
+    func ruleIsInPreset(_ rule: Rule, preset: RulePreset) -> Bool {
+        preset.ruleIds.contains(rule.id)
+    }
+
+    // MARK: - Multi-Select Operations
+
+    func toggleMultiSelect() {
+        isMultiSelectMode.toggle()
+        if !isMultiSelectMode {
+            selectedRuleIds.removeAll()
+            bulkDiff = nil
+        }
+    }
+
+    func toggleRuleSelection(_ ruleId: String) {
+        if selectedRuleIds.contains(ruleId) {
+            selectedRuleIds.remove(ruleId)
+        } else {
+            selectedRuleIds.insert(ruleId)
+        }
+    }
+
+    func selectAllFiltered() {
+        selectedRuleIds = Set(filteredRules.map(\.id))
+    }
+
+    func clearSelection() {
+        selectedRuleIds.removeAll()
+    }
+
+    // MARK: - Bulk Operations
+
+    func enableSelectedRules(yamlEngine: YAMLConfigurationEngine) {
+        do {
+            try yamlEngine.load()
+            var config = yamlEngine.getConfig()
+
+            for ruleId in selectedRuleIds {
+                var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
+                ruleConfig.enabled = true
+                config.rules[ruleId] = ruleConfig
+
+                // Handle opt-in rules
+                if let rule = ruleRegistry.rules.first(where: { $0.id == ruleId }), rule.isOptIn {
+                    var optInRules = config.optInRules ?? []
+                    if !optInRules.contains(ruleId) {
+                        optInRules.append(ruleId)
+                        config.optInRules = optInRules
+                    }
+                }
+
+                // Remove from disabled_rules if present
+                config.disabledRules?.removeAll { $0 == ruleId }
+                if config.disabledRules?.isEmpty == true { config.disabledRules = nil }
+            }
+
+            bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
+            showBulkDiffPreview = true
+        } catch {
+            print("Error generating bulk enable diff: \(error)")
+        }
+    }
+
+    func disableSelectedRules(yamlEngine: YAMLConfigurationEngine) {
+        do {
+            try yamlEngine.load()
+            var config = yamlEngine.getConfig()
+
+            for ruleId in selectedRuleIds {
+                var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: false)
+                ruleConfig.enabled = false
+                config.rules[ruleId] = ruleConfig
+
+                // Remove from opt-in rules
+                config.optInRules?.removeAll { $0 == ruleId }
+                if config.optInRules?.isEmpty == true { config.optInRules = nil }
+            }
+
+            bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
+            showBulkDiffPreview = true
+        } catch {
+            print("Error generating bulk disable diff: \(error)")
+        }
+    }
+
+    func setSeverityForSelected(_ severity: Severity, yamlEngine: YAMLConfigurationEngine) {
+        do {
+            try yamlEngine.load()
+            var config = yamlEngine.getConfig()
+
+            for ruleId in selectedRuleIds {
+                var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
+                ruleConfig.severity = severity
+                config.rules[ruleId] = ruleConfig
+            }
+
+            bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
+            showBulkDiffPreview = true
+        } catch {
+            print("Error generating bulk severity diff: \(error)")
+        }
+    }
+
+    func saveBulkChanges(yamlEngine: YAMLConfigurationEngine) throws {
+        try yamlEngine.load()
+        guard let diff = bulkDiff else { return }
+
+        // Reconstruct the proposed config by parsing the diff's after YAML
+        // We rebuild from scratch since ConfigDiff stores the serialized form
+        let afterContent = diff.after
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempConfig = tempDir.appendingPathComponent(".swiftlint.yml")
+        try afterContent.write(to: tempConfig, atomically: true, encoding: .utf8)
+
+        let tempEngine = YAMLConfigurationEngine(configPath: tempConfig)
+        try tempEngine.load()
+        let proposedConfig = tempEngine.getConfig()
+
+        // Clean up temp files
+        try? FileManager.default.removeItem(at: tempDir)
+
+        try yamlEngine.save(config: proposedConfig, createBackup: true)
+        bulkDiff = nil
+
+        NotificationCenter.default.post(
+            name: .ruleConfigurationDidChange,
+            object: nil,
+            userInfo: ["bulkChange": true]
+        )
     }
 }
 
