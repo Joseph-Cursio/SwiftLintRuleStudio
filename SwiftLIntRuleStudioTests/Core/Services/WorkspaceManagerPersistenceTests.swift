@@ -37,6 +37,7 @@ struct WorkspaceManagerPersistenceTests {
 
         let (count1, count2, hasDir1, hasDir2) = try await MainActor.run {
             let sharedDefaults = IsolatedUserDefaults.createShared(for: #function)
+            sharedDefaults.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
 
             let manager1 = WorkspaceManager(userDefaults: sharedDefaults)
             try manager1.openWorkspace(at: tempDir1)
