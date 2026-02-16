@@ -45,31 +45,35 @@ struct ViolationInspectorView: View {
 #endif
     
     var body: some View {
-        NavigationSplitView {
-            // Master: Violation List
+        HStack(spacing: 0) {
+            // Left panel: Violation List
             violationListView
-        } detail: {
-            // Detail: Violation Detail or Empty State
-            if let selectedViolationId = viewModel.selectedViolationId,
-               let violation = viewModel.filteredViolations.first(where: { $0.id == selectedViolationId }) {
-                ViolationDetailView(
-                    violation: violation,
-                    onSuppress: { reason in
-                        Task {
-                            try? await viewModel.suppressSelectedViolations(reason: reason)
+                .frame(width: 300)
+            
+            Divider()
+            
+            // Right panel: Violation Detail or Empty State
+            Group {
+                if let selectedViolationId = viewModel.selectedViolationId,
+                   let violation = viewModel.filteredViolations.first(where: { $0.id == selectedViolationId }) {
+                    ViolationDetailView(
+                        violation: violation,
+                        onSuppress: { reason in
+                            Task {
+                                try? await viewModel.suppressSelectedViolations(reason: reason)
+                            }
+                        },
+                        onResolve: {
+                            Task {
+                                try? await viewModel.resolveSelectedViolations()
+                            }
                         }
-                    },
-                    onResolve: {
-                        Task {
-                            try? await viewModel.resolveSelectedViolations()
-                        }
-                    }
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                .padding(.leading, -300) // Fixed value to align with toolbar
-            } else {
-                emptyDetailView
+                    )
+                } else {
+                    emptyDetailView
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationTitle("Violations")
         .onAppear {

@@ -12,7 +12,7 @@ struct CodeBlock: View {
             
             Text(code)
                 .font(.system(.body, design: .monospaced))
-                .padding()
+                .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(NSColor.textBackgroundColor))
         }

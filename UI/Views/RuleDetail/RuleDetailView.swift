@@ -78,12 +78,11 @@ struct RuleDetailView: View {
                 // Swift Evolution Links
                 swiftEvolutionView
             }
-            .padding(.top, 8) // Minimal top padding
-            .padding(.bottom)
-            .padding(.trailing)
-            .padding(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 16)
+            .padding(.bottom, 24)
+            .padding(.horizontal, 20)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .navigationTitle(rule.name)
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -113,12 +112,6 @@ struct RuleDetailView: View {
                     }
                     .disabled(viewModel.isSaving)
                 }
-                
-                Toggle("Enabled", isOn: Binding(
-                    get: { viewModel.isEnabled },
-                    set: { viewModel.updateEnabled($0) }
-                ))
-                .toggleStyle(.switch)
             }
         }
         .onAppear {

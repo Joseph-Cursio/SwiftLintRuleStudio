@@ -33,24 +33,25 @@ struct RuleBrowserView: View {
     }
     
     var body: some View {
-        NavigationSplitView {
-            // First panel: Rule List
+        HStack(spacing: 0) {
+            // Left panel: Rule List
             ruleListView
-                .navigationSplitViewColumnWidth(min: 200, ideal: 300)
-        } detail: {
+                .frame(width: 300)
+            
+            Divider()
+            
+            // Right panel: Rule Detail
             Group {
-                // Second panel: Rule Detail (only shown when rule is selected)
-            if let selectedRuleId = selectedRuleId,
-               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
-                RuleDetailView(rule: selectedRule)
+                if let selectedRuleId = selectedRuleId,
+                   let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
+                    RuleDetailView(rule: selectedRule)
                         .id(selectedRuleId) // Force view recreation when selection changes
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            } else {
+                } else {
                     // Empty view - no message shown
                     Color.clear
                 }
             }
-            .navigationSplitViewColumnWidth(min: 300, ideal: 500)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationTitle("Rules")
         .onAppear {

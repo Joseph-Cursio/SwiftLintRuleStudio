@@ -142,20 +142,9 @@ extension RuleDetailView {
             tableHeaderBg: tableHeaderBg
         )
         
-        return """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-            \(styles)
-            </style>
-        </head>
-        <body>
-        \(body)
-        </body>
-        </html>
-        """
+        // Use HTML fragment approach instead of full document to avoid document-level margins
+        // Wrap in a div with inline styles - keep HTML compact to avoid whitespace rendering
+        return "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: \(textColor); margin: 0; padding: 0;\"><style>\(styles)</style>\(body)</div>"
     }
     
     private func convertMarkdownLine(
@@ -296,10 +285,10 @@ extension RuleDetailView {
         }
         pre {
             background-color: __CODE_BG_COLOR__;
-            padding: 12px;
+            padding: 8px;
             border-radius: 6px;
             overflow-x: auto;
-            margin: 12px 0;
+            margin: 8px 0;
         }
         pre code {
             background: none;
@@ -327,7 +316,7 @@ extension RuleDetailView {
         }
         ul, ol {
             margin: 8px 0;
-            padding-left: 24px;
+            padding-left: 20px;
             color: __TEXT_COLOR__;
         }
         li {

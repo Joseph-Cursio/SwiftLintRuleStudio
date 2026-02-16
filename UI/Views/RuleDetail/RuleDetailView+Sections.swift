@@ -78,6 +78,7 @@ extension RuleDetailView {
                 Text(rule.description)
                     .font(.body)
                     .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
             // Show markdown documentation if available - directly below description
@@ -94,23 +95,29 @@ extension RuleDetailView {
                 // Determine top padding: only add spacing if we showed the short description above
                 let hasShortDescription = shouldShowShortDescription
                 
-                // Render HTML using NSAttributedString
+                // Render HTML using NSAttributedString via AttributedTextView
                 if let htmlData = fullHTML.data(using: .utf8),
                    let attributedString = try? NSAttributedString(
                     data: htmlData,
-                    options: [.documentType: NSAttributedString.DocumentType.html,
-                             .characterEncoding: String.Encoding.utf8.rawValue],
+                    options: [
+                        .documentType: NSAttributedString.DocumentType.html,
+                        .characterEncoding: String.Encoding.utf8.rawValue,
+                        NSAttributedString.DocumentReadingOptionKey.defaultAttributes: [
+                            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
+                        ]
+                    ],
                     documentAttributes: nil
                    ) {
-                    Text(AttributedString(attributedString))
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    AttributedTextView(attributedString: attributedString)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.top, hasShortDescription ? 8 : 0)
                 } else {
                     // Fallback to plain text if HTML parsing fails
                     Text(processedContent)
                         .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.top, hasShortDescription ? 8 : 0)
                 }
             } else if rule.description.isEmpty || rule.description == "No description available" {
@@ -128,33 +135,58 @@ extension RuleDetailView {
             Text("Configuration")
                 .font(.headline)
             
-            VStack(alignment: .leading, spacing: 8) {
-                Toggle("Enable this rule", isOn: Binding(
-                    get: { viewModel.isEnabled },
-                    set: { viewModel.updateEnabled($0) }
-                ))
+            VStack(alignment: .leading, spacing: 16) {
+                // Toggle at the top with full width
+                HStack {
+                    Toggle("Enable this rule", isOn: Binding(
+                        get: { viewModel.isEnabled },
+                        set: { viewModel.updateEnabled($0) }
+                    ))
+                    .toggleStyle(.switch)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
                 
                 if viewModel.isEnabled {
-                    Picker("Severity", selection: Binding(
-                        get: { viewModel.severity ?? .warning },
-                        set: { viewModel.updateSeverity($0) }
-                    )) {
-                        ForEach(Severity.allCases) { severity in
-                            Text(severity.displayName).tag(severity)
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Severity")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Picker("Severity", selection: Binding(
+                            get: { viewModel.severity ?? .warning },
+                            set: { viewModel.updateSeverity($0) }
+                        )) {
+                            ForEach(Severity.allCases) { severity in
+                                Text(severity.displayName).tag(severity)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .frame(maxWidth: 300)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 200)
 
                     if let parameters = rule.parameters, !parameters.isEmpty {
-                        RuleParameterEditor(
-                            parameters: parameters,
-                            values: $viewModel.parameterValues
-                        )
+                        Divider()
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Parameters")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            RuleParameterEditor(
+                                parameters: parameters,
+                                values: $viewModel.parameterValues
+                            )
+                        }
                     }
                 }
 
                 if viewModel.pendingChanges != nil {
+                    Divider()
+                    
                     HStack {
                         Image(systemName: "exclamationmark.circle.fill")
                             .foregroundColor(.orange)
@@ -163,7 +195,6 @@ extension RuleDetailView {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.top, 4)
                 }
                 
                 // Simulate button for disabled rules
@@ -190,9 +221,8 @@ extension RuleDetailView {
                     .disabled(isSimulating)
                 }
             }
-            .padding(.vertical)
-            .padding(.trailing)
-            .padding(.leading)
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(8)
         }
@@ -252,7 +282,7 @@ extension RuleDetailView {
                     // Wrap in full HTML document with styling
                     let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
                     
-                    // Render HTML using NSAttributedString
+                    // Render HTML using NSAttributedString via AttributedTextView
                     if let htmlData = fullHTML.data(using: .utf8),
                        let attributedString = try? NSAttributedString(
                         data: htmlData,
@@ -260,8 +290,7 @@ extension RuleDetailView {
                                  .characterEncoding: String.Encoding.utf8.rawValue],
                         documentAttributes: nil
                        ) {
-                        Text(AttributedString(attributedString))
-                            .textSelection(.enabled)
+                        AttributedTextView(attributedString: attributedString)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
                         // Fallback to plain text if HTML parsing fails
@@ -289,6 +318,8 @@ extension RuleDetailView {
                 Text(rationale)
                     .font(.body)
                     .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
             } else {
                 Text("No rationale available")
                     .font(.body)
@@ -344,16 +375,19 @@ extension RuleDetailView {
                         Button {
                             // Navigate to related rule - would need navigation handling
                         } label: {
-                            HStack {
+                            HStack(alignment: .center, spacing: 8) {
                                 Text(relatedRule.name)
                                     .font(.body)
                                     .foregroundColor(.primary)
-                                Spacer()
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .lineLimit(2)
+                                Spacer(minLength: 8)
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .accessibilityHidden(true)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .buttonStyle(.plain)
                     }
@@ -384,14 +418,17 @@ extension RuleDetailView {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(links, id: \.self) { link in
                         Link(destination: link) {
-                            HStack {
+                            HStack(alignment: .center, spacing: 8) {
                                 Image(systemName: "link")
                                     .font(.caption)
                                     .accessibilityHidden(true)
                                 Text(link.absoluteString)
                                     .font(.body)
                                     .foregroundColor(.blue)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .lineLimit(2)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                 }
