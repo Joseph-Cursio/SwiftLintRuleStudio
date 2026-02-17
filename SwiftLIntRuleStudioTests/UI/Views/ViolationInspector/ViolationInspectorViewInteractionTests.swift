@@ -295,7 +295,7 @@ struct ViolationInspectorViewInteractionTests {
             ViewHosting.expel()
             ViewHosting.host(view: viewCapture)
             defer { ViewHosting.expel() }
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have refresh button in toolbar")

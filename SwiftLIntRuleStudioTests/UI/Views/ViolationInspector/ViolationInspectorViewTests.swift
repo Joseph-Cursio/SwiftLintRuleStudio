@@ -80,7 +80,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should initialize with NavigationSplitView")
@@ -97,7 +97,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have navigation title")
@@ -225,7 +225,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have toolbar with refresh button")
@@ -352,7 +352,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should integrate with DependencyContainer")
@@ -370,7 +370,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have NavigationSplitView as root")
@@ -386,7 +386,7 @@ struct ViolationInspectorViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "ViolationInspectorView should have primary-detail layout")

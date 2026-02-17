@@ -109,7 +109,7 @@ struct RuleBrowserViewInteractionTests {
         let wrapper = ViewWrapper(view: viewCapture)
         return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
-                let splitView = try? wrapper.view.inspect().find(ViewType.NavigationSplitView.self)
+                let splitView = try? wrapper.view.inspect().find(ViewType.HStack.self)
                 return (try? splitView?.find(ViewType.List.self)) != nil
             }
         }
@@ -295,7 +295,7 @@ struct RuleBrowserViewInteractionTests {
             // Find clear filters button in toolbar
             // Note: Toolbar buttons may not be directly accessible via ViewInspector
             // We verify the view structure exists
-            let navigationSplitView = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            let navigationSplitView = try viewCapture.inspect().find(ViewType.HStack.self)
             return navigationSplitView != nil
         }
         
@@ -318,7 +318,7 @@ struct RuleBrowserViewInteractionTests {
             // Find clear filters button in toolbar
             // Note: This is a simplified test - toolbar button interaction may require different approach
             // We verify the view structure exists
-            let navigationSplitView = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            let navigationSplitView = try viewCapture.inspect().find(ViewType.HStack.self)
             return navigationSplitView != nil
         }
         

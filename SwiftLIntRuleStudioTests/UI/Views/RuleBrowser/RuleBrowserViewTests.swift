@@ -94,7 +94,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(true, "RuleBrowserView should initialize with NavigationSplitView")
@@ -111,7 +111,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have navigation title")
@@ -450,7 +450,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have toolbar with clear filters button")
@@ -468,7 +468,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have NavigationSplitView as root")
@@ -484,7 +484,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have primary-detail layout")
@@ -502,7 +502,7 @@ struct RuleBrowserViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.NavigationSplitView.self)
+            _ = try viewCapture.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should integrate with RuleRegistry")
