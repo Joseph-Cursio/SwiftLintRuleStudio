@@ -83,37 +83,23 @@ extension RuleDetailView {
             
             // Show markdown documentation if available - directly below description
             if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
-                // Process content to remove metadata we already show
-                let processedContent = processContentForDisplay(content: markdownDoc)
-                
-                // Convert markdown elements to HTML while preserving existing HTML
-                let htmlContent = convertMarkdownToHTML(content: processedContent)
-                
-                // Wrap in full HTML document with styling
-                let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
-                
                 // Determine top padding: only add spacing if we showed the short description above
                 let hasShortDescription = shouldShowShortDescription
-                
-                // Render HTML using NSAttributedString via AttributedTextView
-                if let htmlData = fullHTML.data(using: .utf8),
-                   let attributedString = try? NSAttributedString(
-                    data: htmlData,
-                    options: [
-                        .documentType: NSAttributedString.DocumentType.html,
-                        .characterEncoding: String.Encoding.utf8.rawValue,
-                        NSAttributedString.DocumentReadingOptionKey.defaultAttributes: [
-                            NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
-                        ]
-                    ],
-                    documentAttributes: nil
-                   ) {
-                    AttributedTextView(attributedString: attributedString)
+
+                // Use the pre-built attributed string cached by rebuildAttributedString().
+                // NSAttributedString HTML init must NOT be called here inside body - it
+                // requires the main thread and SwiftUI layout passes can evaluate body
+                // from non-main threads, causing the
+                // "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION" crash.
+                if let attributedString = cachedAttributedString {
+                    Text(attributedString)
+                        .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.top, hasShortDescription ? 8 : 0)
                 } else {
-                    // Fallback to plain text if HTML parsing fails
+                    // Fallback to plain text (shown before cache is ready or on parse failure)
+                    let processedContent = processContentForDisplay(content: markdownDoc)
                     Text(processedContent)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -273,27 +259,12 @@ extension RuleDetailView {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Process content to remove metadata we already show
-                    let processedContent = processContentForDisplay(content: markdown)
-                    
-                    // Convert markdown elements to HTML while preserving existing HTML
-                    let htmlContent = convertMarkdownToHTML(content: processedContent)
-                    
-                    // Wrap in full HTML document with styling
-                    let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
-                    
-                    // Render HTML using NSAttributedString via AttributedTextView
-                    if let htmlData = fullHTML.data(using: .utf8),
-                       let attributedString = try? NSAttributedString(
-                        data: htmlData,
-                        options: [.documentType: NSAttributedString.DocumentType.html,
-                                 .characterEncoding: String.Encoding.utf8.rawValue],
-                        documentAttributes: nil
-                       ) {
-                        AttributedTextView(attributedString: attributedString)
+                    if let attributedString = cachedAttributedString {
+                        Text(attributedString)
+                            .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
-                        // Fallback to plain text if HTML parsing fails
+                        let processedContent = processContentForDisplay(content: markdown)
                         Text(processedContent)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)

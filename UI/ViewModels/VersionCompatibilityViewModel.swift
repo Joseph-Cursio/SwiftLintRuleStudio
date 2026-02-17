@@ -44,6 +44,9 @@ class VersionCompatibilityViewModel: ObservableObject {
                 let version = try await swiftLintCLI.getVersion()
                 currentVersion = version
 
+                // NOTE: YAMLConfigurationEngine is @MainActor so we must use it here.
+                // engine.load() does synchronous file I/O but that is an existing design
+                // constraint of YAMLConfigurationEngine. Avoid heavy configs.
                 let engine = YAMLConfigurationEngine(configPath: configPath)
                 try engine.load()
                 let config = engine.getConfig()

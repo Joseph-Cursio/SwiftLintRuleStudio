@@ -112,10 +112,19 @@ struct AttributedTextView: NSViewRepresentable {
 extension AttributedTextView {
     /// Creates an AttributedTextView from an HTML string.
     ///
+    /// IMPORTANT: This initializer calls NSAttributedString with .html document type,
+    /// which MUST be called on the main thread only. Never call this inside a SwiftUI
+    /// body computed property - SwiftUI can evaluate body from non-main threads during
+    /// layout passes, causing "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION" crashes.
+    ///
+    /// Instead, build the NSAttributedString in a .task modifier or @MainActor method,
+    /// store it in @State, and pass the pre-built result to the primary init.
+    ///
     /// - Parameters:
     ///   - html: The HTML string to render
     ///   - font: The base font to use (default: system font)
     ///   - textColor: The text color (default: label color)
+    @MainActor
     init?(html: String, font: NSFont = .systemFont(ofSize: NSFont.systemFontSize), textColor: NSColor = .labelColor) {
         guard let data = html.data(using: .utf8),
               let attributedString = try? NSAttributedString(
@@ -128,7 +137,7 @@ extension AttributedTextView {
               ) else {
             return nil
         }
-        
+
         self.attributedString = attributedString
     }
 }

@@ -20,6 +20,8 @@ struct RuleDetailView: View {
     @State private var currentRule: Rule
     @State var violationCount: Int = 0
     @State var isLoadingViolationCount = false
+    // Cached attributed string - computed on main thread in .task, never in body
+    @State var cachedAttributedString: AttributedString?
     
     let ruleId: String
     
@@ -133,11 +135,15 @@ struct RuleDetailView: View {
         }
         .task {
             // Fetch rule details if documentation is missing
-            guard rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true else { return }
-            await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
-            if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
-                currentRule = updatedRule
+            if rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true {
+                await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
+                if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
+                    currentRule = updatedRule
+                }
             }
+            // Build the attributed string on the main thread (NSAttributedString HTML
+            // init requires the main thread - never call it inside a body computation)
+            rebuildAttributedString()
         }
         .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in
             // Reload configuration if this rule was changed
@@ -152,6 +158,12 @@ struct RuleDetailView: View {
             if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
                 currentRule = updatedRule
             }
+            // Rebuild attributed string on main thread when documentation changes
+            rebuildAttributedString()
+        }
+        .onChange(of: colorScheme) {
+            // Rebuild attributed string when color scheme changes (light/dark mode)
+            rebuildAttributedString()
         }
         .sheet(isPresented: $viewModel.showDiffPreview) {
             if let diff = viewModel.generateDiff() {
@@ -196,6 +208,39 @@ struct RuleDetailView: View {
         }
     }
     
+    /// Builds the HTML attributed string for the description section on the main thread.
+    /// NSAttributedString(data:options:) with .html document type MUST be called on the
+    /// main thread only. Calling it inside a SwiftUI body can hit non-main threads during
+    /// layout passes and causes "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION".
+    @MainActor
+    func rebuildAttributedString() {
+        guard let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty else {
+            cachedAttributedString = nil
+            return
+        }
+        let processedContent = processContentForDisplay(content: markdownDoc)
+        let htmlContent = convertMarkdownToHTML(content: processedContent)
+        let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
+        guard let htmlData = fullHTML.data(using: .utf8),
+              let nsAttr = try? NSAttributedString(
+                  data: htmlData,
+                  options: [
+                      .documentType: NSAttributedString.DocumentType.html,
+                      .characterEncoding: String.Encoding.utf8.rawValue,
+                      NSAttributedString.DocumentReadingOptionKey.defaultAttributes: [
+                          NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
+                      ]
+                  ],
+                  documentAttributes: nil
+              ) else {
+            cachedAttributedString = nil
+            return
+        }
+        // Convert to SwiftUI AttributedString so we can use pure Text() rendering
+        // instead of NSViewRepresentable, avoiding AppKit layout cycle crashes
+        cachedAttributedString = try? AttributedString(nsAttr, including: \.appKit)
+    }
+
     func simulateRule() {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             return
