@@ -201,6 +201,48 @@ struct SidebarView: View {
                 Label("Compare Configs", systemImage: "arrow.left.arrow.right")
             }
             .accessibilityIdentifier("SidebarCompareConfigsLink")
+
+            NavigationLink {
+                VersionCompatibilityView(
+                    checker: dependencies.versionCompatibilityChecker,
+                    swiftLintCLI: dependencies.swiftLintCLI,
+                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                )
+            } label: {
+                Label("Version Check", systemImage: "checkmark.shield")
+            }
+            .accessibilityIdentifier("SidebarVersionCheckLink")
+
+            NavigationLink {
+                ConfigImportView(
+                    importService: dependencies.configImportService,
+                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                )
+            } label: {
+                Label("Import Config", systemImage: "square.and.arrow.down")
+            }
+            .accessibilityIdentifier("SidebarImportConfigLink")
+
+            NavigationLink {
+                GitBranchDiffView(
+                    service: dependencies.gitBranchDiffService,
+                    workspacePath: dependencies.workspaceManager.currentWorkspace?.path
+                )
+            } label: {
+                Label("Branch Diff", systemImage: "arrow.triangle.branch")
+            }
+            .accessibilityIdentifier("SidebarBranchDiffLink")
+
+            NavigationLink {
+                MigrationAssistantView(
+                    assistant: dependencies.migrationAssistant,
+                    swiftLintCLI: dependencies.swiftLintCLI,
+                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                )
+            } label: {
+                Label("Migration", systemImage: "arrow.up.circle")
+            }
+            .accessibilityIdentifier("SidebarMigrationLink")
         }
         .navigationTitle("SwiftLint Rule Studio")
     }

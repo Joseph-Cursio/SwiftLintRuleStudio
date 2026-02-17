@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		703C936D2F0030E8006A88AE /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 703886762EFC3A3500F2A033 /* Yams */; };
 		703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 703886742EFC3A3500F2A033 /* ViewInspector */; };
+		70C716762F43A97500B0D793 /* YAML_FEATURES.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716742F43A97500B0D793 /* YAML_FEATURES.md */; };
+		70C716772F43A97500B0D793 /* Claude Prompt Library.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716712F43A97500B0D793 /* Claude Prompt Library.md */; };
+		70C716782F43A97500B0D793 /* Cursor Prompt Library.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716722F43A97500B0D793 /* Cursor Prompt Library.md */; };
+		70C716792F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716732F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +37,10 @@
 		7038864D2EFC3A3400F2A037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		703886562EFC3A3500F2A033 /* SwiftLIntRuleStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLIntRuleStudioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		70C716712F43A97500B0D793 /* Claude Prompt Library.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Claude Prompt Library.md"; sourceTree = "<group>"; };
+		70C716722F43A97500B0D793 /* Cursor Prompt Library.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Cursor Prompt Library.md"; sourceTree = "<group>"; };
+		70C716732F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "PRD - SwiftLint_Rule_Studio_Expanded.md"; sourceTree = "<group>"; };
+		70C716742F43A97500B0D793 /* YAML_FEATURES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = YAML_FEATURES.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -93,6 +101,7 @@
 		7038863E2EFC3A3400F2A033 = {
 			isa = PBXGroup;
 			children = (
+				70C716752F43A97500B0D793 /* docs */,
 				703886492EFC3A3400F2A033 /* App */,
 				7038864A2EFC3A3400F2A034 /* Core */,
 				7038864B2EFC3A3400F2A035 /* UI */,
@@ -111,6 +120,17 @@
 				703886602EFC3A3500F2A033 /* SwiftLIntRuleStudioUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		70C716752F43A97500B0D793 /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				70C716712F43A97500B0D793 /* Claude Prompt Library.md */,
+				70C716722F43A97500B0D793 /* Cursor Prompt Library.md */,
+				70C716732F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md */,
+				70C716742F43A97500B0D793 /* YAML_FEATURES.md */,
+			);
+			path = docs;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -241,6 +261,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				70C716762F43A97500B0D793 /* YAML_FEATURES.md in Resources */,
+				70C716772F43A97500B0D793 /* Claude Prompt Library.md in Resources */,
+				70C716782F43A97500B0D793 /* Cursor Prompt Library.md in Resources */,
+				70C716792F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

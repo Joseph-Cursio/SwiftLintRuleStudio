@@ -31,6 +31,14 @@ class DependencyContainer: ObservableObject {
     let configVersionHistoryService: ConfigVersionHistoryServiceProtocol
     let configComparisonService: ConfigComparisonServiceProtocol
 
+    // Phase 3 YAML Configuration Services
+    let gitService: GitServiceProtocol
+    let urlConfigFetcher: URLConfigFetcherProtocol
+    let versionCompatibilityChecker: VersionCompatibilityCheckerProtocol
+    let configImportService: ConfigImportServiceProtocol
+    let gitBranchDiffService: GitBranchDiffServiceProtocol
+    let migrationAssistant: MigrationAssistantProtocol
+
     private var cancellables = Set<AnyCancellable>()
     
     init(
@@ -48,6 +56,12 @@ class DependencyContainer: ObservableObject {
         prCommentGenerator: PRCommentGeneratorProtocol? = nil,
         configVersionHistoryService: ConfigVersionHistoryServiceProtocol? = nil,
         configComparisonService: ConfigComparisonServiceProtocol? = nil,
+        gitService: GitServiceProtocol? = nil,
+        urlConfigFetcher: URLConfigFetcherProtocol? = nil,
+        versionCompatibilityChecker: VersionCompatibilityCheckerProtocol? = nil,
+        configImportService: ConfigImportServiceProtocol? = nil,
+        gitBranchDiffService: GitBranchDiffServiceProtocol? = nil,
+        migrationAssistant: MigrationAssistantProtocol? = nil,
         userDefaults: UserDefaults? = nil
     ) {
         let cache = cacheManager ?? CacheManager()
@@ -108,6 +122,20 @@ class DependencyContainer: ObservableObject {
             ?? ConfigVersionHistoryService()
         self.configComparisonService = configComparisonService
             ?? ConfigComparisonService()
+
+        // Initialize Phase 3 YAML Configuration Services
+        let git = gitService ?? GitService()
+        self.gitService = git
+        let fetcher = urlConfigFetcher ?? URLConfigFetcher()
+        self.urlConfigFetcher = fetcher
+        self.versionCompatibilityChecker = versionCompatibilityChecker
+            ?? VersionCompatibilityChecker()
+        self.configImportService = configImportService
+            ?? ConfigImportService(fetcher: fetcher)
+        self.gitBranchDiffService = gitBranchDiffService
+            ?? GitBranchDiffService(gitService: git, comparisonService: self.configComparisonService)
+        self.migrationAssistant = migrationAssistant
+            ?? MigrationAssistant()
 
         // Forward changes from child ObservableObjects to trigger view updates
         self.onboardingManager.objectWillChange
