@@ -60,16 +60,12 @@ extension SafeRulesDiscoveryView {
                 try yamlEngine.save(config: config, createBackup: true)
                 postRuleChangeNotification(ruleIds: Array(selectedRules))
 
-                await MainActor.run {
-                    isEnabling = false
-                    dismiss()
-                }
+                isEnabling = false
+                dismiss()
             } catch {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    showError = true
-                    isEnabling = false
-                }
+                errorMessage = error.localizedDescription
+                showError = true
+                isEnabling = false
             }
         }
     }
@@ -168,9 +164,7 @@ private extension SafeRulesDiscoveryView {
             disabledRuleIds: disabledRuleIds,
             optInRuleIds: optInRuleIds
         ) { current, total, ruleId in
-            Task { @MainActor in
-                discoveryProgress = DiscoveryProgress(current: current, total: total, ruleId: ruleId)
-            }
+            discoveryProgress = DiscoveryProgress(current: current, total: total, ruleId: ruleId)
         }
     }
 
@@ -194,21 +188,17 @@ private extension SafeRulesDiscoveryView {
     }
 
     func finishDiscovery(with results: [RuleImpactResult], selectedRuleIds: [String]) async {
-        await MainActor.run {
-            safeRules = results
-            selectedRules = Set(selectedRuleIds)
-            isDiscovering = false
-            discoveryProgress = nil
-        }
+        safeRules = results
+        selectedRules = Set(selectedRuleIds)
+        isDiscovering = false
+        discoveryProgress = nil
     }
 
     func failDiscovery(with error: Error) async {
-        await MainActor.run {
-            errorMessage = error.localizedDescription
-            showError = true
-            isDiscovering = false
-            discoveryProgress = nil
-        }
+        errorMessage = error.localizedDescription
+        showError = true
+        isDiscovering = false
+        discoveryProgress = nil
     }
 
     func postRuleChangeNotification(ruleIds: [String]) {

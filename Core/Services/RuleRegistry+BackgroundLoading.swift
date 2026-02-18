@@ -22,12 +22,10 @@ extension RuleRegistry {
     }
 
     private func updateRule(at index: Int, with rule: Rule) async {
-        await MainActor.run { @Sendable [weak self] in
-            guard let self, index < self.rules.count else { return }
-            var updatedRules = self.rules
-            updatedRules[index] = rule
-            self.updateRules(updatedRules)
-        }
+        guard index < rules.count else { return }
+        var updatedRules = rules
+        updatedRules[index] = rule
+        updateRules(updatedRules)
     }
 
     private func buildRulesData(

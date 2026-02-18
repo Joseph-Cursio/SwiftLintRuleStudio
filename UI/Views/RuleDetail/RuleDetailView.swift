@@ -257,17 +257,13 @@ struct RuleDetailView: View {
                     isOptIn: rule.isOptIn
                 )
                 
-                await MainActor.run {
-                    impactResult = result
-                    isSimulating = false
-                    showImpactSimulation = true
-                }
+                impactResult = result
+                isSimulating = false
+                showImpactSimulation = true
             } catch {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    showError = true
-                    isSimulating = false
-                }
+                errorMessage = error.localizedDescription
+                showError = true
+                isSimulating = false
             }
         }
     }
@@ -288,15 +284,11 @@ struct RuleDetailView: View {
                     workspaceId: workspace.id
                 )
                 
-                await MainActor.run {
-                    violationCount = count
-                    isLoadingViolationCount = false
-                }
+                violationCount = count
+                isLoadingViolationCount = false
             } catch {
-                await MainActor.run {
-                    violationCount = 0
-                    isLoadingViolationCount = false
-                }
+                violationCount = 0
+                isLoadingViolationCount = false
             }
         }
     }
