@@ -141,7 +141,7 @@ struct WorkspaceAnalyzerStateTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let workspacePath = await MainActor.run { workspace.path.path }
+        let workspacePath = workspace.path.path
         let json = """
         [
           {
@@ -155,7 +155,7 @@ struct WorkspaceAnalyzerStateTests {
         """
         await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data(json.utf8))
 
-        let fileURL = await MainActor.run { workspace.path.appendingPathComponent("File1.swift") }
+        let fileURL = workspace.path.appendingPathComponent("File1.swift")
         try "struct Example {}".write(to: fileURL, atomically: true, encoding: .utf8)
         let result = try await WorkspaceAnalyzerTestHelpers.withWorkspaceAnalyzer(
             swiftLintCLI: mockCLI,
@@ -175,9 +175,7 @@ struct WorkspaceAnalyzerStateTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let buildDir = await MainActor.run {
-            workspace.path.appendingPathComponent(".build", isDirectory: true)
-        }
+        let buildDir = workspace.path.appendingPathComponent(".build", isDirectory: true)
         try FileManager.default.createDirectory(at: buildDir, withIntermediateDirectories: true)
         let buildFile = buildDir.appendingPathComponent("Ignored.swift")
         try "struct Ignored {}".write(to: buildFile, atomically: true, encoding: .utf8)
@@ -202,7 +200,7 @@ struct WorkspaceAnalyzerStateTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let configPath = await MainActor.run { workspace.path.appendingPathComponent(".swiftlint.yml") }
+        let configPath = workspace.path.appendingPathComponent(".swiftlint.yml")
         try "rules: {}".write(to: configPath, atomically: true, encoding: .utf8)
 
         await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data("[]".utf8))

@@ -70,30 +70,23 @@ struct ImpactSimulatorIntegrationTests {
         
         try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
         
-        // Workspace.init should be Sendable, but Swift 6 has false positive
-        let workspace = await MainActor.run {
-            Workspace(path: tempDir)
-        }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLI(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
-        
+
         try await MainActor.run {
             let container = DependencyContainer.createForTesting()
             try container.workspaceManager.openWorkspace(at: tempDir)
         }
-        
+
         // Should be able to simulate without errors
         let result = try await simulator.simulateRule(
             ruleId: "test_rule",
             workspace: workspace,
             baseConfigPath: nil
         )
-        
-        // Extract ruleId inside MainActor context
-        let ruleId = await MainActor.run {
-            result.ruleId
-        }
-        #expect(ruleId == "test_rule")
+
+        #expect(result.ruleId == "test_rule")
     }
     
     // MARK: - YAMLConfigurationEngine Integration
@@ -111,25 +104,18 @@ struct ImpactSimulatorIntegrationTests {
         """
         try baseConfig.write(to: configPath, atomically: true, encoding: .utf8)
         
-        // Workspace.init should be Sendable, but Swift 6 has false positive
-        let workspace = await MainActor.run {
-            Workspace(path: tempDir)
-        }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLI(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
-        
+
         // Simulate should create temp config with rule enabled
         let result = try await simulator.simulateRule(
             ruleId: "test_rule",
             workspace: workspace,
             baseConfigPath: configPath
         )
-        
-        // Extract ruleId inside MainActor context
-        let ruleId = await MainActor.run {
-            result.ruleId
-        }
-        #expect(ruleId == "test_rule")
+
+        #expect(result.ruleId == "test_rule")
         // Temp config should be cleaned up automatically
     }
     
@@ -137,29 +123,22 @@ struct ImpactSimulatorIntegrationTests {
     
     private func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
         let mockCLI = MockSwiftLintCLI()
-        
-        // Create JSON data from violations
-        // Note: Violation is a struct and should be Sendable, but Swift 6 has false positives
-        // Extract all properties inside MainActor.run to work around the compiler bug
-        // Convert to Data immediately to avoid Sendable issues with [String: Any]
-        let jsonData = await MainActor.run {
-            let jsonArray = violations.map { violation -> [String: Any] in
-                [
-                    "file": violation.filePath,
-                    "line": violation.line,
-                    "character": violation.column ?? 0,
-                    "severity": violation.severity.rawValue,
-                    "rule_id": violation.ruleID,
-                    "reason": violation.message
-                ]
-            }
-            // Convert to Data inside MainActor context to avoid Sendable issues
-            return try? JSONSerialization.data(withJSONObject: jsonArray)
+
+        let jsonArray = violations.map { violation -> [String: Any] in
+            [
+                "file": violation.filePath,
+                "line": violation.line,
+                "character": violation.column ?? 0,
+                "severity": violation.severity.rawValue,
+                "rule_id": violation.ruleID,
+                "reason": violation.message
+            ]
         }
+        let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)
         await mockCLI.setLintCommandHandler { @Sendable _, _ in
             return jsonData ?? Data()
         }
-        
+
         return mockCLI
     }
 }

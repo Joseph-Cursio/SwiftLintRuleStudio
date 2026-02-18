@@ -45,9 +45,7 @@ struct VIViewModelEdgeCaseTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let violation1Id = await MainActor.run {
-            violations[1].id
-        }
+        let violation1Id = violations[1].id
         await MainActor.run {
             viewModel.selectedViolationId = violation1Id
         }
@@ -88,9 +86,7 @@ struct VIViewModelEdgeCaseTests {
         let selectedId = await MainActor.run {
             viewModel.selectedViolationId
         }
-        let expectedId = await MainActor.run {
-            violations.first?.id
-        }
+        let expectedId = violations.first?.id
         #expect(selectedId == expectedId)
     }
 
@@ -110,9 +106,7 @@ struct VIViewModelEdgeCaseTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let violation0Id = await MainActor.run {
-            violations[0].id
-        }
+        let violation0Id = violations[0].id
         await MainActor.run {
             viewModel.selectedViolationId = violation0Id
         }
@@ -153,9 +147,7 @@ struct VIViewModelEdgeCaseTests {
         let selectedId = await MainActor.run {
             viewModel.selectedViolationId
         }
-        let expectedId = await MainActor.run {
-            violations.last?.id
-        }
+        let expectedId = violations.last?.id
         #expect(selectedId == expectedId)
     }
 
@@ -175,9 +167,7 @@ struct VIViewModelEdgeCaseTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let selectedId = await MainActor.run {
-            violations[1].id
-        }
+        let selectedId = violations[1].id
         await MainActor.run {
             viewModel.selectedViolationIds = [selectedId]
         }

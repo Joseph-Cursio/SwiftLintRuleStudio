@@ -37,14 +37,12 @@ struct RuleDetailViewLinksTests {
         let result = await Task { @MainActor in
             RuleDetailViewTestHelpers.createView(for: rule)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasLink = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             return (try? inspector.find(text: "https://github.com/apple/swift-evolution/blob/main/proposals/0001.md")) != nil
         }
 

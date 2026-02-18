@@ -53,23 +53,12 @@ struct ViolationStorageWorkspaceTests {
         try await storage.storeViolations(secondViolations, for: workspaceId)
 
         let secondFetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
-        let (count, allMatch, hasRule4, hasRule5, hasRule1, hasRule2, hasRule3) = await MainActor.run {
-            (
-                secondFetched.count,
-                secondFetched.allSatisfy { $0.ruleID == "rule4" || $0.ruleID == "rule5" },
-                secondFetched.contains { $0.ruleID == "rule4" },
-                secondFetched.contains { $0.ruleID == "rule5" },
-                secondFetched.contains { $0.ruleID == "rule1" },
-                secondFetched.contains { $0.ruleID == "rule2" },
-                secondFetched.contains { $0.ruleID == "rule3" }
-            )
-        }
-        #expect(count == 2)
-        #expect(allMatch == true)
-        #expect(hasRule4 == true)
-        #expect(hasRule5 == true)
-        #expect(hasRule1 == false)
-        #expect(hasRule2 == false)
-        #expect(hasRule3 == false)
+        #expect(secondFetched.count == 2)
+        #expect(secondFetched.allSatisfy { $0.ruleID == "rule4" || $0.ruleID == "rule5" } == true)
+        #expect(secondFetched.contains { $0.ruleID == "rule4" } == true)
+        #expect(secondFetched.contains { $0.ruleID == "rule5" } == true)
+        #expect(secondFetched.contains { $0.ruleID == "rule1" } == false)
+        #expect(secondFetched.contains { $0.ruleID == "rule2" } == false)
+        #expect(secondFetched.contains { $0.ruleID == "rule3" } == false)
     }
 }

@@ -54,10 +54,8 @@ struct ConfigRecommendationViewTests {
         
         // Verify the view can be created
         // Note: View may not be visible if config file exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(true, "ConfigRecommendationView should initialize correctly")
@@ -81,10 +79,8 @@ struct ConfigRecommendationViewTests {
         #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Verify recommendation is shown
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasRecommendation = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "SwiftLint Configuration File Missing")
+            _ = try view.inspect().find(text: "SwiftLint Configuration File Missing")
             return true
         }
         #expect(hasRecommendation == true, "ConfigRecommendationView should display when config file missing")
@@ -106,10 +102,8 @@ struct ConfigRecommendationViewTests {
         #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find header text
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasHeader = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "SwiftLint Configuration File Missing")
+            _ = try view.inspect().find(text: "SwiftLint Configuration File Missing")
             return true
         }
         #expect(hasHeader == true, "ConfigRecommendationView should display header")
@@ -131,14 +125,12 @@ struct ConfigRecommendationViewTests {
         #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find description text
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasDescription = try? await MainActor.run {
             let expected = """
             Your workspace doesn't have a `.swiftlint.yml` configuration file.
             Creating one will help you:
             """
-            _ = try viewCapture.inspect().find(text: expected)
+            _ = try view.inspect().find(text: expected)
             return true
         }
         #expect(hasDescription == true, "ConfigRecommendationView should display description")
@@ -162,10 +154,8 @@ struct ConfigRecommendationViewTests {
         #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find benefit text
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasBenefit = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Exclude third-party code from analysis")
+            _ = try view.inspect().find(text: "Exclude third-party code from analysis")
             return true
         }
         #expect(hasBenefit == true, "ConfigRecommendationView should display benefits list")
@@ -189,10 +179,8 @@ struct ConfigRecommendationViewTests {
         #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find Create button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasCreateButton = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Create Default Configuration")
+            _ = try view.inspect().find(text: "Create Default Configuration")
             return true
         }
         #expect(hasCreateButton == true, "ConfigRecommendationView should display Create Default Configuration button")
@@ -214,10 +202,8 @@ struct ConfigRecommendationViewTests {
         #expect(didUpdate == true, "Workspace should reflect missing config")
         
         // Find Learn More button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasLearnMoreButton = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Learn More")
+            _ = try view.inspect().find(text: "Learn More")
             return true
         }
         #expect(hasLearnMoreButton == true, "ConfigRecommendationView should display Learn More button")
@@ -231,10 +217,8 @@ struct ConfigRecommendationViewTests {
         
         // Verify error alert structure exists
         // Note: Actual error would require triggering an error condition
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(true, "ConfigRecommendationView should handle error display")

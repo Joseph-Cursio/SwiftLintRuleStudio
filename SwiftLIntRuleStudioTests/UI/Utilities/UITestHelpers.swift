@@ -10,6 +10,10 @@ import Testing
 import ViewInspector
 @testable import SwiftLIntRuleStudio
 
+// UserDefaults is thread-safe by design but not marked Sendable.
+// This conformance is safe for test code.
+extension UserDefaults: @unchecked Sendable {}
+
 // MARK: - Test Data Factories
 
 // Factory methods for creating test data
@@ -36,25 +40,23 @@ enum UITestDataFactory {
         defaultSeverity: Severity? = nil,
         markdownDocumentation: String? = nil
     ) async -> Rule {
-        await MainActor.run {
-            Rule(
-                id: id,
-                name: name,
-                description: description,
-                category: category,
-                isOptIn: isOptIn,
-                severity: severity,
-                parameters: parameters,
-                triggeringExamples: triggeringExamples,
-                nonTriggeringExamples: nonTriggeringExamples,
-                documentation: documentation,
-                isEnabled: isEnabled,
-                supportsAutocorrection: supportsAutocorrection,
-                minimumSwiftVersion: minimumSwiftVersion,
-                defaultSeverity: defaultSeverity,
-                markdownDocumentation: markdownDocumentation
-            )
-        }
+        Rule(
+            id: id,
+            name: name,
+            description: description,
+            category: category,
+            isOptIn: isOptIn,
+            severity: severity,
+            parameters: parameters,
+            triggeringExamples: triggeringExamples,
+            nonTriggeringExamples: nonTriggeringExamples,
+            documentation: documentation,
+            isEnabled: isEnabled,
+            supportsAutocorrection: supportsAutocorrection,
+            minimumSwiftVersion: minimumSwiftVersion,
+            defaultSeverity: defaultSeverity,
+            markdownDocumentation: markdownDocumentation
+        )
     }
     
     /// Creates multiple test rules
@@ -90,21 +92,19 @@ enum UITestDataFactory {
         suppressed: Bool = false,
         suppressionReason: String? = nil
     ) async -> Violation {
-        await MainActor.run {
-            Violation(
-                id: id,
-                ruleID: ruleID,
-                filePath: filePath,
-                line: line,
-                column: column,
-                severity: severity,
-                message: message,
-                detectedAt: detectedAt,
-                resolvedAt: resolvedAt,
-                suppressed: suppressed,
-                suppressionReason: suppressionReason
-            )
-        }
+        Violation(
+            id: id,
+            ruleID: ruleID,
+            filePath: filePath,
+            line: line,
+            column: column,
+            severity: severity,
+            message: message,
+            detectedAt: detectedAt,
+            resolvedAt: resolvedAt,
+            suppressed: suppressed,
+            suppressionReason: suppressionReason
+        )
     }
     
     /// Creates multiple test violations
@@ -134,12 +134,9 @@ enum UITestDataFactory {
         name: String = "TestWorkspace",
         path: URL? = nil
     ) async -> Workspace {
-        await MainActor.run {
-            let workspacePath = path ?? FileManager.default.temporaryDirectory
-                .appendingPathComponent("TestWorkspace_\(UUID().uuidString)", isDirectory: true)
-            
-            return Workspace(path: workspacePath, name: name)
-        }
+        let workspacePath = path ?? FileManager.default.temporaryDirectory
+            .appendingPathComponent("TestWorkspace_\(UUID().uuidString)", isDirectory: true)
+        return Workspace(path: workspacePath, name: name)
     }
 }
 
@@ -153,9 +150,8 @@ enum UIViewTestHelpers {
     static func createTestDependencyContainer(
         userDefaults: UserDefaults? = nil
     ) async -> DependencyContainer {
-        nonisolated(unsafe) let userDefaultsCapture = userDefaults
         return await MainActor.run {
-            DependencyContainer.createForTesting(userDefaults: userDefaultsCapture)
+            DependencyContainer.createForTesting(userDefaults: userDefaults)
         }
     }
     

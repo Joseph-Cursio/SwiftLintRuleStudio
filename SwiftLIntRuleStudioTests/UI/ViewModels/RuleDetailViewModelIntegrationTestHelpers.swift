@@ -14,10 +14,8 @@ enum RuleDetailVMIntegrationHelpers {
         yamlEngine: YAMLConfigurationEngine? = nil,
         workspaceManager: WorkspaceManager? = nil
     ) async -> RuleDetailViewModel {
-        nonisolated(unsafe) let engineCapture = yamlEngine
-        nonisolated(unsafe) let managerCapture = workspaceManager
         return await MainActor.run {
-            RuleDetailViewModel(rule: rule, yamlEngine: engineCapture, workspaceManager: managerCapture)
+            RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine, workspaceManager: workspaceManager)
         }
     }
 

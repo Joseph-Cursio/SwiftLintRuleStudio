@@ -18,7 +18,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let workspacePath = await MainActor.run { workspace.path.path }
+        let workspacePath = workspace.path.path
         let mockViolationsJSON = """
         [
           {
@@ -34,14 +34,13 @@ struct WorkspaceAnalyzerAnalysisTests {
         """
         await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data(mockViolationsJSON.utf8))
 
-        nonisolated(unsafe) let storage = mockStorage
         let (violationCount, firstRuleID, firstSeverity, storedCount) = try await WorkspaceAnalyzerTestHelpers
             .withWorkspaceAnalyzer(
                 swiftLintCLI: mockCLI,
                 violationStorage: mockStorage
             ) { analyzer in
                 let result = try await analyzer.analyze(workspace: workspace)
-                let stored = storage.storedViolations
+                let stored = mockStorage.storedViolations
                 return await MainActor.run {
                     (
                         result.violations.count,
@@ -90,7 +89,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let workspacePath = await MainActor.run { workspace.path.path }
+        let workspacePath = workspace.path.path
         let mockViolationsJSON = """
         [
           {
@@ -136,7 +135,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let workspacePath = await MainActor.run { workspace.path.path }
+        let workspacePath = workspace.path.path
         let mockViolationsJSON = """
         [
           {
@@ -172,7 +171,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
-        let workspacePath = await MainActor.run { workspace.path.path }
+        let workspacePath = workspace.path.path
         let mockViolationsJSON = """
         [
           {

@@ -31,35 +31,31 @@ struct ViolationStorageMetadataTests {
 
         try await storage.storeViolations([original], for: workspaceId)
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
-        let captured = await MainActor.run {
-            fetched.first.map { violation in
-                CapturedViolation(
-                    count: fetched.count,
-                    metadata: MetadataSnapshot(
-                        id: violation.id,
-                        ruleID: violation.ruleID,
-                        filePath: violation.filePath,
-                        line: violation.line,
-                        column: violation.column,
-                        severity: violation.severity,
-                        message: violation.message
-                    )
+        let captured = fetched.first.map { violation in
+            CapturedViolation(
+                count: fetched.count,
+                metadata: MetadataSnapshot(
+                    id: violation.id,
+                    ruleID: violation.ruleID,
+                    filePath: violation.filePath,
+                    line: violation.line,
+                    column: violation.column,
+                    severity: violation.severity,
+                    message: violation.message
                 )
-            }
+            )
         }
 
         let unwrapped = try #require(captured)
-        let expected = await MainActor.run {
-            MetadataSnapshot(
-                id: original.id,
-                ruleID: original.ruleID,
-                filePath: original.filePath,
-                line: original.line,
-                column: original.column,
-                severity: original.severity,
-                message: original.message
-            )
-        }
+        let expected = MetadataSnapshot(
+            id: original.id,
+            ruleID: original.ruleID,
+            filePath: original.filePath,
+            line: original.line,
+            column: original.column,
+            severity: original.severity,
+            message: original.message
+        )
         assertMetadataMatches(expected: expected, captured: unwrapped)
         #expect(unwrapped.count == 1)
     }
@@ -93,9 +89,7 @@ struct ViolationStorageMetadataTests {
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(fetched.count == 1)
 
-        let stored = await MainActor.run {
-            fetched.first.map { ($0.id, $0.ruleID, $0.filePath, $0.message) }
-        }
+        let stored = fetched.first.map { ($0.id, $0.ruleID, $0.filePath, $0.message) }
         let unwrapped = try #require(stored)
         #expect(unwrapped.0 == sharedID)
         #expect(unwrapped.1 == "rule2")
@@ -115,7 +109,7 @@ struct ViolationStorageMetadataTests {
             )
         }
 
-        let ids = await MainActor.run { Set(violations.map { $0.id }) }
+        let ids = Set(violations.map { $0.id })
         #expect(ids.count == 100, "All violations should have unique IDs")
 
         try await storage.storeViolations(violations, for: workspaceId)
@@ -123,7 +117,7 @@ struct ViolationStorageMetadataTests {
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(fetched.count == 100)
 
-        let fetchedIDs = await MainActor.run { Set(fetched.map { $0.id }) }
+        let fetchedIDs = Set(fetched.map { $0.id })
         #expect(fetchedIDs.count == 100, "All fetched violations should have unique IDs")
     }
 

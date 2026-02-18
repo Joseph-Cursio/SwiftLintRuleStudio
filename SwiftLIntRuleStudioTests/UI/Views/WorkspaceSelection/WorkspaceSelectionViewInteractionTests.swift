@@ -135,10 +135,8 @@ struct WorkspaceSelectionViewInteractionTests {
         
         // Note: Tapping recent workspace row would require finding the specific row
         // This is complex with ViewInspector, so we verify the structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasRecentWorkspaces = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Recent Workspaces")
+            _ = try view.inspect().find(text: "Recent Workspaces")
             return true
         }
         #expect(hasRecentWorkspaces == true, "Recent workspace row should be tappable")
@@ -236,10 +234,8 @@ struct WorkspaceSelectionViewInteractionTests {
         
         // Note: Tapping remove button would require finding the specific button
         // This is complex with ViewInspector, so we verify the structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasRecentWorkspaces = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Recent Workspaces")
+            _ = try view.inspect().find(text: "Recent Workspaces")
             return true
         }
         #expect(hasRecentWorkspaces == true, "Remove button should remove workspace from recent")

@@ -93,12 +93,11 @@ struct SafeRulesDiscoveryViewTests {
         let result = await Task { @MainActor in createSafeRulesDiscoveryView() }.value
         let view = result.view
         
-        nonisolated(unsafe) let viewCapture = view
         let (hasHeader, hasEmptyTitle, hasEmptySubtitle) = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try view.inspect()
             let hasHeader = (try? inspector.find(text: "Discover Safe Rules")) != nil
             let hasEmptyTitle = (try? inspector.find(text: "No Safe Rules Discovered")) != nil
             let emptySubtitle = "Click 'Discover Safe Rules' to analyze disabled rules in your workspace"
@@ -195,21 +194,19 @@ struct SafeRulesDiscoveryViewTests {
             )
         }
 
-        let view = result.view
         let container = result.container
         let hasWorkspace = await MainActor.run { container.workspaceManager.currentWorkspace != nil }
         let ruleCount = await MainActor.run { container.ruleRegistry.rules.count }
         #expect(hasWorkspace == true)
         #expect(ruleCount == 2)
-        nonisolated(unsafe) let viewCapture = view
         await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
         }
         defer { Task { @MainActor in ViewHosting.expel() } }
 
         let didTapDiscover = try await MainActor.run {
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             let buttons = try inspector.findAll(ViewType.Button.self)
             let discoverButton = buttons.first { button in
                 let text = try? button.labelView().find(ViewType.Text.self).string()
@@ -267,35 +264,34 @@ struct SafeRulesDiscoveryViewTests {
         )
         .environmentObject(container)
 
-        nonisolated(unsafe) let viewCapture = view
         await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
         }
         defer { Task { @MainActor in ViewHosting.expel() } }
 
         let hasSummary = await UIAsyncTestHelpers.waitForText(
-            in: viewCapture,
+            in: view,
             text: "Found 2 safe rules",
             timeout: 3.0
         )
         let hasSelectAll = await UIAsyncTestHelpers.waitForText(
-            in: viewCapture,
+            in: view,
             text: "Select All",
             timeout: 3.0
         )
         let hasDeselectAll = await UIAsyncTestHelpers.waitForText(
-            in: viewCapture,
+            in: view,
             text: "Deselect All",
             timeout: 3.0
         )
         let hasRule1 = await UIAsyncTestHelpers.waitForText(
-            in: viewCapture,
+            in: view,
             text: "safe_rule_1",
             timeout: 3.0
         )
         let hasRule2 = await UIAsyncTestHelpers.waitForText(
-            in: viewCapture,
+            in: view,
             text: "safe_rule_2",
             timeout: 3.0
         )
@@ -323,20 +319,18 @@ struct SafeRulesDiscoveryViewTests {
         }
         
         let tracker = await MainActor.run { ToggleTracker() }
-        nonisolated(unsafe) let trackerCapture = tracker
-        
+
         let toggleCount = try await MainActor.run {
             let row = SafeRuleRow(ruleResult: ruleResult, isSelected: false) {
-                trackerCapture.toggleCount += 1
+                tracker.toggleCount += 1
             }
-            nonisolated(unsafe) let rowCapture = row
             ViewHosting.expel()
-            ViewHosting.host(view: rowCapture)
+            ViewHosting.host(view: row)
             defer { ViewHosting.expel() }
-            let inspector = try rowCapture.inspect()
+            let inspector = try row.inspect()
             try inspector.hStack().button(0).tap()
             try inspector.hStack().callOnTapGesture()
-            return trackerCapture.toggleCount
+            return tracker.toggleCount
         }
         
         #expect(toggleCount == 2)

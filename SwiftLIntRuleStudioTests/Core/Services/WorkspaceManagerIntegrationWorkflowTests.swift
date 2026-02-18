@@ -60,14 +60,13 @@ struct WorkspaceManagerIntegrationWorkflowTests {
             IsolatedUserDefaults.cleanup(sharedDefaults)
         }
 
-        nonisolated(unsafe) let defaultsCapture = sharedDefaults
         sharedDefaults.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
 
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let (workspace1, workspaceId) = try await MainActor.run {
-            let manager1 = WorkspaceManager(userDefaults: defaultsCapture)
+            let manager1 = WorkspaceManager(userDefaults: sharedDefaults)
             try manager1.openWorkspace(at: tempDir)
             let workspace1 = try #require(manager1.currentWorkspace)
             return (workspace1, workspace1.id)
@@ -80,7 +79,7 @@ struct WorkspaceManagerIntegrationWorkflowTests {
         try await storage.storeViolations(violations, for: workspaceId)
 
         let (recentCount, firstPath, workspace2) = try await MainActor.run {
-            let manager2 = WorkspaceManager(userDefaults: defaultsCapture)
+            let manager2 = WorkspaceManager(userDefaults: sharedDefaults)
             let recentCount = manager2.recentWorkspaces.count
             let firstPath = manager2.recentWorkspaces.first?.path
             try manager2.openWorkspace(at: tempDir)
@@ -91,10 +90,7 @@ struct WorkspaceManagerIntegrationWorkflowTests {
         #expect(recentCount == 1)
         #expect(firstPath == tempDir)
 
-        let workspace2Path = await MainActor.run {
-            workspace2.path
-        }
-        #expect(workspace2Path == tempDir)
+        #expect(workspace2.path == tempDir)
 
         let filter = ViolationFilter()
         let stored = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
@@ -118,8 +114,7 @@ struct WorkspaceManagerIntegrationWorkflowTests {
     }
 
     private func createInMemoryStorage() async throws -> ViolationStorage {
-        nonisolated(unsafe) let storage: ViolationStorage
-        storage = try await Task.detached {
+        let storage = try await Task.detached {
             try await ViolationStorage(useInMemory: true)
         }.value
         return storage
@@ -151,10 +146,9 @@ struct WorkspaceManagerIntegrationWorkflowTests {
         storage: ViolationStorage,
         mockCLI: MockSwiftLintCLI
     ) async -> WorkspaceAnalyzer {
-        nonisolated(unsafe) let cliCapture = mockCLI
         return await MainActor.run {
             WorkspaceAnalyzer(
-                swiftLintCLI: cliCapture,
+                swiftLintCLI: mockCLI,
                 violationStorage: storage,
                 fileTracker: nil
             )

@@ -48,11 +48,7 @@ struct ViolationStorageBatchTests {
         let count = try await storage.getViolationCount(filter: .all, workspaceId: workspaceId)
         #expect(count == 1000)
 
-        let filter = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.ruleIDs = ["rule0", "rule500", "rule999"]
-            return filter
-        }
+        let filter = ViolationFilter(ruleIDs: ["rule0", "rule500", "rule999"])
         let filtered = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
         #expect(filtered.count == 3)
     }

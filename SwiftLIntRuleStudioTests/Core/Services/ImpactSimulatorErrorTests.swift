@@ -21,7 +21,7 @@ struct ImpactSimulatorErrorTests {
             content: "let x = 1\n"
         )
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = MockSwiftLintCLI(shouldFail: true)
 
         await #expect(throws: Error.self) {
@@ -46,7 +46,7 @@ struct ImpactSimulatorErrorTests {
             content: "let x = 1\n"
         )
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = MockSwiftLintCLI(shouldFail: true)
 
         let batchResult = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
@@ -57,7 +57,7 @@ struct ImpactSimulatorErrorTests {
             )
         }
 
-        let counts = await MainActor.run { batchResult.results.map { $0.violationCount } }
+        let counts = batchResult.results.map { $0.violationCount }
         #expect(counts.count == 2)
         #expect(counts.allSatisfy { $0 == -1 })
     }

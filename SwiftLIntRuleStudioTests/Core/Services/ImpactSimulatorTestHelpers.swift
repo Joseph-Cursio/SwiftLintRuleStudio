@@ -13,9 +13,8 @@ enum ImpactSimulatorTestHelpers {
         swiftLintCLI: SwiftLintCLIProtocol,
         operation: @MainActor @escaping (ImpactSimulator) async throws -> T
     ) async throws -> T {
-        nonisolated(unsafe) let cliCapture = swiftLintCLI
         return try await Task { @MainActor in
-            let simulator = ImpactSimulator(swiftLintCLI: cliCapture)
+            let simulator = ImpactSimulator(swiftLintCLI: swiftLintCLI)
             return try await operation(simulator)
         }.value
     }
@@ -40,19 +39,17 @@ enum ImpactSimulatorTestHelpers {
 
     static func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
         let mockCLI = MockSwiftLintCLI()
-        let jsonData = await MainActor.run {
-            let jsonArray = violations.map { violation -> [String: Any] in
-                [
-                    "file": violation.filePath,
-                    "line": violation.line,
-                    "character": violation.column ?? 0,
-                    "severity": violation.severity.rawValue,
-                    "rule_id": violation.ruleID,
-                    "reason": violation.message
-                ]
-            }
-            return try? JSONSerialization.data(withJSONObject: jsonArray)
+        let jsonArray = violations.map { violation -> [String: Any] in
+            [
+                "file": violation.filePath,
+                "line": violation.line,
+                "character": violation.column ?? 0,
+                "severity": violation.severity.rawValue,
+                "rule_id": violation.ruleID,
+                "reason": violation.message
+            ]
         }
+        let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)
         await mockCLI.setLintCommandHandler { @Sendable _, _ in
             jsonData ?? Data()
         }

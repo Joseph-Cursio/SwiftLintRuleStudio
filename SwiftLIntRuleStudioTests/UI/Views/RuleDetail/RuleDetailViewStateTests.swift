@@ -38,14 +38,12 @@ struct RuleDetailViewStateTests {
         let result = await Task { @MainActor in
             RuleDetailViewTestHelpers.createView(for: rule, viewModel: viewModel)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasPending = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             return (try? inspector.find(text: "You have unsaved changes")) != nil
         }
 
@@ -93,14 +91,12 @@ struct RuleDetailViewStateTests {
                 container: container
             )
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasSimulate = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             return (try? inspector.find(text: "Simulate Impact")) != nil
         }
 

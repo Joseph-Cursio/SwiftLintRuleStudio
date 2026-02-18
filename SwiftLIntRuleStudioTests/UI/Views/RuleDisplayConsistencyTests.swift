@@ -22,25 +22,23 @@ struct RuleDisplayConsistencyTests {
     // MARK: - Test Data Helpers
     
     private func makeTestRule(id: String, name: String, isEnabled: Bool, isOptIn: Bool = false) async -> Rule {
-        await MainActor.run {
-            Rule(
-                id: id,
-                name: name,
-                description: "Test description for \(name)",
-                category: .lint,
-                isOptIn: isOptIn,
-                severity: .warning,
-                parameters: nil,
-                triggeringExamples: [],
-                nonTriggeringExamples: [],
-                documentation: nil,
-                isEnabled: isEnabled,
-                supportsAutocorrection: false,
-                minimumSwiftVersion: nil,
-                defaultSeverity: .warning,
-                markdownDocumentation: nil
-            )
-        }
+        Rule(
+            id: id,
+            name: name,
+            description: "Test description for \(name)",
+            category: .lint,
+            isOptIn: isOptIn,
+            severity: .warning,
+            parameters: nil,
+            triggeringExamples: [],
+            nonTriggeringExamples: [],
+            documentation: nil,
+            isEnabled: isEnabled,
+            supportsAutocorrection: false,
+            minimumSwiftVersion: nil,
+            defaultSeverity: .warning,
+            markdownDocumentation: nil
+        )
     }
     
     // Helper to create RuleDetailView with environment objects
@@ -57,10 +55,8 @@ struct RuleDisplayConsistencyTests {
     @MainActor
     private func createRuleDetailViewSync(rule: Rule) -> AnyView {
         let container = DependencyContainer.createForTesting()
-        let view = AnyView(RuleDetailView(rule: rule)
+        return AnyView(RuleDetailView(rule: rule)
             .environmentObject(container))
-        nonisolated(unsafe) let viewCapture = view
-        return viewCapture
     }
     
     // MARK: - Enabled State Consistency Tests
@@ -73,10 +69,8 @@ struct RuleDisplayConsistencyTests {
         }
         
         // Inspect the view to find the enabled label
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasEnabledLabel = await MainActor.run {
-            (try? viewCapture.inspect().find(ViewType.Text.self, where: { view in
+            (try? view.inspect().find(ViewType.Text.self, where: { view in
                 try view.string() == "Enabled"
             })) != nil
         }

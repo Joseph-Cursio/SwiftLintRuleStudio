@@ -33,31 +33,24 @@ struct ImpactSimulatorWorkflowTests {
     
     private func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
         let mockCLI = MockSwiftLintCLI()
-        
-        // Create JSON data from violations
-        // Note: Violation is a struct and should be Sendable, but Swift 6 has false positives
-        // Extract all properties inside MainActor.run to work around the compiler bug
-        // Convert to Data immediately to avoid Sendable issues with [String: Any]
-        let jsonData = await MainActor.run {
-            let jsonArray = violations.map { violation -> [String: Any] in
-                [
-                    "file": violation.filePath,
-                    "line": violation.line,
-                    "character": violation.column ?? 0,
-                    "severity": violation.severity.rawValue,
-                    "rule_id": violation.ruleID,
-                    "reason": violation.message
-                ]
-            }
-            // Convert to Data inside MainActor context to avoid Sendable issues
-            return try? JSONSerialization.data(withJSONObject: jsonArray)
+
+        let jsonArray = violations.map { violation -> [String: Any] in
+            [
+                "file": violation.filePath,
+                "line": violation.line,
+                "character": violation.column ?? 0,
+                "severity": violation.severity.rawValue,
+                "rule_id": violation.ruleID,
+                "reason": violation.message
+            ]
         }
-        
+        let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)
+
         // Set up handler to return violations
         await mockCLI.setLintCommandHandler { @Sendable _, _ in
             return jsonData ?? Data()
         }
-        
+
         return mockCLI
     }
     
@@ -72,7 +65,7 @@ struct ImpactSimulatorWorkflowTests {
         _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
         
         let configPath = try writeDisabledRulesConfig(in: tempDir)
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = MockSwiftLintCLI()
         
         await configureMockCLIForSafeRuleDiscovery(mockCLI)
@@ -106,27 +99,19 @@ struct ImpactSimulatorWorkflowTests {
         
         _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
         
-        // Workspace.init should be Sendable, but Swift 6 has false positive
-        let workspace = await MainActor.run {
-            Workspace(path: tempDir)
-        }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLI(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
-        
+
         // Simulate a rule
         let result = try await simulator.simulateRule(
             ruleId: "test_rule",
             workspace: workspace,
             baseConfigPath: nil
         )
-        
-        // Verify it's safe - extract values inside MainActor context
-        let (isSafe, violationCount) = await MainActor.run {
-            return (result.isSafe, result.violationCount)
-        }
-        
-        #expect(isSafe == true)
-        #expect(violationCount == 0)
+
+        #expect(result.isSafe == true)
+        #expect(result.violationCount == 0)
         
         // Now enable it
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
@@ -150,12 +135,9 @@ struct ImpactSimulatorWorkflowTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
-        // Workspace.init should be Sendable, but Swift 6 has false positive
-        let workspace = await MainActor.run {
-            Workspace(path: tempDir)
-        }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = MockSwiftLintCLI()
-        
+
         await mockCLI.setLintCommandHandler { _, _ in
             return try JSONSerialization.data(withJSONObject: [])
         }
@@ -296,9 +278,7 @@ struct ImpactSimulatorWorkflowTests {
             progressUpdates = await progressCollector.updates
         }
 
-        let resultsCount = await MainActor.run {
-            batchResult.results.count
-        }
+        let resultsCount = batchResult.results.count
         return (resultsCount, progressUpdates)
     }
 }

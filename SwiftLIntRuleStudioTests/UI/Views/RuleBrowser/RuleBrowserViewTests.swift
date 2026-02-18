@@ -18,9 +18,9 @@ import SwiftUI
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
 struct RuleBrowserViewTests {
-    
+
     // MARK: - Test Data Helpers
-    
+
     private func makeTestRule(
         id: String = "test_rule",
         name: String = "Test Rule",
@@ -47,23 +47,23 @@ struct RuleBrowserViewTests {
             markdownDocumentation: nil
         )
     }
-    
+
     // Workaround type to bypass Sendable check for SwiftUI views
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
         let container: DependencyContainer
-        
+
         init(view: some View, container: DependencyContainer) {
             self.view = AnyView(view)
             self.container = container
         }
     }
-    
+
     // Workaround for Swift 6 strict concurrency: Return ViewResult instead of tuple with 'some View'
     @MainActor
     private func createRuleBrowserView(rules: [Rule] = []) -> ViewResult {
         let container = DependencyContainer.createForTesting()
-        
+
         // Create a mock rule registry with test rules
         let cacheManager = CacheManager.createForTesting()
         let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
@@ -78,40 +78,34 @@ struct RuleBrowserViewTests {
         let view = RuleBrowserView()
             .environmentObject(ruleRegistry)
             .environmentObject(container)
-        
+
         return ViewResult(view: view, container: container)
     }
-    
+
     // MARK: - Initialization Tests
-    
+
     @Test("RuleBrowserView initializes correctly")
     func testInitialization() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Verify the view can be created
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try result.view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(true, "RuleBrowserView should initialize with NavigationSplitView")
     }
-    
+
     @Test("RuleBrowserView sets navigation title")
     func testSetsNavigationTitle() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Navigation title is set via .navigationTitle modifier
         // We can verify the view structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try result.view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have navigation title")
@@ -120,64 +114,53 @@ struct RuleBrowserViewTests {
     @Test("RuleBrowserView shows loading state when rules are empty")
     func testShowsLoadingState() async throws {
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasLoadingText = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             return (try? inspector.find(text: "Loading rules...")) != nil
         }
         #expect(hasLoadingText == true, "Empty state should show loading text")
     }
-    
+
     // MARK: - Search Tests
-    
+
     @Test("RuleBrowserView displays search field")
     func testDisplaysSearchField() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find the search TextField
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try result.view.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(true, "RuleBrowserView should display search field")
     }
-    
+
     @Test("RuleBrowserView search field has placeholder")
     func testSearchFieldPlaceholder() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find the search TextField
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasSearchField = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try result.view.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(hasSearchField == true, "Search field should exist with placeholder")
     }
-    
+
     @Test("RuleBrowserView search field has clear button when text is entered")
     func testSearchFieldClearButton() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find the search TextField
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasSearchField = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.TextField.self)
+            _ = try result.view.inspect().find(ViewType.TextField.self)
             return true
         }
         #expect(hasSearchField == true, "Search field should have clear button when text is entered")
@@ -201,64 +184,53 @@ struct RuleBrowserViewTests {
             return ViewResult(view: view, container: container)
         }.value
 
-        let view = result.view
-        nonisolated(unsafe) let viewCapture = view
         let hasGuidance = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            return (try? viewCapture.inspect().find(text: "Try adjusting your filters")) != nil
+            return (try? result.view.inspect().find(text: "Try adjusting your filters")) != nil
         }
 
         #expect(hasGuidance == true)
     }
-    
+
     // MARK: - Filter Tests
-    
+
     @Test("RuleBrowserView displays status filter picker")
     func testDisplaysStatusFilter() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find the status filter picker
         // Picker views are complex, so we verify structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try result.view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(true, "RuleBrowserView should have status filter picker")
     }
-    
+
     @Test("RuleBrowserView displays category filter picker")
     func testDisplaysCategoryFilter() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find the category filter picker
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try result.view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "RuleBrowserView should have category filter picker")
     }
-    
+
     @Test("RuleBrowserView displays sort option picker")
     func testDisplaysSortPicker() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find the sort picker
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasVStack = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try result.view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(hasVStack == true, "RuleBrowserView should have sort option picker")
@@ -308,9 +280,9 @@ struct RuleBrowserViewTests {
         #expect(wrapped.contains("<body>"))
         #expect(wrapped.contains("<p>Body</p>"))
     }
-    
+
     // MARK: - List Tests
-    
+
     @Test("RuleBrowserView displays rule list")
     func testDisplaysRuleList() async throws {
         let result = await Task { @MainActor in
@@ -330,21 +302,19 @@ struct RuleBrowserViewTests {
                 .environmentObject(container)
             return ViewResult(view: view, container: container)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasList = try? await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            _ = try viewCapture.inspect().find(ViewType.List.self)
+            _ = try result.view.inspect().find(ViewType.List.self)
             return true
         }
         #expect(hasList == true, "RuleBrowserView should have list when rules exist")
     }
-    
+
     // MARK: - Empty State Tests
-    
+
     @Test("RuleBrowserView shows empty state when no rules match filters")
     func testShowsEmptyState() async throws {
         let result = await Task { @MainActor in
@@ -361,18 +331,15 @@ struct RuleBrowserViewTests {
                 .environmentObject(container)
             return ViewResult(view: view, container: container)
         }.value
-        let view = result.view
-        
+
         // Find empty state text
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasEmptyText = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "No rules found")
+            _ = try result.view.inspect().find(text: "No rules found")
             return true
         }
         #expect(hasEmptyText == true, "RuleBrowserView should show empty state")
     }
-    
+
     @Test("RuleBrowserView shows empty state message")
     func testShowsEmptyStateMessage() async throws {
         let result = await Task { @MainActor in
@@ -389,120 +356,99 @@ struct RuleBrowserViewTests {
                 .environmentObject(container)
             return ViewResult(view: view, container: container)
         }.value
-        let view = result.view
-        
+
         // Find empty state message
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasMessage = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Try adjusting your filters")
+            _ = try result.view.inspect().find(text: "Try adjusting your filters")
             return true
         }
         #expect(hasMessage == true, "RuleBrowserView should show empty state message")
     }
-    
+
     @Test("RuleBrowserView shows loading message when rules are empty")
     func testShowsLoadingMessage() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find loading message
         // Note: May not be visible if rules are already loaded
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Loading rules...")
+            _ = try result.view.inspect().find(text: "Loading rules...")
             return true
         }
-        #expect(viewCapture != nil, "RuleBrowserView should show loading message")
+        #expect(result.view != nil, "RuleBrowserView should show loading message")
     }
-    
+
     // MARK: - Detail View Tests
-    
+
     @Test("RuleBrowserView shows empty detail view when nothing selected")
     func testShowsEmptyDetailView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Find empty detail view text
         // Note: May not be visible depending on state
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Select a rule to view details")
+            _ = try result.view.inspect().find(text: "Select a rule to view details")
             return true
         }
-        #expect(viewCapture != nil, "RuleBrowserView should show empty detail view")
+        #expect(result.view != nil, "RuleBrowserView should show empty detail view")
     }
-    
+
     // MARK: - Toolbar Tests
-    
+
     @Test("RuleBrowserView shows clear filters button in toolbar")
     func testShowsClearFiltersButton() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Toolbar items are added via .toolbar modifier
         // We verify the view structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try result.view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have toolbar with clear filters button")
     }
-    
+
     // MARK: - View Structure Tests
-    
+
     @Test("RuleBrowserView has correct view hierarchy")
     func testViewHierarchy() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Verify main structure: NavigationSplitView
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try result.view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have NavigationSplitView as root")
     }
-    
+
     @Test("RuleBrowserView has primary-detail layout")
     func testPrimaryDetailLayout() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // NavigationSplitView provides master-detail layout
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try result.view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should have primary-detail layout")
     }
-    
+
     // MARK: - Integration Tests
-    
+
     @Test("RuleBrowserView integrates with RuleRegistry")
     func testIntegratesWithRuleRegistry() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let view = result.view
-        
+
         // Verify the view can be created with RuleRegistry
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasNavigationSplitView = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try result.view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(hasNavigationSplitView == true, "RuleBrowserView should integrate with RuleRegistry")

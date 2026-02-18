@@ -36,7 +36,7 @@ struct ImpactSimulatorBatchTests {
             Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .error, message: "two")
         ]
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
 
         let batchResult = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
@@ -47,8 +47,8 @@ struct ImpactSimulatorBatchTests {
             )
         }
 
-        let results = await MainActor.run { batchResult.results }
-        let ruleIds = await MainActor.run { results.map { $0.ruleId } }
+        let results = batchResult.results
+        let ruleIds = results.map { $0.ruleId }
         #expect(results.count == 2)
         #expect(ruleIds.contains("rule1"))
         #expect(ruleIds.contains("rule2"))
@@ -65,7 +65,7 @@ struct ImpactSimulatorBatchTests {
             content: "let x = 1\n"
         )
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: [])
 
         let progressValues = try await ImpactSimulatorTestHelpers.withImpactSimulator(
@@ -85,7 +85,7 @@ struct ImpactSimulatorBatchTests {
                     )
                 )
             }
-            let count = await MainActor.run { batchResult.results.count }
+            let count = batchResult.results.count
             return ProgressSnapshot(count: count, events: progress)
         }
 
@@ -104,7 +104,7 @@ struct ImpactSimulatorBatchTests {
             content: "let x = 1\n"
         )
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: [])
 
         let results = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
@@ -135,7 +135,7 @@ struct ImpactSimulatorBatchTests {
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "one")
         ]
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
 
         let results = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in

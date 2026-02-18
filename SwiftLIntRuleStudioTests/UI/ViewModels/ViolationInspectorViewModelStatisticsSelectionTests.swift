@@ -98,9 +98,7 @@ struct VIViewModelStatsSelectionTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let (violation0Id, violation1Id) = await MainActor.run {
-            (violations[0].id, violations[1].id)
-        }
+        let (violation0Id, violation1Id) = (violations[0].id, violations[1].id)
         await MainActor.run {
             viewModel.selectedViolationId = violation0Id
             viewModel.selectNextViolation()
@@ -129,9 +127,7 @@ struct VIViewModelStatsSelectionTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let (violation0Id, violation1Id) = await MainActor.run {
-            (violations[0].id, violations[1].id)
-        }
+        let (violation0Id, violation1Id) = (violations[0].id, violations[1].id)
         await MainActor.run {
             viewModel.selectedViolationId = violation1Id
             viewModel.selectPreviousViolation()
@@ -159,9 +155,7 @@ struct VIViewModelStatsSelectionTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let (violation0Id, violation1Id) = await MainActor.run {
-            (violations[0].id, violations[1].id)
-        }
+        let (violation0Id, violation1Id) = (violations[0].id, violations[1].id)
         await MainActor.run {
             viewModel.selectAll()
         }

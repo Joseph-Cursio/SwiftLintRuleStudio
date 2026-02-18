@@ -42,8 +42,8 @@ struct XcodeIntegrationServiceTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
         let testFile = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withServiceAsync { service, _ in
             // Absolute path should be resolved as-is
             let resolved = try await service.openFile(
@@ -62,7 +62,7 @@ struct XcodeIntegrationServiceTests {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
+        let workspaceModel = Workspace(path: workspace)
         let relativePath = "TestFile.swift"
         
         try await withServiceAsync { service, _ in
@@ -82,7 +82,7 @@ struct XcodeIntegrationServiceTests {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
+        let workspaceModel = Workspace(path: workspace)
         let nonExistentPath = "NonExistentFile.swift"
         
         await #expect(throws: XcodeIntegrationError.self) {
@@ -102,8 +102,8 @@ struct XcodeIntegrationServiceTests {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         await #expect(throws: XcodeIntegrationError.self) {
             try await withServiceAsync { service, _ in
                 _ = try service.resolveFileURL("   ", in: workspaceModel)
@@ -116,8 +116,8 @@ struct XcodeIntegrationServiceTests {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         await #expect(throws: XcodeIntegrationError.self) {
             try await withServiceAsync { service, _ in
                 try await service.openFile(
@@ -138,8 +138,8 @@ struct XcodeIntegrationServiceTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
         let testFile = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withService { service, _ in
             let projectURL = service.findXcodeProject(for: testFile, in: workspaceModel)
             #expect(projectURL != nil)
@@ -162,8 +162,8 @@ struct XcodeIntegrationServiceTests {
         let nestedFile = nestedDir.appendingPathComponent("NestedFile.swift")
         try "// Nested file".write(to: nestedFile, atomically: true, encoding: .utf8)
         
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withService { service, _ in
             // File in nested directory should find nested project
             let projectURL = service.findXcodeProject(for: nestedFile, in: workspaceModel)
@@ -182,8 +182,8 @@ struct XcodeIntegrationServiceTests {
         try FileManager.default.createDirectory(at: workspaceDir, withIntermediateDirectories: true)
         
         let testFile = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withService { service, _ in
             let projectURL = service.findXcodeProject(for: testFile, in: workspaceModel)
             #expect(projectURL != nil)
@@ -202,8 +202,8 @@ struct XcodeIntegrationServiceTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
         let testFile = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withService { service, _ in
             let projectURL = service.findXcodeProject(for: testFile, in: workspaceModel)
             // No Xcode project in minimal workspace, so should return nil
@@ -230,7 +230,7 @@ struct XcodeIntegrationServiceTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
 
         let fileURL = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
+        let workspaceModel = Workspace(path: workspace)
 
         try await withService { service, _ in
             let url = service.generateXcodeURL(
@@ -259,8 +259,8 @@ struct XcodeIntegrationServiceTests {
         
         let testFile1 = workspace.appendingPathComponent("TestFile1.swift")
         let testFile2 = workspace.appendingPathComponent("TestFile2.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withService { service, _ in
             let projectURL1 = service.findXcodeProject(for: testFile1, in: workspaceModel)
             let projectURL2 = service.findXcodeProject(for: testFile2, in: workspaceModel)
@@ -291,8 +291,8 @@ struct XcodeIntegrationServiceTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
         let testFile = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withService { service, _ in
             // Find project (should cache it)
             _ = service.findXcodeProject(for: testFile, in: workspaceModel)
@@ -319,8 +319,8 @@ struct XcodeIntegrationServiceTests {
         try "// Outside file".write(to: outsideFile, atomically: true, encoding: .utf8)
         defer { try? FileManager.default.removeItem(at: outsideFile) }
         
-        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
-        
+        let workspaceModel = Workspace(path: workspace)
+
         try await withServiceAsync { service, _ in
             // Should be able to resolve absolute path even if outside workspace
             // But will fail to open if file doesn't exist in expected location

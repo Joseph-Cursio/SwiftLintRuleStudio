@@ -10,8 +10,7 @@ struct WkspManagerIntegrationVITests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
-        nonisolated(unsafe) let storage: ViolationStorage
-        storage = try await Task.detached {
+        let storage = try await Task.detached {
             try await ViolationStorage(useInMemory: true)
         }.value
         let viewModel = await MainActor.run {
@@ -52,8 +51,7 @@ struct WkspManagerIntegrationVITests {
             content: "let x = 1\n"
         )
 
-        nonisolated(unsafe) let storage: ViolationStorage
-        storage = try await Task.detached {
+        let storage = try await Task.detached {
             try await ViolationStorage(useInMemory: true)
         }.value
         let mockCLI = MockSwiftLintCLI()
@@ -71,11 +69,10 @@ struct WkspManagerIntegrationVITests {
         """.utf8)
         await mockCLI.setMockLintOutput(mockViolationsJSON)
 
-        nonisolated(unsafe) let cliCapture = mockCLI
         let viewModel = await MainActor.run {
             let isolatedTracker = FileTracker.createForTesting()
             let analyzer = WorkspaceAnalyzer(
-                swiftLintCLI: cliCapture,
+                swiftLintCLI: mockCLI,
                 violationStorage: storage,
                 fileTracker: isolatedTracker
             )
@@ -106,8 +103,7 @@ struct WkspManagerIntegrationVITests {
             WorkspaceTestHelpers.cleanupWorkspace(tempDir2)
         }
 
-        nonisolated(unsafe) let storage: ViolationStorage
-        storage = try await Task.detached {
+        let storage = try await Task.detached {
             try await ViolationStorage(useInMemory: true)
         }.value
         let viewModel = await MainActor.run {

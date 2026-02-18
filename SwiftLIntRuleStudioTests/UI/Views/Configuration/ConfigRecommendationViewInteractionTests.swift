@@ -47,14 +47,14 @@ struct ConfigRecommendationViewInteractionTests {
         }
     }
 
+    @MainActor
     private func waitForText(
         in view: AnyView,
         text: String,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        nonisolated(unsafe) let viewCapture = view
         return await UIAsyncTestHelpers.waitForText(
-            in: viewCapture,
+            in: view,
             text: text,
             timeout: timeoutSeconds
         )

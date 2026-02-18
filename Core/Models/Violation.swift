@@ -9,17 +9,17 @@ import Foundation
 
 /// Represents a SwiftLint rule violation
 struct Violation: Identifiable, Codable, Hashable, Sendable {
-    let id: UUID
-    let ruleID: String
-    let filePath: String
-    let line: Int
-    let column: Int?
-    let severity: Severity
-    let message: String
-    let detectedAt: Date
-    var resolvedAt: Date?
-    var suppressed: Bool
-    var suppressionReason: String?
+    nonisolated let id: UUID
+    nonisolated let ruleID: String
+    nonisolated let filePath: String
+    nonisolated let line: Int
+    nonisolated let column: Int?
+    nonisolated let severity: Severity
+    nonisolated let message: String
+    nonisolated let detectedAt: Date
+    nonisolated var resolvedAt: Date?
+    nonisolated var suppressed: Bool
+    nonisolated var suppressionReason: String?
     
     nonisolated init(
         id: UUID = UUID(),
@@ -50,13 +50,27 @@ struct Violation: Identifiable, Codable, Hashable, Sendable {
 
 /// Filter criteria for violations
 struct ViolationFilter: Sendable {
-    var ruleIDs: [String]?
-    var filePaths: [String]?
-    var severities: [Severity]?
-    var suppressedOnly: Bool?
-    var dateRange: ClosedRange<Date>?
-    
-    static var all: ViolationFilter {
+    nonisolated var ruleIDs: [String]?
+    nonisolated var filePaths: [String]?
+    nonisolated var severities: [Severity]?
+    nonisolated var suppressedOnly: Bool?
+    nonisolated var dateRange: ClosedRange<Date>?
+
+    nonisolated init(
+        ruleIDs: [String]? = nil,
+        filePaths: [String]? = nil,
+        severities: [Severity]? = nil,
+        suppressedOnly: Bool? = nil,
+        dateRange: ClosedRange<Date>? = nil
+    ) {
+        self.ruleIDs = ruleIDs
+        self.filePaths = filePaths
+        self.severities = severities
+        self.suppressedOnly = suppressedOnly
+        self.dateRange = dateRange
+    }
+
+    nonisolated static var all: ViolationFilter {
         ViolationFilter()
     }
 }

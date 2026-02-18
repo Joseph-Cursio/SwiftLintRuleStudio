@@ -18,20 +18,18 @@ struct OnboardingManagerTests {
         userDefaults: UserDefaults,
         operation: @MainActor @escaping (OnboardingManager) throws -> T
     ) async throws -> T {
-        nonisolated(unsafe) let userDefaultsCapture = userDefaults
         return try await Task { @MainActor in
-            let manager = OnboardingManager(userDefaults: userDefaultsCapture)
+            let manager = OnboardingManager(userDefaults: userDefaults)
             return try operation(manager)
         }.value
     }
-    
+
     private func withOnboardingManagerAsync<T: Sendable>(
         userDefaults: UserDefaults,
         operation: @MainActor @escaping (OnboardingManager) async throws -> T
     ) async throws -> T {
-        nonisolated(unsafe) let userDefaultsCapture = userDefaults
         return try await Task { @MainActor in
-            let manager = OnboardingManager(userDefaults: userDefaultsCapture)
+            let manager = OnboardingManager(userDefaults: userDefaults)
             return try await operation(manager)
         }.value
     }
@@ -222,12 +220,11 @@ struct OnboardingManagerTests {
         
         // Note: OnboardingManager.init() always starts at welcome, regardless of UserDefaults
         // This test verifies resetOnboarding() clears UserDefaults
-        nonisolated(unsafe) let userDefaultsCapture = userDefaults
         let (hasCompleted, currentStep, keyExists) = try await withOnboardingManager(
             userDefaults: userDefaults
         ) { manager in
             manager.resetOnboarding()
-            let keyExists = userDefaultsCapture.object(
+            let keyExists = userDefaults.object(
                 forKey: "com.swiftlintrulestudio.hasCompletedOnboarding"
             ) != nil
             return (manager.hasCompletedOnboarding, manager.currentStep, keyExists)

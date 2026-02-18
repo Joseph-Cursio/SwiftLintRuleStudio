@@ -21,7 +21,7 @@ struct ImpactSimulatorSingleRuleTests {
             content: "let x = 1\n"
         )
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: [])
 
         let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
@@ -32,15 +32,11 @@ struct ImpactSimulatorSingleRuleTests {
             )
         }
 
-        let (ruleId, violationCount, isSafe, hasViolations, affectedFiles) = await MainActor.run {
-            (result.ruleId, result.violationCount, result.isSafe, result.hasViolations, result.affectedFiles)
-        }
-
-        #expect(ruleId == "test_rule")
-        #expect(violationCount == 0)
-        #expect(isSafe == true)
-        #expect(hasViolations == false)
-        #expect(affectedFiles.isEmpty)
+        #expect(result.ruleId == "test_rule")
+        #expect(result.violationCount == 0)
+        #expect(result.isSafe == true)
+        #expect(result.hasViolations == false)
+        #expect(result.affectedFiles.isEmpty)
     }
 
     @Test("ImpactSimulator simulates rule with violations")
@@ -65,7 +61,7 @@ struct ImpactSimulatorSingleRuleTests {
             )
         ]
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
 
         let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
@@ -76,15 +72,11 @@ struct ImpactSimulatorSingleRuleTests {
             )
         }
 
-        let (ruleId, violationCount, isSafe, hasViolations, affectedFiles) = await MainActor.run {
-            (result.ruleId, result.violationCount, result.isSafe, result.hasViolations, result.affectedFiles)
-        }
-
-        #expect(ruleId == "test_rule")
-        #expect(violationCount == 1)
-        #expect(isSafe == false)
-        #expect(hasViolations == true)
-        #expect(affectedFiles.count == 1)
+        #expect(result.ruleId == "test_rule")
+        #expect(result.violationCount == 1)
+        #expect(result.isSafe == false)
+        #expect(result.hasViolations == true)
+        #expect(result.affectedFiles.count == 1)
     }
 
     @Test("ImpactSimulator filters violations by rule ID")
@@ -103,7 +95,7 @@ struct ImpactSimulatorSingleRuleTests {
             Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .error, message: "two")
         ]
 
-        let workspace = await MainActor.run { Workspace(path: tempDir) }
+        let workspace = Workspace(path: tempDir)
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
 
         let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
@@ -114,10 +106,7 @@ struct ImpactSimulatorSingleRuleTests {
             )
         }
 
-        let snapshot = await MainActor.run {
-            (result.ruleId, result.violations.count)
-        }
-        #expect(snapshot.0 == "rule1")
-        #expect(snapshot.1 == 1)
+        #expect(result.ruleId == "rule1")
+        #expect(result.violations.count == 1)
     }
 }

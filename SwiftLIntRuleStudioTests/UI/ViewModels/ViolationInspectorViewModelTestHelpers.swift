@@ -6,11 +6,8 @@ enum ViolationInspectorViewModelTestHelpers {
         violationStorage: ViolationStorageProtocol,
         workspaceAnalyzer: WorkspaceAnalyzer? = nil
     ) async -> ViolationInspectorViewModel {
-        // Capture with nonisolated(unsafe) to bypass Sendable check for test mocks
-        nonisolated(unsafe) let storageCapture = violationStorage
-        nonisolated(unsafe) let analyzerCapture = workspaceAnalyzer
         return await MainActor.run {
-            ViolationInspectorViewModel(violationStorage: storageCapture, workspaceAnalyzer: analyzerCapture)
+            ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: workspaceAnalyzer)
         }
     }
 

@@ -32,34 +32,24 @@ enum WorkspaceManagerIntegrationTestHelpers {
         }.value
     }
 
+    @MainActor
     static func createWorkspaceAnalyzer(
         swiftLintCLI: MockSwiftLintCLI,
         violationStorage: ViolationStorageProtocol,
-        fileTracker: FileTracker? = nil
-    ) async -> WorkspaceAnalyzer {
-        nonisolated(unsafe) let cliCapture = swiftLintCLI
-        nonisolated(unsafe) let storageCapture = violationStorage
-        nonisolated(unsafe) let trackerCapture = fileTracker
-        return await MainActor.run {
-            WorkspaceAnalyzer(
-                swiftLintCLI: cliCapture,
-                violationStorage: storageCapture,
-                fileTracker: trackerCapture
-            )
-        }
+        fileTracker: sending FileTracker? = nil
+    ) -> WorkspaceAnalyzer {
+        WorkspaceAnalyzer(swiftLintCLI: swiftLintCLI, violationStorage: violationStorage, fileTracker: fileTracker)
     }
 
     static func createViolationInspectorViewModel(
         violationStorage: ViolationStorageProtocol,
         workspaceAnalyzer: WorkspaceAnalyzer? = nil
     ) async -> ViolationInspectorViewModel {
-        nonisolated(unsafe) let storageCapture = violationStorage
-        nonisolated(unsafe) let analyzerCapture = workspaceAnalyzer
         return await MainActor.run {
-            if let analyzer = analyzerCapture {
-                return ViolationInspectorViewModel(violationStorage: storageCapture, workspaceAnalyzer: analyzer)
+            if let analyzer = workspaceAnalyzer {
+                return ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: analyzer)
             }
-            return ViolationInspectorViewModel(violationStorage: storageCapture)
+            return ViolationInspectorViewModel(violationStorage: violationStorage)
         }
     }
 

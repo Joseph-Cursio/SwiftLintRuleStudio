@@ -22,16 +22,9 @@ struct ViolationStorageBasicTests {
         try await storage.storeViolations(violations, for: workspaceId)
 
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
-        let (count, hasRule1, hasRule2) = await MainActor.run {
-            (
-                fetched.count,
-                fetched.contains { $0.ruleID == "rule1" },
-                fetched.contains { $0.ruleID == "rule2" }
-            )
-        }
-        #expect(count == 2)
-        #expect(hasRule1 == true)
-        #expect(hasRule2 == true)
+        #expect(fetched.count == 2)
+        #expect(fetched.contains { $0.ruleID == "rule1" } == true)
+        #expect(fetched.contains { $0.ruleID == "rule2" } == true)
     }
 
     @Test("ViolationStorage fetches violations by workspace")
@@ -49,13 +42,10 @@ struct ViolationStorageBasicTests {
         let fetched1 = try await storage.fetchViolations(filter: .all, workspaceId: workspace1)
         let fetched2 = try await storage.fetchViolations(filter: .all, workspaceId: workspace2)
 
-        let (count1, ruleID1, count2, ruleID2) = await MainActor.run {
-            (fetched1.count, fetched1.first?.ruleID, fetched2.count, fetched2.first?.ruleID)
-        }
-        #expect(count1 == 1)
-        #expect(ruleID1 == "rule1")
-        #expect(count2 == 1)
-        #expect(ruleID2 == "rule2")
+        #expect(fetched1.count == 1)
+        #expect(fetched1.first?.ruleID == "rule1")
+        #expect(fetched2.count == 1)
+        #expect(fetched2.first?.ruleID == "rule2")
     }
 
     @Test("ViolationStorage filters violations by rule ID")
@@ -71,19 +61,12 @@ struct ViolationStorageBasicTests {
 
         try await storage.storeViolations(violations, for: workspaceId)
 
-        let filter = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.ruleIDs = ["rule1", "rule3"]
-            return filter
-        }
+        let filter = ViolationFilter(ruleIDs: ["rule1", "rule3"])
 
         let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
 
-        let (count, allMatch) = await MainActor.run {
-            (fetched.count, fetched.allSatisfy { $0.ruleID == "rule1" || $0.ruleID == "rule3" })
-        }
-        #expect(count == 2)
-        #expect(allMatch == true)
+        #expect(fetched.count == 2)
+        #expect(fetched.allSatisfy { $0.ruleID == "rule1" || $0.ruleID == "rule3" } == true)
     }
 
     @Test("ViolationStorage filters violations by severity")
@@ -99,19 +82,12 @@ struct ViolationStorageBasicTests {
 
         try await storage.storeViolations(violations, for: workspaceId)
 
-        let filter = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.severities = [.error]
-            return filter
-        }
+        let filter = ViolationFilter(severities: [.error])
 
         let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
 
-        let (count, allError) = await MainActor.run {
-            (fetched.count, fetched.allSatisfy { $0.severity == .error })
-        }
-        #expect(count == 2)
-        #expect(allError == true)
+        #expect(fetched.count == 2)
+        #expect(fetched.allSatisfy { $0.severity == .error } == true)
     }
 
     @Test("ViolationStorage filters violations by file path")
@@ -127,19 +103,12 @@ struct ViolationStorageBasicTests {
 
         try await storage.storeViolations(violations, for: workspaceId)
 
-        let filter = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.filePaths = ["File1.swift"]
-            return filter
-        }
+        let filter = ViolationFilter(filePaths: ["File1.swift"])
 
         let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
 
-        let (count, allMatch) = await MainActor.run {
-            (fetched.count, fetched.allSatisfy { $0.filePath == "File1.swift" })
-        }
-        #expect(count == 2)
-        #expect(allMatch == true)
+        #expect(fetched.count == 2)
+        #expect(fetched.allSatisfy { $0.filePath == "File1.swift" } == true)
     }
 
     @Test("ViolationStorage filters violations by suppressed status")
@@ -155,31 +124,17 @@ struct ViolationStorageBasicTests {
         try await storage.storeViolations(violations, for: workspaceId)
         try await storage.suppressViolations([violations[0].id], reason: "Test reason")
 
-        let filter1 = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.suppressedOnly = true
-            return filter
-        }
+        let filter1 = ViolationFilter(suppressedOnly: true)
 
         let suppressed = try await storage.fetchViolations(filter: filter1, workspaceId: workspaceId)
-        let (suppressedCount, isSuppressed, suppressionReason) = await MainActor.run {
-            (suppressed.count, suppressed.first?.suppressed, suppressed.first?.suppressionReason)
-        }
-        #expect(suppressedCount == 1)
-        #expect(isSuppressed == true)
-        #expect(suppressionReason == "Test reason")
+        #expect(suppressed.count == 1)
+        #expect(suppressed.first?.suppressed == true)
+        #expect(suppressed.first?.suppressionReason == "Test reason")
 
-        let filter2 = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.suppressedOnly = false
-            return filter
-        }
+        let filter2 = ViolationFilter(suppressedOnly: false)
         let notSuppressed = try await storage.fetchViolations(filter: filter2, workspaceId: workspaceId)
-        let (notSuppressedCount, isNotSuppressed) = await MainActor.run {
-            (notSuppressed.count, notSuppressed.first?.suppressed)
-        }
-        #expect(notSuppressedCount == 1)
-        #expect(isNotSuppressed == false)
+        #expect(notSuppressed.count == 1)
+        #expect(notSuppressed.first?.suppressed == false)
     }
 
     @Test("ViolationStorage handles date range filtering")
@@ -211,18 +166,11 @@ struct ViolationStorageBasicTests {
         try await storage.storeViolations([oldViolation, newViolation], for: workspaceId)
 
         let yesterday = Date().addingTimeInterval(-43200)
-        let filter = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.dateRange = yesterday...Date()
-            return filter
-        }
+        let filter = ViolationFilter(dateRange: yesterday...Date())
 
         let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
-        let (count, ruleID) = await MainActor.run {
-            (fetched.count, fetched.first?.ruleID)
-        }
-        #expect(count == 1)
-        #expect(ruleID == "rule2")
+        #expect(fetched.count == 1)
+        #expect(fetched.first?.ruleID == "rule2")
     }
 
     @Test("ViolationStorage handles empty database")

@@ -24,7 +24,6 @@ struct WorkspaceSelectionViewTests {
         hasRecentWorkspaces: Bool = false
     ) async -> (view: some View, workspaceManager: WorkspaceManager) {
         // Create view on MainActor
-        // Use nonisolated(unsafe) to bypass Sendable check for SwiftUI views in tests
         return await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
             
@@ -37,10 +36,7 @@ struct WorkspaceSelectionViewTests {
             }
             
             let view = WorkspaceSelectionView(workspaceManager: workspaceManager)
-            
-            // Use nonisolated(unsafe) to bypass Sendable check for SwiftUI views
-            nonisolated(unsafe) let viewCapture = view
-            return (viewCapture, workspaceManager)
+            return (view, workspaceManager)
         }
     }
 

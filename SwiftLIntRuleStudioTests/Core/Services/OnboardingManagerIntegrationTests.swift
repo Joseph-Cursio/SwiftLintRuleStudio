@@ -18,11 +18,8 @@ struct OnboardingManagerIntegrationTests {
         userDefaults: UserDefaults? = nil,
         operation: @MainActor (DependencyContainer) throws -> T
     ) async throws -> T {
-        // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
-        // UserDefaults is thread-safe for our test use case
-        nonisolated(unsafe) let userDefaultsCapture = userDefaults
         return try await MainActor.run {
-            let container = userDefaultsCapture.map {
+            let container = userDefaults.map {
                 DependencyContainer.createForTesting(userDefaults: $0)
             } ?? DependencyContainer.createForTesting()
             return try operation(container)
@@ -65,22 +62,19 @@ struct OnboardingManagerIntegrationTests {
         }
         
         // First container instance with isolated UserDefaults
-        // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
-        nonisolated(unsafe) let userDefaultsCapture4 = userDefaults
         let (hasCompleted1, hasCompleted2, hasManager2) = try await withContainer(
-            userDefaults: userDefaultsCapture4
+            userDefaults: userDefaults
         ) { container1 in
             let before = container1.onboardingManager.hasCompletedOnboarding
-            
+
             // Complete onboarding (note: OnboardingManager.completeOnboarding() doesn't persist to UserDefaults,
             // but this test demonstrates the isolation pattern)
             container1.onboardingManager.completeOnboarding()
             let after = container1.onboardingManager.hasCompletedOnboarding
-            
+
             // Second container instance with same isolated UserDefaults suite
             // This demonstrates that state can be shared within a test's isolated suite
-            // Use the captured userDefaults from outer scope
-            let container2 = DependencyContainer.createForTesting(userDefaults: userDefaultsCapture4)
+            let container2 = DependencyContainer.createForTesting(userDefaults: userDefaults)
             // Note: Since completeOnboarding() doesn't save to UserDefaults, this will be false
             // But the isolation pattern is demonstrated
             return (before, after, container2.onboardingManager != nil)
@@ -101,10 +95,8 @@ struct OnboardingManagerIntegrationTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
-        // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
-        nonisolated(unsafe) let userDefaultsCapture1 = userDefaults
         let (stepAfterSkip, hasWorkspace, hasCompleted) = try await MainActor.run {
-            let onboardingManager = OnboardingManager(userDefaults: userDefaultsCapture1)
+            let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
             
             // Navigate to workspace selection step
@@ -138,10 +130,8 @@ struct OnboardingManagerIntegrationTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
         
-        // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
-        nonisolated(unsafe) let userDefaultsCapture2 = userDefaults
         let (initialStep, swiftLintStep, workspaceStep, completeStep, hasCompleted) = try await MainActor.run {
-            let onboardingManager = OnboardingManager(userDefaults: userDefaultsCapture2)
+            let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
             
             // Start at welcome
@@ -189,29 +179,24 @@ struct OnboardingManagerIntegrationTests {
             IsolatedUserDefaults.cleanup(userDefaults)
         }
         
-        // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
-        nonisolated(unsafe) let userDefaultsCapture5 = userDefaults
         let (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2) = try await withContainer(
-            userDefaults: userDefaultsCapture5
+            userDefaults: userDefaults
         ) { container in
             // First launch - should show onboarding
             let beforeCompleted = container.onboardingManager.hasCompletedOnboarding
             let beforeStep = container.onboardingManager.currentStep
-            
+
             // Complete onboarding
             container.onboardingManager.completeOnboarding()
             let afterCompleted = container.onboardingManager.hasCompletedOnboarding
             let afterStep = container.onboardingManager.currentStep
-            
+
             // Create new container instance with same isolated UserDefaults
             // Note: Since completeOnboarding() doesn't persist to UserDefaults,
             // a new instance will start fresh, but this demonstrates the isolation pattern
-            // Capture userDefaults with nonisolated(unsafe) to avoid Sendable warnings
-            // Note: userDefaults is captured from outer scope, need to use the same capture
-            nonisolated(unsafe) let userDefaultsCaptureInner2 = userDefaultsCapture5
-            let container2 = DependencyContainer.createForTesting(userDefaults: userDefaultsCaptureInner2)
+            let container2 = DependencyContainer.createForTesting(userDefaults: userDefaults)
             let hasManager2 = container2.onboardingManager != nil
-            
+
             return (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2)
         }
         

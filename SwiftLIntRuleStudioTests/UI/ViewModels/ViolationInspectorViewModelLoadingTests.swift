@@ -59,8 +59,7 @@ struct VIViewModelLoadingTests {
         let workspaceId = UUID()
         let violations = [ViolationInspectorViewModelTestHelpers.createTestViolation()]
 
-        nonisolated(unsafe) let mockStorageCapture = mockStorage
-        try await mockStorageCapture.storeViolations(violations, for: workspaceId)
+        try await mockStorage.storeViolations(violations, for: workspaceId)
         try await Task { @MainActor in
             try await viewModel.loadViolations(for: workspaceId)
         }.value
@@ -80,9 +79,8 @@ struct VIViewModelLoadingTests {
     @Test("ViolationInspectorViewModel refreshes violations with analyzer")
     func testRefreshViolationsWithAnalyzer() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
-        nonisolated(unsafe) let mockStorageCapture = mockStorage
         let mockAnalyzer = await MainActor.run {
-            MockWorkspaceAnalyzer(mockStorage: mockStorageCapture)
+            MockWorkspaceAnalyzer(mockStorage: mockStorage)
         }
         let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
             violationStorage: mockStorage,
@@ -129,9 +127,8 @@ struct VIViewModelLoadingTests {
     @Test("ViolationInspectorViewModel loads violations with automatic analysis")
     func testLoadViolationsWithAutomaticAnalysis() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
-        nonisolated(unsafe) let mockStorageCapture = mockStorage
         let mockAnalyzer = await MainActor.run {
-            MockWorkspaceAnalyzer(mockStorage: mockStorageCapture)
+            MockWorkspaceAnalyzer(mockStorage: mockStorage)
         }
         let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
             violationStorage: mockStorage,
@@ -168,9 +165,8 @@ struct VIViewModelLoadingTests {
     @Test("ViolationInspectorViewModel handles analysis failure gracefully")
     func testLoadViolationsHandlesAnalysisFailure() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
-        nonisolated(unsafe) let mockStorageCapture = mockStorage
         let mockAnalyzer = await MainActor.run {
-            MockWorkspaceAnalyzer(mockStorage: mockStorageCapture)
+            MockWorkspaceAnalyzer(mockStorage: mockStorage)
         }
         await MainActor.run {
             mockAnalyzer.shouldFail = true

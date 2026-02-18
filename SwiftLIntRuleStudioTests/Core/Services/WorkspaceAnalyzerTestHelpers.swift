@@ -14,11 +14,9 @@ enum WorkspaceAnalyzerTestHelpers {
         violationStorage: ViolationStorageProtocol,
         operation: @MainActor @escaping (WorkspaceAnalyzer) async throws -> T
     ) async throws -> T {
-        nonisolated(unsafe) let cli = swiftLintCLI
-        nonisolated(unsafe) let storage = violationStorage
         return try await Task { @MainActor in
             let isolatedTracker = FileTracker.createForTesting()
-            let analyzer = WorkspaceAnalyzer(swiftLintCLI: cli, violationStorage: storage, fileTracker: isolatedTracker)
+            let analyzer = WorkspaceAnalyzer(swiftLintCLI: swiftLintCLI, violationStorage: violationStorage, fileTracker: isolatedTracker)
             return try await operation(analyzer)
         }.value
     }
@@ -65,8 +63,7 @@ enum WorkspaceAnalyzerTestHelpers {
     }
 
     static func cleanupTempWorkspace(_ workspace: Workspace) async {
-        let path = await MainActor.run { workspace.path }
-        try? FileManager.default.removeItem(at: path)
+        try? FileManager.default.removeItem(at: workspace.path)
     }
 }
 

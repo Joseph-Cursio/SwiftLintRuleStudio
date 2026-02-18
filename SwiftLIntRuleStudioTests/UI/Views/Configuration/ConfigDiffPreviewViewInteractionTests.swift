@@ -87,12 +87,10 @@ struct ConfigDiffPreviewViewInteractionTests {
         let tracker = result.tracker
         
         // Find and tap Cancel button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let button = try findButton(in: viewCapture, label: "Cancel")
+            let button = try findButton(in: view, label: "Cancel")
             try button.tap()
         }
         
@@ -110,12 +108,10 @@ struct ConfigDiffPreviewViewInteractionTests {
         let tracker = result.tracker
         
         // Find and tap Save Changes button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         try await MainActor.run {
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let button = try findButton(in: viewCapture, label: "Save Changes")
+            let button = try findButton(in: view, label: "Save Changes")
             try button.tap()
         }
         
@@ -135,10 +131,8 @@ struct ConfigDiffPreviewViewInteractionTests {
         
         // Note: Interacting with the picker would require finding and tapping it
         // This is complex with ViewInspector, so we verify the structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasSummaryText = await MainActor.run {
-            (try? viewCapture.inspect().find(text: "Summary")) != nil
+            (try? view.inspect().find(text: "Summary")) != nil
         }
         #expect(hasSummaryText == true, "View mode picker should switch views")
     }

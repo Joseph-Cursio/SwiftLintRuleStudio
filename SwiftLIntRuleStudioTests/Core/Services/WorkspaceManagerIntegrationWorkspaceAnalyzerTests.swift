@@ -16,8 +16,7 @@ struct WkspManagerIntegrationAnalyzerTests {
             content: "let x = 1\n"
         )
 
-        nonisolated(unsafe) let storage: ViolationStorage
-        storage = try await Task.detached {
+        let storage = try await Task.detached {
             try await ViolationStorage(useInMemory: true)
         }.value
         let mockCLI = MockSwiftLintCLI()
@@ -35,10 +34,9 @@ struct WkspManagerIntegrationAnalyzerTests {
         """.utf8)
         await mockCLI.setMockLintOutput(mockViolationsJSON)
 
-        nonisolated(unsafe) let cliCapture1 = mockCLI
         let analyzer = await MainActor.run {
             WorkspaceAnalyzer(
-                swiftLintCLI: cliCapture1,
+                swiftLintCLI: mockCLI,
                 violationStorage: storage,
                 fileTracker: nil
             )

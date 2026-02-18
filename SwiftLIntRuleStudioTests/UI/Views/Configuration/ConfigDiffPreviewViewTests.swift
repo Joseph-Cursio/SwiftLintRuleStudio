@@ -48,9 +48,7 @@ struct ConfigDiffPreviewViewTests {
                 selectedView: initialView
             )
             
-            // Use nonisolated(unsafe) to bypass Sendable check for SwiftUI views
-            nonisolated(unsafe) let viewCapture = view
-            return (viewCapture, tracker)
+            return (view, tracker)
         }
     }
     
@@ -87,10 +85,8 @@ struct ConfigDiffPreviewViewTests {
         let (view, _) = await createConfigDiffPreviewView()
         
         // Find description text
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         let hasDescription = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(
+            _ = try view.inspect().find(
                 text: "Review the changes that will be made to your .swiftlint.yml file"
             )
             return true
@@ -204,7 +200,6 @@ struct ConfigDiffPreviewViewTests {
         
         // Note: Switching to full diff view would require interacting with the picker
         // We verify the structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasNavigationStack = try await MainActor.run {
             _ = try view.inspect().find(ViewType.NavigationStack.self)
             return true

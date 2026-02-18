@@ -35,12 +35,11 @@ struct ImpactSimulationViewTests {
         }
         
         // Verify core text and summary content
-        nonisolated(unsafe) let viewCapture = view
         let (hasRuleName, hasRuleId, hasSafeText, hasSummary, hasNoViolationsText) = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try view.inspect()
             let hasRuleName = (try? inspector.find(text: "Test Rule")) != nil
             let hasRuleId = (try? inspector.find(text: "test_rule")) != nil
             let hasSafeText = (try? inspector.find(text: "This rule is safe to enable")) != nil
@@ -95,12 +94,11 @@ struct ImpactSimulationViewTests {
         }
         
         // Verify violation rows render
-        nonisolated(unsafe) let viewCapture = view
         let (hasViolationHeader, hasFirstFile, hasSecondFile) = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try view.inspect()
             let hasViolationHeader = (try? inspector.find(text: "Violations")) != nil
             let hasFirstFile = (try? inspector.find(text: "Test.swift")) != nil
             let hasSecondFile = (try? inspector.find(text: "Another.swift")) != nil
@@ -131,12 +129,11 @@ struct ImpactSimulationViewTests {
             )
         }
         
-        nonisolated(unsafe) let viewCapture = view
         let hasEmptyText = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try view.inspect()
             return (try? inspector.find(text: "No violations found")) != nil
         }
         
@@ -163,12 +160,11 @@ struct ImpactSimulationViewTests {
             )
         }
         
-        nonisolated(unsafe) let viewCapture = view
         let hasOverflowText = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try view.inspect()
             return (try? inspector.find(text: "... and 2 more violations")) != nil
         }
         

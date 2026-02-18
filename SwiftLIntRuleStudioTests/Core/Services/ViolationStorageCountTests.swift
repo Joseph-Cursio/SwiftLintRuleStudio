@@ -26,11 +26,7 @@ struct ViolationStorageCountTests {
         let count = try await storage.getViolationCount(filter: .all, workspaceId: workspaceId)
         #expect(count == 3)
 
-        let filter = await MainActor.run {
-            var filter = ViolationFilter()
-            filter.ruleIDs = ["rule1"]
-            return filter
-        }
+        let filter = ViolationFilter(ruleIDs: ["rule1"])
         let filteredCount = try await storage.getViolationCount(filter: filter, workspaceId: workspaceId)
         #expect(filteredCount == 1)
     }

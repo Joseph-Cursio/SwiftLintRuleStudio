@@ -17,9 +17,7 @@ struct VIViewModelBulkOpsTests {
         try await mockStorage.storeViolations([violation1, violation2], for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let (violation1Id, violation2Id) = await MainActor.run {
-            (violation1.id, violation2.id)
-        }
+        let (violation1Id, violation2Id) = (violation1.id, violation2.id)
         await MainActor.run {
             viewModel.selectedViolationIds = [violation1Id, violation2Id]
         }
@@ -51,9 +49,7 @@ struct VIViewModelBulkOpsTests {
         try await mockStorage.storeViolations([violation1, violation2], for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        let (violation1Id, violation2Id) = await MainActor.run {
-            (violation1.id, violation2.id)
-        }
+        let (violation1Id, violation2Id) = (violation1.id, violation2.id)
         await MainActor.run {
             viewModel.selectedViolationIds = [violation1Id, violation2Id]
         }

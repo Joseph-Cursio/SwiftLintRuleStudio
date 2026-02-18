@@ -89,10 +89,8 @@ struct OnboardingViewTests {
         let view = (await createOnboardingView(testName: #function, )).view
         
         // Find progress indicator (circles)
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.HStack.self)
+            _ = try view.inspect().find(ViewType.HStack.self)
             return true
         }
         #expect(true, "OnboardingView should display progress indicator")
@@ -193,10 +191,8 @@ struct OnboardingViewTests {
         
         // Find not installed text (may appear after checking)
         // Note: May not be visible immediately, but structure should exist
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "SwiftLint Not Found")
+            _ = try view.inspect().find(text: "SwiftLint Not Found")
             return true
         }
         #expect(true, "SwiftLint check step should handle not installed state")
@@ -208,10 +204,8 @@ struct OnboardingViewTests {
         
         // Find installation options
         // Note: May not be visible if SwiftLint is installed
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Installation Options:")
+            _ = try view.inspect().find(text: "Installation Options:")
             return true
         }
         #expect(true, "SwiftLint check step should show installation options when not installed")
@@ -223,10 +217,8 @@ struct OnboardingViewTests {
         
         // Find check again button
         // Note: May not be visible if SwiftLint is installed
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try? await MainActor.run {
-            _ = try viewCapture.inspect().find(text: "Check Again")
+            _ = try view.inspect().find(text: "Check Again")
             return true
         }
         #expect(true, "SwiftLint check step should show check again button when not installed")
@@ -266,10 +258,8 @@ struct OnboardingViewTests {
         
         // WorkspaceSelectionView should be embedded
         // We verify the view structure exists
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         #expect(true, "Workspace selection step should embed WorkspaceSelectionView")
@@ -353,10 +343,8 @@ struct OnboardingViewTests {
         
         // Note: This test verifies the button structure exists
         // Actual workspace selection would require integration test
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        nonisolated(unsafe) let viewCapture = view
         _ = try await MainActor.run {
-            _ = try viewCapture.inspect().find(ViewType.VStack.self)
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
         _ = workspaceManager // Suppress unused warning

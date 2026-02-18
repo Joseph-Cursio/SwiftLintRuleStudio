@@ -37,14 +37,12 @@ struct RuleDetailViewSectionTests {
         let result = await Task { @MainActor in
             RuleDetailViewTestHelpers.createView(for: rule)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let (hasConfiguration, hasWhyThisMatters, hasRelatedRules, hasSwiftEvolution) = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             let hasConfiguration = (try? inspector.find(text: "Configuration")) != nil
             let hasWhyThisMatters = (try? inspector.find(text: "Why This Matters")) != nil
             let hasRelatedRules = (try? inspector.find(text: "No related rules found")) != nil
@@ -91,14 +89,12 @@ struct RuleDetailViewSectionTests {
         let result = await Task { @MainActor in
             RuleDetailViewTestHelpers.createView(for: rule)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let (hasRationaleHeader, hasRationaleBody) = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             let hasRationaleHeader = (try? inspector.find(text: "Why This Matters")) != nil
             let hasRationaleBody = (try? inspector.find(text: "This rule improves code clarity.")) != nil
             return (hasRationaleHeader, hasRationaleBody)
@@ -148,14 +144,12 @@ struct RuleDetailViewSectionTests {
         let result = await Task { @MainActor in
             RuleDetailViewTestHelpers.createView(for: rule, rules: [rule] + relatedRules)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasOverflow = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             return (try? inspector.find(text: "+ 7 more")) != nil
         }
 
@@ -182,14 +176,12 @@ struct RuleDetailViewSectionTests {
         let result = await Task { @MainActor in
             RuleDetailViewTestHelpers.createView(for: rule)
         }.value
-        let view = result.view
 
-        nonisolated(unsafe) let viewCapture = view
         let hasFallback = try await MainActor.run {
             ViewHosting.expel()
-            ViewHosting.host(view: viewCapture)
+            ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
-            let inspector = try viewCapture.inspect()
+            let inspector = try result.view.inspect()
             return (try? inspector.find(text: "No description available")) != nil
         }
 
