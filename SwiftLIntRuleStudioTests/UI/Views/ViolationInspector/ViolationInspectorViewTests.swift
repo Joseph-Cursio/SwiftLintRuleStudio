@@ -161,29 +161,30 @@ struct ViolationInspectorViewTests {
     func testShowsEmptyState() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
+        #expect(result.view != nil)
 
-        // Find empty state text
-        // Note: Empty state may not be visible if workspace is not set
-        // We verify the view structure exists
-        let hasEmptyState = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "No Violations")
-            return true
+        // Empty state text only visible when a workspace is set with no violations
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "No Violations")) != nil
         }
-        #expect(result.view != nil, "ViolationInspectorView should handle empty state")
+        withKnownIssue("Empty state text may not be visible if workspace is not set", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     @Test("ViolationInspectorView shows empty state message")
     func testShowsEmptyStateMessage() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
+        #expect(result.view != nil)
 
-        // Find empty state message
-        // Note: May not be visible depending on state
-        let hasEmptyMessage = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "No violations match your current filters.")
-            return true
+        // Filter message only visible when filters are active and produce no results
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "No violations match your current filters.")) != nil
         }
-        #expect(result.view != nil, "ViolationInspectorView should show empty state message")
+        withKnownIssue("Filter message may not be visible depending on state", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     // MARK: - Toolbar Tests
@@ -208,14 +209,15 @@ struct ViolationInspectorViewTests {
     func testShowsEmptyDetailView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
+        #expect(result.view != nil)
 
-        // Find empty detail view text
-        // Note: May not be visible depending on state
-        let hasEmptyDetail = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "Select a Violation")
-            return true
+        // Detail placeholder only visible when no violation is selected
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "Select a Violation")) != nil
         }
-        #expect(result.view != nil, "ViolationInspectorView should show empty detail view")
+        withKnownIssue("Detail placeholder may not be visible depending on selection state", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     @Test("ViolationInspectorView shows detail when violation selected")
@@ -259,14 +261,15 @@ struct ViolationInspectorViewTests {
     func testDisplaysViolationList() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
+        #expect(result.view != nil)
 
-        // Find the List view
-        // Note: List may not be visible if empty or in analyzing state
-        let hasList = try? await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.List.self)
-            return true
+        // List only rendered when violations are present and not in analyzing state
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(ViewType.List.self)) != nil
         }
-        #expect(result.view != nil, "ViolationInspectorView should have list structure")
+        withKnownIssue("List may not be visible if empty or in analyzing state", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     // MARK: - Analyzing State Tests
@@ -275,14 +278,15 @@ struct ViolationInspectorViewTests {
     func testShowsAnalyzingView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
+        #expect(result.view != nil)
 
-        // Find analyzing text
-        // Note: May not be visible if not analyzing
-        let hasAnalyzing = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "Analyzing Workspace")
-            return true
+        // Analyzing overlay only visible while workspace analysis is in progress
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "Analyzing Workspace")) != nil
         }
-        #expect(result.view != nil, "ViolationInspectorView should handle analyzing state")
+        withKnownIssue("Analyzing text only visible when workspace is actively analyzing", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     // MARK: - Integration Tests

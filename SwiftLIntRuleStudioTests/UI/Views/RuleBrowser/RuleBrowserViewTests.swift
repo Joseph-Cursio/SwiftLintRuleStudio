@@ -369,14 +369,15 @@ struct RuleBrowserViewTests {
     func testShowsLoadingMessage() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
+        #expect(result.view != nil)
 
-        // Find loading message
-        // Note: May not be visible if rules are already loaded
-        _ = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "Loading rules...")
-            return true
+        // Loading text is state-dependent: only visible before rules finish loading
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "Loading rules...")) != nil
         }
-        #expect(result.view != nil, "RuleBrowserView should show loading message")
+        withKnownIssue("Loading text may not be visible if rules are already loaded", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     // MARK: - Detail View Tests
@@ -385,14 +386,15 @@ struct RuleBrowserViewTests {
     func testShowsEmptyDetailView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
+        #expect(result.view != nil)
 
-        // Find empty detail view text
-        // Note: May not be visible depending on state
-        _ = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "Select a rule to view details")
-            return true
+        // Detail placeholder visibility depends on whether a rule is pre-selected
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "Select a rule to view details")) != nil
         }
-        #expect(result.view != nil, "RuleBrowserView should show empty detail view")
+        withKnownIssue("Detail placeholder may not be visible depending on selection state", isIntermittent: true) {
+            #expect(found)
+        }
     }
 
     // MARK: - Toolbar Tests

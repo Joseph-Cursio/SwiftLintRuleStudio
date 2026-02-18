@@ -105,7 +105,8 @@ struct YAMLConfigEngineLoadingTests {
         }
 
         #expect(parseSnapshot.rulesCount == 2)
-        #expect(parseSnapshot.forceCastSeverity == .error)
+        let forceCastSeverity = try #require(parseSnapshot.forceCastSeverity)
+        #expect(forceCastSeverity == .error)
         #expect(parseSnapshot.hasLineLengthParams == true)
     }
 

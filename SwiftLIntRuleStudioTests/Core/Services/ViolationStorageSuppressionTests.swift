@@ -22,8 +22,9 @@ struct ViolationStorageSuppressionTests {
 
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(fetched.count == 1)
-        #expect(fetched.first?.suppressed == true)
-        #expect(fetched.first?.suppressionReason == "Not applicable")
+        let violation = try #require(fetched.first)
+        #expect(violation.suppressed == true)
+        #expect(violation.suppressionReason == "Not applicable")
     }
 
     @Test("ViolationStorage resolves violations")
@@ -38,6 +39,7 @@ struct ViolationStorageSuppressionTests {
 
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(fetched.count == 1)
-        #expect(fetched.first?.resolvedAt != nil)
+        let violation = try #require(fetched.first)
+        #expect(violation.resolvedAt != nil)
     }
 }

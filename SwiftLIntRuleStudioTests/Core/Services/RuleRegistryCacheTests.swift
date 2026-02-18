@@ -98,8 +98,8 @@ struct RuleRegistryCacheTests {
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
         _ = try await registry.loadRules()
 
-        let found = registry.getRule(id: "rule1")
-        #expect(found?.id == "rule1")
+        let found = try #require(registry.getRule(id: "rule1"))
+        #expect(found.id == "rule1")
 
         let notFound = registry.getRule(id: "nonexistent")
         #expect(notFound == nil)

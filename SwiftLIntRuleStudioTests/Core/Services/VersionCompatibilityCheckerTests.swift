@@ -51,11 +51,11 @@ struct VersionCompatibilityCheckerTests {
     // MARK: - Removed Rules
 
     @Test("Detects removed rules in config")
-    func testDetectsRemovedRules() {
+    func testDetectsRemovedRules() throws {
         let config = makeConfig(rules: ["variable_name": RuleConfiguration(enabled: true)])
         let report = checker.checkCompatibility(config: config, swiftLintVersion: "0.55.0")
-        #expect(!report.removedRules.isEmpty)
-        #expect(report.removedRules.first?.ruleId == "variable_name")
+        let removedRule = try #require(report.removedRules.first)
+        #expect(removedRule.ruleId == "variable_name")
     }
 
     @Test("Removed rule not detected for earlier version")
@@ -69,12 +69,11 @@ struct VersionCompatibilityCheckerTests {
     // MARK: - Renamed Rules
 
     @Test("Detects renamed rules")
-    func testDetectsRenamedRules() {
+    func testDetectsRenamedRules() throws {
         let config = makeConfig(rules: ["variable_name": RuleConfiguration(enabled: true)])
         let report = checker.checkCompatibility(config: config, swiftLintVersion: "0.55.0")
-        let renamed = report.renamedRules.first { $0.oldRuleId == "variable_name" }
-        #expect(renamed != nil)
-        #expect(renamed?.newRuleId == "identifier_name")
+        let renamed = try #require(report.renamedRules.first { $0.oldRuleId == "variable_name" })
+        #expect(renamed.newRuleId == "identifier_name")
     }
 
     // MARK: - Disabled Rules List

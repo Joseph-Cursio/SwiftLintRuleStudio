@@ -188,40 +188,40 @@ struct OnboardingViewTests {
     @Test("OnboardingView SwiftLint check step shows not installed state")
     func testSwiftLintCheckStepShowsNotInstalled() async throws {
         let view = (await createOnboardingView(testName: #function, step: .swiftLintCheck)).view
-        
-        // Find not installed text (may appear after checking)
-        // Note: May not be visible immediately, but structure should exist
-        _ = try? await MainActor.run {
-            _ = try view.inspect().find(text: "SwiftLint Not Found")
-            return true
+
+        // "Not Found" text only visible when SwiftLint is absent from the environment
+        let found = await MainActor.run {
+            (try? view.inspect().find(text: "SwiftLint Not Found")) != nil
         }
-        #expect(true, "SwiftLint check step should handle not installed state")
+        withKnownIssue("Not-installed state only visible when SwiftLint is absent from environment", isIntermittent: true) {
+            #expect(found)
+        }
     }
-    
+
     @Test("OnboardingView SwiftLint check step shows installation options")
     func testSwiftLintCheckStepShowsInstallationOptions() async throws {
         let view = (await createOnboardingView(testName: #function, step: .swiftLintCheck)).view
-        
-        // Find installation options
-        // Note: May not be visible if SwiftLint is installed
-        _ = try? await MainActor.run {
-            _ = try view.inspect().find(text: "Installation Options:")
-            return true
+
+        // Installation options only visible when SwiftLint is not installed
+        let found = await MainActor.run {
+            (try? view.inspect().find(text: "Installation Options:")) != nil
         }
-        #expect(true, "SwiftLint check step should show installation options when not installed")
+        withKnownIssue("Installation options only visible when SwiftLint is not installed", isIntermittent: true) {
+            #expect(found)
+        }
     }
-    
+
     @Test("OnboardingView SwiftLint check step shows check again button")
     func testSwiftLintCheckStepShowsCheckAgainButton() async throws {
         let view = (await createOnboardingView(testName: #function, step: .swiftLintCheck)).view
-        
-        // Find check again button
-        // Note: May not be visible if SwiftLint is installed
-        _ = try? await MainActor.run {
-            _ = try view.inspect().find(text: "Check Again")
-            return true
+
+        // Check Again button only visible when SwiftLint is not installed
+        let found = await MainActor.run {
+            (try? view.inspect().find(text: "Check Again")) != nil
         }
-        #expect(true, "SwiftLint check step should show check again button when not installed")
+        withKnownIssue("Check Again button only visible when SwiftLint is not installed", isIntermittent: true) {
+            #expect(found)
+        }
     }
     
     // MARK: - Workspace Selection Step Tests

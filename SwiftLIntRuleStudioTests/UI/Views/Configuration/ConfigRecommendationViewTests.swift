@@ -51,14 +51,14 @@ struct ConfigRecommendationViewTests {
     @Test("ConfigRecommendationView initializes correctly")
     func testInitialization() async throws {
         let (view, _) = await createConfigRecommendationView()
-        
-        // Verify the view can be created
-        // Note: View may not be visible if config file exists
-        _ = try? await MainActor.run {
-            _ = try view.inspect().find(ViewType.VStack.self)
-            return true
+
+        // View structure varies depending on whether a config file exists
+        let found = await MainActor.run {
+            (try? view.inspect().find(ViewType.VStack.self)) != nil
         }
-        #expect(true, "ConfigRecommendationView should initialize correctly")
+        withKnownIssue("View structure may vary depending on config file state", isIntermittent: true) {
+            #expect(found)
+        }
     }
     
     // MARK: - Display Tests

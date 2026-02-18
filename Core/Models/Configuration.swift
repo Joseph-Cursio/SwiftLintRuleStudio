@@ -45,11 +45,11 @@ struct RuleConfiguration: Codable, Equatable, Sendable {
 
 /// Represents a workspace/project
 struct Workspace: Identifiable, Equatable, Sendable {
-    let id: UUID
-    let path: URL
-    let name: String
-    var configPath: URL?
-    var lastAnalyzed: Date?
+    nonisolated let id: UUID
+    nonisolated let path: URL
+    nonisolated let name: String
+    nonisolated var configPath: URL?
+    nonisolated var lastAnalyzed: Date?
 
     nonisolated init(id: UUID = UUID(), path: URL, name: String? = nil) {
         self.id = id
