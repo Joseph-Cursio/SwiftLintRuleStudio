@@ -58,10 +58,9 @@ struct RuleBrowserView: View {
             // Update viewModel with the actual ruleRegistry from environment
             viewModel.ruleRegistry = ruleRegistry
         }
-        .onChange(of: viewModel.filteredRules) {
-            // Clear selection if the selected rule is no longer in the filtered list
-            if let selectedRuleId = selectedRuleId,
-               !viewModel.filteredRules.contains(where: { $0.id == selectedRuleId }) {
+        .onChange(of: viewModel.filteredRules) { _, newRules in
+            // Use newRules directly to avoid re-reading ambient viewModel state
+            if let selectedRuleId, !newRules.contains(where: { $0.id == selectedRuleId }) {
                 self.selectedRuleId = nil
             }
         }

@@ -155,16 +155,15 @@ struct RuleDetailView: View {
             }
         }
         .id(rule.id) // Force view recreation when rule ID changes
-        .onChange(of: dependencies.ruleRegistry.rules) {
-            // Update local rule when registry updates
-            if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
+        .onChange(of: dependencies.ruleRegistry.rules) { _, newRules in
+            // Use newRules directly to avoid re-reading ambient registry state
+            if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
                 currentRule = updatedRule
             }
-            // Rebuild attributed string on main thread when documentation changes
             rebuildAttributedString()
         }
         .onChange(of: colorScheme) {
-            // Rebuild attributed string when color scheme changes (light/dark mode)
+            // New value not needed — just rebuild on any scheme change
             rebuildAttributedString()
         }
         .sheet(isPresented: $viewModel.showDiffPreview) {
