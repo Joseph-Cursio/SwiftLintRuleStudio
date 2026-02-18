@@ -9,27 +9,27 @@ import Foundation
 
 /// Represents a SwiftLint rule with all its metadata
 struct Rule: Identifiable, Codable, Hashable, Sendable {
-    nonisolated let id: String // rule identifier (e.g., "force_cast")
-    nonisolated let name: String
-    nonisolated let description: String
-    nonisolated let category: RuleCategory
-    nonisolated let isOptIn: Bool
-    nonisolated var severity: Severity?
-    nonisolated let parameters: [RuleParameter]?
-    nonisolated let triggeringExamples: [String]
-    nonisolated let nonTriggeringExamples: [String]
-    nonisolated let documentation: URL?
+    let id: String // rule identifier (e.g., "force_cast")
+    let name: String
+    let description: String
+    let category: RuleCategory
+    let isOptIn: Bool
+    var severity: Severity?
+    let parameters: [RuleParameter]?
+    let triggeringExamples: [String]
+    let nonTriggeringExamples: [String]
+    let documentation: URL?
 
     // Configuration state (not from SwiftLint, managed by app)
-    nonisolated var isEnabled: Bool = false
-    nonisolated var configuredSeverity: Severity?
-    nonisolated var configuredParameters: [String: AnyCodable]?
+    var isEnabled: Bool = false
+    var configuredSeverity: Severity?
+    var configuredParameters: [String: AnyCodable]?
 
     // Additional metadata from generate-docs
-    nonisolated var supportsAutocorrection: Bool = false
-    nonisolated var minimumSwiftVersion: String?
-    nonisolated var defaultSeverity: Severity?
-    nonisolated var markdownDocumentation: String?
+    var supportsAutocorrection: Bool = false
+    var minimumSwiftVersion: String?
+    var defaultSeverity: Severity?
+    var markdownDocumentation: String?
 
     nonisolated init(
         id: String,
@@ -78,8 +78,8 @@ enum RuleCategory: String, Codable, CaseIterable, Identifiable {
     case performance
     case idiomatic
     
-    var id: String { rawValue }
-    
+    nonisolated var id: String { rawValue }
+
     nonisolated var displayName: String {
         rawValue.capitalized
     }
@@ -89,9 +89,9 @@ enum RuleCategory: String, Codable, CaseIterable, Identifiable {
 enum Severity: String, Codable, CaseIterable, Identifiable {
     case warning
     case error
-    
-    var id: String { rawValue }
-    
+
+    nonisolated var id: String { rawValue }
+
     nonisolated var displayName: String {
         rawValue.capitalized
     }
@@ -99,10 +99,10 @@ enum Severity: String, Codable, CaseIterable, Identifiable {
 
 /// Parameter for configurable rules
 struct RuleParameter: Codable, Hashable, Sendable {
-    nonisolated let name: String
-    nonisolated let type: ParameterType
-    nonisolated let defaultValue: AnyCodable
-    nonisolated let description: String?
+    let name: String
+    let type: ParameterType
+    let defaultValue: AnyCodable
+    let description: String?
 
     nonisolated init(name: String, type: ParameterType, defaultValue: AnyCodable, description: String? = nil) {
         self.name = name
@@ -124,14 +124,14 @@ enum ParameterType: String, Codable {
 // which are all Sendable. The decoder enforces this by only accepting these types.
 struct AnyCodable: Codable, Hashable, @unchecked Sendable {
     // Safety: Only stores JSON primitives (Int, String, Bool, Double, arrays thereof).
-    // nonisolated(unsafe) is valid here: `let` prevents mutation after init,
-    // and @unchecked Sendable documents this type's thread-safety guarantee.
-    nonisolated(unsafe) let value: Any
+    // `let` prevents mutation after init, and @unchecked Sendable documents this
+    // type's thread-safety guarantee.
+    let value: Any
 
-    nonisolated init(_ value: Any) {
+    init(_ value: Any) {
         self.value = value
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let int = try? container.decode(Int.self) {
@@ -170,7 +170,7 @@ struct AnyCodable: Codable, Hashable, @unchecked Sendable {
     static func == (lhs: AnyCodable, rhs: AnyCodable) -> Bool {
         String(describing: lhs.value) == String(describing: rhs.value)
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(String(describing: value))
     }

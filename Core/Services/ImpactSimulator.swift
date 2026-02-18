@@ -9,11 +9,11 @@ import Foundation
 
 /// Result of simulating a rule's impact
 struct RuleImpactResult {
-    nonisolated let ruleId: String
-    nonisolated let violationCount: Int
-    nonisolated let violations: [Violation]
-    nonisolated let affectedFiles: Set<String>
-    nonisolated let simulationDuration: TimeInterval
+    let ruleId: String
+    let violationCount: Int
+    let violations: [Violation]
+    let affectedFiles: Set<String>
+    let simulationDuration: TimeInterval
 
     nonisolated var hasViolations: Bool {
         violationCount > 0
@@ -26,9 +26,9 @@ struct RuleImpactResult {
 
 /// Result of batch simulation
 struct BatchSimulationResult {
-    nonisolated let results: [RuleImpactResult]
-    nonisolated let totalDuration: TimeInterval
-    nonisolated let completedAt: Date
+    let results: [RuleImpactResult]
+    let totalDuration: TimeInterval
+    let completedAt: Date
 
     nonisolated var safeRules: [RuleImpactResult] {
         results.filter { $0.isSafe }
