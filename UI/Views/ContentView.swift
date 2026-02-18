@@ -155,7 +155,7 @@ struct SidebarView: View {
             
             // Navigation Links
             NavigationLink {
-                RuleBrowserView()
+                RuleBrowserView(ruleRegistry: dependencies.ruleRegistry)
             } label: {
                 Label("Rules", systemImage: "list.bullet.rectangle")
             }

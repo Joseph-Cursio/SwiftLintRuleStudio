@@ -75,7 +75,7 @@ struct RuleBrowserViewTests {
         #endif
 
         // Note: RuleRegistry loads rules asynchronously, so we test the view structure
-        let view = RuleBrowserView()
+        let view = RuleBrowserView(ruleRegistry: ruleRegistry)
             .environmentObject(ruleRegistry)
             .environmentObject(container)
 
