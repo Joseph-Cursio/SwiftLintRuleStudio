@@ -24,7 +24,7 @@ struct SafeRuleRow: View {
                 onToggle()
             } label: {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .foregroundStyle(isSelected ? .blue : .secondary)
                     .accessibilityLabel(isSelected ? "Deselect rule" : "Select rule")
             }
             .buttonStyle(.plain)
@@ -35,13 +35,13 @@ struct SafeRuleRow: View {
 
                 Text("Zero violations • Safe to enable")
                     .font(.caption)
-                    .foregroundColor(.green)
+                    .foregroundStyle(.green)
             }
 
             Spacer()
 
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+                .foregroundStyle(.green)
                 .accessibilityHidden(true)
         }
         .padding(.vertical, 4)

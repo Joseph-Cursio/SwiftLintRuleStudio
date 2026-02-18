@@ -6,7 +6,7 @@ extension OnboardingView {
         HStack(alignment: .top, spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundStyle(.blue)
                 .frame(width: 32)
                 .accessibilityHidden(true)
 
@@ -15,7 +15,7 @@ extension OnboardingView {
                     .font(.headline)
                 Text(description)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -24,7 +24,7 @@ extension OnboardingView {
         HStack {
             Text(label + ":")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             Spacer()
             Text(value)
                 .font(.subheadline)
@@ -47,7 +47,7 @@ extension OnboardingView {
 
             Text(description)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -82,7 +82,7 @@ extension OnboardingView {
                         .disabled(true)
                         Text("Choose a directory to continue")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             } else if onboardingManager.currentStep == .complete {

@@ -39,7 +39,7 @@ extension ViolationInspectorView {
             // Search
             HStack {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 TextField("Search violations...", text: $viewModel.searchText)
             }
@@ -188,11 +188,11 @@ extension ViolationInspectorView {
 
             Text("Running SwiftLint to detect violations...")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Text("This may take a few minutes for large projects")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .italic()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -202,7 +202,7 @@ extension ViolationInspectorView {
         VStack(spacing: 16) {
             Image(systemName: "checkmark.circle")
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
             Text("No Violations")
@@ -211,7 +211,7 @@ extension ViolationInspectorView {
 
             Text("No violations match your current filters.")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             if !viewModel.searchText.isEmpty ||
                 !viewModel.selectedRuleIDs.isEmpty ||
@@ -229,7 +229,7 @@ extension ViolationInspectorView {
         VStack(spacing: 16) {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
             Text("Select a Violation")
@@ -238,7 +238,7 @@ extension ViolationInspectorView {
 
             Text("Select a violation from the list to view details")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

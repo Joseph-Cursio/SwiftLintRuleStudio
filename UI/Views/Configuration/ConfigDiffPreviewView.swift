@@ -45,7 +45,7 @@ struct ConfigDiffPreviewView: View {
                     
                     Text("Review the changes that will be made to your .swiftlint.yml file")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,7 +139,7 @@ struct ConfigDiffPreviewView: View {
                     
                     if diff.addedRules.isEmpty && diff.removedRules.isEmpty && diff.modifiedRules.isEmpty {
                         Text("No changes detected")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .italic()
                     }
                 }
@@ -153,7 +153,7 @@ struct ConfigDiffPreviewView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
                     .accessibilityHidden(true)
                 Text(title)
                     .font(.subheadline)
@@ -163,7 +163,7 @@ struct ConfigDiffPreviewView: View {
             ForEach(rules, id: \.self) { ruleId in
                 HStack {
                     Text("•")
-                        .foregroundColor(color)
+                        .foregroundStyle(color)
                     Text(ruleId)
                         .font(.system(.body, design: .monospaced))
                 }
@@ -182,7 +182,7 @@ struct ConfigDiffPreviewView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Before")
                         .font(.headline)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                     
                     Text(diff.before.isEmpty ? "(empty configuration)" : diff.before)
                         .font(.system(.body, design: .monospaced))
@@ -198,7 +198,7 @@ struct ConfigDiffPreviewView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("After")
                         .font(.headline)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     
                     Text(diff.after.isEmpty ? "(empty configuration)" : diff.after)
                         .font(.system(.body, design: .monospaced))

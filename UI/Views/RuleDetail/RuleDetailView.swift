@@ -16,12 +16,14 @@ struct RuleDetailView: View {
     @State private var errorMessage: String?
     @State private var showImpactSimulation = false
     @State private var impactResult: RuleImpactResult?
+    // These four properties are read by RuleDetailView+Sections.swift (a separate file),
+    // so they cannot be private. internal is the minimum viable access level here.
     @State var isSimulating = false
-    @State private var currentRule: Rule
     @State var violationCount: Int = 0
     @State var isLoadingViolationCount = false
-    // Cached attributed string - computed on main thread in .task, never in body
     @State var cachedAttributedString: AttributedString?
+    // currentRule is only used within this file — private is correct
+    @State private var currentRule: Rule
     
     let ruleId: String
     

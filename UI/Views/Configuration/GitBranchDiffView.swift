@@ -58,11 +58,11 @@ struct GitBranchDiffView: View {
         VStack(spacing: 12) {
             Image(systemName: "arrow.triangle.branch")
                 .font(.largeTitle)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             Text("Not a Git Repository")
                 .font(.headline)
             Text("This workspace is not inside a git repository. Branch diff requires git.")
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -74,13 +74,13 @@ struct GitBranchDiffView: View {
             if let refs = viewModel.availableRefs {
                 HStack {
                     Image(systemName: "arrow.triangle.branch")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                     Text("Current branch: ")
                         .font(.headline)
                     Text(refs.currentBranch)
                         .font(.headline)
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 }
 
                 HStack {
@@ -130,9 +130,9 @@ struct GitBranchDiffView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Error", systemImage: "exclamationmark.triangle.fill")
                 .font(.headline)
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
             Text(error.localizedDescription)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -148,14 +148,14 @@ struct GitBranchDiffView: View {
                     .font(.headline)
                 Spacer()
                 Text("\(result.totalDifferences) difference\(result.totalDifferences == 1 ? "" : "s")")
-                    .foregroundColor(result.totalDifferences > 0 ? .orange : .green)
+                    .foregroundStyle(result.totalDifferences > 0 ? .orange : .green)
                     .fontWeight(.semibold)
             }
 
             if result.totalDifferences == 0 {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     Text("Configurations are identical")
                         .fontWeight(.semibold)
                 }
@@ -189,7 +189,7 @@ struct GitBranchDiffView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Image(systemName: "pencil.circle.fill")
-                                .foregroundColor(.orange)
+                                .foregroundStyle(.orange)
                             Text("Different Settings")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
@@ -203,7 +203,7 @@ struct GitBranchDiffView: View {
                                 ForEach(diff.differences, id: \.self) { detail in
                                     Text(detail)
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
                             .padding(.leading, 24)
@@ -220,7 +220,7 @@ struct GitBranchDiffView: View {
                         Text("Current")
                             .font(.caption)
                             .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                            .foregroundStyle(.blue)
                         Text(result.diff.before.isEmpty ? "(no config)" : result.diff.before)
                             .font(.system(.caption, design: .monospaced))
                             .padding(8)
@@ -231,7 +231,7 @@ struct GitBranchDiffView: View {
                         Text(viewModel.selectedRef ?? "Other")
                             .font(.caption)
                             .fontWeight(.bold)
-                            .foregroundColor(.purple)
+                            .foregroundStyle(.purple)
                         Text(result.diff.after.isEmpty ? "(no config)" : result.diff.after)
                             .font(.system(.caption, design: .monospaced))
                             .padding(8)
@@ -251,7 +251,7 @@ struct GitBranchDiffView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)

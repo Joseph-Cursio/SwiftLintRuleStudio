@@ -31,7 +31,7 @@ extension RuleDetailView {
                     
                     Text(rule.id)
                         .font(.title3)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 
                 Spacer()
@@ -44,25 +44,25 @@ extension RuleDetailView {
                 if rule.isOptIn {
                     Label("Opt-In Rule", systemImage: "star.fill")
                         .font(.subheadline)
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                 }
                 
                 if viewModel.isEnabled {
                     Label("Enabled", systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                 }
                 
                 if rule.supportsAutocorrection {
                     Label("Auto-correctable", systemImage: "wand.and.stars")
                         .font(.subheadline)
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 }
                 
                 if let minVersion = rule.minimumSwiftVersion {
                     Label("Swift \(minVersion)+", systemImage: "swift")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -77,7 +77,7 @@ extension RuleDetailView {
             if shouldShowShortDescription {
                 Text(rule.description)
                     .font(.body)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             
@@ -110,7 +110,7 @@ extension RuleDetailView {
                 // Show message if we have neither description nor markdown documentation
                 Text("No description available")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .italic()
             }
         }
@@ -139,7 +139,7 @@ extension RuleDetailView {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Severity")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         
                         Picker("Severity", selection: Binding(
                             get: { viewModel.severity ?? .warning },
@@ -160,7 +160,7 @@ extension RuleDetailView {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Parameters")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             
                             RuleParameterEditor(
                                 parameters: parameters,
@@ -175,11 +175,11 @@ extension RuleDetailView {
                     
                     HStack {
                         Image(systemName: "exclamationmark.circle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                             .accessibilityHidden(true)
                         Text("You have unsaved changes")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -223,7 +223,7 @@ extension RuleDetailView {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Triggering Examples", systemImage: "xmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                     
                     ForEach(Array(rule.triggeringExamples.enumerated()), id: \.offset) { _, example in
                         CodeBlock(code: example, isError: true)
@@ -235,7 +235,7 @@ extension RuleDetailView {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Non-Triggering Examples", systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     
                     ForEach(Array(rule.nonTriggeringExamples.enumerated()), id: \.offset) { _, example in
                         CodeBlock(code: example, isError: false)
@@ -246,7 +246,7 @@ extension RuleDetailView {
             if rule.triggeringExamples.isEmpty && rule.nonTriggeringExamples.isEmpty {
                 Text("No examples available")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .italic()
             }
         }
@@ -288,13 +288,13 @@ extension RuleDetailView {
             if let rationale = extractRationale(from: rule.markdownDocumentation ?? "") {
                 Text(rationale)
                     .font(.body)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
             } else {
                 Text("No rationale available")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .italic()
             }
         }
@@ -313,16 +313,16 @@ extension RuleDetailView {
                     Text("\(violationCount)")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(violationCount > 0 ? .orange : .green)
+                        .foregroundStyle(violationCount > 0 ? .orange : .green)
                     
                     Text(violationCount == 1 ? "violation" : "violations")
                         .font(.body)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     
                     if violationCount > 0 {
                         Text("in current workspace")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -338,7 +338,7 @@ extension RuleDetailView {
             if related.isEmpty {
                 Text("No related rules found")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .italic()
             } else {
                 VStack(alignment: .leading, spacing: 4) {
@@ -349,13 +349,13 @@ extension RuleDetailView {
                             HStack(alignment: .center, spacing: 8) {
                                 Text(relatedRule.name)
                                     .font(.body)
-                                    .foregroundColor(.primary)
+                                    .foregroundStyle(.primary)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .lineLimit(2)
                                 Spacer(minLength: 8)
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                                     .accessibilityHidden(true)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -366,7 +366,7 @@ extension RuleDetailView {
                     if related.count > 5 {
                         Text("+ \(related.count - 5) more")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .italic()
                     }
                 }
@@ -383,7 +383,7 @@ extension RuleDetailView {
             if links.isEmpty {
                 Text("No Swift Evolution proposals linked")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .italic()
             } else {
                 VStack(alignment: .leading, spacing: 4) {
@@ -395,7 +395,7 @@ extension RuleDetailView {
                                     .accessibilityHidden(true)
                                 Text(link.absoluteString)
                                     .font(.body)
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(.blue)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .lineLimit(2)
                             }

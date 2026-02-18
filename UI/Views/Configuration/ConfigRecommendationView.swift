@@ -18,7 +18,7 @@ struct ConfigRecommendationView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Image(systemName: "info.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                         .font(.title2)
                         .accessibilityLabel("Information")
                     
@@ -31,7 +31,7 @@ struct ConfigRecommendationView: View {
                         Creating one will help you:
                         """)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -122,12 +122,12 @@ struct ConfigBenefitRow: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .foregroundColor(.green)
+                .foregroundStyle(.green)
                 .font(.caption)
                 .accessibilityHidden(true)
             Text(text)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
     }
 }

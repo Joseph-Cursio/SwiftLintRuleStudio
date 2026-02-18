@@ -81,16 +81,16 @@ struct ConfigVersionHistoryView: View {
         VStack(spacing: 16) {
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
             Text("No Version History")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Text("Configuration backups will appear here after you save changes.")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -130,7 +130,7 @@ struct ConfigVersionHistoryView: View {
             if viewModel.selectedBackup != nil && viewModel.comparisonBackup == nil {
                 Text("Select another backup to compare")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .padding()
             }
         }
@@ -144,15 +144,15 @@ struct ConfigVersionHistoryView: View {
                         if let first = viewModel.selectedBackup {
                             Label(first.formattedDate, systemImage: "clock")
                                 .font(.caption)
-                                .foregroundColor(.blue)
+                                .foregroundStyle(.blue)
                         }
                         Image(systemName: "arrow.right")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
                         if let second = viewModel.comparisonBackup {
                             Label(second.formattedDate, systemImage: "clock")
                                 .font(.caption)
-                                .foregroundColor(.green)
+                                .foregroundStyle(.green)
                         }
                     }
                     .padding(.horizontal)
@@ -174,12 +174,12 @@ struct ConfigVersionHistoryView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "arrow.left.arrow.right")
                         .font(.system(size: 36))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
 
                     Text("Select two backups to compare")
                         .font(.headline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -205,18 +205,18 @@ struct BackupRow: View {
 
                 Text(backup.formattedSize)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
 
             if isSelected {
                 Image(systemName: "1.circle.fill")
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                     .accessibilityLabel("First selection")
             } else if isComparison {
                 Image(systemName: "2.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundStyle(.green)
                     .accessibilityLabel("Second selection")
             }
         }

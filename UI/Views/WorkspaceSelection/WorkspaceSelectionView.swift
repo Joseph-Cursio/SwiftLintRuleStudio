@@ -20,7 +20,7 @@ struct WorkspaceSelectionView: View {
             VStack(spacing: 8) {
                 Image(systemName: "folder.badge.gearshape")
                     .font(.system(size: 64))
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                     .accessibilityHidden(true)
                 
                 Text("Select a Workspace")
@@ -29,7 +29,7 @@ struct WorkspaceSelectionView: View {
                 
                 Text("Choose a directory containing your Swift project")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             .padding(.top, 40)
             
@@ -88,11 +88,11 @@ struct WorkspaceSelectionView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Current Workspace")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             
             HStack {
                 Image(systemName: "folder.fill")
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.blue)
                     .accessibilityHidden(true)
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -102,7 +102,7 @@ struct WorkspaceSelectionView: View {
                     
                     Text(workspace.path.path)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -121,7 +121,7 @@ struct WorkspaceSelectionView: View {
             HStack {
                 Text("Recent Workspaces")
                     .font(.headline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Spacer()
                 
@@ -149,7 +149,7 @@ struct WorkspaceSelectionView: View {
     private func recentWorkspaceRow(_ workspace: Workspace) -> some View {
         HStack {
             Image(systemName: "folder")
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
@@ -158,7 +158,7 @@ struct WorkspaceSelectionView: View {
                 
                 Text(workspace.path.path)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
@@ -167,7 +167,7 @@ struct WorkspaceSelectionView: View {
             
             if workspace.path == workspaceManager.currentWorkspace?.path {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundStyle(.green)
                     .accessibilityHidden(true)
             }
             
@@ -175,7 +175,7 @@ struct WorkspaceSelectionView: View {
                 workspaceManager.removeFromRecentWorkspaces(workspace)
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityLabel("Remove from recent workspaces")
             }
             .buttonStyle(.plain)

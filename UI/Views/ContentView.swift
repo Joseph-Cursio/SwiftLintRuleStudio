@@ -39,7 +39,7 @@ struct ContentView: View {
                         }
                         
                         Text("Select a section")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
@@ -136,14 +136,14 @@ struct SidebarView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: "folder.fill")
-                                .foregroundColor(.blue)
+                                .foregroundStyle(.blue)
                                 .accessibilityHidden(true)
                             Text(workspace.name)
                                 .font(.headline)
                         }
                         Text(workspace.path.path)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }

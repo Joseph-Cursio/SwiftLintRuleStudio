@@ -51,14 +51,14 @@ struct ValidationErrorRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: icon)
-                    .foregroundColor(iconColor)
+                    .foregroundStyle(iconColor)
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(field)
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
 
                     Text(message)
                         .font(.subheadline)
@@ -73,7 +73,7 @@ struct ValidationErrorRow: View {
                         }
                     } label: {
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
                 }
@@ -83,11 +83,11 @@ struct ValidationErrorRow: View {
                 HStack(spacing: 4) {
                     Image(systemName: "lightbulb")
                         .font(.caption)
-                        .foregroundColor(.yellow)
+                        .foregroundStyle(.yellow)
                         .accessibilityHidden(true)
                     Text(suggestion)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.leading, 24)
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -108,14 +108,14 @@ struct ValidationStatusBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: statusIcon)
-                .foregroundColor(statusColor)
+                .foregroundStyle(statusColor)
                 .accessibilityHidden(true)
 
             if !result.isValid {
                 Text("\(result.errors.count)")
                     .font(.caption2)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
                     .background(Capsule().fill(Color.red))
@@ -125,7 +125,7 @@ struct ValidationStatusBadge: View {
                 Text("\(result.warnings.count)")
                     .font(.caption2)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
                     .background(Capsule().fill(Color.orange))
@@ -169,20 +169,20 @@ struct FieldValidationIndicator: View {
                 if !fieldErrors.isEmpty {
                     HStack(spacing: 2) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.red)
+                            .foregroundStyle(.red)
                             .accessibilityHidden(true)
                         Text(fieldErrors.first?.message ?? "")
                             .font(.caption)
-                            .foregroundColor(.red)
+                            .foregroundStyle(.red)
                     }
                 } else if !fieldWarnings.isEmpty {
                     HStack(spacing: 2) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                             .accessibilityHidden(true)
                         Text(fieldWarnings.first?.message ?? "")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                     }
                 }
             }

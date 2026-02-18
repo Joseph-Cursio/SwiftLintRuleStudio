@@ -63,7 +63,7 @@ struct ImpactSimulationView: View {
             HStack {
                 Image(systemName: result.isSafe ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .font(.system(size: 48))
-                    .foregroundColor(result.isSafe ? .green : .orange)
+                    .foregroundStyle(result.isSafe ? .green : .orange)
                     .accessibilityLabel(result.isSafe ? "Safe rule" : "Rule has violations")
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -73,7 +73,7 @@ struct ImpactSimulationView: View {
                     
                     Text(ruleId)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 
                 Spacer()
@@ -81,7 +81,7 @@ struct ImpactSimulationView: View {
             
             Text(result.isSafe ? "This rule is safe to enable" : "This rule would introduce violations")
                 .font(.headline)
-                .foregroundColor(result.isSafe ? .green : .orange)
+                .foregroundStyle(result.isSafe ? .green : .orange)
         }
     }
     
@@ -94,17 +94,17 @@ struct ImpactSimulationView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Violations")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Text("\(result.violationCount)")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(result.isSafe ? .green : .orange)
+                        .foregroundStyle(result.isSafe ? .green : .orange)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Affected Files")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Text("\(result.affectedFiles.count)")
                         .font(.title)
                         .fontWeight(.bold)
@@ -113,7 +113,7 @@ struct ImpactSimulationView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Simulation Time")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Text(String(format: "%.2fs", result.simulationDuration))
                         .font(.title)
                         .fontWeight(.bold)
@@ -133,7 +133,7 @@ struct ImpactSimulationView: View {
             if result.violations.isEmpty {
                 Text("No violations found")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .italic()
             } else {
                 ForEach(Array(result.violations.prefix(20)), id: \.id) { violation in
@@ -143,7 +143,7 @@ struct ImpactSimulationView: View {
                 if result.violations.count > 20 {
                     Text("... and \(result.violations.count - 20) more violations")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .padding(.leading, 8)
                 }
             }
@@ -157,7 +157,7 @@ struct ViolationRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: violation.severity == .error ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
-                .foregroundColor(violation.severity == .error ? .red : .orange)
+                .foregroundStyle(violation.severity == .error ? .red : .orange)
                 .frame(width: 20)
                 .accessibilityLabel(violation.severity == .error ? "Error" : "Warning")
             
@@ -169,12 +169,12 @@ struct ViolationRow: View {
                     
                     Text("Line \(violation.line)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 
                 Text(violation.message)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()

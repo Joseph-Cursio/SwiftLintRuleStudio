@@ -58,10 +58,10 @@ struct VersionCompatibilityView: View {
                     Text(version)
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                 } else {
                     Text("Not detected")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -82,9 +82,9 @@ struct VersionCompatibilityView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Error", systemImage: "exclamationmark.triangle.fill")
                 .font(.headline)
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
             Text(error.localizedDescription)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -96,9 +96,9 @@ struct VersionCompatibilityView: View {
         VStack(spacing: 12) {
             Image(systemName: "checkmark.shield")
                 .font(.largeTitle)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             Text("Click \"Check\" to analyze your configuration compatibility")
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
@@ -110,7 +110,7 @@ struct VersionCompatibilityView: View {
             if report.hasIssues {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                     Text("\(report.totalIssueCount) issue\(report.totalIssueCount == 1 ? "" : "s") found")
                         .fontWeight(.semibold)
                 }
@@ -121,7 +121,7 @@ struct VersionCompatibilityView: View {
             } else {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     Text("No compatibility issues found")
                         .fontWeight(.semibold)
                 }
@@ -147,12 +147,12 @@ struct VersionCompatibilityView: View {
                                     .fontWeight(.semibold)
                                 Text(rule.message)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
                             Spacer()
                             Text("Removed in \(rule.removedInVersion)")
                                 .font(.caption)
-                                .foregroundColor(.red)
+                                .foregroundStyle(.red)
                         }
                     }
                 }
@@ -174,13 +174,13 @@ struct VersionCompatibilityView: View {
                                     .fontWeight(.semibold)
                                 Text(rule.message)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
                             Spacer()
                             if let replacement = rule.replacement {
                                 Text("Use: \(replacement)")
                                     .font(.caption)
-                                    .foregroundColor(.orange)
+                                    .foregroundStyle(.orange)
                             }
                         }
                     }
@@ -262,13 +262,13 @@ struct VersionCompatibilityView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.headline)
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
 

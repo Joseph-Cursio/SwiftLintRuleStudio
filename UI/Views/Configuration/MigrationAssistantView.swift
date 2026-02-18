@@ -45,7 +45,7 @@ struct MigrationAssistantView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Previous Version")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     TextField("e.g. 0.45.0", text: $viewModel.previousVersion)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 120)
@@ -53,20 +53,20 @@ struct MigrationAssistantView: View {
 
                 Image(systemName: "arrow.right")
                     .font(.title2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Current Version")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     if let version = viewModel.currentVersion {
                         Text(version)
                             .font(.body)
                             .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                            .foregroundStyle(.blue)
                     } else {
                         Text("Auto-detected")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
@@ -86,9 +86,9 @@ struct MigrationAssistantView: View {
             if let error = viewModel.error {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                     Text(error.localizedDescription)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                 }
             }
         }
@@ -106,13 +106,13 @@ struct MigrationAssistantView: View {
                         .font(.headline)
                     Spacer()
                     Text("\(plan.totalSteps) step\(plan.totalSteps == 1 ? "" : "s")")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 if plan.steps.isEmpty {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundStyle(.green)
                         Text("No migrations needed!")
                             .fontWeight(.semibold)
                     }
@@ -136,7 +136,7 @@ struct MigrationAssistantView: View {
                         if !plan.manualSteps.isEmpty {
                             Text("\(plan.manualSteps.count) manual step(s) require your attention")
                                 .font(.caption)
-                                .foregroundColor(.orange)
+                                .foregroundStyle(.orange)
                         }
                     }
                 }
@@ -159,21 +159,21 @@ struct MigrationAssistantView: View {
                         if !diff.addedRules.isEmpty {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundStyle(.green)
                                 Text("\(diff.addedRules.count) rule(s) to add")
                             }
                         }
                         if !diff.removedRules.isEmpty {
                             HStack {
                                 Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundStyle(.red)
                                 Text("\(diff.removedRules.count) rule(s) to remove")
                             }
                         }
                         if !diff.modifiedRules.isEmpty {
                             HStack {
                                 Image(systemName: "pencil.circle.fill")
-                                    .foregroundColor(.orange)
+                                    .foregroundStyle(.orange)
                                 Text("\(diff.modifiedRules.count) rule(s) to modify")
                             }
                         }
@@ -184,7 +184,7 @@ struct MigrationAssistantView: View {
                             Text("Before")
                                 .font(.caption)
                                 .fontWeight(.bold)
-                                .foregroundColor(.red)
+                                .foregroundStyle(.red)
                             Text(diff.before.isEmpty ? "(empty)" : diff.before)
                                 .font(.system(.caption, design: .monospaced))
                                 .padding(8)
@@ -195,7 +195,7 @@ struct MigrationAssistantView: View {
                             Text("After")
                                 .font(.caption)
                                 .fontWeight(.bold)
-                                .foregroundColor(.green)
+                                .foregroundStyle(.green)
                             Text(diff.after.isEmpty ? "(empty)" : diff.after)
                                 .font(.system(.caption, design: .monospaced))
                                 .padding(8)
@@ -214,13 +214,13 @@ struct MigrationAssistantView: View {
 
                         if viewModel.migrationComplete {
                             Label("Migration applied!", systemImage: "checkmark.circle.fill")
-                                .foregroundColor(.green)
+                                .foregroundStyle(.green)
                         }
                     }
                 } else {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundStyle(.green)
                         Text("No changes needed")
                     }
                 }
@@ -234,7 +234,7 @@ struct MigrationAssistantView: View {
     private func stepRow(_ step: MigrationStep) -> some View {
         HStack {
             Image(systemName: step.iconName)
-                .foregroundColor(step.canAutoApply ? .blue : .orange)
+                .foregroundStyle(step.canAutoApply ? .blue : .orange)
                 .frame(width: 20)
 
             Text(step.description)

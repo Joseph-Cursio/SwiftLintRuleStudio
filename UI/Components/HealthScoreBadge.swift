@@ -30,12 +30,12 @@ struct HealthScoreBadge: View {
             if showGrade {
                 Text(report.grade.rawValue)
                     .font(.system(.caption, design: .rounded, weight: .bold))
-                    .foregroundColor(gradeColor)
+                    .foregroundStyle(gradeColor)
             }
 
             Text("\(report.score)")
                 .font(.system(.caption, design: .rounded, weight: .semibold))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
@@ -85,11 +85,11 @@ struct HealthScoreRing: View {
             VStack(spacing: 4) {
                 Text(report.grade.rawValue)
                     .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(gradeColor)
+                    .foregroundStyle(gradeColor)
 
                 Text("\(report.score)/100")
                     .font(.system(.caption, design: .rounded))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(width: 100, height: 100)
@@ -123,7 +123,7 @@ struct HealthScoreIndicator: View {
 
             Text(grade.displayName)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
     }
 

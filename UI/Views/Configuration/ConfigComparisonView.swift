@@ -52,19 +52,19 @@ struct ConfigComparisonView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Left Config")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 HStack {
                     if let path = viewModel.leftWorkspacePath {
                         Image(systemName: "doc.text.fill")
-                            .foregroundColor(.blue)
+                            .foregroundStyle(.blue)
                             .accessibilityHidden(true)
                         Text(path.deletingLastPathComponent().lastPathComponent)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     } else {
                         Text("No config selected")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
 
                     Spacer()
@@ -79,26 +79,26 @@ struct ConfigComparisonView: View {
 
             Image(systemName: "arrow.left.arrow.right")
                 .font(.title2)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
             // Right workspace
             VStack(alignment: .leading, spacing: 4) {
                 Text("Right Config")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 HStack {
                     if let path = viewModel.rightWorkspacePath {
                         Image(systemName: "doc.text.fill")
-                            .foregroundColor(.green)
+                            .foregroundStyle(.green)
                             .accessibilityHidden(true)
                         Text(path.deletingLastPathComponent().lastPathComponent)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     } else {
                         Text("No config selected")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
 
                     Spacer()
@@ -191,10 +191,10 @@ struct ConfigComparisonView: View {
             Text("\(count)")
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(color)
+                .foregroundStyle(color)
             Text(label)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
@@ -215,7 +215,7 @@ struct ConfigComparisonView: View {
             }
         } label: {
             Label("\(title) (\(rules.count))", systemImage: icon)
-                .foregroundColor(color)
+                .foregroundStyle(color)
         }
     }
 
@@ -231,7 +231,7 @@ struct ConfigComparisonView: View {
                         ForEach(diff.differences, id: \.self) { difference in
                             Text(difference)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                                 .padding(.leading, 16)
                         }
                     }
@@ -244,7 +244,7 @@ struct ConfigComparisonView: View {
             }
         } label: {
             Label("Differences (\(diffs.count))", systemImage: "exclamationmark.triangle.fill")
-                .foregroundColor(.orange)
+                .foregroundStyle(.orange)
         }
     }
 
@@ -252,16 +252,16 @@ struct ConfigComparisonView: View {
         VStack(spacing: 16) {
             Image(systemName: "arrow.left.arrow.right")
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
             Text("Compare Configurations")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Text("Select two SwiftLint configuration files to compare their rules and settings.")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -290,7 +290,7 @@ struct FullYAMLDiffView: View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             ScrollView {
                 Text(content)
                     .font(.system(.body, design: .monospaced))

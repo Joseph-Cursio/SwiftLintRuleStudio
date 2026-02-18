@@ -82,7 +82,7 @@ struct TemplateLibraryView: View {
                 Spacer()
                 if selectedCodingStyle == style {
                     Image(systemName: "checkmark")
-                        .foregroundColor(.accentColor)
+                        .foregroundStyle(.tint)
                 }
             }
         }
@@ -180,7 +180,7 @@ struct TemplateListRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Image(systemName: template.projectType.icon)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
 
                 Text(template.name)
@@ -193,14 +193,14 @@ struct TemplateListRow: View {
                         .padding(.horizontal, 4)
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.2))
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                         .cornerRadius(4)
                 }
             }
 
             Text(template.description)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .lineLimit(2)
 
             HStack(spacing: 8) {
@@ -221,7 +221,7 @@ struct CodingStyleBadge: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(styleColor.opacity(0.2))
-            .foregroundColor(styleColor)
+            .foregroundStyle(styleColor)
             .cornerRadius(4)
     }
 
@@ -261,7 +261,7 @@ struct TemplateDetailView: View {
             HStack {
                 Image(systemName: template.projectType.icon)
                     .font(.title2)
-                    .foregroundColor(.accentColor)
+                    .foregroundStyle(.tint)
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -271,14 +271,14 @@ struct TemplateDetailView: View {
 
                     HStack(spacing: 8) {
                         Text(template.projectType.rawValue)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         CodingStyleBadge(style: template.codingStyle)
                     }
                 }
             }
 
             Text(template.description)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -289,7 +289,7 @@ struct TemplateDetailView: View {
                 .font(.headline)
 
             Text(template.codingStyle.description)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
     }
 

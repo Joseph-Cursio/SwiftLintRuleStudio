@@ -16,7 +16,7 @@ extension SafeRulesDiscoveryView {
 
             Text("Find disabled rules that would produce zero violations if enabled")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Button {
                 discoverSafeRules()
@@ -40,7 +40,7 @@ extension SafeRulesDiscoveryView {
 
                 Text("Checking: \(progress.ruleId)")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 ProgressView(value: Double(progress.current), total: Double(progress.total))
                     .frame(width: 400)
@@ -53,7 +53,7 @@ extension SafeRulesDiscoveryView {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 64))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
             Text("No Safe Rules Discovered")
@@ -62,7 +62,7 @@ extension SafeRulesDiscoveryView {
 
             Text("Click 'Discover Safe Rules' to analyze disabled rules in your workspace")
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }

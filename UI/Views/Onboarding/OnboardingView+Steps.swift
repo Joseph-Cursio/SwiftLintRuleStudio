@@ -20,7 +20,7 @@ extension OnboardingView {
         VStack(spacing: 24) {
             Image(systemName: "sparkles.rectangle.stack")
                 .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .foregroundStyle(.blue)
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
                 .accessibilityHidden(true)
 
@@ -30,7 +30,7 @@ extension OnboardingView {
 
             Text("A powerful tool for managing and configuring SwiftLint rules in your Swift projects.")
                 .font(.title3)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
@@ -61,7 +61,7 @@ extension OnboardingView {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: 64))
-                .foregroundColor(swiftLintStatus == .installed(URL(fileURLWithPath: ""), "") ? .green : .orange)
+                .foregroundStyle(swiftLintStatus == .installed(URL(fileURLWithPath: ""), "") ? .green : .orange)
                 .accessibilityHidden(true)
 
             Text("SwiftLint Installation")
@@ -75,14 +75,14 @@ extension OnboardingView {
                             .scaleEffect(1.2)
                         Text("Checking for SwiftLint installation...")
                             .font(.body)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
 
                 case .installed(let path, let version):
                     VStack(spacing: 16) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 48))
-                            .foregroundColor(.green)
+                            .foregroundStyle(.green)
                             .accessibilityHidden(true)
 
                         Text("SwiftLint is installed")
@@ -102,7 +102,7 @@ extension OnboardingView {
                     VStack(spacing: 20) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 48))
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                             .accessibilityHidden(true)
 
                         Text("SwiftLint Not Found")
@@ -111,7 +111,7 @@ extension OnboardingView {
 
                         Text("SwiftLint Rule Studio requires SwiftLint to be installed on your system.")
                             .font(.body)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
 
@@ -162,7 +162,7 @@ extension OnboardingView {
         VStack(spacing: 16) {
             Image(systemName: "folder.badge.gearshape")
                 .font(.system(size: 64))
-                .foregroundColor(.blue)
+                .foregroundStyle(.blue)
                 .accessibilityHidden(true)
 
             Text("Select Your Workspace")
@@ -170,7 +170,7 @@ extension OnboardingView {
 
             Text("Choose a directory containing your Swift project to get started.")
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
@@ -191,7 +191,7 @@ extension OnboardingView {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.green)
+                .foregroundStyle(.green)
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
                 .accessibilityHidden(true)
 
@@ -202,7 +202,7 @@ extension OnboardingView {
             SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace.
             """)
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }

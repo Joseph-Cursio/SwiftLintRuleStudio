@@ -169,7 +169,7 @@ struct IntegerParameterRow: View {
             if let defaultInt = param.defaultValue.value as? Int {
                 Text("Default: \(defaultInt)")
                     .font(.caption)
-                    .foregroundColor(value != defaultInt ? .orange : .secondary)
+                    .foregroundStyle(value != defaultInt ? .orange : .secondary)
             }
         }
     }
@@ -203,7 +203,7 @@ struct BooleanParameterRow: View {
             if let defaultBool = param.defaultValue.value as? Bool {
                 Text("Default: \(defaultBool ? "On" : "Off")")
                     .font(.caption)
-                    .foregroundColor(value != defaultBool ? .orange : .secondary)
+                    .foregroundStyle(value != defaultBool ? .orange : .secondary)
             }
         }
     }
@@ -239,7 +239,7 @@ struct StringParameterRow: View {
             if let defaultStr = param.defaultValue.value as? String {
                 Text("Default: \(defaultStr)")
                     .font(.caption)
-                    .foregroundColor(value != defaultStr ? .orange : .secondary)
+                    .foregroundStyle(value != defaultStr ? .orange : .secondary)
             }
         }
     }
@@ -265,7 +265,7 @@ struct ArrayParameterRow: View {
 
                 Text("\(values.count) items")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
 
             ForEach(Array(values.enumerated()), id: \.offset) { index, item in
@@ -278,7 +278,7 @@ struct ArrayParameterRow: View {
                         values.remove(at: index)
                     } label: {
                         Image(systemName: "minus.circle.fill")
-                            .foregroundColor(.red)
+                            .foregroundStyle(.red)
                             .accessibilityLabel("Remove item")
                     }
                     .buttonStyle(.plain)
@@ -297,7 +297,7 @@ struct ArrayParameterRow: View {
                     addItem()
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                         .accessibilityLabel("Add item")
                 }
                 .buttonStyle(.plain)
@@ -326,7 +326,7 @@ struct HelpPopover: View {
         } label: {
             Image(systemName: "questionmark.circle")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityLabel("Help")
         }
         .buttonStyle(.plain)

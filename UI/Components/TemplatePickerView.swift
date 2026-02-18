@@ -39,7 +39,7 @@ struct TemplatePickerView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
             }
@@ -96,7 +96,7 @@ struct TemplatePickerView: View {
             if filteredTemplates.isEmpty {
                 Spacer()
                 Text("No templates available for this selection")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 Spacer()
             }
 
@@ -113,7 +113,7 @@ struct TemplatePickerView: View {
 
                 Text("\(filteredTemplates.count) templates")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             .padding()
         }
@@ -139,7 +139,7 @@ struct TemplatePickerCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: template.projectType.icon)
-                        .foregroundColor(.accentColor)
+                        .foregroundStyle(.tint)
                         .accessibilityHidden(true)
 
                     Text(template.name)
@@ -152,7 +152,7 @@ struct TemplatePickerCard: View {
 
                 Text(template.description)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
@@ -164,7 +164,7 @@ struct TemplatePickerCard: View {
                     if isHovered {
                         Text("Select")
                             .font(.caption)
-                            .foregroundColor(.accentColor)
+                            .foregroundStyle(.tint)
                     }
                 }
             }
@@ -230,7 +230,7 @@ struct CodingStyleText: View {
     var body: some View {
         Text(style.rawValue)
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
     }
 }
 

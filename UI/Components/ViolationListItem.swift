@@ -32,29 +32,29 @@ struct ViolationListItem: View {
                     if violation.suppressed {
                         Label("Suppressed", systemImage: "eye.slash")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
                 // Message
                 Text(violation.message)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(2)
                 
                 // File and line
                 HStack(spacing: 8) {
                     Label(violation.filePath, systemImage: "doc.text")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                     
                     Text("•")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     
                     Label("Line \(violation.line)", systemImage: "number")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
             
@@ -66,7 +66,7 @@ struct ViolationListItem: View {
                     onOpenInXcode()
                 } label: {
                     Image(systemName: "arrow.right.circle")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .accessibilityLabel("Open in Xcode")
                 }
                 .buttonStyle(.plain)
@@ -123,7 +123,7 @@ struct SeverityBadge: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(severityColor.opacity(0.2))
-            .foregroundColor(severityColor)
+            .foregroundStyle(severityColor)
             .cornerRadius(4)
     }
     

@@ -23,7 +23,7 @@ struct BulkOperationToolbar: View {
                 Text("\(selectedCount) selected")
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 Divider()
                     .frame(height: 20)

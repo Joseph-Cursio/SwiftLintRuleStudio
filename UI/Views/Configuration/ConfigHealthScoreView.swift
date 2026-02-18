@@ -50,11 +50,11 @@ struct ConfigHealthScoreView: View {
 
                 Text(report.grade.displayName)
                     .font(.headline)
-                    .foregroundColor(gradeColor)
+                    .foregroundStyle(gradeColor)
 
                 Text(healthSummary)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -137,13 +137,13 @@ struct BreakdownRow: View {
 
                         Text("(\(weight)%)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
 
                     if isExpanded {
                         Text(description)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
@@ -151,7 +151,7 @@ struct BreakdownRow: View {
 
                 Text("\(score)")
                     .font(.system(.body, design: .rounded, weight: .semibold))
-                    .foregroundColor(scoreColor)
+                    .foregroundStyle(scoreColor)
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -220,13 +220,13 @@ struct RecommendationCard: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(priorityColor.opacity(0.2))
-                        .foregroundColor(priorityColor)
+                        .foregroundStyle(priorityColor)
                         .cornerRadius(4)
                 }
 
                 Text(recommendation.description)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 if let presetId = recommendation.presetId,
                    let onApplyPreset = onApplyPreset {
@@ -280,7 +280,7 @@ struct ConfigHealthPopover: View {
 
                     Text(report.grade.displayName)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -292,7 +292,7 @@ struct ConfigHealthPopover: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Top Recommendations")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
 
                     ForEach(report.recommendations.prefix(2)) { recommendation in
                         HStack(spacing: 8) {

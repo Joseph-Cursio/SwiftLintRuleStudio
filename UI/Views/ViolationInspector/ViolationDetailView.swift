@@ -66,13 +66,13 @@ struct ViolationDetailView: View {
                 if violation.suppressed {
                     Label("Suppressed", systemImage: "eye.slash")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 
                 if violation.resolvedAt != nil {
                     Label("Resolved", systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                 }
             }
             
@@ -91,7 +91,7 @@ struct ViolationDetailView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("File")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Text(violation.filePath)
                         .font(.body)
                 }
@@ -101,7 +101,7 @@ struct ViolationDetailView: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("Line")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                     Text("\(violation.line)")
                         .font(.body)
                 }
@@ -110,7 +110,7 @@ struct ViolationDetailView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Column")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         Text("\(column)")
                             .font(.body)
                     }
@@ -141,7 +141,7 @@ struct ViolationDetailView: View {
             
             Text(violation.message)
                 .font(.body)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
         }
     }
     
@@ -153,7 +153,7 @@ struct ViolationDetailView: View {
             // TODO: Load and display code snippet from file
             Text("Code snippet loading not yet implemented")
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .italic()
         }
     }
@@ -269,7 +269,7 @@ private func buildSuppressDialog(
     onSuppress: @escaping (String) -> Void,
     onCancel: @escaping () -> Void
 ) -> some View {
-    NavigationView {
+    NavigationStack {
         Form {
             Section {
                 TextField("Reason (optional)", text: reason, axis: .vertical)

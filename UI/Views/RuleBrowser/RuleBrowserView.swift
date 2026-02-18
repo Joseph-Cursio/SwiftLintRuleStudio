@@ -185,7 +185,7 @@ struct RuleBrowserView: View {
             // Search Bar
             HStack {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 TextField("Search rules...", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
@@ -195,7 +195,7 @@ struct RuleBrowserView: View {
                         viewModel.searchText = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .accessibilityLabel("Clear search text")
                     }
                     .buttonStyle(.plain)
@@ -228,7 +228,7 @@ struct RuleBrowserView: View {
                                 Text(category.displayName)
                                 if let count = viewModel.categoryCounts[category] {
                                     Text("(\(count))")
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(.secondary)
                                         .font(.caption)
                                 }
                             }
@@ -259,17 +259,17 @@ struct RuleBrowserView: View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             
             Text("No rules found")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             
             if !viewModel.searchText.isEmpty || viewModel.selectedCategory != nil || viewModel.selectedStatus != .all {
                 Text("Try adjusting your filters")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Button("Clear Filters") {
                     viewModel.clearFilters()
@@ -278,7 +278,7 @@ struct RuleBrowserView: View {
             } else if ruleRegistry.rules.isEmpty {
                 Text("Loading rules...")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

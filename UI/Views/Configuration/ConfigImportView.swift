@@ -64,7 +64,7 @@ struct ConfigImportView: View {
 
             Text("Supports GitHub raw URLs, Gist URLs, or any HTTPS URL to a .swiftlint.yml")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
@@ -91,9 +91,9 @@ struct ConfigImportView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Error", systemImage: "exclamationmark.triangle.fill")
                 .font(.headline)
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
             Text(error.localizedDescription)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -104,7 +104,7 @@ struct ConfigImportView: View {
     private var successSection: some View {
         HStack {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+                .foregroundStyle(.green)
             Text("Configuration imported successfully!")
                 .fontWeight(.semibold)
         }
@@ -122,10 +122,10 @@ struct ConfigImportView: View {
                 Spacer()
                 if preview.validationErrors.isEmpty {
                     Label("Valid", systemImage: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                 } else {
                     Label("\(preview.validationErrors.count) warning(s)", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                 }
             }
 
@@ -133,7 +133,7 @@ struct ConfigImportView: View {
                 ForEach(preview.validationErrors, id: \.self) { warning in
                     HStack {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                         Text(warning)
                             .font(.caption)
                     }
@@ -184,21 +184,21 @@ struct ConfigImportView: View {
             if !diff.addedRules.isEmpty {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     Text("\(diff.addedRules.count) rule(s) to add")
                 }
             }
             if !diff.removedRules.isEmpty {
                 HStack {
                     Image(systemName: "minus.circle.fill")
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                     Text("\(diff.removedRules.count) rule(s) to remove")
                 }
             }
             if !diff.modifiedRules.isEmpty {
                 HStack {
                     Image(systemName: "pencil.circle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundStyle(.orange)
                     Text("\(diff.modifiedRules.count) rule(s) to modify")
                 }
             }

@@ -26,14 +26,14 @@ struct RuleListItem: View {
                     
                     Text(rule.id)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
                 
                 // Description
                 Text(rule.description)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(2)
                 
                 // Category badge and opt-in indicator
@@ -43,13 +43,13 @@ struct RuleListItem: View {
                     if rule.isOptIn {
                         Label("Opt-In", systemImage: "star.fill")
                             .font(.caption2)
-                            .foregroundColor(.orange)
+                            .foregroundStyle(.orange)
                     }
                     
                     if rule.isEnabled {
                         Label("Enabled", systemImage: "checkmark.circle.fill")
                             .font(.caption2)
-                            .foregroundColor(.green)
+                            .foregroundStyle(.green)
                     }
                 }
             }
@@ -80,7 +80,7 @@ struct CategoryBadge: View {
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(categoryColor.opacity(0.2))
-            .foregroundColor(categoryColor)
+            .foregroundStyle(categoryColor)
             .cornerRadius(4)
     }
     

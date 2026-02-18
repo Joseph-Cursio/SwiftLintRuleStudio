@@ -105,7 +105,7 @@ struct PresetCard: View {
             HStack {
                 Image(systemName: preset.icon)
                     .font(.title2)
-                    .foregroundColor(categoryColor)
+                    .foregroundStyle(categoryColor)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(preset.name)
@@ -113,7 +113,7 @@ struct PresetCard: View {
 
                     Text(preset.category.displayName)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -122,24 +122,24 @@ struct PresetCard: View {
             // Description
             Text(preset.description)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .lineLimit(2)
 
             // Rule count
             HStack {
                 Image(systemName: "checklist")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 Text("\(preset.ruleIds.count) rules")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 Spacer()
 
                 Text("Apply")
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(categoryColor)
+                    .foregroundStyle(categoryColor)
                     .opacity(isHovered ? 1 : 0)
             }
         }
@@ -186,7 +186,7 @@ struct PresetBadge: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(categoryColor.opacity(0.2))
-        .foregroundColor(categoryColor)
+        .foregroundStyle(categoryColor)
         .cornerRadius(6)
     }
 
