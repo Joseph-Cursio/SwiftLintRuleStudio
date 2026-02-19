@@ -113,6 +113,19 @@ extension RuleDetailView {
                     .foregroundStyle(.secondary)
                     .italic()
             }
+
+            // Attribution
+            let docURL = rule.documentation
+                ?? URL(string: "https://realm.github.io/SwiftLint/\(rule.id).html")
+            if let url = docURL {
+                Link(destination: url) {
+                    Label("Source: SwiftLint documentation", systemImage: "arrow.up.right.square")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
+            }
         }
     }
     
