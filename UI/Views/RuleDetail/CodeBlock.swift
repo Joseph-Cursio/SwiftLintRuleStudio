@@ -16,7 +16,7 @@ struct CodeBlock: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(NSColor.textBackgroundColor))
         }
-        .cornerRadius(4)
+        .clipShape(.rect(cornerRadius: 4))
         .overlay(
             RoundedRectangle(cornerRadius: 4)
                 .stroke(isError ? Color.red.opacity(0.3) : Color.green.opacity(0.3), lineWidth: 1)

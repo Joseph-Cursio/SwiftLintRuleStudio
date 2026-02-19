@@ -194,7 +194,7 @@ struct TemplateListRow: View {
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.2))
                         .foregroundStyle(.blue)
-                        .cornerRadius(4)
+                        .clipShape(.rect(cornerRadius: 4))
                 }
             }
 
@@ -222,7 +222,7 @@ struct CodingStyleBadge: View {
             .padding(.vertical, 2)
             .background(styleColor.opacity(0.2))
             .foregroundStyle(styleColor)
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
     }
 
     private var styleColor: Color {
@@ -322,7 +322,7 @@ struct TemplateDetailView: View {
                         .padding()
                 }
                 .background(Color(NSColor.textBackgroundColor))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
                 .frame(maxHeight: 300)
             }
         }

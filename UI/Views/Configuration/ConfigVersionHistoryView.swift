@@ -236,6 +236,6 @@ struct BackupRow: View {
         .background(
             (isSelected || isComparison) ? Color.accentColor.opacity(0.1) : Color.clear
         )
-        .cornerRadius(4)
+        .clipShape(.rect(cornerRadius: 4))
     }
 }

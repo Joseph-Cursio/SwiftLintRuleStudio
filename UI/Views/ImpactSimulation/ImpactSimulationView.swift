@@ -121,7 +121,7 @@ struct ImpactSimulationView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
     
@@ -181,7 +181,7 @@ struct ViolationRow: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(6)
+        .clipShape(.rect(cornerRadius: 6))
     }
 }
 

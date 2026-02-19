@@ -81,7 +81,7 @@ struct CategoryBadge: View {
             .padding(.vertical, 2)
             .background(categoryColor.opacity(0.2))
             .foregroundStyle(categoryColor)
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
     }
     
     private var categoryColor: Color {

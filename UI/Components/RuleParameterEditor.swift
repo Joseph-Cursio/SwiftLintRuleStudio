@@ -26,7 +26,7 @@ struct RuleParameterEditor: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .cornerRadius(6)
+        .clipShape(.rect(cornerRadius: 6))
     }
 
     @ViewBuilder

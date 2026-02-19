@@ -172,7 +172,7 @@ struct ConfigDiffPreviewView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
     
     private var fullDiffView: some View {
@@ -189,7 +189,7 @@ struct ConfigDiffPreviewView: View {
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color(NSColor.textBackgroundColor))
-                        .cornerRadius(8)
+                        .clipShape(.rect(cornerRadius: 8))
                 }
                 
                 Divider()
@@ -205,7 +205,7 @@ struct ConfigDiffPreviewView: View {
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color(NSColor.textBackgroundColor))
-                        .cornerRadius(8)
+                        .clipShape(.rect(cornerRadius: 8))
                 }
             }
             .padding()

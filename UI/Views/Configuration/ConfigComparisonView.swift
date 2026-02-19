@@ -299,7 +299,7 @@ struct FullYAMLDiffView: View {
             }
             .frame(maxHeight: 400)
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
         }
     }
 }

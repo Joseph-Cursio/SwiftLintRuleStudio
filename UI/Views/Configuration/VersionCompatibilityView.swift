@@ -75,7 +75,7 @@ struct VersionCompatibilityView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func errorSection(_ error: Error) -> some View {
@@ -89,7 +89,7 @@ struct VersionCompatibilityView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.red.opacity(0.1))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private var emptyState: some View {
@@ -117,7 +117,7 @@ struct VersionCompatibilityView: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.orange.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             } else {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
@@ -128,7 +128,7 @@ struct VersionCompatibilityView: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.green.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             }
 
             // Removed rules (red)
@@ -244,7 +244,7 @@ struct VersionCompatibilityView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Color.green.opacity(0.1))
-                                .cornerRadius(4)
+                                .clipShape(.rect(cornerRadius: 4))
                         }
                     }
                 }
@@ -277,7 +277,7 @@ struct VersionCompatibilityView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
 }

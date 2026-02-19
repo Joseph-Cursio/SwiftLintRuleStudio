@@ -124,7 +124,7 @@ struct SeverityBadge: View {
             .padding(.vertical, 2)
             .background(severityColor.opacity(0.2))
             .foregroundStyle(severityColor)
-            .cornerRadius(4)
+            .clipShape(.rect(cornerRadius: 4))
     }
     
     private var severityColor: Color {

@@ -68,7 +68,7 @@ struct ConfigImportView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private var importModeSection: some View {
@@ -84,7 +84,7 @@ struct ConfigImportView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func errorSection(_ error: Error) -> some View {
@@ -98,7 +98,7 @@ struct ConfigImportView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.red.opacity(0.1))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private var successSection: some View {
@@ -111,7 +111,7 @@ struct ConfigImportView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.green.opacity(0.1))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func previewSection(_ preview: ConfigImportPreview) -> some View {
@@ -153,7 +153,7 @@ struct ConfigImportView: View {
                 }
                 .frame(maxHeight: 200)
                 .background(Color(NSColor.textBackgroundColor))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             }
 
             // Show diff if available
@@ -176,7 +176,7 @@ struct ConfigImportView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func diffSummary(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {

@@ -123,7 +123,7 @@ struct GitBranchDiffView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func errorSection(_ error: Error) -> some View {
@@ -137,7 +137,7 @@ struct GitBranchDiffView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.red.opacity(0.1))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func comparisonResultSection(_ result: ConfigComparisonResult) -> some View {
@@ -162,7 +162,7 @@ struct GitBranchDiffView: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.green.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             } else {
                 // Rules only in current
                 if !result.onlyInFirst.isEmpty {
@@ -211,7 +211,7 @@ struct GitBranchDiffView: View {
                     }
                     .padding()
                     .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
                 }
 
                 // Full YAML diff
@@ -226,7 +226,7 @@ struct GitBranchDiffView: View {
                             .padding(8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color(NSColor.textBackgroundColor))
-                            .cornerRadius(4)
+                            .clipShape(.rect(cornerRadius: 4))
 
                         Text(viewModel.selectedRef ?? "Other")
                             .font(.caption)
@@ -237,12 +237,12 @@ struct GitBranchDiffView: View {
                             .padding(8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color(NSColor.textBackgroundColor))
-                            .cornerRadius(4)
+                            .clipShape(.rect(cornerRadius: 4))
                     }
                 }
                 .padding()
                 .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(8)
+                .clipShape(.rect(cornerRadius: 8))
             }
         }
     }
@@ -264,6 +264,6 @@ struct GitBranchDiffView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 }

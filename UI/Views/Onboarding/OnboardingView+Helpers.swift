@@ -42,7 +42,7 @@ extension OnboardingView {
                 .font(.system(.body, design: .monospaced))
                 .padding(8)
                 .background(Color(NSColor.textBackgroundColor))
-                .cornerRadius(4)
+                .clipShape(.rect(cornerRadius: 4))
                 .textSelection(.enabled)
 
             Text(description)

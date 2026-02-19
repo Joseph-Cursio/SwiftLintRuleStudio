@@ -187,7 +187,7 @@ struct PresetBadge: View {
         .padding(.vertical, 4)
         .background(categoryColor.opacity(0.2))
         .foregroundStyle(categoryColor)
-        .cornerRadius(6)
+        .clipShape(.rect(cornerRadius: 6))
     }
 
     private var categoryColor: Color {

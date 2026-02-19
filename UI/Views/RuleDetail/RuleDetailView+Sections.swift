@@ -210,7 +210,7 @@ extension RuleDetailView {
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
 
@@ -276,7 +276,7 @@ extension RuleDetailView {
             }
             .frame(maxHeight: 500)
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
     

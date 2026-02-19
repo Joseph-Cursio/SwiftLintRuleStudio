@@ -95,7 +95,7 @@ extension OnboardingView {
                         }
                         .padding()
                         .background(Color(NSColor.controlBackgroundColor))
-                        .cornerRadius(8)
+                        .clipShape(.rect(cornerRadius: 8))
                     }
 
                 case .notInstalled:
@@ -139,7 +139,7 @@ extension OnboardingView {
                         }
                         .padding()
                         .background(Color(NSColor.controlBackgroundColor))
-                        .cornerRadius(8)
+                        .clipShape(.rect(cornerRadius: 8))
                         .padding(.horizontal, 40)
 
                         Button {

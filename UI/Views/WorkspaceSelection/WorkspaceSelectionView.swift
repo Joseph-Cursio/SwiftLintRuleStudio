@@ -111,7 +111,7 @@ struct WorkspaceSelectionView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
         .padding(.horizontal, 40)
     }
@@ -182,7 +182,7 @@ struct WorkspaceSelectionView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
         .contentShape(Rectangle())
         .accessibilityAddTraits(.isButton)
         .onTapGesture {

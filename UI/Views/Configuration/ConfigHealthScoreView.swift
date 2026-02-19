@@ -166,12 +166,12 @@ struct BreakdownRow: View {
                     Rectangle()
                         .fill(Color.gray.opacity(0.2))
                         .frame(height: 6)
-                        .cornerRadius(3)
+                        .clipShape(.rect(cornerRadius: 3))
 
                     Rectangle()
                         .fill(scoreColor)
                         .frame(width: geometry.size.width * CGFloat(score) / 100, height: 6)
-                        .cornerRadius(3)
+                        .clipShape(.rect(cornerRadius: 3))
                 }
             }
             .frame(height: 6)
@@ -221,7 +221,7 @@ struct RecommendationCard: View {
                         .padding(.vertical, 2)
                         .background(priorityColor.opacity(0.2))
                         .foregroundStyle(priorityColor)
-                        .cornerRadius(4)
+                        .clipShape(.rect(cornerRadius: 4))
                 }
 
                 Text(recommendation.description)

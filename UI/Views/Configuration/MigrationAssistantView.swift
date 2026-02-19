@@ -94,7 +94,7 @@ struct MigrationAssistantView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     @ViewBuilder
@@ -119,7 +119,7 @@ struct MigrationAssistantView: View {
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.green.opacity(0.1))
-                    .cornerRadius(8)
+                    .clipShape(.rect(cornerRadius: 8))
                 } else {
                     ForEach(plan.steps) { step in
                         stepRow(step)
@@ -143,7 +143,7 @@ struct MigrationAssistantView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
 
@@ -190,7 +190,7 @@ struct MigrationAssistantView: View {
                                 .padding(8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(NSColor.textBackgroundColor))
-                                .cornerRadius(4)
+                                .clipShape(.rect(cornerRadius: 4))
 
                             Text("After")
                                 .font(.caption)
@@ -201,7 +201,7 @@ struct MigrationAssistantView: View {
                                 .padding(8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(NSColor.textBackgroundColor))
-                                .cornerRadius(4)
+                                .clipShape(.rect(cornerRadius: 4))
                         }
                     }
 
@@ -227,7 +227,7 @@ struct MigrationAssistantView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(8)
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
 
@@ -248,14 +248,14 @@ struct MigrationAssistantView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.blue.opacity(0.1))
-                    .cornerRadius(4)
+                    .clipShape(.rect(cornerRadius: 4))
             } else {
                 Text("Manual")
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.orange.opacity(0.1))
-                    .cornerRadius(4)
+                    .clipShape(.rect(cornerRadius: 4))
             }
         }
         .padding(.vertical, 4)
