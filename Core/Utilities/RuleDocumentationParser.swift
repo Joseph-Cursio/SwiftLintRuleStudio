@@ -101,9 +101,9 @@ struct RuleDocumentationParser {
                         value = String(value.dropFirst().dropLast())
                     }
                     switch key {
-                    case "supports autocorrection:":
+                    case "supports autocorrection":
                         supportsAutocorrection = value.lowercased() == "yes"
-                    case "minimum swift compiler version:":
+                    case "minimum swift compiler version":
                         minimumSwiftVersion = value
                     default:
                         break
