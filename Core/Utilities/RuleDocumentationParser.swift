@@ -82,7 +82,7 @@ struct RuleDocumentationParser {
             }
             descriptionLines.append(trimmed)
         }
-        return descriptionLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        return descriptionLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func extractMetadata(from lines: [String]) -> Metadata {

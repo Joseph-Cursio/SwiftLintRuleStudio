@@ -9,7 +9,11 @@ extension RuleDetailView {
         // If we have markdown, check if the short description is already contained in it
         if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
             // Check if the description text appears in the markdown (case-insensitive, ignoring whitespace)
-            let normalizedDescription = rule.description.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let normalizedDescription = rule.description
+                .lowercased()
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: "\n", with: " ")
+                .replacingOccurrences(of: "  ", with: " ")
             let normalizedMarkdown = markdownDoc
                 .lowercased()
                 .replacingOccurrences(of: "\n", with: " ")

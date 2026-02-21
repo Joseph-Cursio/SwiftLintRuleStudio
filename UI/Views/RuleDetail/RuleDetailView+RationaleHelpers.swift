@@ -39,7 +39,7 @@ extension RuleDetailView {
         }
         
         if !rationaleLines.isEmpty {
-            return rationaleLines.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+            return rationaleLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
         return nil
