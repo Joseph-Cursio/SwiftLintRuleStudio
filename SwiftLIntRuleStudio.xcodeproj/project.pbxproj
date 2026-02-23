@@ -126,7 +126,7 @@
 				70C716712F43A97500B0D793 /* Claude Prompt Library.md */,
 				70C716722F43A97500B0D793 /* Cursor Prompt Library.md */,
 				70C716732F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md */,
-				);
+			);
 			path = docs;
 			sourceTree = "<group>";
 		};
@@ -258,7 +258,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-					70C716772F43A97500B0D793 /* Claude Prompt Library.md in Resources */,
+				70C716772F43A97500B0D793 /* Claude Prompt Library.md in Resources */,
 				70C716782F43A97500B0D793 /* Cursor Prompt Library.md in Resources */,
 				70C716792F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md in Resources */,
 			);

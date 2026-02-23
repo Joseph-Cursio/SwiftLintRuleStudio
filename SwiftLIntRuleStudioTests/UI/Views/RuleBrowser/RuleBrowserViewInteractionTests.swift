@@ -106,8 +106,7 @@ struct RuleBrowserViewInteractionTests {
         let wrapper = ViewWrapper(view: view)
         return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
-                let splitView = try? wrapper.view.inspect().find(ViewType.HStack.self)
-                return (try? splitView?.find(ViewType.List.self)) != nil
+                (try? wrapper.view.inspect().find(ViewType.List.self)) != nil
             }
         }
     }

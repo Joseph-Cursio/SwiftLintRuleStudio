@@ -11,7 +11,6 @@ import UniformTypeIdentifiers
 struct ViolationInspectorView: View {
     @EnvironmentObject var dependencies: DependencyContainer
     @StateObject var viewModel: ViolationInspectorViewModel
-    @State private var listWidth: CGFloat = 260
 
     init() {
         // Create temporary storage for initialization
@@ -46,12 +45,10 @@ struct ViolationInspectorView: View {
 #endif
     
     var body: some View {
-        HStack(spacing: 0) {
+        HSplitView {
             // Left panel: Violation List
             violationListView
-                .frame(width: listWidth)
-
-            DraggableDivider(width: $listWidth, minWidth: 200, maxWidth: 500)
+                .frame(minWidth: 450, idealWidth: 450, maxWidth: 560)
 
             // Right panel: Violation Detail or Empty State
             Group {
@@ -74,7 +71,8 @@ struct ViolationInspectorView: View {
                     emptyDetailView
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+            .layoutPriority(1)
         }
         .navigationTitle("Violations")
         .onAppear {

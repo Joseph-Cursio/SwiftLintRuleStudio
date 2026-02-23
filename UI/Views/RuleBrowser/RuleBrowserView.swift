@@ -13,7 +13,6 @@ struct RuleBrowserView: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
-    @State private var listWidth: CGFloat = 260
 
     init(ruleRegistry: RuleRegistry) {
         _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
@@ -24,12 +23,10 @@ struct RuleBrowserView: View {
     }
     
     var body: some View {
-        HStack(spacing: 0) {
+        HSplitView {
             // Left panel: Rule List
             ruleListView
-                .frame(width: listWidth)
-
-            DraggableDivider(width: $listWidth, minWidth: 200, maxWidth: 500)
+                .frame(minWidth: 450, idealWidth: 450, maxWidth: 560)
 
             // Right panel: Rule Detail
             Group {
@@ -42,7 +39,8 @@ struct RuleBrowserView: View {
                     Color.clear
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+            .layoutPriority(1)
         }
         .navigationTitle("Rules")
         .onChange(of: viewModel.filteredRules) { _, newRules in
