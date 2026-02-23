@@ -11,7 +11,9 @@ import UniformTypeIdentifiers
 struct ViolationInspectorView: View {
     @EnvironmentObject var dependencies: DependencyContainer
     @StateObject var viewModel: ViolationInspectorViewModel
-    
+    @State private var listWidth: CGFloat = 260
+    @State private var dragStartWidth: CGFloat = 260
+
     init() {
         // Create temporary storage for initialization
         // Will be updated in onAppear with actual storage from dependencies
@@ -48,10 +50,31 @@ struct ViolationInspectorView: View {
         HStack(spacing: 0) {
             // Left panel: Violation List
             violationListView
-                .frame(width: 300)
-            
-            Divider()
-            
+                .frame(width: listWidth)
+
+            // Draggable divider
+            Rectangle()
+                .fill(Color(nsColor: .separatorColor))
+                .frame(width: 1)
+                .overlay(
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(width: 8)
+                        .contentShape(Rectangle())
+                        .onHover { hovering in
+                            if hovering { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+                        }
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    listWidth = max(200, min(500, dragStartWidth + value.translation.width))
+                                }
+                                .onEnded { _ in
+                                    dragStartWidth = listWidth
+                                }
+                        )
+                )
+
             // Right panel: Violation Detail or Empty State
             Group {
                 if let selectedViolationId = viewModel.selectedViolationId,
