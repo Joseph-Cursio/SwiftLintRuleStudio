@@ -142,7 +142,6 @@ struct GitBranchDiffView: View {
         .clipShape(.rect(cornerRadius: 8))
     }
 
-    // swiftlint:disable:next function_body_length
     private func comparisonResultSection(_ result: ConfigComparisonResult) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Summary
@@ -168,7 +167,6 @@ struct GitBranchDiffView: View {
                 .background(Color.green.opacity(0.1))
                 .clipShape(.rect(cornerRadius: 8))
             } else {
-                // Rules only in current
                 if !result.onlyInFirst.isEmpty {
                     diffSection(
                         title: "Only in Current Branch",
@@ -178,7 +176,6 @@ struct GitBranchDiffView: View {
                     )
                 }
 
-                // Rules only in selected branch
                 if !result.onlyInSecond.isEmpty {
                     diffSection(
                         title: "Only in \(viewModel.selectedRef ?? "other branch")",
@@ -188,68 +185,74 @@ struct GitBranchDiffView: View {
                     )
                 }
 
-                // Rules with different settings
                 if !result.inBothDifferent.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Image(systemName: "pencil.circle.fill")
-                                .foregroundStyle(.orange)
-                                .accessibilityHidden(true)
-                            Text("Different Settings")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                        }
-
-                        ForEach(result.inBothDifferent) { diff in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(diff.ruleId)
-                                    .font(.system(.body, design: .monospaced))
-                                    .fontWeight(.semibold)
-                                ForEach(diff.differences, id: \.self) { detail in
-                                    Text(detail)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .padding(.leading, 24)
-                        }
-                    }
-                    .padding()
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .clipShape(.rect(cornerRadius: 8))
+                    modifiedRulesSection(result.inBothDifferent)
                 }
 
-                // Full YAML diff
-                DisclosureGroup("Full YAML Diff") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Current")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.blue)
-                        Text(result.diff.before.isEmpty ? "(no config)" : result.diff.before)
-                            .font(.system(.caption, design: .monospaced))
-                            .padding(8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color(NSColor.textBackgroundColor))
-                            .clipShape(.rect(cornerRadius: 4))
-
-                        Text(viewModel.selectedRef ?? "Other")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.purple)
-                        Text(result.diff.after.isEmpty ? "(no config)" : result.diff.after)
-                            .font(.system(.caption, design: .monospaced))
-                            .padding(8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color(NSColor.textBackgroundColor))
-                            .clipShape(.rect(cornerRadius: 4))
-                    }
-                }
-                .padding()
-                .background(Color(NSColor.controlBackgroundColor))
-                .clipShape(.rect(cornerRadius: 8))
+                yamlDiffSection(result.diff)
             }
         }
+    }
+
+    private func modifiedRulesSection(_ diffs: [RuleComparisonDiff]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "pencil.circle.fill")
+                    .foregroundStyle(.orange)
+                    .accessibilityHidden(true)
+                Text("Different Settings")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+            }
+
+            ForEach(diffs) { diff in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(diff.ruleId)
+                        .font(.system(.body, design: .monospaced))
+                        .fontWeight(.semibold)
+                    ForEach(diff.differences, id: \.self) { detail in
+                        Text(detail)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.leading, 24)
+            }
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
+    }
+
+    private func yamlDiffSection(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
+        DisclosureGroup("Full YAML Diff") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Current")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.blue)
+                Text(diff.before.isEmpty ? "(no config)" : diff.before)
+                    .font(.system(.caption, design: .monospaced))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(NSColor.textBackgroundColor))
+                    .clipShape(.rect(cornerRadius: 4))
+
+                Text(viewModel.selectedRef ?? "Other")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.purple)
+                Text(diff.after.isEmpty ? "(no config)" : diff.after)
+                    .font(.system(.caption, design: .monospaced))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(NSColor.textBackgroundColor))
+                    .clipShape(.rect(cornerRadius: 4))
+            }
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func diffSection(title: String, rules: [String], color: Color, icon: String) -> some View {

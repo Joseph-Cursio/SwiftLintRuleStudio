@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-// swiftlint:disable:next type_body_length
 struct VersionCompatibilityView: View {
-    @StateObject private var viewModel: VersionCompatibilityViewModel
+    @StateObject var viewModel: VersionCompatibilityViewModel
 
     init(
         checker: VersionCompatibilityCheckerProtocol,
@@ -106,7 +105,6 @@ struct VersionCompatibilityView: View {
         .padding(.vertical, 40)
     }
 
-    // swiftlint:disable:next function_body_length
     private func reportSection(_ report: CompatibilityReport) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Summary badge
@@ -136,155 +134,22 @@ struct VersionCompatibilityView: View {
                 .clipShape(.rect(cornerRadius: 8))
             }
 
-            // Removed rules (red)
             if !report.removedRules.isEmpty {
-                issueSection(
-                    title: "Removed Rules",
-                    subtitle: "These rules no longer exist and must be removed",
-                    color: .red,
-                    icon: "xmark.circle.fill"
-                ) {
-                    ForEach(report.removedRules) { rule in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(rule.ruleId)
-                                    .font(.system(.body, design: .monospaced))
-                                    .fontWeight(.semibold)
-                                Text(rule.message)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text("Removed in \(rule.removedInVersion)")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
-                    }
-                }
+                removedRulesSection(report.removedRules)
             }
 
-            // Deprecated rules (orange)
             if !report.deprecatedRules.isEmpty {
-                issueSection(
-                    title: "Deprecated Rules",
-                    subtitle: "These rules still work but should be migrated",
-                    color: .orange,
-                    icon: "exclamationmark.triangle.fill"
-                ) {
-                    ForEach(report.deprecatedRules) { rule in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(rule.ruleId)
-                                    .font(.system(.body, design: .monospaced))
-                                    .fontWeight(.semibold)
-                                Text(rule.message)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            if let replacement = rule.replacement {
-                                Text("Use: \(replacement)")
-                                    .font(.caption)
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                    }
-                }
+                deprecatedRulesSection(report.deprecatedRules)
             }
 
-            // Renamed rules (yellow)
             if !report.renamedRules.isEmpty {
-                issueSection(
-                    title: "Renamed Rules",
-                    subtitle: "These rules have been renamed",
-                    color: .yellow,
-                    icon: "arrow.right.circle.fill"
-                ) {
-                    ForEach(report.renamedRules) { rule in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack(spacing: 4) {
-                                    Text(rule.oldRuleId)
-                                        .font(.system(.body, design: .monospaced))
-                                        .strikethrough()
-                                    Image(systemName: "arrow.right")
-                                        .font(.caption)
-                                        .accessibilityHidden(true)
-                                    Text(rule.newRuleId)
-                                        .font(.system(.body, design: .monospaced))
-                                        .fontWeight(.semibold)
-                                }
-                            }
-                            Spacer()
-                            Button("Fix") {
-                                viewModel.applyRenaming(rule)
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    }
-
-                    Button("Fix All Renames") {
-                        viewModel.applyAllFixes()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .padding(.top, 4)
-                }
+                renamedRulesSection(report.renamedRules)
             }
 
-            // New rules available (green/informational)
             if !report.availableNewRules.isEmpty {
-                issueSection(
-                    title: "New Rules Available",
-                    subtitle: "Rules added in recent SwiftLint versions that you could enable",
-                    color: .green,
-                    icon: "plus.circle.fill"
-                ) {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 8) {
-                        ForEach(report.availableNewRules, id: \.self) { ruleId in
-                            Text(ruleId)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.green.opacity(0.1))
-                                .clipShape(.rect(cornerRadius: 4))
-                        }
-                    }
-                }
+                newRulesAvailableSection(report.availableNewRules)
             }
         }
     }
 
-    private func issueSection<Content: View>(
-        title: String,
-        subtitle: String,
-        color: Color,
-        icon: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.headline)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                content()
-            }
-            .padding()
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(.rect(cornerRadius: 8))
-        }
-    }
 }

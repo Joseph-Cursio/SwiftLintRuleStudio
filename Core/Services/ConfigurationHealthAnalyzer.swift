@@ -61,14 +61,30 @@ struct ConfigHealthReport: Identifiable, Sendable {
         let noDeprecatedRules: Int   // 10% weight - no deprecated rules
         let pathConfiguration: Int   // 15% weight - proper excludes set up
 
-        // swiftlint:disable:next large_tuple
-        var details: [(name: String, score: Int, weight: Int, description: String)] {
+        struct HealthScoreDetail: Sendable {
+            let name: String
+            let score: Int
+            let weight: Int
+            let description: String
+        }
+
+        var details: [HealthScoreDetail] {
             [
-                ("Rules Coverage", rulesCoverage, 40, "Percentage of rules enabled"),
-                ("Category Balance", categoryBalance, 20, "Coverage across rule categories"),
-                ("Opt-In Adoption", optInAdoption, 15, "Recommended opt-in rules enabled"),
-                ("No Deprecated Rules", noDeprecatedRules, 10, "Avoiding deprecated rules"),
-                ("Path Configuration", pathConfiguration, 15, "Proper include/exclude paths")
+                HealthScoreDetail(
+                    name: "Rules Coverage", score: rulesCoverage,
+                    weight: 40, description: "Percentage of rules enabled"),
+                HealthScoreDetail(
+                    name: "Category Balance", score: categoryBalance,
+                    weight: 20, description: "Coverage across rule categories"),
+                HealthScoreDetail(
+                    name: "Opt-In Adoption", score: optInAdoption,
+                    weight: 15, description: "Recommended opt-in rules enabled"),
+                HealthScoreDetail(
+                    name: "No Deprecated Rules", score: noDeprecatedRules,
+                    weight: 10, description: "Avoiding deprecated rules"),
+                HealthScoreDetail(
+                    name: "Path Configuration", score: pathConfiguration,
+                    weight: 15, description: "Proper include/exclude paths")
             ]
         }
     }
