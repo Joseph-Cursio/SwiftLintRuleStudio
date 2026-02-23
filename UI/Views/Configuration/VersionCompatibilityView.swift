@@ -97,6 +97,7 @@ struct VersionCompatibilityView: View {
             Image(systemName: "checkmark.shield")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Text("Click \"Check\" to analyze your configuration compatibility")
                 .foregroundStyle(.secondary)
         }
@@ -111,6 +112,7 @@ struct VersionCompatibilityView: View {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
                     Text("\(report.totalIssueCount) issue\(report.totalIssueCount == 1 ? "" : "s") found")
                         .fontWeight(.semibold)
                 }
@@ -122,6 +124,7 @@ struct VersionCompatibilityView: View {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
+                        .accessibilityHidden(true)
                     Text("No compatibility issues found")
                         .fontWeight(.semibold)
                 }
@@ -204,6 +207,7 @@ struct VersionCompatibilityView: View {
                                         .strikethrough()
                                     Image(systemName: "arrow.right")
                                         .font(.caption)
+                                        .accessibilityHidden(true)
                                     Text(rule.newRuleId)
                                         .font(.system(.body, design: .monospaced))
                                         .fontWeight(.semibold)
@@ -263,6 +267,7 @@ struct VersionCompatibilityView: View {
             HStack {
                 Image(systemName: icon)
                     .foregroundStyle(color)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.headline)

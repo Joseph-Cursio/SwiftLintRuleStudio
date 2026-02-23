@@ -14,7 +14,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Valid Configuration Tests
 
     @Test("Empty configuration is valid")
-    func testEmptyConfigIsValid() async {
+    func testEmptyConfigIsValid() {
         let validator = ConfigurationValidator()
         let config = YAMLConfigurationEngine.YAMLConfig()
         let result = validator.validate(config, knownRuleIds: [])
@@ -25,7 +25,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Valid configuration with rules passes validation")
-    func testValidConfigWithRules() async {
+    func testValidConfigWithRules() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules["force_cast"] = RuleConfiguration(enabled: true, severity: .warning)
@@ -39,7 +39,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Severity Validation Tests
 
     @Test("Valid severity values pass validation")
-    func testValidSeverityValues() async {
+    func testValidSeverityValues() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules["rule1"] = RuleConfiguration(enabled: true, severity: .warning)
@@ -57,7 +57,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Path Validation Tests
 
     @Test("Empty included path fails validation")
-    func testEmptyIncludedPathFails() async {
+    func testEmptyIncludedPathFails() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.included = ["Sources", ""]
@@ -75,7 +75,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Empty excluded path fails validation")
-    func testEmptyExcludedPathFails() async {
+    func testEmptyExcludedPathFails() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.excluded = ["", "Pods"]
@@ -93,7 +93,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Valid paths pass validation")
-    func testValidPathsPass() async {
+    func testValidPathsPass() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.included = ["Sources", "Tests"]
@@ -107,7 +107,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Unknown Rule Warnings Tests
 
     @Test("Unknown rule ID generates warning")
-    func testUnknownRuleIdWarning() async {
+    func testUnknownRuleIdWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules["unknown_rule"] = RuleConfiguration(enabled: true)
@@ -119,7 +119,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Unknown rule in disabled_rules generates warning")
-    func testUnknownDisabledRuleWarning() async {
+    func testUnknownDisabledRuleWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.disabledRules = ["unknown_rule"]
@@ -130,7 +130,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Unknown rule in opt_in_rules generates warning")
-    func testUnknownOptInRuleWarning() async {
+    func testUnknownOptInRuleWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.optInRules = ["unknown_rule"]
@@ -143,7 +143,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Conflict Detection Tests
 
     @Test("Rule in both disabled and opt-in fails validation")
-    func testConflictingRuleFails() async {
+    func testConflictingRuleFails() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.disabledRules = ["force_cast"]
@@ -156,7 +156,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Different rules in disabled and opt-in passes validation")
-    func testNoConflictPasses() async {
+    func testNoConflictPasses() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.disabledRules = ["force_cast"]
@@ -173,7 +173,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Duplicate Detection Tests
 
     @Test("Duplicate rules in disabled_rules generates warning")
-    func testDuplicateDisabledRulesWarning() async {
+    func testDuplicateDisabledRulesWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.disabledRules = ["force_cast", "force_cast"]
@@ -184,7 +184,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Duplicate rules in opt_in_rules generates warning")
-    func testDuplicateOptInRulesWarning() async {
+    func testDuplicateOptInRulesWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.optInRules = ["line_length", "line_length", "force_cast"]
@@ -197,7 +197,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Parameter Validation Tests
 
     @Test("Negative parameter value generates warning")
-    func testNegativeParameterWarning() async {
+    func testNegativeParameterWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules["line_length"] = RuleConfiguration(
@@ -211,7 +211,7 @@ struct ConfigurationValidatorTests {
     }
 
     @Test("Empty string parameter generates warning")
-    func testEmptyStringParameterWarning() async {
+    func testEmptyStringParameterWarning() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules["custom_rule"] = RuleConfiguration(
@@ -227,7 +227,7 @@ struct ConfigurationValidatorTests {
     // MARK: - Similar Rule Suggestion Tests
 
     @Test("Suggests similar rule ID for typos")
-    func testSuggestsSimilarRuleId() async {
+    func testSuggestsSimilarRuleId() {
         let validator = ConfigurationValidator()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules["forc_cast"] = RuleConfiguration(enabled: true) // Typo

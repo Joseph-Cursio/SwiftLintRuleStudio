@@ -29,7 +29,7 @@ struct RuleBrowserViewInteractionTests {
         category: RuleCategory = .lint,
         isOptIn: Bool = false,
         isEnabled: Bool = false
-    ) async -> Rule {
+    ) -> Rule {
         Rule(
             id: id,
             name: name,

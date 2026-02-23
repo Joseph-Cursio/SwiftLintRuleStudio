@@ -47,7 +47,7 @@ struct ConfigImportServiceTests {
         importedConfig.rules = ["line_length": RuleConfiguration(enabled: true)]
 
         let preview = ConfigImportPreview(
-            sourceURL: URL(string: "https://example.com/.swiftlint.yml")!,
+            sourceURL: try #require(URL(string: "https://example.com/.swiftlint.yml")),
             fetchedYAML: "rules:\n  line_length: true\n",
             parsedConfig: importedConfig,
             diff: nil,
@@ -76,7 +76,7 @@ struct ConfigImportServiceTests {
         importedConfig.rules = ["line_length": RuleConfiguration(enabled: true)]
 
         let preview = ConfigImportPreview(
-            sourceURL: URL(string: "https://example.com/.swiftlint.yml")!,
+            sourceURL: try #require(URL(string: "https://example.com/.swiftlint.yml")),
             fetchedYAML: "rules:\n  line_length: true\n",
             parsedConfig: importedConfig,
             diff: nil,
@@ -106,7 +106,7 @@ struct ConfigImportServiceTests {
         importedConfig.rules = ["line_length": RuleConfiguration(enabled: true, severity: .error)]
 
         let preview = ConfigImportPreview(
-            sourceURL: URL(string: "https://example.com/.swiftlint.yml")!,
+            sourceURL: try #require(URL(string: "https://example.com/.swiftlint.yml")),
             fetchedYAML: "rules:\n  line_length:\n    severity: error\n",
             parsedConfig: importedConfig,
             diff: nil,
@@ -130,7 +130,7 @@ struct ConfigImportServiceTests {
         let service = ConfigImportService(fetcher: fetcher)
 
         let preview = try await service.fetchAndPreview(
-            from: URL(string: "https://example.com/.swiftlint.yml")!,
+            from: try #require(URL(string: "https://example.com/.swiftlint.yml")),
             currentConfigPath: nil
         )
 
@@ -148,7 +148,7 @@ struct ConfigImportServiceTests {
         let service = ConfigImportService(fetcher: fetcher)
 
         let preview = try await service.fetchAndPreview(
-            from: URL(string: "https://example.com/.swiftlint.yml")!,
+            from: try #require(URL(string: "https://example.com/.swiftlint.yml")),
             currentConfigPath: existingConfig
         )
 
@@ -166,7 +166,7 @@ private final class MockURLConfigFetcher: URLConfigFetcherProtocol, @unchecked S
         self.yamlContent = yamlContent
     }
 
-    func fetchConfig(from url: URL) async throws -> String {
+    func fetchConfig(from url: URL) throws -> String {
         return yamlContent
     }
 

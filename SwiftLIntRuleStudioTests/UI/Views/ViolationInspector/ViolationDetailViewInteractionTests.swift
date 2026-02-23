@@ -30,7 +30,7 @@ struct ViolationDetailViewInteractionTests {
         message: String = "Test violation message",
         suppressed: Bool = false,
         resolvedAt: Date? = nil
-    ) async -> Violation {
+    ) -> Violation {
         Violation(
             id: id,
             ruleID: ruleID,

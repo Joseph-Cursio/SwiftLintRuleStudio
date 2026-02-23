@@ -21,7 +21,7 @@ extension RuleRegistry {
         }
     }
 
-    private func updateRule(at index: Int, with rule: Rule) async {
+    private func updateRule(at index: Int, with rule: Rule) {
         guard index < rules.count else { return }
         var updatedRules = rules
         updatedRules[index] = rule

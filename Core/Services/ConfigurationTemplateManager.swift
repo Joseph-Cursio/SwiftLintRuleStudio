@@ -116,7 +116,8 @@ class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol {
 
     init() {
         // Set up user templates directory
-        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.temporaryDirectory
         userTemplatesDirectory = appSupport
             .appendingPathComponent("SwiftLintRuleStudio")
             .appendingPathComponent("Templates")
@@ -231,10 +232,19 @@ enum TemplateError: LocalizedError {
 
 /// Static definitions for built-in templates
 enum BuiltInTemplates {
+    /// Converts a known-valid UUID string literal into a UUID.
+    /// Raises a precondition failure (not a crash in production) if the string is malformed.
+    private static func builtInID(_ string: String) -> UUID {
+        guard let uuid = UUID(uuidString: string) else {
+            preconditionFailure("Invalid built-in template UUID literal: \(string)")
+        }
+        return uuid
+    }
+
     // MARK: - iOS App Templates
 
     static let iOSStrict = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+        id: builtInID("00000000-0000-0000-0000-000000000001"),
         name: "iOS App - Strict",
         description: "Maximum code quality for iOS applications",
         projectType: .iOSApp,
@@ -322,7 +332,7 @@ enum BuiltInTemplates {
     )
 
     static let iOSBalanced = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+        id: builtInID("00000000-0000-0000-0000-000000000002"),
         name: "iOS App - Balanced",
         description: "Good balance of quality and flexibility for iOS apps",
         projectType: .iOSApp,
@@ -372,7 +382,7 @@ enum BuiltInTemplates {
     )
 
     static let iOSLenient = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+        id: builtInID("00000000-0000-0000-0000-000000000003"),
         name: "iOS App - Lenient",
         description: "Minimal rules focused on critical issues",
         projectType: .iOSApp,
@@ -405,7 +415,7 @@ enum BuiltInTemplates {
     // MARK: - macOS App Templates
 
     static let macOSStrict = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!,
+        id: builtInID("00000000-0000-0000-0000-000000000004"),
         name: "macOS App - Strict",
         description: "Maximum code quality for macOS applications",
         projectType: .macOSApp,
@@ -458,7 +468,7 @@ enum BuiltInTemplates {
     )
 
     static let macOSBalanced = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!,
+        id: builtInID("00000000-0000-0000-0000-000000000005"),
         name: "macOS App - Balanced",
         description: "Good balance for macOS applications",
         projectType: .macOSApp,
@@ -487,7 +497,7 @@ enum BuiltInTemplates {
     )
 
     static let macOSLenient = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000006")!,
+        id: builtInID("00000000-0000-0000-0000-000000000006"),
         name: "macOS App - Lenient",
         description: "Minimal rules for macOS applications",
         projectType: .macOSApp,
@@ -512,7 +522,7 @@ enum BuiltInTemplates {
     // MARK: - Swift Package Templates
 
     static let packageStrict = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000007")!,
+        id: builtInID("00000000-0000-0000-0000-000000000007"),
         name: "Swift Package - Strict",
         description: "Maximum code quality for Swift packages",
         projectType: .swiftPackage,
@@ -560,7 +570,7 @@ enum BuiltInTemplates {
     )
 
     static let packageBalanced = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000008")!,
+        id: builtInID("00000000-0000-0000-0000-000000000008"),
         name: "Swift Package - Balanced",
         description: "Good balance for Swift packages",
         projectType: .swiftPackage,
@@ -586,7 +596,7 @@ enum BuiltInTemplates {
     )
 
     static let packageLenient = ConfigurationTemplate(
-        id: UUID(uuidString: "00000000-0000-0000-0000-000000000009")!,
+        id: builtInID("00000000-0000-0000-0000-000000000009"),
         name: "Swift Package - Lenient",
         description: "Minimal rules for Swift packages",
         projectType: .swiftPackage,

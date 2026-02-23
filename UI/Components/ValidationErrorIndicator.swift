@@ -74,6 +74,7 @@ struct ValidationErrorRow: View {
                     } label: {
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                             .foregroundStyle(.secondary)
+                            .accessibilityLabel(isExpanded ? "Collapse suggestion" : "Expand suggestion")
                     }
                     .buttonStyle(.plain)
                 }

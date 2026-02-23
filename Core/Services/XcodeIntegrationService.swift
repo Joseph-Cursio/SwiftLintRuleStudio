@@ -39,7 +39,7 @@ class XcodeIntegrationService {
         line: Int,
         column: Int?,
         in workspace: Workspace
-    ) async throws -> Bool {
+    ) throws -> Bool {
         // 1. Resolve file path
         let fileURL = try resolveFileURL(path, in: workspace)
         

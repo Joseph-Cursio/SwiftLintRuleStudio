@@ -187,14 +187,14 @@ private extension SafeRulesDiscoveryView {
         return results
     }
 
-    func finishDiscovery(with results: [RuleImpactResult], selectedRuleIds: [String]) async {
+    func finishDiscovery(with results: [RuleImpactResult], selectedRuleIds: [String]) {
         safeRules = results
         selectedRules = Set(selectedRuleIds)
         isDiscovering = false
         discoveryProgress = nil
     }
 
-    func failDiscovery(with error: Error) async {
+    func failDiscovery(with error: Error) {
         errorMessage = error.localizedDescription
         showError = true
         isDiscovering = false

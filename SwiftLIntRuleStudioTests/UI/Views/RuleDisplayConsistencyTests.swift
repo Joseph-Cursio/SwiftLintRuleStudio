@@ -21,7 +21,7 @@ struct RuleDisplayConsistencyTests {
     
     // MARK: - Test Data Helpers
     
-    private func makeTestRule(id: String, name: String, isEnabled: Bool, isOptIn: Bool = false) async -> Rule {
+    private func makeTestRule(id: String, name: String, isEnabled: Bool, isOptIn: Bool = false) -> Rule {
         Rule(
             id: id,
             name: name,

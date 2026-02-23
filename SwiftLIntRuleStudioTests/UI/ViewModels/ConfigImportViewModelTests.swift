@@ -15,10 +15,16 @@ struct ConfigImportViewModelTests {
     // MARK: - Helpers
 
     private static let configPath = URL(fileURLWithPath: "/tmp/.swiftlint.yml")
+    private static let previewSourceURL: URL = {
+        guard let url = URL(string: "https://example.com/.swiftlint.yml") else {
+            preconditionFailure("Invalid test URL constant")
+        }
+        return url
+    }()
 
     private func makePreview() -> ConfigImportPreview {
         ConfigImportPreview(
-            sourceURL: URL(string: "https://example.com/.swiftlint.yml")!,
+            sourceURL: Self.previewSourceURL,
             fetchedYAML: "disabled_rules: []",
             parsedConfig: YAMLConfigurationEngine.YAMLConfig(),
             diff: nil,
@@ -236,7 +242,7 @@ private final class SpyConfigImportService: ConfigImportServiceProtocol, @unchec
         self.shouldThrowOnApply = shouldThrowOnApply
     }
 
-    func fetchAndPreview(from url: URL, currentConfigPath: URL?) async throws -> ConfigImportPreview {
+    func fetchAndPreview(from url: URL, currentConfigPath: URL?) throws -> ConfigImportPreview {
         fetchCallCount += 1
         lastFetchURL = url
         if shouldThrow {

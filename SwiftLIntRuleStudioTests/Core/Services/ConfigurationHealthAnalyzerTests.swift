@@ -35,7 +35,7 @@ struct ConfigurationHealthAnalyzerTests {
     // MARK: - Basic Analysis Tests
 
     @Test("Analyzer returns valid report for empty config")
-    func testAnalyzesEmptyConfig() async {
+    func testAnalyzesEmptyConfig() {
         let analyzer = ConfigurationHealthAnalyzer()
         let config = YAMLConfigurationEngine.YAMLConfig()
         let report = analyzer.analyze(config: config, knownRules: [])
@@ -45,7 +45,7 @@ struct ConfigurationHealthAnalyzerTests {
     }
 
     @Test("Analyzer returns higher score for well-configured project")
-    func testHighScoreForWellConfiguredProject() async {
+    func testHighScoreForWellConfiguredProject() {
         let analyzer = ConfigurationHealthAnalyzer()
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.excluded = ["Pods", "Carthage", "vendor"]
@@ -72,7 +72,7 @@ struct ConfigurationHealthAnalyzerTests {
     }
 
     @Test("Analyzer returns lower score for poor configuration")
-    func testLowScoreForPoorConfiguration() async {
+    func testLowScoreForPoorConfiguration() {
         let analyzer = ConfigurationHealthAnalyzer()
         var config = YAMLConfigurationEngine.YAMLConfig()
         // No excluded paths, no opt-in rules, many rules disabled
@@ -123,7 +123,7 @@ struct ConfigurationHealthAnalyzerTests {
     // MARK: - Score Breakdown Tests
 
     @Test("Score breakdown includes all components")
-    func testScoreBreakdownComponents() async {
+    func testScoreBreakdownComponents() {
         let analyzer = ConfigurationHealthAnalyzer()
         let config = YAMLConfigurationEngine.YAMLConfig()
         let report = analyzer.analyze(config: config, knownRules: [])
@@ -140,7 +140,7 @@ struct ConfigurationHealthAnalyzerTests {
     }
 
     @Test("Score breakdown weights sum to 100")
-    func testScoreBreakdownWeights() async {
+    func testScoreBreakdownWeights() {
         let analyzer = ConfigurationHealthAnalyzer()
         let config = YAMLConfigurationEngine.YAMLConfig()
         let report = analyzer.analyze(config: config, knownRules: [])
@@ -150,7 +150,7 @@ struct ConfigurationHealthAnalyzerTests {
     }
 
     @Test("Path configuration score improves with excluded paths")
-    func testPathConfigurationScore() async {
+    func testPathConfigurationScore() {
         let analyzer = ConfigurationHealthAnalyzer()
 
         let configWithout = YAMLConfigurationEngine.YAMLConfig()
@@ -166,7 +166,7 @@ struct ConfigurationHealthAnalyzerTests {
     // MARK: - Recommendations Tests
 
     @Test("Generates recommendations for poor configuration")
-    func testGeneratesRecommendations() async {
+    func testGeneratesRecommendations() {
         let analyzer = ConfigurationHealthAnalyzer()
         var config = YAMLConfigurationEngine.YAMLConfig()
         // Poor config: no excludes, no opt-in rules
@@ -184,7 +184,7 @@ struct ConfigurationHealthAnalyzerTests {
     }
 
     @Test("Recommendations are sorted by priority")
-    func testRecommendationsSortedByPriority() async {
+    func testRecommendationsSortedByPriority() {
         let analyzer = ConfigurationHealthAnalyzer()
         let config = YAMLConfigurationEngine.YAMLConfig()
         // Trigger multiple recommendations
@@ -216,7 +216,7 @@ struct ConfigurationHealthAnalyzerTests {
     // MARK: - ConfigHealthReport Tests
 
     @Test("ConfigHealthReport has unique ID")
-    func testConfigHealthReportHasUniqueId() async {
+    func testConfigHealthReportHasUniqueId() {
         let analyzer = ConfigurationHealthAnalyzer()
         let config = YAMLConfigurationEngine.YAMLConfig()
 
@@ -258,7 +258,7 @@ struct ConfigurationHealthAnalyzerTests {
     // MARK: - Category Balance Tests
 
     @Test("Category balance improves with rules across categories")
-    func testCategoryBalance() async {
+    func testCategoryBalance() {
         let analyzer = ConfigurationHealthAnalyzer()
 
         // Single category
@@ -286,7 +286,7 @@ struct ConfigurationHealthAnalyzerTests {
     // MARK: - Opt-In Adoption Tests
 
     @Test("Opt-in adoption improves with recommended rules enabled")
-    func testOptInAdoption() async {
+    func testOptInAdoption() {
         let analyzer = ConfigurationHealthAnalyzer()
 
         let config1 = YAMLConfigurationEngine.YAMLConfig()

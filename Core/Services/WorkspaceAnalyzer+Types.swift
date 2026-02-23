@@ -48,14 +48,6 @@ struct AnalysisProgress {
     }
 }
 
-// MARK: - Analysis Scope
-
-enum AnalysisScope {
-    case workspace
-    case files([URL])
-    case directory(URL)
-}
-
 // MARK: - Errors
 
 enum WorkspaceAnalyzerError: LocalizedError {

@@ -45,7 +45,7 @@ enum SwiftLintDeprecations {
         // 0.42.0
         "unused_import": "unused_import",
         // 0.55.0
-        "no_space_in_method_call": "no_space_in_method_call",
+        "no_space_in_method_call": "no_space_in_method_call"
     ]
 
     // MARK: - Deprecated Rules (still work but will be removed)
@@ -95,7 +95,7 @@ enum SwiftLintDeprecations {
             deprecatedInVersion: "0.50.0",
             replacement: "trailing_closure",
             message: "Use 'trailing_closure' instead."
-        ),
+        )
     ]
 
     // MARK: - Removed Rules (no longer recognized by SwiftLint)
@@ -125,7 +125,7 @@ enum SwiftLintDeprecations {
             removedInVersion: "0.35.0",
             replacement: "type_name",
             message: "Configure min_length on 'type_name' instead."
-        ),
+        )
     ]
 
     // MARK: - Version Rule Additions (version -> new rules added)
@@ -148,7 +148,7 @@ enum SwiftLintDeprecations {
         "0.50.0": ["sorted_enum_cases", "self_binding", "shorthand_optional_binding"],
         "0.52.0": ["superfluous_else"],
         "0.54.0": ["blanket_disable_command"],
-        "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"],
+        "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"]
     ]
 
     // MARK: - Helpers

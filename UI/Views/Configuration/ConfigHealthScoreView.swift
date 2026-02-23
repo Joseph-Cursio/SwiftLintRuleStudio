@@ -159,6 +159,8 @@ struct BreakdownRow: View {
                     isExpanded.toggle()
                 }
             }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint(isExpanded ? "Collapse details" : "Expand details")
 
             // Progress bar
             GeometryReader { geometry in

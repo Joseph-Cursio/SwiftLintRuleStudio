@@ -14,7 +14,7 @@ struct ConfigurationTemplateManagerTests {
     // MARK: - Built-in Templates Tests
 
     @Test("Built-in templates exist")
-    func testBuiltInTemplatesExist() async {
+    func testBuiltInTemplatesExist() {
         let manager = ConfigurationTemplateManager()
         let templates = manager.builtInTemplates
 
@@ -22,7 +22,7 @@ struct ConfigurationTemplateManagerTests {
     }
 
     @Test("Each covered project type has all coding styles")
-    func testEachProjectTypeHasAllStyles() async {
+    func testEachProjectTypeHasAllStyles() {
         let manager = ConfigurationTemplateManager()
         let templates = manager.builtInTemplates
 
@@ -39,7 +39,7 @@ struct ConfigurationTemplateManagerTests {
     }
 
     @Test("All built-in templates have unique IDs")
-    func testBuiltInTemplatesHaveUniqueIds() async {
+    func testBuiltInTemplatesHaveUniqueIds() {
         let manager = ConfigurationTemplateManager()
         let templates = manager.builtInTemplates
 
@@ -48,7 +48,7 @@ struct ConfigurationTemplateManagerTests {
     }
 
     @Test("All built-in templates have valid YAML content")
-    func testBuiltInTemplatesHaveValidYAML() async {
+    func testBuiltInTemplatesHaveValidYAML() {
         let manager = ConfigurationTemplateManager()
         let templates = manager.builtInTemplates
 
@@ -62,7 +62,7 @@ struct ConfigurationTemplateManagerTests {
     }
 
     @Test("All built-in templates are marked as built-in")
-    func testBuiltInTemplatesAreMarkedAsBuiltIn() async {
+    func testBuiltInTemplatesAreMarkedAsBuiltIn() {
         let manager = ConfigurationTemplateManager()
         let templates = manager.builtInTemplates
 
@@ -74,7 +74,7 @@ struct ConfigurationTemplateManagerTests {
     // MARK: - Filter Tests
 
     @Test("Can filter templates by project type")
-    func testFilterByProjectType() async {
+    func testFilterByProjectType() {
         let manager = ConfigurationTemplateManager()
 
         let iosCount = manager.templates(for: .iOSApp).count
@@ -87,7 +87,7 @@ struct ConfigurationTemplateManagerTests {
     }
 
     @Test("Can filter templates by coding style")
-    func testFilterByCodingStyle() async {
+    func testFilterByCodingStyle() {
         let manager = ConfigurationTemplateManager()
 
         let strictCount = manager.templates(for: .strict).count
@@ -178,7 +178,7 @@ struct ConfigurationTemplateManagerTests {
     // MARK: - Template Application Tests
 
     @Test("Can apply template to file")
-    func testApplyTemplate() async throws {
+    func testApplyTemplate() throws {
         let tempDir = FileManager.default.temporaryDirectory
         let configPath = tempDir.appendingPathComponent("test_\(UUID()).swiftlint.yml")
 

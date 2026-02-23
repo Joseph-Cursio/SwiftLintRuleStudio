@@ -50,12 +50,10 @@ class WorkspaceAnalyzer: ObservableObject {
     /// - Parameters:
     ///   - workspace: The workspace to analyze
     ///   - configPath: Optional path to SwiftLint configuration file
-    ///   - scope: Analysis scope (nil = entire workspace)
     /// - Returns: Analysis result with violations
     func analyze(
         workspace: Workspace,
-        configPath: URL? = nil,
-        scope: AnalysisScope? = nil
+        configPath: URL? = nil
     ) async throws -> AnalysisResult {
         cancelAnalysis()
         let startedAt = Date()

@@ -93,7 +93,7 @@ struct HealthRecommendation: Identifiable, Sendable {
 
         static func < (lhs: Priority, rhs: Priority) -> Bool {
             let order: [Priority] = [.high, .medium, .low]
-            return order.firstIndex(of: lhs)! < order.firstIndex(of: rhs)!
+            return (order.firstIndex(of: lhs) ?? 0) < (order.firstIndex(of: rhs) ?? 0)
         }
     }
 

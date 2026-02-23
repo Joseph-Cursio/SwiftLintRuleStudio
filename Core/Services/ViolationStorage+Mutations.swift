@@ -2,7 +2,7 @@ import Foundation
 import SQLite3
 
 extension ViolationStorage {
-    func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {
+    func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -211,7 +211,7 @@ extension ViolationStorage {
         sqlite3_bind_text(statement, index, cString, -1, free)
     }
     
-    func suppressViolations(_ violationIds: [UUID], reason: String) async throws {
+    func suppressViolations(_ violationIds: [UUID], reason: String) throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -263,7 +263,7 @@ extension ViolationStorage {
         }
     }
     
-    func resolveViolations(_ violationIds: [UUID]) async throws {
+    func resolveViolations(_ violationIds: [UUID]) throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }
@@ -311,7 +311,7 @@ extension ViolationStorage {
         }
     }
     
-    func deleteViolations(for workspaceId: UUID) async throws {
+    func deleteViolations(for workspaceId: UUID) throws {
         guard let db = database else {
             throw ViolationStorageError.databaseNotOpen
         }

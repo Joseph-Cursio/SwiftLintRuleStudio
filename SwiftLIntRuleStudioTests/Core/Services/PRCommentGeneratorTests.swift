@@ -14,7 +14,7 @@ struct PRCommentGeneratorTests {
     // MARK: - Basic Generation Tests
 
     @Test("Generates markdown with added rules")
-    func testGeneratesMarkdownWithAddedRules() async {
+    func testGeneratesMarkdownWithAddedRules() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["force_cast", "line_length"],
@@ -33,7 +33,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Generates markdown with removed rules")
-    func testGeneratesMarkdownWithRemovedRules() async {
+    func testGeneratesMarkdownWithRemovedRules() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: [],
@@ -49,7 +49,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Generates markdown with modified rules")
-    func testGeneratesMarkdownWithModifiedRules() async {
+    func testGeneratesMarkdownWithModifiedRules() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: [],
@@ -65,7 +65,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Generates markdown with all change types")
-    func testGeneratesMarkdownWithAllChangeTypes() async {
+    func testGeneratesMarkdownWithAllChangeTypes() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["new_rule"],
@@ -86,7 +86,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Handles empty diff correctly")
-    func testHandlesEmptyDiff() async {
+    func testHandlesEmptyDiff() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: [],
@@ -106,7 +106,7 @@ struct PRCommentGeneratorTests {
     // MARK: - Options Tests
 
     @Test("Respects includeHeader option")
-    func testRespectsIncludeHeaderOption() async {
+    func testRespectsIncludeHeaderOption() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["rule"],
@@ -130,7 +130,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Respects includeFooter option")
-    func testRespectsIncludeFooterOption() async {
+    func testRespectsIncludeFooterOption() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["rule"],
@@ -154,7 +154,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Respects includeRuleLinks option")
-    func testRespectsIncludeRuleLinksOption() async {
+    func testRespectsIncludeRuleLinksOption() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["force_cast"],
@@ -178,7 +178,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Respects includeDiffSummary option")
-    func testRespectsIncludeDiffSummaryOption() async {
+    func testRespectsIncludeDiffSummaryOption() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["rule"],
@@ -202,7 +202,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Respects customTitle option")
-    func testRespectsCustomTitleOption() async {
+    func testRespectsCustomTitleOption() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["rule"],
@@ -221,7 +221,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("Minimal options produce compact output")
-    func testMinimalOptionsProduceCompactOutput() async {
+    func testMinimalOptionsProduceCompactOutput() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["rule"],
@@ -242,7 +242,7 @@ struct PRCommentGeneratorTests {
     // MARK: - Sorting Tests
 
     @Test("Rules are sorted alphabetically")
-    func testRulesAreSortedAlphabetically() async {
+    func testRulesAreSortedAlphabetically() {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["zebra_rule", "alpha_rule", "middle_rule"],
@@ -271,7 +271,7 @@ struct PRCommentGeneratorTests {
     // MARK: - Extension Tests
 
     @Test("ConfigDiff extension generates markdown")
-    func testConfigDiffExtension() async {
+    func testConfigDiffExtension() {
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["test_rule"],
             removedRules: [],
@@ -286,7 +286,7 @@ struct PRCommentGeneratorTests {
     }
 
     @Test("ConfigDiff extension respects options")
-    func testConfigDiffExtensionWithOptions() async {
+    func testConfigDiffExtensionWithOptions() {
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["test_rule"],
             removedRules: [],

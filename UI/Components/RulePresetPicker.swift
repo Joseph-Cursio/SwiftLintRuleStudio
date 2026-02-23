@@ -66,6 +66,7 @@ struct RulePresetBrowserView: View {
                                     onPresetSelected(preset)
                                     dismiss()
                                 }
+                                .accessibilityAddTraits(.isButton)
                                 .onHover { isHovered in
                                     hoveredPreset = isHovered ? preset : nil
                                 }
@@ -106,6 +107,7 @@ struct PresetCard: View {
                 Image(systemName: preset.icon)
                     .font(.title2)
                     .foregroundStyle(categoryColor)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(preset.name)
@@ -180,6 +182,7 @@ struct PresetBadge: View {
         HStack(spacing: 4) {
             Image(systemName: preset.icon)
                 .font(.caption2)
+                .accessibilityHidden(true)
             Text(preset.name)
                 .font(.caption2)
         }

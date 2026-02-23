@@ -105,6 +105,7 @@ struct ConfigImportView: View {
         HStack {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
+                .accessibilityHidden(true)
             Text("Configuration imported successfully!")
                 .fontWeight(.semibold)
         }
@@ -134,6 +135,7 @@ struct ConfigImportView: View {
                     HStack {
                         Image(systemName: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
+                            .accessibilityHidden(true)
                         Text(warning)
                             .font(.caption)
                     }
@@ -185,6 +187,7 @@ struct ConfigImportView: View {
                 HStack {
                     Image(systemName: "plus.circle.fill")
                         .foregroundStyle(.green)
+                        .accessibilityHidden(true)
                     Text("\(diff.addedRules.count) rule(s) to add")
                 }
             }
@@ -192,6 +195,7 @@ struct ConfigImportView: View {
                 HStack {
                     Image(systemName: "minus.circle.fill")
                         .foregroundStyle(.red)
+                        .accessibilityHidden(true)
                     Text("\(diff.removedRules.count) rule(s) to remove")
                 }
             }
@@ -199,6 +203,7 @@ struct ConfigImportView: View {
                 HStack {
                     Image(systemName: "pencil.circle.fill")
                         .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
                     Text("\(diff.modifiedRules.count) rule(s) to modify")
                 }
             }

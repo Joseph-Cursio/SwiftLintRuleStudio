@@ -62,7 +62,7 @@ enum WorkspaceAnalyzerTestHelpers {
         }
     }
 
-    static func cleanupTempWorkspace(_ workspace: Workspace) async {
+    static func cleanupTempWorkspace(_ workspace: Workspace) {
         try? FileManager.default.removeItem(at: workspace.path)
     }
 }

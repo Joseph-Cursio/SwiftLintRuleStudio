@@ -295,16 +295,16 @@ private final class SpyMigrationCLI: SwiftLintCLIProtocol, @unchecked Sendable {
         self.shouldThrow = shouldThrow
     }
 
-    func getVersion() async throws -> String {
+    func getVersion() throws -> String {
         if shouldThrow {
             throw NSError(domain: "SpyCLI", code: 1, userInfo: [NSLocalizedDescriptionKey: "CLI unavailable"])
         }
         return versionToReturn
     }
 
-    func detectSwiftLintPath() async throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
-    func executeRulesCommand() async throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId: String) async throws -> Data { Data() }
-    func generateDocsForRule(ruleId: String) async throws -> String { "" }
-    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data { Data() }
+    func detectSwiftLintPath() throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
+    func executeRulesCommand() throws -> Data { Data() }
+    func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
+    func generateDocsForRule(ruleId: String) throws -> String { "" }
+    func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
 }

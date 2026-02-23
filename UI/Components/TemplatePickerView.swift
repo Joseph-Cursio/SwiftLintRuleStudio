@@ -40,6 +40,7 @@ struct TemplatePickerView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel("Close")
                 }
                 .buttonStyle(.plain)
             }

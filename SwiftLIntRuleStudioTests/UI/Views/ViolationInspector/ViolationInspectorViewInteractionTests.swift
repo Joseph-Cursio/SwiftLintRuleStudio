@@ -29,7 +29,7 @@ struct ViolationInspectorViewInteractionTests {
         column: Int? = 5,
         severity: Severity = .error,
         message: String = "Test violation message"
-    ) async -> Violation {
+    ) -> Violation {
         Violation(
             id: id,
             ruleID: ruleID,

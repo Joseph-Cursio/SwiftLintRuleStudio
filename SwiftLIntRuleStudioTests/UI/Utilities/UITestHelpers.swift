@@ -39,7 +39,7 @@ enum UITestDataFactory {
         minimumSwiftVersion: String? = nil,
         defaultSeverity: Severity? = nil,
         markdownDocumentation: String? = nil
-    ) async -> Rule {
+    ) -> Rule {
         Rule(
             id: id,
             name: name,
@@ -91,7 +91,7 @@ enum UITestDataFactory {
         resolvedAt: Date? = nil,
         suppressed: Bool = false,
         suppressionReason: String? = nil
-    ) async -> Violation {
+    ) -> Violation {
         Violation(
             id: id,
             ruleID: ruleID,
@@ -133,7 +133,7 @@ enum UITestDataFactory {
     static func createTestWorkspace(
         name: String = "TestWorkspace",
         path: URL? = nil
-    ) async -> Workspace {
+    ) -> Workspace {
         let workspacePath = path ?? FileManager.default.temporaryDirectory
             .appendingPathComponent("TestWorkspace_\(UUID().uuidString)", isDirectory: true)
         return Workspace(path: workspacePath, name: name)

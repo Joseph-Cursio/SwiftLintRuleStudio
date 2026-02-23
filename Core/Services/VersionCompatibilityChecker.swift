@@ -106,8 +106,7 @@ final class VersionCompatibilityChecker: VersionCompatibilityCheckerProtocol {
                 // Only report if current version is >= deprecated version
                 if !SwiftLintDeprecations.isVersion(version, lessThan: entry.deprecatedInVersion) {
                     // Skip if also removed (will appear in removed list)
-                    if SwiftLintDeprecations.removedRules[ruleId] != nil {
-                        let removedEntry = SwiftLintDeprecations.removedRules[ruleId]!
+                    if let removedEntry = SwiftLintDeprecations.removedRules[ruleId] {
                         if !SwiftLintDeprecations.isVersion(version, lessThan: removedEntry.removedInVersion) {
                             continue // Will appear in removed rules
                         }

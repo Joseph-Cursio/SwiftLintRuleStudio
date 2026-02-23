@@ -55,6 +55,8 @@ struct SwiftLintRuleStudioApp: App {
 @MainActor
 final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate {
     static var dependencies: (RuleRegistry, DependencyContainer)?
+    /// Retained to prevent ARC from deallocating the window after creation.
+    /// Never read directly — ownership is the sole purpose of this property.
     private var window: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {

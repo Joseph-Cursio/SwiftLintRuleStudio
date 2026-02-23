@@ -83,6 +83,7 @@ struct TemplateLibraryView: View {
                 if selectedCodingStyle == style {
                     Image(systemName: "checkmark")
                         .foregroundStyle(.tint)
+                        .accessibilityLabel("Selected")
                 }
             }
         }

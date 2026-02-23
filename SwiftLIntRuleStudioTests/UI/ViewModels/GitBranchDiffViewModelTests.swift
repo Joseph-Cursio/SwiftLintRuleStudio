@@ -218,7 +218,7 @@ private final class SpyGitBranchDiffService: GitBranchDiffServiceProtocol, @unch
         self.compareErrorToThrow = compareErrorToThrow
     }
 
-    func listAvailableRefs(at repoPath: URL) async throws -> GitRefs {
+    func listAvailableRefs(at repoPath: URL) throws -> GitRefs {
         listRefsCallCount += 1
         if let error = errorToThrow {
             throw error
@@ -230,7 +230,7 @@ private final class SpyGitBranchDiffService: GitBranchDiffServiceProtocol, @unch
         repoPath: URL,
         branch: String,
         configRelativePath: String
-    ) async throws -> ConfigComparisonResult {
+    ) throws -> ConfigComparisonResult {
         compareCallCount += 1
         lastComparedBranch = branch
         lastCompareConfigPath = configRelativePath

@@ -54,6 +54,7 @@ struct MigrationAssistantView: View {
                 Image(systemName: "arrow.right")
                     .font(.title2)
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Current Version")
@@ -87,6 +88,7 @@ struct MigrationAssistantView: View {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.red)
+                        .accessibilityHidden(true)
                     Text(error.localizedDescription)
                         .foregroundStyle(.red)
                 }
@@ -113,6 +115,7 @@ struct MigrationAssistantView: View {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                            .accessibilityHidden(true)
                         Text("No migrations needed!")
                             .fontWeight(.semibold)
                     }
@@ -160,6 +163,7 @@ struct MigrationAssistantView: View {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
                                     .foregroundStyle(.green)
+                                    .accessibilityHidden(true)
                                 Text("\(diff.addedRules.count) rule(s) to add")
                             }
                         }
@@ -167,6 +171,7 @@ struct MigrationAssistantView: View {
                             HStack {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundStyle(.red)
+                                    .accessibilityHidden(true)
                                 Text("\(diff.removedRules.count) rule(s) to remove")
                             }
                         }
@@ -174,6 +179,7 @@ struct MigrationAssistantView: View {
                             HStack {
                                 Image(systemName: "pencil.circle.fill")
                                     .foregroundStyle(.orange)
+                                    .accessibilityHidden(true)
                                 Text("\(diff.modifiedRules.count) rule(s) to modify")
                             }
                         }
@@ -221,6 +227,7 @@ struct MigrationAssistantView: View {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
+                            .accessibilityHidden(true)
                         Text("No changes needed")
                     }
                 }
@@ -236,6 +243,7 @@ struct MigrationAssistantView: View {
             Image(systemName: step.iconName)
                 .foregroundStyle(step.canAutoApply ? .blue : .orange)
                 .frame(width: 20)
+                .accessibilityHidden(true)
 
             Text(step.description)
                 .font(.system(.body, design: .monospaced))

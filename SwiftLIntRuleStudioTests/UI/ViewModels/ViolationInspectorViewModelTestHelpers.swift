@@ -53,8 +53,7 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
 
     override func analyze(
         workspace: Workspace,
-        configPath: URL? = nil,
-        scope: AnalysisScope? = nil
+        configPath: URL? = nil
     ) async throws -> AnalysisResult {
         analyzeCallCount += 1
 

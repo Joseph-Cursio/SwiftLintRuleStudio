@@ -59,6 +59,7 @@ struct GitBranchDiffView: View {
             Image(systemName: "arrow.triangle.branch")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Text("Not a Git Repository")
                 .font(.headline)
             Text("This workspace is not inside a git repository. Branch diff requires git.")
@@ -75,6 +76,7 @@ struct GitBranchDiffView: View {
                 HStack {
                     Image(systemName: "arrow.triangle.branch")
                         .foregroundStyle(.blue)
+                        .accessibilityHidden(true)
                     Text("Current branch: ")
                         .font(.headline)
                     Text(refs.currentBranch)
@@ -156,6 +158,7 @@ struct GitBranchDiffView: View {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
+                        .accessibilityHidden(true)
                     Text("Configurations are identical")
                         .fontWeight(.semibold)
                 }
@@ -190,6 +193,7 @@ struct GitBranchDiffView: View {
                         HStack {
                             Image(systemName: "pencil.circle.fill")
                                 .foregroundStyle(.orange)
+                                .accessibilityHidden(true)
                             Text("Different Settings")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
@@ -252,6 +256,7 @@ struct GitBranchDiffView: View {
             HStack {
                 Image(systemName: icon)
                     .foregroundStyle(color)
+                    .accessibilityHidden(true)
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
