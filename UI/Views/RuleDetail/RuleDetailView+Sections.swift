@@ -200,9 +200,8 @@ extension RuleDetailView {
                     }
                 }
                 
-                // Simulate button for disabled rules
-                if !viewModel.isEnabled,
-                   dependencies.workspaceManager.currentWorkspace != nil {
+                // Simulate button
+                if dependencies.workspaceManager.currentWorkspace != nil {
                     Divider()
                     
                     Button {

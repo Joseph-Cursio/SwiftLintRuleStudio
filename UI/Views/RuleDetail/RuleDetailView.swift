@@ -201,9 +201,7 @@ struct RuleDetailView: View {
                     ruleId: rule.id,
                     ruleName: rule.name,
                     result: result,
-                    onEnable: {
-                        viewModel.updateEnabled(true)
-                    }
+                    onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
                 )
             }
         }
