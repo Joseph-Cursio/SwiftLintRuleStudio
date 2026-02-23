@@ -14,7 +14,6 @@ struct RuleBrowserView: View {
     @StateObject private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
     @State private var listWidth: CGFloat = 260
-    @State private var dragStartWidth: CGFloat = 260
 
     init(ruleRegistry: RuleRegistry) {
         _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
@@ -30,28 +29,7 @@ struct RuleBrowserView: View {
             ruleListView
                 .frame(width: listWidth)
 
-            // Draggable divider
-            Rectangle()
-                .fill(Color(nsColor: .separatorColor))
-                .frame(width: 1)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(width: 8)
-                        .contentShape(Rectangle())
-                        .onHover { hovering in
-                            if hovering { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-                        }
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    listWidth = max(200, min(500, dragStartWidth + value.translation.width))
-                                }
-                                .onEnded { _ in
-                                    dragStartWidth = listWidth
-                                }
-                        )
-                )
+            DraggableDivider(width: $listWidth, minWidth: 200, maxWidth: 500)
 
             // Right panel: Rule Detail
             Group {

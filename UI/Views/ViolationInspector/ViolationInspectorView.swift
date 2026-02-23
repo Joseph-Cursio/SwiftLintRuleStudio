@@ -12,7 +12,6 @@ struct ViolationInspectorView: View {
     @EnvironmentObject var dependencies: DependencyContainer
     @StateObject var viewModel: ViolationInspectorViewModel
     @State private var listWidth: CGFloat = 260
-    @State private var dragStartWidth: CGFloat = 260
 
     init() {
         // Create temporary storage for initialization
@@ -52,28 +51,7 @@ struct ViolationInspectorView: View {
             violationListView
                 .frame(width: listWidth)
 
-            // Draggable divider
-            Rectangle()
-                .fill(Color(nsColor: .separatorColor))
-                .frame(width: 1)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(width: 8)
-                        .contentShape(Rectangle())
-                        .onHover { hovering in
-                            if hovering { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-                        }
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    listWidth = max(200, min(500, dragStartWidth + value.translation.width))
-                                }
-                                .onEnded { _ in
-                                    dragStartWidth = listWidth
-                                }
-                        )
-                )
+            DraggableDivider(width: $listWidth, minWidth: 200, maxWidth: 500)
 
             // Right panel: Violation Detail or Empty State
             Group {
