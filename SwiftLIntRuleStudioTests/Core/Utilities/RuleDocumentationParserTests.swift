@@ -10,6 +10,7 @@ import Foundation
 @testable import SwiftLIntRuleStudio
 
 @MainActor
+// swiftlint:disable:next type_body_length
 struct RuleDocumentationParserTests {
 
     // MARK: - Title Parsing
@@ -25,14 +26,14 @@ struct RuleDocumentationParserTests {
     func testEmptyNameWithoutTitle() {
         let markdown = "Some description without a title."
         let result = RuleDocumentationParser.parse(markdown: markdown)
-        #expect(result.name == "")
+        #expect(result.name.isEmpty)
     }
 
     @Test("Returns empty fields for empty markdown")
     func testEmptyMarkdown() {
         let result = RuleDocumentationParser.parse(markdown: "")
-        #expect(result.name == "")
-        #expect(result.description == "")
+        #expect(result.name.isEmpty)
+        #expect(result.description.isEmpty)
         #expect(!result.supportsAutocorrection)
         #expect(result.triggeringExamples.isEmpty)
         #expect(result.nonTriggeringExamples.isEmpty)

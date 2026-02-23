@@ -142,6 +142,7 @@ struct GitBranchDiffView: View {
         .clipShape(.rect(cornerRadius: 8))
     }
 
+    // swiftlint:disable:next function_body_length
     private func comparisonResultSection(_ result: ConfigComparisonResult) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Summary

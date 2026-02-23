@@ -144,7 +144,9 @@ extension RuleDetailView {
         
         // Use HTML fragment approach instead of full document to avoid document-level margins
         // Wrap in a div with inline styles - keep HTML compact to avoid whitespace rendering
-        return "<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: \(textColor); margin: 0; padding: 0;\"><style>\(styles)</style>\(body)</div>"
+        let divStyle = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; " +
+            "font-size: 14px; line-height: 1.6; color: \(textColor); margin: 0; padding: 0;"
+        return "<div style=\"\(divStyle)\"><style>\(styles)</style>\(body)</div>"
     }
     
     private func convertMarkdownLine(

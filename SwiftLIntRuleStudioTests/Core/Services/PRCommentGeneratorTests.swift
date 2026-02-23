@@ -10,6 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 @MainActor
+// swiftlint:disable:next type_body_length
 struct PRCommentGeneratorTests {
     // MARK: - Basic Generation Tests
 
@@ -262,9 +263,9 @@ struct PRCommentGeneratorTests {
         #expect(middlePos != nil)
         #expect(zebraPos != nil)
 
-        if let a = alphaPos, let m = middlePos, let z = zebraPos {
-            #expect(a < m)
-            #expect(m < z)
+        if let alphaIndex = alphaPos, let middleIndex = middlePos, let zebraIndex = zebraPos {
+            #expect(alphaIndex < middleIndex)
+            #expect(middleIndex < zebraIndex)
         }
     }
 

@@ -193,7 +193,10 @@ struct OnboardingViewTests {
         let found = await MainActor.run {
             (try? view.inspect().find(text: "SwiftLint Not Found")) != nil
         }
-        withKnownIssue("Not-installed state only visible when SwiftLint is absent from environment", isIntermittent: true) {
+        withKnownIssue(
+            "Not-installed state only visible when SwiftLint is absent from environment",
+            isIntermittent: true
+        ) {
             #expect(found)
         }
     }

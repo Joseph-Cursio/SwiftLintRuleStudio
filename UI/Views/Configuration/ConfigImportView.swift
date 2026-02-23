@@ -115,6 +115,7 @@ struct ConfigImportView: View {
         .clipShape(.rect(cornerRadius: 8))
     }
 
+    // swiftlint:disable:next function_body_length
     private func previewSection(_ preview: ConfigImportPreview) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {

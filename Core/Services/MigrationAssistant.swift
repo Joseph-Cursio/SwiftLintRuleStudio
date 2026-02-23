@@ -84,6 +84,7 @@ protocol MigrationAssistantProtocol: Sendable {
 
 final class MigrationAssistant: MigrationAssistantProtocol {
 
+    // swiftlint:disable:next cyclomatic_complexity
     func detectMigrations(
         config: YAMLConfigurationEngine.YAMLConfig,
         fromVersion: String,

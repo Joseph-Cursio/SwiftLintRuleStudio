@@ -175,7 +175,8 @@ private final class SpyConfigComparisonService: ConfigComparisonServiceProtocol 
         }
         return resultToReturn ?? ConfigComparisonResult(
             onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
-            diff: YAMLConfigurationEngine.ConfigDiff(addedRules: [], removedRules: [], modifiedRules: [], before: "", after: "")
+            diff: YAMLConfigurationEngine.ConfigDiff(
+                addedRules: [], removedRules: [], modifiedRules: [], before: "", after: "")
         )
     }
 }

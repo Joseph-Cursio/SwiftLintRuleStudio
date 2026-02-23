@@ -39,7 +39,7 @@ struct ConfigImportViewModelTests {
         let service = SpyConfigImportService()
         let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
 
-        #expect(vm.urlString == "")
+        #expect(vm.urlString.isEmpty)
         #expect(vm.preview == nil)
         #expect(vm.importMode == .merge)
         #expect(!vm.isFetching)

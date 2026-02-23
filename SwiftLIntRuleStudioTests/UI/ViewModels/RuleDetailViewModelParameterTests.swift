@@ -23,9 +23,15 @@ struct RuleDetailViewModelParameterTests {
             isOptIn: false,
             severity: .warning,
             parameters: [
-                RuleParameter(name: "warning", type: .integer, defaultValue: AnyCodable(120), description: "Warning threshold"),
-                RuleParameter(name: "error", type: .integer, defaultValue: AnyCodable(200), description: "Error threshold"),
-                RuleParameter(name: "ignores_urls", type: .boolean, defaultValue: AnyCodable(true), description: "Ignore URLs")
+                RuleParameter(
+                    name: "warning", type: .integer,
+                    defaultValue: AnyCodable(120), description: "Warning threshold"),
+                RuleParameter(
+                    name: "error", type: .integer,
+                    defaultValue: AnyCodable(200), description: "Error threshold"),
+                RuleParameter(
+                    name: "ignores_urls", type: .boolean,
+                    defaultValue: AnyCodable(true), description: "Ignore URLs")
             ],
             triggeringExamples: [],
             nonTriggeringExamples: [],

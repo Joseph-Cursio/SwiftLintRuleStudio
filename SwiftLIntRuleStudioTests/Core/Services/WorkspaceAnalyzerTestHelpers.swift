@@ -16,7 +16,10 @@ enum WorkspaceAnalyzerTestHelpers {
     ) async throws -> T {
         return try await Task { @MainActor in
             let isolatedTracker = FileTracker.createForTesting()
-            let analyzer = WorkspaceAnalyzer(swiftLintCLI: swiftLintCLI, violationStorage: violationStorage, fileTracker: isolatedTracker)
+            let analyzer = WorkspaceAnalyzer(
+                swiftLintCLI: swiftLintCLI,
+                violationStorage: violationStorage,
+                fileTracker: isolatedTracker)
             return try await operation(analyzer)
         }.value
     }

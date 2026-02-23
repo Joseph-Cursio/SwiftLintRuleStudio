@@ -159,10 +159,9 @@ final class VersionCompatibilityChecker: VersionCompatibilityCheckerProtocol {
     private func findNewRulesAvailable(configRuleIds: Set<String>, version: String) -> [String] {
         // Gather all rules added up to the current version
         var allAvailable: Set<String> = []
-        for (ver, rules) in SwiftLintDeprecations.versionRuleAdditions {
-            if !SwiftLintDeprecations.isVersion(version, lessThan: ver) {
-                allAvailable.formUnion(rules)
-            }
+        for (ver, rules) in SwiftLintDeprecations.versionRuleAdditions
+            where !SwiftLintDeprecations.isVersion(version, lessThan: ver) {
+            allAvailable.formUnion(rules)
         }
         // Return rules that exist in SwiftLint but aren't in the config
         return allAvailable.subtracting(configRuleIds).sorted()

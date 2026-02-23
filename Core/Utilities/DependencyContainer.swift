@@ -40,7 +40,8 @@ class DependencyContainer: ObservableObject {
     let migrationAssistant: MigrationAssistantProtocol
 
     private var cancellables = Set<AnyCancellable>()
-    
+
+    // swiftlint:disable:next function_body_length
     init(
         ruleRegistry: RuleRegistry? = nil,
         swiftLintCLI: SwiftLintCLIProtocol? = nil,

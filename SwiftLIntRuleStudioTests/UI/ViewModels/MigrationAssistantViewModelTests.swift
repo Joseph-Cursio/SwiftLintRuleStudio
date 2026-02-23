@@ -38,7 +38,7 @@ struct MigrationAssistantViewModelTests {
             configPath: nil
         )
 
-        #expect(vm.previousVersion == "")
+        #expect(vm.previousVersion.isEmpty)
         #expect(vm.currentVersion == nil)
         #expect(vm.migrationPlan == nil)
         #expect(vm.previewDiff == nil)

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// swiftlint:disable:next type_body_length
 struct VersionCompatibilityView: View {
     @StateObject private var viewModel: VersionCompatibilityViewModel
 
@@ -105,6 +106,7 @@ struct VersionCompatibilityView: View {
         .padding(.vertical, 40)
     }
 
+    // swiftlint:disable:next function_body_length
     private func reportSection(_ report: CompatibilityReport) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Summary badge

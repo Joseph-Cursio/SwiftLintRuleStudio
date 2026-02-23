@@ -4,6 +4,7 @@
 //
 //  Service for managing SwiftLint configuration templates
 //
+// swiftlint:disable file_length
 
 import Foundation
 import Combine
@@ -231,7 +232,7 @@ enum TemplateError: LocalizedError {
 // MARK: - Built-in Templates
 
 /// Static definitions for built-in templates
-enum BuiltInTemplates {
+enum BuiltInTemplates { // swiftlint:disable:this type_body_length
     /// Converts a known-valid UUID string literal into a UUID.
     /// Raises a precondition failure (not a crash in production) if the string is malformed.
     private static func builtInID(_ string: String) -> UUID {

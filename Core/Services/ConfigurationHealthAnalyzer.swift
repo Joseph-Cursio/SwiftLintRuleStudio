@@ -61,6 +61,7 @@ struct ConfigHealthReport: Identifiable, Sendable {
         let noDeprecatedRules: Int   // 10% weight - no deprecated rules
         let pathConfiguration: Int   // 15% weight - proper excludes set up
 
+        // swiftlint:disable:next large_tuple
         var details: [(name: String, score: Int, weight: Int, description: String)] {
             [
                 ("Rules Coverage", rulesCoverage, 40, "Percentage of rules enabled"),
