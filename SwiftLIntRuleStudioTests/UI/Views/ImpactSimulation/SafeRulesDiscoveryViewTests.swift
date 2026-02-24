@@ -10,7 +10,7 @@ import SwiftUI
 import ViewInspector
 @testable import SwiftLIntRuleStudio
 
-// swiftlint:disable function_body_length file_length
+// swiftlint:disable function_body_length
 
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -491,4 +491,4 @@ private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
     func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
     func getVersion() throws -> String { "0.0.0" }
 }
-// swiftlint:enable function_body_length file_length
+// swiftlint:enable function_body_length

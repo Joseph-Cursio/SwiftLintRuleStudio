@@ -40,6 +40,7 @@ struct ConfigVersionHistoryView: View {
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .accessibilityIdentifier("ConfigHistoryRefreshButton")
             }
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -49,6 +50,7 @@ struct ConfigVersionHistoryView: View {
                 } label: {
                     Label("Prune", systemImage: "trash")
                 }
+                .accessibilityIdentifier("ConfigHistoryPruneMenu")
             }
         }
         .onAppear {

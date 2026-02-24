@@ -121,6 +121,7 @@ struct RuleBrowserView: View {
                             ? "checklist.checked" : "checklist"
                     )
                 }
+                .accessibilityIdentifier("RuleBrowserMultiSelectButton")
             }
             ToolbarItem(placement: .primaryAction) {
                 RulePresetPicker { preset in
@@ -134,6 +135,7 @@ struct RuleBrowserView: View {
                     Label("Clear Filters", systemImage: "xmark.circle")
                 }
                 .disabled(!hasActiveFilters)
+                .accessibilityIdentifier("RuleBrowserClearFiltersButton")
             }
         }
         .sheet(isPresented: $viewModel.showBulkDiffPreview) {
@@ -173,6 +175,7 @@ struct RuleBrowserView: View {
                     .accessibilityHidden(true)
                 TextField("Search rules...", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
+                    .accessibilityIdentifier("RuleBrowserSearchField")
                 
                 if !viewModel.searchText.isEmpty {
                     Button {
@@ -203,6 +206,7 @@ struct RuleBrowserView: View {
                     }
                     .pickerStyle(.menu)
                     .frame(width: 120)
+                    .accessibilityIdentifier("RuleBrowserStatusFilter")
                     
                     // Category Filter
                     Picker("Category", selection: $viewModel.selectedCategory) {

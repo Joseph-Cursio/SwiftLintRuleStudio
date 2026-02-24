@@ -14,6 +14,7 @@ extension RuleDetailView {
                         set: { viewModel.updateEnabled($0) }
                     ))
                     .toggleStyle(.switch)
+                    .accessibilityIdentifier("RuleDetailEnableToggle")
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -89,6 +90,7 @@ extension RuleDetailView {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(isSimulating)
+                    .accessibilityIdentifier("RuleDetailSimulateButton")
                 }
             }
             .padding(16)

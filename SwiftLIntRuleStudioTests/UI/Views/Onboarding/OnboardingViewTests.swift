@@ -10,8 +10,6 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-// swiftlint:disable file_length
-
 // Tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -463,4 +461,3 @@ struct OnboardingViewTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
-// swiftlint:enable file_length

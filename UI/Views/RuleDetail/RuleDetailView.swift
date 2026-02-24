@@ -96,6 +96,7 @@ struct RuleDetailView: View {
                     } label: {
                         Label("Preview Changes", systemImage: "eye")
                     }
+                    .accessibilityIdentifier("RuleDetailPreviewChangesButton")
                     
                     Button {
                         Task {

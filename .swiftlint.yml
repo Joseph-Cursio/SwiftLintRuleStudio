@@ -46,6 +46,10 @@ custom_rules:
     severity: warning
 
 # Rule configurations
+file_length:
+  warning: 600    # Comprehensive UI test files covering 10+ workflows naturally exceed 400 lines
+  error: 1000
+
 trailing_whitespace:
   ignores_empty_lines: true
 

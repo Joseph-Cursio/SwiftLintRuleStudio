@@ -42,6 +42,7 @@ extension ViolationInspectorView {
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 TextField("Search violations...", text: $viewModel.searchText)
+                    .accessibilityIdentifier("ViolationInspectorSearchField")
             }
             .textFieldStyle(.roundedBorder)
             .padding(.horizontal)
@@ -115,6 +116,7 @@ extension ViolationInspectorView {
                     } label: {
                         Label("Group", systemImage: "rectangle.3.group")
                     }
+                    .accessibilityIdentifier("ViolationInspectorGroupingMenu")
 
                     // Sort options
                     Menu {

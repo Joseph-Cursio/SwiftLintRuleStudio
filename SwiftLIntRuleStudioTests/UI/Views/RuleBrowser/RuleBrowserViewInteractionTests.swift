@@ -11,8 +11,6 @@ import SwiftUI
 import Foundation
 @testable import SwiftLIntRuleStudio
 
-// swiftlint:disable file_length
-
 // Interaction tests for RuleBrowserView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -407,4 +405,3 @@ struct RuleBrowserViewInteractionTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
-// swiftlint:enable file_length

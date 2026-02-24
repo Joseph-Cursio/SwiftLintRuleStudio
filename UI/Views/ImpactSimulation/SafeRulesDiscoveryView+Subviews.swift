@@ -25,6 +25,7 @@ extension SafeRulesDiscoveryView {
             }
             .buttonStyle(.borderedProminent)
             .disabled(isDiscovering || dependencies.workspaceManager.currentWorkspace == nil)
+            .accessibilityIdentifier("SafeRulesDiscoverButton")
         }
         .padding()
     }

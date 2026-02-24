@@ -131,6 +131,7 @@ struct ViolationDetailView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(isOpeningInXcode)
+            .accessibilityIdentifier("ViolationDetailOpenInXcodeButton")
         }
     }
     
@@ -171,6 +172,7 @@ struct ViolationDetailView: View {
                         Label("Suppress", systemImage: "eye.slash")
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("ViolationDetailSuppressButton")
                 }
                 
                 if violation.resolvedAt == nil {

@@ -33,12 +33,14 @@ struct BulkOperationToolbar: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(selectedCount == 0)
+                .accessibilityIdentifier("BulkOperationEnableAllButton")
 
                 Button("Disable All") {
                     onDisableAll()
                 }
                 .buttonStyle(.bordered)
                 .disabled(selectedCount == 0)
+                .accessibilityIdentifier("BulkOperationDisableAllButton")
 
                 Divider()
                     .frame(height: 20)
@@ -61,6 +63,7 @@ struct BulkOperationToolbar: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(selectedCount == 0)
+                .accessibilityIdentifier("BulkOperationPreviewChangesButton")
 
                 Button {
                     onClearSelection()
