@@ -102,7 +102,7 @@ This application is, at its core, a graphical wrapper around [SwiftLint](https:/
 
 **Runtime:**
 
-- **[Yams](https://github.com/jpsim/Yams)** (v5.4.0) — A Swift YAML parser and serializer used for reading and writing `.swiftlint.yml` configuration files. MIT License.
+- **[Yams](https://github.com/jpsim/Yams)** (v6.2.1) — A Swift YAML parser and serializer used for reading and writing `.swiftlint.yml` configuration files. MIT License.
 
 **Testing:**
 
