@@ -10,7 +10,11 @@ import SwiftUI
 import AppKit
 #endif
 
-enum Section: Hashable {
+extension Notification.Name {
+    static let violationInspectorRefreshRequested = Notification.Name("ViolationInspectorRefreshRequested")
+}
+
+enum AppSection: Hashable {
     case rules
     case violations
     case dashboard
@@ -30,7 +34,7 @@ struct ContentView: View {
     @State private var showError: Bool = false
     @State private var didApplyUITestOverrides = false
     
-    @State private var selection: Section? = .rules
+    @State private var selection: AppSection? = .rules
     @State private var searchText: String = ""
     @State private var viewMode: Int = 0
     
@@ -119,26 +123,72 @@ struct ContentView: View {
 #if os(macOS)
                     ToolbarItem(placement: .navigation) {
                         Button {
-                            NSApp.keyWindow?.firstResponder?.tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
+                            let selector = #selector(NSSplitViewController.toggleSidebar(_:))
+                            NSApp.keyWindow?.firstResponder?.tryToPerform(selector, with: nil)
                         } label: {
                             Image(systemName: "sidebar.left")
+                                .accessibilityHidden(true)
                         }
                         .help("Toggle Sidebar")
                     }
 #endif
-                    ToolbarItem(placement: .automatic) {
-                        Picker("", selection: $viewMode) {
-                            Text("List").tag(0)
-                            Text("Grid").tag(1)
-                        }
-                        .pickerStyle(.segmented)
-                        .help("Change View Mode")
+
+                    // Title shown in the middle of the window titlebar
+                    ToolbarItem(placement: .principal) {
+                        Text("SwiftLint Rule Studio")
+                            .font(.headline)
                     }
+
+                    // Context-aware controls: only show in Rules section
                     ToolbarItem(placement: .automatic) {
-                        TextField("Search", text: $searchText)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(minWidth: 160, idealWidth: 220, maxWidth: 260)
-                            .help("Search rules, violations, and more")
+                        if selection == .rules {
+                            Picker("", selection: $viewMode) {
+                                Text("List").tag(0)
+                                Text("Grid").tag(1)
+                            }
+                            .pickerStyle(.segmented)
+                            .help("Change View Mode")
+                            .accessibilityIdentifier("ContentViewViewModePicker")
+                        }
+                    }
+
+                    // Context-aware search: only show in Rules section (RuleBrowserView handles its own filters)
+                    ToolbarItem(placement: .automatic) {
+                        if selection == .rules {
+                            TextField("Search", text: $searchText)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(minWidth: 160, idealWidth: 220, maxWidth: 260)
+                                .help("Search rules")
+                        }
+                    }
+
+                    // Primary actions on the trailing side, vary by section
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        if selection == .rules {
+                            Button {
+                                Task { _ = try? await ruleRegistry.loadRules() }
+                            } label: {
+                                Label("Reload Rules", systemImage: "arrow.clockwise")
+                            }
+                            .help("Reload SwiftLint rules")
+                            .accessibilityIdentifier("ContentViewReloadRulesButton")
+                        } else if selection == .violations {
+                            Button {
+                                NotificationCenter.default.post(name: .violationInspectorRefreshRequested, object: nil)
+                            } label: {
+                                Label("Refresh Violations", systemImage: "arrow.clockwise")
+                            }
+                            .help("Refresh violations for current workspace")
+                            .accessibilityIdentifier("ContentViewRefreshViolationsButton")
+                        } else if selection == .versionHistory {
+                            Button {
+                                // Optionally post a notification or call into a service to refresh history
+                                // NotificationCenter.default.post(name: .configHistoryRefreshRequested, object: nil)
+                            } label: {
+                                Label("Refresh History", systemImage: "arrow.clockwise")
+                            }
+                            .help("Refresh configuration version history")
+                        }
                     }
                 }
                 .safeAreaInset(edge: .bottom) {
@@ -152,6 +202,18 @@ struct ContentView: View {
                     }
                     .padding(8)
                     .background(.bar)
+                }
+                .toolbarTitleMenu {
+                    Button("Rules") { selection = .rules }
+                    Button("Violations") { selection = .violations }
+                    Button("Dashboard") { selection = .dashboard }
+                    Button("Safe Rules") { selection = .safeRules }
+                    Button("Version History") { selection = .versionHistory }
+                    Button("Compare Configs") { selection = .compareConfigs }
+                    Button("Version Check") { selection = .versionCheck }
+                    Button("Import Config") { selection = .importConfig }
+                    Button("Branch Diff") { selection = .branchDiff }
+                    Button("Migration") { selection = .migration }
                 }
             }
         }
@@ -236,7 +298,7 @@ struct ContentView: View {
 }
 
 struct SidebarView: View {
-    @Binding var selection: Section?
+    @Binding var selection: AppSection?
     @EnvironmentObject var dependencies: DependencyContainer
     @EnvironmentObject var ruleRegistry: RuleRegistry
     
@@ -267,24 +329,24 @@ struct SidebarView: View {
             SwiftUI.Section("Tools") {
                 Label("Rules", systemImage: "list.bullet.rectangle")
                     .badge(max(ruleRegistry.rules.count, 0))
-                    .tag(Section.rules)
+                    .tag(AppSection.rules)
                     .accessibilityIdentifier("SidebarRulesLink")
-                Label("Violations", systemImage: "exclamationmark.triangle").tag(Section.violations)
+                Label("Violations", systemImage: "exclamationmark.triangle").tag(AppSection.violations)
                     .accessibilityIdentifier("SidebarViolationsLink")
-                Label("Dashboard", systemImage: "chart.bar").tag(Section.dashboard)
-                Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark").tag(Section.safeRules)
+                Label("Dashboard", systemImage: "chart.bar").tag(AppSection.dashboard)
+                Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark").tag(AppSection.safeRules)
                     .accessibilityIdentifier("SidebarSafeRulesLink")
-                Label("Version History", systemImage: "clock.arrow.circlepath").tag(Section.versionHistory)
+                Label("Version History", systemImage: "clock.arrow.circlepath").tag(AppSection.versionHistory)
                     .accessibilityIdentifier("SidebarVersionHistoryLink")
-                Label("Compare Configs", systemImage: "arrow.left.arrow.right").tag(Section.compareConfigs)
+                Label("Compare Configs", systemImage: "arrow.left.arrow.right").tag(AppSection.compareConfigs)
                     .accessibilityIdentifier("SidebarCompareConfigsLink")
-                Label("Version Check", systemImage: "checkmark.shield").tag(Section.versionCheck)
+                Label("Version Check", systemImage: "checkmark.shield").tag(AppSection.versionCheck)
                     .accessibilityIdentifier("SidebarVersionCheckLink")
-                Label("Import Config", systemImage: "square.and.arrow.down").tag(Section.importConfig)
+                Label("Import Config", systemImage: "square.and.arrow.down").tag(AppSection.importConfig)
                     .accessibilityIdentifier("SidebarImportConfigLink")
-                Label("Branch Diff", systemImage: "arrow.triangle.branch").tag(Section.branchDiff)
+                Label("Branch Diff", systemImage: "arrow.triangle.branch").tag(AppSection.branchDiff)
                     .accessibilityIdentifier("SidebarBranchDiffLink")
-                Label("Migration", systemImage: "arrow.up.circle").tag(Section.migration)
+                Label("Migration", systemImage: "arrow.up.circle").tag(AppSection.migration)
                     .accessibilityIdentifier("SidebarMigrationLink")
             }
         }
@@ -306,4 +368,3 @@ struct SidebarView: View {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
-

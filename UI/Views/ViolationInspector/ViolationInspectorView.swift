@@ -108,6 +108,9 @@ struct ViolationInspectorView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .violationInspectorRefreshRequested)) { _ in
+            Task { try? await viewModel.refreshViolations() }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
@@ -117,6 +120,7 @@ struct ViolationInspectorView: View {
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .accessibilityIdentifier("ViolationInspectorRefreshButton")
                 
                 Menu {
                     SwiftUI.Section("Filtered") {
@@ -148,13 +152,15 @@ struct ViolationInspectorView: View {
                     Label("Next", systemImage: "chevron.right")
                 }
                 .keyboardShortcut(.rightArrow, modifiers: .command)
-                
+                .accessibilityIdentifier("ViolationInspectorNextButton")
+
                 Button {
                     viewModel.selectPreviousViolation()
                 } label: {
                     Label("Previous", systemImage: "chevron.left")
                 }
                 .keyboardShortcut(.leftArrow, modifiers: .command)
+                .accessibilityIdentifier("ViolationInspectorPreviousButton")
 
                 Menu {
                     Button("Select All") {
@@ -169,7 +175,8 @@ struct ViolationInspectorView: View {
                     Label("Selection", systemImage: "checkmark.circle")
                 }
                 .disabled(viewModel.filteredViolations.isEmpty)
-                
+                .accessibilityIdentifier("ViolationInspectorSelectionMenu")
+
                 if !viewModel.selectedViolationIds.isEmpty {
                     Menu {
                         Button {
@@ -181,7 +188,7 @@ struct ViolationInspectorView: View {
                             Label("Suppress Selected", systemImage: "eye.slash")
                         }
                         .keyboardShortcut("s", modifiers: [.command, .shift])
-                        
+
                         Button {
                             Task {
                                 try? await viewModel.resolveSelectedViolations()
@@ -193,6 +200,7 @@ struct ViolationInspectorView: View {
                     } label: {
                         Label("Actions", systemImage: "ellipsis.circle")
                     }
+                    .accessibilityIdentifier("ViolationInspectorActionsMenu")
                 }
             }
         }

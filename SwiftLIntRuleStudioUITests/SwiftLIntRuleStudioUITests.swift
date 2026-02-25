@@ -494,3 +494,80 @@ extension SwiftLIntRuleStudioUITests {
         }
     }
 }
+
+// MARK: - Workflow 12–13: Toolbar Tests
+
+extension SwiftLIntRuleStudioUITests {
+
+    // MARK: - Workflow 12: Context-aware Toolbar Section Switching
+
+    @MainActor
+    func testContextAwareToolbarSectionSwitching() throws {
+        let app = launchApp(skipOnboarding: true, createWorkspace: true)
+        let window = waitForMainWindow(in: app)
+        guard window.exists else { XCTFail("No main window"); return }
+
+        // Navigate to Rules section (make it explicit even though it is the default)
+        let rulesLink = findElement(in: window, identifier: "SidebarRulesLink")
+        XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
+        rulesLink.tap()
+
+        // View mode picker and Reload Rules button must appear on the Rules section
+        let viewModePicker = findElement(in: window, identifier: "ContentViewViewModePicker")
+        XCTAssertTrue(viewModePicker.waitForExistence(timeout: 5),
+                      "View mode picker should be visible on the Rules section")
+
+        let reloadButton = findElement(in: window, identifier: "ContentViewReloadRulesButton")
+        XCTAssertTrue(reloadButton.exists,
+                      "Reload Rules button should be visible on the Rules section")
+
+        // Navigate to Violations — context controls must change
+        let violationsLink = findElement(in: window, identifier: "SidebarViolationsLink")
+        XCTAssertTrue(violationsLink.waitForExistence(timeout: 5))
+        violationsLink.tap()
+
+        // View mode picker must disappear
+        XCTAssertFalse(viewModePicker.waitForExistence(timeout: 3),
+                       "View mode picker must not appear on the Violations section")
+
+        // Refresh Violations button must appear in its place
+        let refreshViolationsButton = findElement(in: window, identifier: "ContentViewRefreshViolationsButton")
+        XCTAssertTrue(refreshViolationsButton.waitForExistence(timeout: 3),
+                      "Refresh Violations button should appear on the Violations section")
+    }
+
+    // MARK: - Workflow 13: Violation Inspector Toolbar Buttons
+
+    @MainActor
+    func testViolationInspectorToolbarButtons() throws {
+        let app = launchApp(skipOnboarding: true, createWorkspace: true)
+        let window = waitForMainWindow(in: app)
+        guard window.exists else { XCTFail("No main window"); return }
+
+        let violationsLink = findElement(in: window, identifier: "SidebarViolationsLink")
+        XCTAssertTrue(violationsLink.waitForExistence(timeout: 5))
+        violationsLink.tap()
+
+        // Permanent toolbar buttons must always be present
+        let refreshButton = findElement(in: window, identifier: "ViolationInspectorRefreshButton")
+        XCTAssertTrue(refreshButton.waitForExistence(timeout: 5),
+                      "Refresh button should be in the ViolationInspector toolbar")
+
+        let nextButton = findElement(in: window, identifier: "ViolationInspectorNextButton")
+        XCTAssertTrue(nextButton.exists,
+                      "Next button should be in the ViolationInspector toolbar")
+
+        let prevButton = findElement(in: window, identifier: "ViolationInspectorPreviousButton")
+        XCTAssertTrue(prevButton.exists,
+                      "Previous button should be in the ViolationInspector toolbar")
+
+        let selectionMenu = findElement(in: window, identifier: "ViolationInspectorSelectionMenu")
+        XCTAssertTrue(selectionMenu.exists,
+                      "Selection menu should be in the ViolationInspector toolbar")
+
+        // Actions menu is conditional — must be absent when nothing is selected
+        let actionsMenu = findElement(in: window, identifier: "ViolationInspectorActionsMenu")
+        XCTAssertFalse(actionsMenu.exists,
+                       "Actions menu must not appear when no violations are selected")
+    }
+}

@@ -86,7 +86,13 @@ struct RuleBrowserView: View {
             || viewModel.selectedStatus != .all
         return VStack(spacing: 0) {
             // Search and Filters
-            searchAndFiltersView
+            RuleBrowserSearchAndFilters(
+                searchText: $viewModel.searchText,
+                selectedStatus: $viewModel.selectedStatus,
+                selectedCategory: $viewModel.selectedCategory,
+                selectedSortOption: $viewModel.selectedSortOption,
+                categoryCounts: viewModel.categoryCounts
+            )
 
             Divider()
 
@@ -120,7 +126,13 @@ struct RuleBrowserView: View {
 
             // Rules List
             if viewModel.filteredRules.isEmpty {
-                emptyStateView
+                RuleBrowserEmptyState(
+                    searchText: viewModel.searchText,
+                    selectedCategory: viewModel.selectedCategory,
+                    selectedStatus: viewModel.selectedStatus,
+                    rulesAreEmpty: ruleRegistry.rules.isEmpty,
+                    onClearFilters: { viewModel.clearFilters() }
+                )
             } else if viewModel.isMultiSelectMode {
                 // Multi-select remains list-based for clarity and keyboard selection
                 List(selection: $viewModel.selectedRuleIds) {
@@ -220,20 +232,31 @@ struct RuleBrowserView: View {
         return YAMLConfigurationEngine(configPath: configPath)
     }
     
-    private var searchAndFiltersView: some View {
+}
+
+// MARK: - Extracted subviews (kept file-private to avoid counting toward RuleBrowserView body length)
+
+private struct RuleBrowserSearchAndFilters: View {
+    @Binding var searchText: String
+    @Binding var selectedStatus: RuleStatusFilter
+    @Binding var selectedCategory: RuleCategory?
+    @Binding var selectedSortOption: SortOption
+    let categoryCounts: [RuleCategory: Int]
+
+    var body: some View {
         VStack(spacing: 12) {
             // Search Bar
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
-                TextField("Search rules...", text: $viewModel.searchText)
+                TextField("Search rules...", text: $searchText)
                     .textFieldStyle(.plain)
                     .accessibilityIdentifier("RuleBrowserSearchField")
-                
-                if !viewModel.searchText.isEmpty {
+
+                if !searchText.isEmpty {
                     Button {
-                        viewModel.searchText = ""
+                        searchText = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
@@ -248,12 +271,12 @@ struct RuleBrowserView: View {
             .clipShape(.rect(cornerRadius: 8))
             .padding(.horizontal)
             .padding(.top, 8)
-            
+
             // Filters
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     // Status Filter
-                    Picker("Status", selection: $viewModel.selectedStatus) {
+                    Picker("Status", selection: $selectedStatus) {
                         ForEach(RuleStatusFilter.allCases) { status in
                             Text(status.displayName).tag(status)
                         }
@@ -261,14 +284,14 @@ struct RuleBrowserView: View {
                     .pickerStyle(.menu)
                     .frame(width: 120)
                     .accessibilityIdentifier("RuleBrowserStatusFilter")
-                    
+
                     // Category Filter
-                    Picker("Category", selection: $viewModel.selectedCategory) {
+                    Picker("Category", selection: $selectedCategory) {
                         Text("All Categories").tag(nil as RuleCategory?)
                         ForEach(RuleCategory.allCases) { category in
                             HStack {
                                 Text(category.displayName)
-                                if let count = viewModel.categoryCounts[category] {
+                                if let count = categoryCounts[category] {
                                     Text("(\(count))")
                                         .foregroundStyle(.secondary)
                                         .font(.caption)
@@ -279,16 +302,16 @@ struct RuleBrowserView: View {
                     }
                     .pickerStyle(.menu)
                     .frame(width: 150)
-                    
+
                     // Sort Option
-                    Picker("Sort", selection: $viewModel.selectedSortOption) {
+                    Picker("Sort", selection: $selectedSortOption) {
                         ForEach(SortOption.allCases) { option in
                             Text(option.displayName).tag(option)
                         }
                     }
                     .pickerStyle(.menu)
                     .frame(width: 120)
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal)
@@ -296,28 +319,38 @@ struct RuleBrowserView: View {
         }
         .padding(.bottom, 8)
     }
-    
-    private var emptyStateView: some View {
+}
+
+private struct RuleBrowserEmptyState: View {
+    let searchText: String
+    let selectedCategory: RuleCategory?
+    let selectedStatus: RuleStatusFilter
+    let rulesAreEmpty: Bool
+    let onClearFilters: () -> Void
+
+    private var hasActiveFilters: Bool {
+        !searchText.isEmpty || selectedCategory != nil || selectedStatus != .all
+    }
+
+    var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            
+
             Text("No rules found")
                 .font(.headline)
                 .foregroundStyle(.secondary)
-            
-            if !viewModel.searchText.isEmpty || viewModel.selectedCategory != nil || viewModel.selectedStatus != .all {
+
+            if hasActiveFilters {
                 Text("Try adjusting your filters")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                
-                Button("Clear Filters") {
-                    viewModel.clearFilters()
-                }
-                .buttonStyle(.bordered)
-            } else if ruleRegistry.rules.isEmpty {
+
+                Button("Clear Filters", action: onClearFilters)
+                    .buttonStyle(.bordered)
+            } else if rulesAreEmpty {
                 Text("Loading rules...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -326,7 +359,6 @@ struct RuleBrowserView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
     }
-    
 }
 
 #if DEBUG
@@ -376,4 +408,3 @@ extension RuleBrowserView {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
-
