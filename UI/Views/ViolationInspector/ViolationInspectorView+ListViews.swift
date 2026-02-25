@@ -20,13 +20,35 @@ extension ViolationInspectorView {
                 emptyStateView
             } else {
                 if viewModel.groupingOption == .none {
-                    List(selection: $viewModel.selectedViolationIds) {
-                        ForEach(viewModel.filteredViolations, id: \.id) { violation in
-                            ViolationListItem(violation: violation)
-                                .tag(violation.id)
+                    Table(
+                        viewModel.filteredViolations,
+                        selection: $viewModel.selectedViolationIds,
+                        sortOrder: $viewModel.tableSortOrder
+                    ) {
+                        TableColumn("Severity", value: \.severity.rawValue) { violation in
+                            Text(violation.severity.rawValue.capitalized)
+                                .foregroundStyle(violation.severity == .error ? .red : .orange)
                         }
+                        .width(min: 60, ideal: 70, max: 80)
+
+                        TableColumn("File", value: \.filePath) { violation in
+                            Text(URL(fileURLWithPath: violation.filePath).lastPathComponent)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+
+                        TableColumn("Line", value: \.line) { violation in
+                            Text("\(violation.line)")
+                                .monospacedDigit()
+                        }
+                        .width(min: 40, ideal: 50, max: 60)
+
+                        TableColumn("Rule ID", value: \.ruleID)
+                            .width(min: 80, ideal: 120, max: 180)
                     }
-                    .listStyle(.sidebar)
+                    .onChange(of: viewModel.tableSortOrder) { _, _ in
+                        viewModel.sortFilteredViolations()
+                    }
                 } else {
                     groupedViolationListView
                 }

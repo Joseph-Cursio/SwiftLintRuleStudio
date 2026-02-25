@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 struct WorkspaceSelectionView: View {
     @ObservedObject var workspaceManager: WorkspaceManager
@@ -67,6 +68,27 @@ struct WorkspaceSelectionView: View {
             .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onReceive(NotificationCenter.default.publisher(for: .openWorkspaceRequested)) { _ in
+            isShowingFilePicker = true
+        }
+        .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
+            guard let provider = providers.first else { return false }
+            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                let url: URL?
+                if let nsURL = item as? NSURL {
+                    url = nsURL as URL
+                } else if let data = item as? Data {
+                    url = URL(dataRepresentation: data, relativeTo: nil)
+                } else {
+                    url = nil
+                }
+                guard let dropURL = url else { return }
+                DispatchQueue.main.async {
+                    try? workspaceManager.openWorkspace(at: dropURL)
+                }
+            }
+            return true
+        }
         .fileImporter(
             isPresented: $isShowingFilePicker,
             allowedContentTypes: [.folder],

@@ -51,7 +51,7 @@ struct SwiftLintRuleStudioApp: App {
     var appCommands: some Commands {
         CommandGroup(replacing: .newItem) {
             Button("Open Workspace…") {
-                // This will be handled by the workspace selection view or a coordinator
+                NotificationCenter.default.post(name: .openWorkspaceRequested, object: nil)
             }
             .keyboardShortcut("o", modifiers: .command)
         }
@@ -63,7 +63,7 @@ struct SwiftLintRuleStudioApp: App {
             .keyboardShortcut("r", modifiers: [.command, .shift])
 
             Button("Run Lint") {
-                // Trigger lint run if available
+                NotificationCenter.default.post(name: .violationInspectorRefreshRequested, object: nil)
             }
             .keyboardShortcut(.return, modifiers: .command)
         }
@@ -78,31 +78,36 @@ struct AppSettingsView: View {
     var body: some View {
         TabView {
             GeneralSettingsView()
-                .tabItem { Text("General") }
+                .tabItem { Label("General", systemImage: "gearshape") }
             LintSettingsView()
-                .tabItem { Text("Linting") }
+                .tabItem { Label("Linting", systemImage: "chevron.left.forwardslash.chevron.right") }
         }
         .padding()
         .frame(width: 520, height: 380)
     }
 }
 
-// Placeholder settings tabs to ensure the Settings window compiles
 struct GeneralSettingsView: View {
+    @AppStorage("autoUpdate") private var autoUpdate = true
+    @AppStorage("sendUsageData") private var sendUsageData = false
+
     var body: some View {
         Form {
-            Toggle("Check for updates automatically", isOn: .constant(true))
-            Toggle("Send anonymous usage data", isOn: .constant(false))
+            Toggle("Check for updates automatically", isOn: $autoUpdate)
+            Toggle("Send anonymous usage data", isOn: $sendUsageData)
         }
         .padding()
     }
 }
 
 struct LintSettingsView: View {
+    @AppStorage("experimentalRules") private var experimentalRules = false
+    @AppStorage("inlineHints") private var inlineHints = true
+
     var body: some View {
         Form {
-            Toggle("Enable experimental rules", isOn: .constant(false))
-            Toggle("Show inline hints", isOn: .constant(true))
+            Toggle("Enable experimental rules", isOn: $experimentalRules)
+            Toggle("Show inline hints", isOn: $inlineHints)
         }
         .padding()
     }

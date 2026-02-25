@@ -291,18 +291,18 @@ struct ViolationInspectorViewInteractionTests {
             return ViewResult(view: view, container: container)
         }.value
 
-        // Find the List view
+        // Verify violations are rendered: non-grouped mode uses Table (unsupported by
+        // ViewInspector 0.10.3), so check that the empty state is NOT shown instead.
         try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
         }
         defer { Task { @MainActor in ViewHosting.expel() } }
 
-        let hasList = try? await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.List.self)
-            return true
+        let showsEmptyState = await MainActor.run {
+            (try? result.view.inspect().find(text: "No violations match your current filters.")) != nil
         }
-        #expect(hasList == true, "ViolationInspectorView should allow violation selection via List")
+        #expect(!showsEmptyState, "ViolationInspectorView should display violations (not empty state) when filteredViolations is set")
     }
 
     // MARK: - Empty State Interaction Tests

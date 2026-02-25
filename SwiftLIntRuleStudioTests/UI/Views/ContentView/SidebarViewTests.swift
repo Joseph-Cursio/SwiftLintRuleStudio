@@ -88,10 +88,10 @@ struct SidebarViewTests {
         let result = await Task { @MainActor in createSidebarView() }.value
         let view = result.view
         
-        // Find section header ("Tools") — navigation title is set by ContentView, not SidebarView
+        // Find section header ("Workspace") — navigation title is set by ContentView, not SidebarView
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasTitle = try await MainActor.run {
-            _ = try view.inspect().find(text: "Tools")
+            _ = try view.inspect().find(text: "Workspace")
             return true
         }
         #expect(hasTitle == true, "SidebarView should display navigation section header")
@@ -132,13 +132,14 @@ struct SidebarViewTests {
         let result = await Task { @MainActor in createSidebarView(hasWorkspace: false) }.value
         let view = result.view
         
-        // Verify workspace section is not shown
+        // Verify workspace info block (VStack) is not shown — nav section "Workspace" header
+        // is always visible, but the info VStack only appears when a workspace is open.
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        let hasWorkspaceHeader = try? await MainActor.run {
-            _ = try view.inspect().find(text: "Workspace")
+        let hasWorkspaceVStack = try? await MainActor.run {
+            _ = try view.inspect().find(ViewType.VStack.self)
             return true
         }
-        #expect(hasWorkspaceHeader == nil, "SidebarView should hide workspace info when no workspace")
+        #expect(hasWorkspaceVStack == nil, "SidebarView should hide workspace info block when no workspace")
     }
     
     // MARK: - Navigation Links Tests

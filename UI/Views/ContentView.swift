@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 #if os(macOS)
 import AppKit
 #endif
@@ -37,6 +38,7 @@ struct ContentView: View {
     @State private var selection: AppSection? = .rules
     @State private var searchText: String = ""
     @State private var viewMode: Int = 0
+    @State private var showWorkspacePicker = false
     
     var body: some View {
         Group {
@@ -152,16 +154,6 @@ struct ContentView: View {
                         }
                     }
 
-                    // Context-aware search: only show in Rules section (RuleBrowserView handles its own filters)
-                    ToolbarItem(placement: .automatic) {
-                        if selection == .rules {
-                            TextField("Search", text: $searchText)
-                                .textFieldStyle(.roundedBorder)
-                                .frame(minWidth: 160, idealWidth: 220, maxWidth: 260)
-                                .help("Search rules")
-                        }
-                    }
-
                     // Primary actions on the trailing side, vary by section
                     ToolbarItemGroup(placement: .primaryAction) {
                         if selection == .rules {
@@ -180,14 +172,6 @@ struct ContentView: View {
                             }
                             .help("Refresh violations for current workspace")
                             .accessibilityIdentifier("ContentViewRefreshViolationsButton")
-                        } else if selection == .versionHistory {
-                            Button {
-                                // Optionally post a notification or call into a service to refresh history
-                                // NotificationCenter.default.post(name: .configHistoryRefreshRequested, object: nil)
-                            } label: {
-                                Label("Refresh History", systemImage: "arrow.clockwise")
-                            }
-                            .help("Refresh configuration version history")
                         }
                     }
                 }
@@ -197,11 +181,53 @@ struct ContentView: View {
                             Label(workspace.path.path, systemImage: "folder")
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
                         }
                         Spacer()
+                        if ruleRegistry.isLoading {
+                            ProgressView()
+                                .controlSize(.small)
+                                .progressViewStyle(.circular)
+                        } else if !ruleRegistry.rules.isEmpty {
+                            Text("\(ruleRegistry.rules.count) rules")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .padding(8)
                     .background(.bar)
+                }
+                .navigationSubtitle(dependencies.workspaceManager.currentWorkspace?.name ?? "")
+                .fileImporter(
+                    isPresented: $showWorkspacePicker,
+                    allowedContentTypes: [.folder],
+                    allowsMultipleSelection: false
+                ) { result in
+                    if case .success(let urls) = result, let url = urls.first {
+                        try? dependencies.workspaceManager.openWorkspace(at: url)
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openWorkspaceRequested)) { _ in
+                    showWorkspacePicker = true
+                }
+                .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
+                    guard let provider = providers.first else { return false }
+                    provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                        let url: URL?
+                        if let nsURL = item as? NSURL {
+                            url = nsURL as URL
+                        } else if let data = item as? Data {
+                            url = URL(dataRepresentation: data, relativeTo: nil)
+                        } else {
+                            url = nil
+                        }
+                        guard let dropURL = url else { return }
+                        DispatchQueue.main.async {
+                            try? dependencies.workspaceManager.openWorkspace(at: dropURL)
+                        }
+                    }
+                    return true
                 }
                 .toolbarTitleMenu {
                     Button("Rules") { selection = .rules }
@@ -326,22 +352,28 @@ struct SidebarView: View {
             }
 
             // Navigation Items
-            SwiftUI.Section("Tools") {
+            SwiftUI.Section("Workspace") {
                 Label("Rules", systemImage: "list.bullet.rectangle")
                     .badge(max(ruleRegistry.rules.count, 0))
                     .tag(AppSection.rules)
                     .accessibilityIdentifier("SidebarRulesLink")
                 Label("Violations", systemImage: "exclamationmark.triangle").tag(AppSection.violations)
                     .accessibilityIdentifier("SidebarViolationsLink")
+            }
+
+            SwiftUI.Section("Analysis") {
                 Label("Dashboard", systemImage: "chart.bar").tag(AppSection.dashboard)
                 Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark").tag(AppSection.safeRules)
                     .accessibilityIdentifier("SidebarSafeRulesLink")
+                Label("Version Check", systemImage: "checkmark.shield").tag(AppSection.versionCheck)
+                    .accessibilityIdentifier("SidebarVersionCheckLink")
+            }
+
+            SwiftUI.Section("Configuration") {
                 Label("Version History", systemImage: "clock.arrow.circlepath").tag(AppSection.versionHistory)
                     .accessibilityIdentifier("SidebarVersionHistoryLink")
                 Label("Compare Configs", systemImage: "arrow.left.arrow.right").tag(AppSection.compareConfigs)
                     .accessibilityIdentifier("SidebarCompareConfigsLink")
-                Label("Version Check", systemImage: "checkmark.shield").tag(AppSection.versionCheck)
-                    .accessibilityIdentifier("SidebarVersionCheckLink")
                 Label("Import Config", systemImage: "square.and.arrow.down").tag(AppSection.importConfig)
                     .accessibilityIdentifier("SidebarImportConfigLink")
                 Label("Branch Diff", systemImage: "arrow.triangle.branch").tag(AppSection.branchDiff)

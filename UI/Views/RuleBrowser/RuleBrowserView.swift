@@ -56,6 +56,7 @@ struct RuleBrowserView: View {
             .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
             .layoutPriority(1)
         }
+        .searchable(text: $viewModel.searchText, prompt: "Search rules")
         .onAppear {
             if let external = externalSearchText {
                 viewModel.searchText = external.wrappedValue
@@ -245,34 +246,7 @@ private struct RuleBrowserSearchAndFilters: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // Search Bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                TextField("Search rules...", text: $searchText)
-                    .textFieldStyle(.plain)
-                    .accessibilityIdentifier("RuleBrowserSearchField")
-
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel("Clear search text")
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(.rect(cornerRadius: 8))
-            .padding(.horizontal)
-            .padding(.top, 8)
-
-            // Filters
+            // Filters (search is handled by .searchable() in the parent NavigationSplitView)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     // Status Filter

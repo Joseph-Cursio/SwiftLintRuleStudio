@@ -50,6 +50,9 @@ class ViolationInspectorViewModel: ObservableObject {
     @Published var sortOrder: ViolationSortOrder = .ascending {
         didSet { updateFilteredViolations() }
     }
+
+    // Table column sort order (used by SwiftUI Table in non-grouped mode)
+    @Published var tableSortOrder: [KeyPathComparator<Violation>] = []
     
     // MARK: - Properties
     

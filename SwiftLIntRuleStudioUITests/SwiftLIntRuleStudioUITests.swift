@@ -70,16 +70,22 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
         in root: XCUIElement,
         identifier: String
     ) -> XCUIElement {
-        let candidates: [XCUIElement] = [
-            root.buttons[identifier],
-            root.staticTexts[identifier],
-            root.otherElements[identifier],
-            root.cells[identifier],
-            root.outlines[identifier],
-            root.outlines.cells[identifier]
+        // Use .matching(identifier:).firstMatch for each type so that macOS 26 beta's
+        // behavior of duplicating toolbar-item accessibility nodes doesn't cause
+        // "multiple matching elements found" errors when .tap() is called.
+        let typeQueries: [XCUIElementQuery] = [
+            root.buttons,
+            root.staticTexts,
+            root.otherElements,
+            root.cells,
+            root.outlines,
+            root.outlines.cells
         ]
-        if let match = candidates.first(where: { $0.exists }) {
-            return match
+        for query in typeQueries {
+            let match = query.matching(identifier: identifier).firstMatch
+            if match.exists {
+                return match
+            }
         }
         return root.descendants(matching: .any)
             .matching(identifier: identifier)
@@ -174,10 +180,10 @@ extension SwiftLIntRuleStudioUITests {
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
         rulesLink.tap()
 
-        // Search field must appear in the rule browser view
-        let searchField = findElement(in: window, identifier: "RuleBrowserSearchField")
+        // Search is now provided by .searchable() in the toolbar — find the native search field
+        let searchField = window.searchFields.firstMatch
         XCTAssertTrue(searchField.waitForExistence(timeout: 8),
-                      "RuleBrowserSearchField should appear in rule browser")
+                      "Native search field should appear in toolbar")
 
         searchField.click()
         searchField.typeText("trailing")
@@ -208,7 +214,8 @@ extension SwiftLIntRuleStudioUITests {
         rulesLink.tap()
 
         // Wait for rule browser search field to confirm RuleBrowserView is loaded
-        let searchField = findElement(in: window, identifier: "RuleBrowserSearchField")
+        // Wait for the native search field to confirm RuleBrowserView is loaded
+        let searchField = window.searchFields.firstMatch
         guard searchField.waitForExistence(timeout: 8) else { return }
 
         // Rules list is the second outline in the window (index 0 = sidebar nav)
@@ -242,7 +249,8 @@ extension SwiftLIntRuleStudioUITests {
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
         rulesLink.tap()
 
-        let searchField = findElement(in: window, identifier: "RuleBrowserSearchField")
+        // Wait for the native search field to confirm RuleBrowserView is loaded
+        let searchField = window.searchFields.firstMatch
         guard searchField.waitForExistence(timeout: 8) else { return }
 
         let rulesOutline = window.outlines.element(boundBy: 1)
@@ -277,7 +285,8 @@ extension SwiftLIntRuleStudioUITests {
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
         rulesLink.tap()
 
-        let searchField = findElement(in: window, identifier: "RuleBrowserSearchField")
+        // Wait for the native search field to confirm RuleBrowserView is loaded
+        let searchField = window.searchFields.firstMatch
         guard searchField.waitForExistence(timeout: 8) else { return }
 
         let rulesOutline = window.outlines.element(boundBy: 1)
@@ -347,9 +356,16 @@ extension SwiftLIntRuleStudioUITests {
         // Wait briefly for any analysis progress to settle
         _ = app.progressIndicators.firstMatch.waitForExistence(timeout: 3)
 
-        // The detail panel has a second outline once violations are loaded
-        let violationsList = window.outlines.element(boundBy: 1)
-        let firstViolationRow = violationsList.cells.firstMatch
+        // Violations are displayed in a Table (non-grouped mode) or List (grouped mode).
+        // Try the Table first; fall back to the old outline approach for grouped mode.
+        let violationTable = window.tables.firstMatch
+        let violationsOutline = window.outlines.element(boundBy: 1)
+        let firstViolationRow: XCUIElement
+        if violationTable.waitForExistence(timeout: 2) {
+            firstViolationRow = violationTable.cells.firstMatch
+        } else {
+            firstViolationRow = violationsOutline.cells.firstMatch
+        }
         guard firstViolationRow.waitForExistence(timeout: 5) else {
             // No violations produced in the minimal test workspace — navigation verified
             return
@@ -373,7 +389,8 @@ extension SwiftLIntRuleStudioUITests {
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
         rulesLink.tap()
 
-        let searchField = findElement(in: window, identifier: "RuleBrowserSearchField")
+        // Wait for the native search field to confirm RuleBrowserView is loaded
+        let searchField = window.searchFields.firstMatch
         guard searchField.waitForExistence(timeout: 8) else { return }
 
         // Enter multi-select mode via toolbar button

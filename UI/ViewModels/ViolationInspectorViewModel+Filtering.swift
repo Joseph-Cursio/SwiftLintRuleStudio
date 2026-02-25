@@ -49,8 +49,16 @@ extension ViolationInspectorViewModel {
         }
 
         filtered = sortViolations(filtered)
+        if !tableSortOrder.isEmpty {
+            filtered.sort(using: tableSortOrder)
+        }
         filteredViolations = filtered
         updateSelectionForFilteredViolations(filtered)
+    }
+
+    func sortFilteredViolations() {
+        guard !tableSortOrder.isEmpty else { return }
+        filteredViolations.sort(using: tableSortOrder)
     }
 
     func sortViolations(_ violations: [Violation]) -> [Violation] {
