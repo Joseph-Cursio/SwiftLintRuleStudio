@@ -273,7 +273,7 @@ private func buildSuppressDialog(
 ) -> some View {
     NavigationStack {
         Form {
-            Section {
+            SwiftUI.Section {
                 TextField("Reason (optional)", text: reason, axis: .vertical)
                     .lineLimit(3...6)
             } header: {

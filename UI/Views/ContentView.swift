@@ -6,6 +6,22 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
+
+enum Section: Hashable {
+    case rules
+    case violations
+    case dashboard
+    case safeRules
+    case versionHistory
+    case compareConfigs
+    case versionCheck
+    case importConfig
+    case branchDiff
+    case migration
+}
 
 struct ContentView: View {
     @EnvironmentObject var ruleRegistry: RuleRegistry
@@ -13,6 +29,10 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showError: Bool = false
     @State private var didApplyUITestOverrides = false
+    
+    @State private var selection: Section? = .rules
+    @State private var searchText: String = ""
+    @State private var viewMode: Int = 0
     
     var body: some View {
         Group {
@@ -27,9 +47,10 @@ struct ContentView: View {
                 // Show workspace selection when no workspace is open
                 WorkspaceSelectionView(workspaceManager: dependencies.workspaceManager)
             } else {
-                // Show main app interface when workspace is open
                 NavigationSplitView {
-                    SidebarView()
+                    SidebarView(selection: $selection)
+                        .navigationTitle("SwiftLint Rule Studio")
+                        .listStyle(.sidebar)
                 } detail: {
                     VStack(spacing: 0) {
                         // Show config recommendation if config file is missing
@@ -37,11 +58,100 @@ struct ContentView: View {
                             ConfigRecommendationView(workspaceManager: dependencies.workspaceManager)
                                 .padding()
                         }
-                        
-                        Text("Select a section")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                        Group {
+                            switch selection {
+                            case .rules:
+                                RuleBrowserView(
+                                    ruleRegistry: dependencies.ruleRegistry,
+                                    externalSearchText: $searchText,
+                                    externalViewMode: $viewMode
+                                )
+                            case .violations:
+                                ViolationInspectorView()
+                            case .dashboard:
+                                Text("Dashboard")
+                                    .navigationTitle("Dashboard")
+                            case .safeRules:
+                                SafeRulesDiscoveryView()
+                            case .versionHistory:
+                                ConfigVersionHistoryView(
+                                    service: dependencies.configVersionHistoryService,
+                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                                )
+                            case .compareConfigs:
+                                ConfigComparisonView(
+                                    service: dependencies.configComparisonService,
+                                    currentWorkspace: dependencies.workspaceManager.currentWorkspace
+                                )
+                            case .versionCheck:
+                                VersionCompatibilityView(
+                                    checker: dependencies.versionCompatibilityChecker,
+                                    swiftLintCLI: dependencies.swiftLintCLI,
+                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                                )
+                            case .importConfig:
+                                ConfigImportView(
+                                    importService: dependencies.configImportService,
+                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                                )
+                            case .branchDiff:
+                                GitBranchDiffView(
+                                    service: dependencies.gitBranchDiffService,
+                                    workspacePath: dependencies.workspaceManager.currentWorkspace?.path
+                                )
+                            case .migration:
+                                MigrationAssistantView(
+                                    assistant: dependencies.migrationAssistant,
+                                    swiftLintCLI: dependencies.swiftLintCLI,
+                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+                                )
+                            case .none:
+                                Text("Select a section")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                }
+                .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
+                .toolbar {
+#if os(macOS)
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            NSApp.keyWindow?.firstResponder?.tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
+                        } label: {
+                            Image(systemName: "sidebar.left")
+                        }
+                        .help("Toggle Sidebar")
+                    }
+#endif
+                    ToolbarItem(placement: .automatic) {
+                        Picker("", selection: $viewMode) {
+                            Text("List").tag(0)
+                            Text("Grid").tag(1)
+                        }
+                        .pickerStyle(.segmented)
+                        .help("Change View Mode")
+                    }
+                    ToolbarItem(placement: .automatic) {
+                        TextField("Search", text: $searchText)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(minWidth: 160, idealWidth: 220, maxWidth: 260)
+                            .help("Search rules, violations, and more")
+                    }
+                }
+                .safeAreaInset(edge: .bottom) {
+                    HStack(spacing: 12) {
+                        if let workspace = dependencies.workspaceManager.currentWorkspace {
+                            Label(workspace.path.path, systemImage: "folder")
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(8)
+                    .background(.bar)
                 }
             }
         }
@@ -126,13 +236,15 @@ struct ContentView: View {
 }
 
 struct SidebarView: View {
+    @Binding var selection: Section?
     @EnvironmentObject var dependencies: DependencyContainer
+    @EnvironmentObject var ruleRegistry: RuleRegistry
     
     var body: some View {
-        List {
+        List(selection: $selection) {
             // Workspace Info Section
             if let workspace = dependencies.workspaceManager.currentWorkspace {
-                Section {
+                SwiftUI.Section("Workspace") {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: "folder.fill")
@@ -142,109 +254,41 @@ struct SidebarView: View {
                                 .font(.headline)
                         }
                         Text(workspace.path.path)
-                            .font(.caption)
+                            .font(.caption.monospaced())
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
                     .padding(.vertical, 4)
-                } header: {
-                    Text("Workspace")
                 }
             }
-            
-            // Navigation Links
-            NavigationLink {
-                RuleBrowserView(ruleRegistry: dependencies.ruleRegistry)
-            } label: {
+
+            // Navigation Items
+            SwiftUI.Section("Tools") {
                 Label("Rules", systemImage: "list.bullet.rectangle")
+                    .badge(max(ruleRegistry.rules.count, 0))
+                    .tag(Section.rules)
+                    .accessibilityIdentifier("SidebarRulesLink")
+                Label("Violations", systemImage: "exclamationmark.triangle").tag(Section.violations)
+                    .accessibilityIdentifier("SidebarViolationsLink")
+                Label("Dashboard", systemImage: "chart.bar").tag(Section.dashboard)
+                Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark").tag(Section.safeRules)
+                    .accessibilityIdentifier("SidebarSafeRulesLink")
+                Label("Version History", systemImage: "clock.arrow.circlepath").tag(Section.versionHistory)
+                    .accessibilityIdentifier("SidebarVersionHistoryLink")
+                Label("Compare Configs", systemImage: "arrow.left.arrow.right").tag(Section.compareConfigs)
+                    .accessibilityIdentifier("SidebarCompareConfigsLink")
+                Label("Version Check", systemImage: "checkmark.shield").tag(Section.versionCheck)
+                    .accessibilityIdentifier("SidebarVersionCheckLink")
+                Label("Import Config", systemImage: "square.and.arrow.down").tag(Section.importConfig)
+                    .accessibilityIdentifier("SidebarImportConfigLink")
+                Label("Branch Diff", systemImage: "arrow.triangle.branch").tag(Section.branchDiff)
+                    .accessibilityIdentifier("SidebarBranchDiffLink")
+                Label("Migration", systemImage: "arrow.up.circle").tag(Section.migration)
+                    .accessibilityIdentifier("SidebarMigrationLink")
             }
-            .accessibilityIdentifier("SidebarRulesLink")
-            
-            NavigationLink {
-                ViolationInspectorView()
-            } label: {
-                Label("Violations", systemImage: "exclamationmark.triangle")
-            }
-            .accessibilityIdentifier("SidebarViolationsLink")
-            
-            NavigationLink {
-                Text("Dashboard")
-                    .navigationTitle("Dashboard")
-            } label: {
-                Label("Dashboard", systemImage: "chart.bar")
-            }
-            
-            NavigationLink {
-                SafeRulesDiscoveryView()
-            } label: {
-                Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark")
-            }
-            .accessibilityIdentifier("SidebarSafeRulesLink")
-
-            NavigationLink {
-                ConfigVersionHistoryView(
-                    service: dependencies.configVersionHistoryService,
-                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                )
-            } label: {
-                Label("Version History", systemImage: "clock.arrow.circlepath")
-            }
-            .accessibilityIdentifier("SidebarVersionHistoryLink")
-
-            NavigationLink {
-                ConfigComparisonView(
-                    service: dependencies.configComparisonService,
-                    currentWorkspace: dependencies.workspaceManager.currentWorkspace
-                )
-            } label: {
-                Label("Compare Configs", systemImage: "arrow.left.arrow.right")
-            }
-            .accessibilityIdentifier("SidebarCompareConfigsLink")
-
-            NavigationLink {
-                VersionCompatibilityView(
-                    checker: dependencies.versionCompatibilityChecker,
-                    swiftLintCLI: dependencies.swiftLintCLI,
-                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                )
-            } label: {
-                Label("Version Check", systemImage: "checkmark.shield")
-            }
-            .accessibilityIdentifier("SidebarVersionCheckLink")
-
-            NavigationLink {
-                ConfigImportView(
-                    importService: dependencies.configImportService,
-                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                )
-            } label: {
-                Label("Import Config", systemImage: "square.and.arrow.down")
-            }
-            .accessibilityIdentifier("SidebarImportConfigLink")
-
-            NavigationLink {
-                GitBranchDiffView(
-                    service: dependencies.gitBranchDiffService,
-                    workspacePath: dependencies.workspaceManager.currentWorkspace?.path
-                )
-            } label: {
-                Label("Branch Diff", systemImage: "arrow.triangle.branch")
-            }
-            .accessibilityIdentifier("SidebarBranchDiffLink")
-
-            NavigationLink {
-                MigrationAssistantView(
-                    assistant: dependencies.migrationAssistant,
-                    swiftLintCLI: dependencies.swiftLintCLI,
-                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                )
-            } label: {
-                Label("Migration", systemImage: "arrow.up.circle")
-            }
-            .accessibilityIdentifier("SidebarMigrationLink")
         }
-        .navigationTitle("SwiftLint Rule Studio")
+        .listStyle(.sidebar)
     }
 }
 
@@ -262,3 +306,4 @@ struct SidebarView: View {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
+

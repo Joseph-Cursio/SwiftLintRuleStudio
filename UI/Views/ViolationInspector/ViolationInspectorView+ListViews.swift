@@ -250,11 +250,13 @@ extension ViolationInspectorView {
             let grouped = groupViolations(viewModel.filteredViolations, by: viewModel.groupingOption)
 
             ForEach(orderedGroupKeys(for: grouped, option: viewModel.groupingOption), id: \.self) { groupKey in
-                Section(header: Text(groupKey).font(.headline)) {
+                SwiftUI.Section {
                     ForEach(grouped[groupKey] ?? [], id: \.id) { violation in
                         ViolationListItem(violation: violation)
                             .tag(violation.id)
                     }
+                } header: {
+                    Text(groupKey).font(.headline)
                 }
             }
         }

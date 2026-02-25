@@ -119,7 +119,7 @@ struct ViolationInspectorView: View {
                 }
                 
                 Menu {
-                    Section("Filtered") {
+                    SwiftUI.Section("Filtered") {
                         Button("Export Filtered as JSON") {
                             exportViolations(scope: .filtered, format: .json)
                         }
@@ -128,7 +128,7 @@ struct ViolationInspectorView: View {
                         }
                     }
 
-                    Section("Selected") {
+                    SwiftUI.Section("Selected") {
                         Button("Export Selected as JSON") {
                             exportViolations(scope: .selected, format: .json)
                         }

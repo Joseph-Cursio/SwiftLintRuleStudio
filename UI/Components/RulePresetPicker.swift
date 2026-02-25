@@ -14,7 +14,7 @@ struct RulePresetPicker: View {
     var body: some View {
         Menu {
             ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
-                Section(header: Text(category.displayName)) {
+                SwiftUI.Section(category.displayName) {
                     ForEach(RulePresets.presets(in: category)) { preset in
                         Button {
                             onPresetSelected(preset)
@@ -42,7 +42,7 @@ struct RulePresetBrowserView: View {
             HStack(spacing: 0) {
                 // Category sidebar
                 List(selection: $selectedCategory) {
-                    Section("Categories") {
+                    SwiftUI.Section("Categories") {
                         ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
                             Label(category.displayName, systemImage: category.icon)
                                 .tag(category as RulePreset.PresetCategory?)

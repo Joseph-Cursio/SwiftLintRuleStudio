@@ -39,16 +39,72 @@ struct SwiftLintRuleStudioApp: App {
                 .environmentObject(ruleRegistry)
                 .environmentObject(dependencyContainer)
         }
-        .commands {
-            // Add File menu commands
-            CommandGroup(after: .newItem) {
-                Button("Open Workspace...") {
-                    // This will be handled by the workspace selection view
-                    // For now, we'll add a menu item that triggers the file picker
-                }
-                .keyboardShortcut("o", modifiers: .command)
-            }
+        .commands { appCommands }
+
+        Settings {
+            AppSettingsView()
+                .environmentObject(dependencyContainer)
         }
+    }
+    
+    @CommandsBuilder
+    var appCommands: some Commands {
+        CommandGroup(replacing: .newItem) {
+            Button("Open Workspace…") {
+                // This will be handled by the workspace selection view or a coordinator
+            }
+            .keyboardShortcut("o", modifiers: .command)
+        }
+
+        CommandMenu("Lint") {
+            Button("Reload Rules") {
+                Task { _ = try? await ruleRegistry.loadRules() }
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+
+            Button("Run Lint") {
+                // Trigger lint run if available
+            }
+            .keyboardShortcut(.return, modifiers: .command)
+        }
+
+        SidebarCommands()
+    }
+}
+
+struct AppSettingsView: View {
+    @EnvironmentObject var dependencies: DependencyContainer
+
+    var body: some View {
+        TabView {
+            GeneralSettingsView()
+                .tabItem { Text("General") }
+            LintSettingsView()
+                .tabItem { Text("Linting") }
+        }
+        .padding()
+        .frame(width: 520, height: 380)
+    }
+}
+
+// Placeholder settings tabs to ensure the Settings window compiles
+struct GeneralSettingsView: View {
+    var body: some View {
+        Form {
+            Toggle("Check for updates automatically", isOn: .constant(true))
+            Toggle("Send anonymous usage data", isOn: .constant(false))
+        }
+        .padding()
+    }
+}
+
+struct LintSettingsView: View {
+    var body: some View {
+        Form {
+            Toggle("Enable experimental rules", isOn: .constant(false))
+            Toggle("Show inline hints", isOn: .constant(true))
+        }
+        .padding()
     }
 }
 

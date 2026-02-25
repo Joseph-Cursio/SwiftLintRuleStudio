@@ -151,13 +151,13 @@ struct ContentViewTests {
         }
         
         // Verify main interface is shown (NavigationSplitView with SidebarView)
-        // SidebarView contains "SwiftLint Rule Studio" title
+        // Use "Dashboard" — a sidebar label without a .badge() modifier that ViewInspector can traverse.
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasSidebarTitle = try? await MainActor.run {
             let view = AnyView(ContentView()
                 .environmentObject(ruleRegistry)
                 .environmentObject(dependencies))
-            _ = try view.inspect().find(text: "Rules")
+            _ = try view.inspect().find(text: "Dashboard")
             return true
         }
         #expect(hasSidebarTitle == true, "ContentView should show main interface when workspace is open")
@@ -206,9 +206,11 @@ struct ContentViewTests {
             try dependencies.workspaceManager.openWorkspace(at: tempDir)
         }
 
-        // Verify default detail view is shown
+        // Verify default detail view is shown — the old placeholder "Select a section" was
+        // replaced by RuleBrowserView as the default. Check for a sidebar label to confirm
+        // the main interface (NavigationSplitView) is rendering.
         let hasDefaultText = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "Select a section")
+            _ = try result.view.inspect().find(text: "Dashboard")
             return true
         }
         #expect(hasDefaultText == true, "ContentView should show default detail view")

@@ -97,7 +97,7 @@ struct GitBranchDiffView: View {
                             Text("Select a branch...").tag("")
 
                             if refs.branches.count > 1 {
-                                Section("Branches") {
+                                SwiftUI.Section("Branches") {
                                     ForEach(refs.branches.filter { $0 != refs.currentBranch }, id: \.self) { branch in
                                         Text(branch).tag(branch)
                                     }
@@ -105,7 +105,7 @@ struct GitBranchDiffView: View {
                             }
 
                             if !refs.tags.isEmpty {
-                                Section("Tags") {
+                                SwiftUI.Section("Tags") {
                                     ForEach(refs.tags, id: \.self) { tag in
                                         Text(tag).tag(tag)
                                     }

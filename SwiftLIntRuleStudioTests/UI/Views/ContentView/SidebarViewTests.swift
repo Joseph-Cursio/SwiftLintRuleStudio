@@ -46,7 +46,7 @@ struct SidebarViewTests {
             // Note: Workspace will be set in individual tests
         }
         
-        let view = SidebarView()
+        let view = SidebarView(selection: .constant(.rules))
             .environmentObject(dependencies)
             .environmentObject(ruleRegistry)
         
@@ -88,13 +88,13 @@ struct SidebarViewTests {
         let result = await Task { @MainActor in createSidebarView() }.value
         let view = result.view
         
-        // Find navigation title
+        // Find section header ("Tools") — navigation title is set by ContentView, not SidebarView
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasTitle = try await MainActor.run {
-            _ = try view.inspect().find(text: "Rules")
+            _ = try view.inspect().find(text: "Tools")
             return true
         }
-        #expect(hasTitle == true, "SidebarView should display navigation title")
+        #expect(hasTitle == true, "SidebarView should display navigation section header")
     }
     
     // MARK: - Workspace Info Tests
@@ -149,10 +149,11 @@ struct SidebarViewTests {
         let result = await Task { @MainActor in createSidebarView() }.value
         let view = result.view
         
-        // Find Rules link
+        // Find Rules link via accessibility identifier — direct text search fails
+        // because the Rules label has a .badge() modifier that ViewInspector can't traverse.
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasRulesText = try await MainActor.run {
-            _ = try view.inspect().find(text: "Rules")
+            _ = try view.inspect().find(where: { (try? $0.accessibilityIdentifier()) == "SidebarRulesLink" })
             return true
         }
         #expect(hasRulesText == true, "SidebarView should display Rules navigation link")

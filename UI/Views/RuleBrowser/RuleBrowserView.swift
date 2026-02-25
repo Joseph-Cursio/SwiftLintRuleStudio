@@ -13,13 +13,27 @@ struct RuleBrowserView: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
+    private var externalSearchText: Binding<String>?
+    private var externalViewMode: Binding<Int>?
 
-    init(ruleRegistry: RuleRegistry) {
+    init(
+        ruleRegistry: RuleRegistry,
+        externalSearchText: Binding<String>? = nil,
+        externalViewMode: Binding<Int>? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
+        self.externalSearchText = externalSearchText
+        self.externalViewMode = externalViewMode
     }
 
-    init(viewModel: RuleBrowserViewModel) {
+    init(
+        viewModel: RuleBrowserViewModel,
+        externalSearchText: Binding<String>? = nil,
+        externalViewMode: Binding<Int>? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.externalSearchText = externalSearchText
+        self.externalViewMode = externalViewMode
     }
     
     var body: some View {
@@ -41,6 +55,21 @@ struct RuleBrowserView: View {
             }
             .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
             .layoutPriority(1)
+        }
+        .onAppear {
+            if let external = externalSearchText {
+                viewModel.searchText = external.wrappedValue
+            }
+        }
+        .onChange(of: externalSearchText?.wrappedValue ?? "") { _, newValue in
+            if let external = externalSearchText, external.wrappedValue != viewModel.searchText {
+                viewModel.searchText = newValue
+            }
+        }
+        .onChange(of: viewModel.searchText) { _, newValue in
+            if let external = externalSearchText, external.wrappedValue != newValue {
+                external.wrappedValue = newValue
+            }
         }
         .navigationTitle("Rules")
         .onChange(of: viewModel.filteredRules) { _, newRules in
@@ -93,6 +122,7 @@ struct RuleBrowserView: View {
             if viewModel.filteredRules.isEmpty {
                 emptyStateView
             } else if viewModel.isMultiSelectMode {
+                // Multi-select remains list-based for clarity and keyboard selection
                 List(selection: $viewModel.selectedRuleIds) {
                     ForEach(viewModel.filteredRules, id: \.id) { rule in
                         RuleListItem(rule: rule)
@@ -100,7 +130,31 @@ struct RuleBrowserView: View {
                     }
                 }
                 .listStyle(.sidebar)
+            } else if (externalViewMode?.wrappedValue ?? 0) == 1 {
+                // Grid mode
+                ScrollView {
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: 300, maximum: 420), spacing: 16, alignment: .top)],
+                        alignment: .leading,
+                        spacing: 16
+                    ) {
+                        ForEach(viewModel.filteredRules, id: \.id) { rule in
+                            Button {
+                                selectedRuleId = rule.id
+                            } label: {
+                                RuleListItem(rule: rule)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(12)
+                                    .background(.regularMaterial)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(16)
+                }
             } else {
+                // List mode
                 List(selection: $selectedRuleId) {
                     ForEach(viewModel.filteredRules, id: \.id) { rule in
                         RuleListItem(rule: rule)
@@ -322,3 +376,4 @@ extension RuleBrowserView {
         .environmentObject(ruleRegistry)
         .environmentObject(container)
 }
+

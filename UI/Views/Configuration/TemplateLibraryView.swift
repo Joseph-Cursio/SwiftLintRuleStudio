@@ -48,7 +48,7 @@ struct TemplateLibraryView: View {
 
     @ViewBuilder
     private var projectTypeSection: some View {
-        Section("Project Type") {
+        SwiftUI.Section("Project Type") {
             Text("All Projects")
                 .tag(nil as ConfigurationTemplate.ProjectType?)
 
@@ -61,7 +61,7 @@ struct TemplateLibraryView: View {
 
     @ViewBuilder
     private var codingStyleSection: some View {
-        Section("Coding Style") {
+        SwiftUI.Section("Coding Style") {
             ForEach(ConfigurationTemplate.CodingStyle.allCases, id: \.self) { style in
                 codingStyleButton(for: style)
             }
@@ -94,7 +94,7 @@ struct TemplateLibraryView: View {
     private var templateListView: some View {
         List(selection: $selectedTemplate) {
             if !filteredBuiltInTemplates.isEmpty {
-                Section("Built-in Templates") {
+                SwiftUI.Section("Built-in Templates") {
                     ForEach(filteredBuiltInTemplates) { template in
                         TemplateListRow(template: template)
                             .tag(template)
@@ -103,7 +103,7 @@ struct TemplateLibraryView: View {
             }
 
             if !filteredUserTemplates.isEmpty {
-                Section("Your Templates") {
+                SwiftUI.Section("Your Templates") {
                     ForEach(filteredUserTemplates) { template in
                         TemplateListRow(template: template)
                             .tag(template)
