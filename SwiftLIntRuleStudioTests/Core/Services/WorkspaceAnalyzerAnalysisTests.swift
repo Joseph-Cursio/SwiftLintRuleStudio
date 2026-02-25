@@ -16,7 +16,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let workspacePath = workspace.path.path
         let mockViolationsJSON = """
@@ -63,7 +63,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data("[]".utf8))
 
@@ -87,7 +87,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let workspacePath = workspace.path.path
         let mockViolationsJSON = """
@@ -133,7 +133,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let workspacePath = workspace.path.path
         let mockViolationsJSON = """
@@ -169,7 +169,7 @@ struct WorkspaceAnalyzerAnalysisTests {
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let workspacePath = workspace.path.path
         let mockViolationsJSON = """

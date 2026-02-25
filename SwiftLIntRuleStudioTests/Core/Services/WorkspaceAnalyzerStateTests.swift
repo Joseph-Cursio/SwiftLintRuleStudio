@@ -15,7 +15,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let didEnterAnalyzing = try await WorkspaceAnalyzerTestHelpers.withWorkspaceAnalyzer(
             swiftLintCLI: mockCLI,
@@ -45,7 +45,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let didCancel = try await WorkspaceAnalyzerTestHelpers.withWorkspaceAnalyzer(
             swiftLintCLI: mockCLI,
@@ -63,7 +63,7 @@ struct WorkspaceAnalyzerStateTests {
                 expected: true,
                 timeoutSeconds: 1.0
             )
-            await analyzer.cancelAnalysis()
+            analyzer.cancelAnalysis()
             analyzeTask.cancel()
             return await WorkspaceAnalyzerTestHelpers.waitForAnalyzingState(
                 analyzer,
@@ -79,7 +79,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data("invalid".utf8))
 
@@ -98,7 +98,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = MockSwiftLintCLI(shouldFail: true)
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         await #expect(throws: WorkspaceAnalyzerError.self) {
             _ = try await WorkspaceAnalyzerTestHelpers.withWorkspaceAnalyzer(
@@ -115,7 +115,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data("[]".utf8))
 
@@ -139,7 +139,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let workspacePath = workspace.path.path
         let json = """
@@ -173,7 +173,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let buildDir = workspace.path.appendingPathComponent(".build", isDirectory: true)
         try FileManager.default.createDirectory(at: buildDir, withIntermediateDirectories: true)
@@ -198,7 +198,7 @@ struct WorkspaceAnalyzerStateTests {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
-        defer { Task { await WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
 
         let configPath = workspace.path.appendingPathComponent(".swiftlint.yml")
         try "rules: {}".write(to: configPath, atomically: true, encoding: .utf8)

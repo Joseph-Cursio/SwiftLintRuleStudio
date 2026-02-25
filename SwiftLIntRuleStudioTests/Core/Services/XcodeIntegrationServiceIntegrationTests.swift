@@ -49,7 +49,7 @@ struct XcodeIntegrationServiceIntegrationTests {
             // Note: Actual opening may fail if Xcode is not installed or available
             // But we can test that the path resolution and project detection work
             do {
-                let success = try await service.openFile(
+                let success = try service.openFile(
                     at: "TestFile.swift", // Relative path
                     line: 1,
                     column: nil,
@@ -95,7 +95,7 @@ struct XcodeIntegrationServiceIntegrationTests {
             
             // Should be able to attempt opening (may fail if Xcode not available)
             do {
-                let success = try await service.openFile(
+                let success = try service.openFile(
                     at: "Nested/NestedFile.swift",
                     line: 2,
                     column: nil,
@@ -163,7 +163,7 @@ struct XcodeIntegrationServiceIntegrationTests {
         try await withServiceAsync { service, _ in
             // Test absolute path
             do {
-                _ = try await service.openFile(
+                _ = try service.openFile(
                     at: testFile.path,
                     line: 1,
                     column: nil,
@@ -175,7 +175,7 @@ struct XcodeIntegrationServiceIntegrationTests {
             
             // Test relative path
             do {
-                _ = try await service.openFile(
+                _ = try service.openFile(
                     at: "TestFile.swift",
                     line: 1,
                     column: nil,
@@ -192,7 +192,7 @@ struct XcodeIntegrationServiceIntegrationTests {
             try "// Nested".write(to: nestedFile, atomically: true, encoding: .utf8)
             
             do {
-                _ = try await service.openFile(
+                _ = try service.openFile(
                     at: "Sources/Nested.swift",
                     line: 1,
                     column: nil,

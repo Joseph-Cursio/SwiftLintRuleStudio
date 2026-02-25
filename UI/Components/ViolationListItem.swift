@@ -91,7 +91,7 @@ struct ViolationListItem: View {
     
     private func openInXcode(workspace: Workspace) async {
         do {
-            _ = try await dependencies.xcodeIntegrationService.openFile(
+            _ = try dependencies.xcodeIntegrationService.openFile(
                 at: violation.filePath,
                 line: violation.line,
                 column: violation.column,

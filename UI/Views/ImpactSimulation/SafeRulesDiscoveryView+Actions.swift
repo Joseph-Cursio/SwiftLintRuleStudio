@@ -113,7 +113,7 @@ private extension SafeRulesDiscoveryView {
         do {
             let context = try await buildDiscoveryContext(for: workspace)
             guard !context.disabledRuleIds.isEmpty else {
-                await finishDiscovery(with: [], selectedRuleIds: [])
+                finishDiscovery(with: [], selectedRuleIds: [])
                 return
             }
 
@@ -128,9 +128,9 @@ private extension SafeRulesDiscoveryView {
                 optInRuleIds: context.optInRuleIds
             )
 
-            await finishDiscovery(with: results, selectedRuleIds: safeRuleIds)
+            finishDiscovery(with: results, selectedRuleIds: safeRuleIds)
         } catch {
-            await failDiscovery(with: error)
+            failDiscovery(with: error)
         }
     }
 

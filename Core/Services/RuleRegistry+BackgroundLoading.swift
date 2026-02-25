@@ -82,30 +82,22 @@ private extension RuleRegistry {
         swiftLintCLI: SwiftLintCLIProtocol,
         update: @Sendable @escaping (Int, Rule) async -> Void
     ) async {
-        do {
-            try await withThrowingTaskGroup(of: (Int, Rule).self) { group in
-                for data in batch {
-                    group.addTask { @Sendable in
-                        let rule = await fetchDetailedRule(
-                            ruleId: data.id,
-                            category: data.category,
-                            isOptIn: data.isOptIn,
-                            swiftLintCLI: swiftLintCLI
-                        )
-                        return (data.index, rule)
-                    }
-                }
-
-                do {
-                    for try await (index, detailedRule) in group {
-                        await update(index, detailedRule)
-                    }
-                } catch {
-                    print("⚠️ Error updating rules from background group: \(error.localizedDescription)")
+        await withTaskGroup(of: (Int, Rule).self) { group in
+            for data in batch {
+                group.addTask { @Sendable in
+                    let rule = await fetchDetailedRule(
+                        ruleId: data.id,
+                        category: data.category,
+                        isOptIn: data.isOptIn,
+                        swiftLintCLI: swiftLintCLI
+                    )
+                    return (data.index, rule)
                 }
             }
-        } catch {
-            print("⚠️ Error during background batch loading: \(error.localizedDescription)")
+
+            for await (index, detailedRule) in group {
+                await update(index, detailedRule)
+            }
         }
     }
 

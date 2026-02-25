@@ -17,7 +17,7 @@ struct UITestHelpersCoverageTests {
     @Test("UITestDataFactory creates rules and violations")
     // swiftlint:disable:next function_body_length
     func testDataFactoryRulesAndViolations() async throws {
-        let rule = await UITestDataFactory.createTestRule(
+        let rule = UITestDataFactory.createTestRule(
             id: "rule_id",
             name: "Rule Name",
             description: "Rule description",
@@ -64,7 +64,7 @@ struct UITestHelpersCoverageTests {
         #expect(ruleCategories.1 == .lint)
         #expect(ruleCategories.2 == .style)
         
-        let violation = await UITestDataFactory.createTestViolation(
+        let violation = UITestDataFactory.createTestViolation(
             ruleID: "rule_id",
             filePath: "File.swift",
             line: 42,
@@ -97,7 +97,7 @@ struct UITestHelpersCoverageTests {
     
     @Test("UITestDataFactory creates workspaces")
     func testWorkspaceFactory() async throws {
-        let workspace = await UITestDataFactory.createTestWorkspace(name: "Workspace")
+        let workspace = UITestDataFactory.createTestWorkspace(name: "Workspace")
         let workspaceValues = await MainActor.run {
             (workspace.name, workspace.path.path.isEmpty)
         }

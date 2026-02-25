@@ -51,7 +51,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Generate docs for a common rule
         let markdown = try await cli.generateDocsForRule(ruleId: "empty_count")
@@ -113,7 +113,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Generate docs for multiple rules
         let rule1 = try await cli.generateDocsForRule(ruleId: "empty_count")
@@ -151,7 +151,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Generate docs for an opt-in rule (not enabled by default)
         let markdown = try await cli.generateDocsForRule(ruleId: "empty_count")
@@ -230,7 +230,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Generate docs - the retry logic should handle any file system delays
         let markdown = try await cli.generateDocsForRule(ruleId: "empty_count")
@@ -261,7 +261,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Generate docs for an opt-in rule (not enabled by default)
         let optInRule = try await cli.generateDocsForRule(ruleId: "empty_count")
@@ -295,7 +295,7 @@ struct SwiftLintCLIIntegrationTests {
         defer { cleanupCacheDirectory(cacheDir) }
         
         // First CLI instance - generate docs
-        let cli1 = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli1 = SwiftLintCLI(cacheManager: cacheManager)
         _ = try await cli1.generateDocsForRule(ruleId: "empty_count")
         
         // Verify version and directory are cached

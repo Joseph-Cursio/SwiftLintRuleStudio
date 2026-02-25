@@ -236,7 +236,7 @@ struct ViolationDetailView: View {
         defer { isOpeningInXcode = false }
         
         do {
-            let success = try await dependencies.xcodeIntegrationService.openFile(
+            let success = try dependencies.xcodeIntegrationService.openFile(
                 at: violation.filePath,
                 line: violation.line,
                 column: violation.column,
