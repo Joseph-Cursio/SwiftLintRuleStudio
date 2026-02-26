@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct RuleBrowserView: View {
     @EnvironmentObject var ruleRegistry: RuleRegistry
@@ -162,6 +165,7 @@ struct RuleBrowserView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
                             .buttonStyle(.plain)
+                            .contextMenu { ruleContextMenu(for: rule) }
                         }
                     }
                     .padding(16)
@@ -172,6 +176,7 @@ struct RuleBrowserView: View {
                     ForEach(viewModel.filteredRules, id: \.id) { rule in
                         RuleListItem(rule: rule)
                             .tag(rule.id)
+                            .contextMenu { ruleContextMenu(for: rule) }
                     }
                 }
                 .listStyle(.sidebar)
@@ -224,6 +229,29 @@ struct RuleBrowserView: View {
                     viewModel.showBulkDiffPreview = false
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func ruleContextMenu(for rule: Rule) -> some View {
+        Button(rule.isEnabled ? "Disable Rule" : "Enable Rule") {
+            if let engine = currentYAMLEngine {
+                viewModel.toggleRule(rule, yamlEngine: engine)
+            }
+        }
+        Button("Copy Rule Identifier") {
+#if os(macOS)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(rule.id, forType: .string)
+#endif
+        }
+        Divider()
+        Button("Simulate Impact") {
+            NotificationCenter.default.post(
+                name: .simulateImpactRequested,
+                object: nil,
+                userInfo: ["ruleId": rule.id]
+            )
         }
     }
 

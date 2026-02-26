@@ -19,4 +19,14 @@ extension Notification.Name {
 
     /// Posted when the user requests opening a workspace (e.g. via File > Open Workspace… menu)
     static let openWorkspaceRequested = Notification.Name("OpenWorkspaceRequested")
+
+    /// Posted when the user requests opening a recent workspace (e.g. via dock menu).
+    /// userInfo key "url" contains the workspace URL.
+    static let openRecentWorkspaceRequested = Notification.Name("OpenRecentWorkspaceRequested")
+
+    /// Posted when the user requests toggling the detail panel (View menu)
+    static let toggleDetailPanelRequested = Notification.Name("ToggleDetailPanelRequested")
+
+    /// Posted when the user requests simulating impact for a rule (context menu)
+    static let simulateImpactRequested = Notification.Name("SimulateImpactRequested")
 }

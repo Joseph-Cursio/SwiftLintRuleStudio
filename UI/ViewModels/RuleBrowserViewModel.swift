@@ -292,6 +292,19 @@ class RuleBrowserViewModel: ObservableObject {
         }
     }
 
+    /// Toggle a single rule's enabled/disabled state and show a diff preview.
+    func toggleRule(_ rule: Rule, yamlEngine: YAMLConfigurationEngine) {
+        // Temporarily select just this rule and reuse the existing bulk machinery.
+        let previousSelection = selectedRuleIds
+        selectedRuleIds = [rule.id]
+        if rule.isEnabled {
+            disableSelectedRules(yamlEngine: yamlEngine)
+        } else {
+            enableSelectedRules(yamlEngine: yamlEngine)
+        }
+        selectedRuleIds = previousSelection
+    }
+
     func saveBulkChanges(yamlEngine: YAMLConfigurationEngine) throws {
         try yamlEngine.load()
         guard let diff = bulkDiff else { return }

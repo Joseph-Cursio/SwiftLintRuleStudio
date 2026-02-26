@@ -8,6 +8,7 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
+import UserNotifications
 #endif
 
 @main
@@ -38,7 +39,10 @@ struct SwiftLintRuleStudioApp: App {
             ContentView()
                 .environmentObject(ruleRegistry)
                 .environmentObject(dependencyContainer)
+                .task { await requestNotificationPermission() }
         }
+        .defaultSize(width: 1100, height: 700)
+        .windowResizability(.contentMinSize)
         .commands { appCommands }
 
         Settings {
@@ -56,6 +60,13 @@ struct SwiftLintRuleStudioApp: App {
             .keyboardShortcut("o", modifiers: .command)
         }
 
+        CommandMenu("View") {
+            Button("Toggle Detail Panel") {
+                NotificationCenter.default.post(name: .toggleDetailPanelRequested, object: nil)
+            }
+            .keyboardShortcut("d", modifiers: [.command, .shift])
+        }
+
         CommandMenu("Lint") {
             Button("Reload Rules") {
                 Task { _ = try? await ruleRegistry.loadRules() }
@@ -68,8 +79,30 @@ struct SwiftLintRuleStudioApp: App {
             .keyboardShortcut(.return, modifiers: .command)
         }
 
+        CommandGroup(replacing: .help) {
+            Button("SwiftLint Rule Studio Help") {
+                NSWorkspace.shared.open(URL(string: "https://github.com/realm/SwiftLint")!)
+            }
+            Button("SwiftLint Rule Reference") {
+                NSWorkspace.shared.open(
+                    URL(string: "https://realm.github.io/SwiftLint/rule-directory.html")!)
+            }
+            Divider()
+            Button("Report an Issue…") {
+                NSWorkspace.shared.open(
+                    URL(string: "https://github.com/Joseph-Cursio/SwiftLintRuleStudio/issues")!)
+            }
+        }
+
         SidebarCommands()
     }
+
+#if os(macOS)
+    private func requestNotificationPermission() async {
+        try? await UNUserNotificationCenter.current().requestAuthorization(
+            options: [.alert, .sound])
+    }
+#endif
 }
 
 struct AppSettingsView: View {
@@ -115,13 +148,15 @@ struct LintSettingsView: View {
 
 #if os(macOS)
 @MainActor
-final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate {
+final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     static var dependencies: (RuleRegistry, DependencyContainer)?
     /// Retained to prevent ARC from deallocating the window after creation.
     /// Never read directly — ownership is the sole purpose of this property.
     private var window: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
+
         guard ProcessInfo.processInfo.arguments.contains("-uiTesting") else { return }
         guard NSApp.windows.isEmpty else { return }
         guard let dependencies = Self.dependencies else { return }
@@ -141,6 +176,53 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         self.window = window
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        guard let workspaceManager = Self.dependencies?.1.workspaceManager else { return nil }
+        let recentWorkspaces = workspaceManager.recentWorkspaces.prefix(5)
+        guard !recentWorkspaces.isEmpty else { return nil }
+
+        let menu = NSMenu()
+        for workspace in recentWorkspaces {
+            let item = NSMenuItem(
+                title: workspace.name,
+                action: #selector(openRecentWorkspaceFromDock(_:)),
+                keyEquivalent: ""
+            )
+            item.representedObject = workspace.path
+            item.target = self
+            menu.addItem(item)
+        }
+        return menu
+    }
+
+    @objc private func openRecentWorkspaceFromDock(_ sender: NSMenuItem) {
+        guard let url = sender.representedObject as? URL else { return }
+        try? Self.dependencies?.1.workspaceManager.openWorkspace(at: url)
+    }
+
+    // MARK: - UNUserNotificationCenterDelegate
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound])
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        Task { @MainActor in
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        completionHandler()
     }
 }
 #endif

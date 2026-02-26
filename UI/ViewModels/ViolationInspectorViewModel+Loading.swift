@@ -7,6 +7,10 @@
 
 import Foundation
 import Combine
+#if os(macOS)
+import AppKit
+import UserNotifications
+#endif
 
 extension ViolationInspectorViewModel {
     func loadViolations(for workspaceId: UUID, workspace: Workspace? = nil) async throws {
@@ -31,6 +35,10 @@ extension ViolationInspectorViewModel {
         )
         violations = fetched
         updateFilteredViolations()
+#if os(macOS)
+        NSApp.dockTile.badgeLabel = fetched.isEmpty ? nil : "\(fetched.count)"
+        postAnalysisCompleteNotification(count: fetched.count)
+#endif
     }
 
     func refreshViolations() async throws {
@@ -57,6 +65,9 @@ extension ViolationInspectorViewModel {
         workspaceId = nil
         selectedViolationId = nil
         selectedViolationIds.removeAll()
+#if os(macOS)
+        NSApp.dockTile.badgeLabel = nil
+#endif
     }
 }
 
@@ -79,4 +90,20 @@ private extension ViolationInspectorViewModel {
         violations = fetched
         updateFilteredViolations()
     }
+
+#if os(macOS)
+    func postAnalysisCompleteNotification(count: Int) {
+        let content = UNMutableNotificationContent()
+        content.title = "Analysis Complete"
+        content.body = count == 0
+            ? "No violations found"
+            : "\(count) violation\(count == 1 ? "" : "s") found"
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString, content: content, trigger: nil)
+        Task {
+            try? await UNUserNotificationCenter.current().add(request)
+        }
+    }
+#endif
 }
