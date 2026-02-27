@@ -49,7 +49,7 @@ struct RuleDetailVMNotificationIntegrationTests {
             try viewModel.loadConfiguration()
             viewModel.updateEnabled(true)
             viewModel.updateSeverity(.error)
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
 
         _ = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 1.0) {

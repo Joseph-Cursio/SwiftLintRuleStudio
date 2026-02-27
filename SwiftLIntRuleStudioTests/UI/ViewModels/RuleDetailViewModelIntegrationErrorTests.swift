@@ -54,7 +54,7 @@ struct RuleDetailVMIntegrationErrorTests {
         }
         do {
             try await Task { @MainActor in
-                try await viewModel.saveConfiguration()
+                try viewModel.saveConfiguration()
             }.value
             #expect(Bool(false), "Should have thrown an error")
         } catch {

@@ -125,8 +125,8 @@ struct ViolationInspectorViewInteractionTests {
     @Test("ViolationInspectorView search filters violations by rule ID")
     func testSearchFiltersByRuleID() async throws {
         let violations = [
-            await makeTestViolation(ruleID: "force_cast", message: "Force cast violation"),
-            await makeTestViolation(ruleID: "unused_import", message: "Unused import violation")
+            makeTestViolation(ruleID: "force_cast", message: "Force cast violation"),
+            makeTestViolation(ruleID: "unused_import", message: "Unused import violation")
         ]
 
         // Create view with violations loaded in view model
@@ -279,7 +279,7 @@ struct ViolationInspectorViewInteractionTests {
 
     @Test("ViolationInspectorView allows violation selection")
     func testAllowsViolationSelection() async throws {
-        let violations = [await makeTestViolation()]
+        let violations = [makeTestViolation()]
         let result = await Task { @MainActor in
             let container = DependencyContainer.createForTesting()
             let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
@@ -365,3 +365,4 @@ struct ViolationInspectorViewInteractionTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
+

@@ -50,7 +50,7 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         }
 
         try await Task { @MainActor in
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
 
         try await Task { @MainActor in
@@ -94,7 +94,7 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         }
 
         try await Task { @MainActor in
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
 
         #expect(FileManager.default.fileExists(atPath: configPath.path))
@@ -146,7 +146,7 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         try await Task { @MainActor in
             try viewModel.loadConfiguration()
             viewModel.updateSeverity(.error)
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
 
         try await Task { @MainActor in

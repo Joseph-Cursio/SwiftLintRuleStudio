@@ -166,7 +166,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
             try viewModel.loadConfiguration()
             viewModel.updateEnabled(enabled)
             viewModel.updateSeverity(severity)
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
     }
 
@@ -201,7 +201,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
 
     private func saveConfig(_ viewModel: RuleDetailViewModel) async throws {
         try await Task { @MainActor in
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
     }
 

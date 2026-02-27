@@ -35,7 +35,7 @@ struct RuleDetailVMWorkspaceIntegrationTests {
             try viewModel.loadConfiguration()
             viewModel.updateEnabled(true)
             viewModel.updateSeverity(.error)
-            try await viewModel.saveConfiguration()
+            try viewModel.saveConfiguration()
         }.value
 
         #expect(FileManager.default.fileExists(atPath: configPath.path))

@@ -63,7 +63,7 @@ struct RuleDisplayConsistencyTests {
     
     @Test("RuleListItem shows enabled state")
     func testRuleListItemShowsEnabledState() async throws {
-        let enabledRule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
+        let enabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
         let view = await MainActor.run {
             RuleListItem(rule: enabledRule)
         }
@@ -79,7 +79,7 @@ struct RuleDisplayConsistencyTests {
     
     @Test("RuleListItem hides enabled state for disabled rules")
     func testRuleListItemHidesEnabledStateForDisabledRules() async throws {
-        let disabledRule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
+        let disabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
         let view = await MainActor.run {
             RuleListItem(rule: disabledRule)
         }
@@ -95,7 +95,7 @@ struct RuleDisplayConsistencyTests {
     
     @Test("RuleDetailView shows enabled state")
     func testRuleDetailViewShowsEnabledState() async throws {
-        let enabledRule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
+        let enabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
         
         // Inspect the view to find the enabled label in the header
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -110,7 +110,7 @@ struct RuleDisplayConsistencyTests {
     
     @Test("RuleDetailView toggle matches enabled state")
     func testRuleDetailViewToggleMatchesEnabledState() async throws {
-        let enabledRule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
+        let enabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
         
         // Find the toggle in the toolbar
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -127,7 +127,7 @@ struct RuleDisplayConsistencyTests {
     @Test("Enabled state is consistent between list and detail views")
     func testEnabledStateConsistencyBetweenListAndDetail() async throws {
         // Test with enabled rule
-        let enabledRule = await makeTestRule(id: "duplicate_imports", name: "Duplicate Imports", isEnabled: true)
+        let enabledRule = makeTestRule(id: "duplicate_imports", name: "Duplicate Imports", isEnabled: true)
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let (listShowsEnabled, detailShowsEnabled, toggleIsOn) = try await MainActor.run {
@@ -156,7 +156,7 @@ struct RuleDisplayConsistencyTests {
     @Test("Disabled state is consistent between list and detail views")
     func testDisabledStateConsistencyBetweenListAndDetail() async throws {
         // Test with disabled rule
-        let disabledRule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
+        let disabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
         
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let (listShowsEnabled, toggleIsOn) = try await MainActor.run {
@@ -182,7 +182,7 @@ struct RuleDisplayConsistencyTests {
     @Test("Duplicate imports rule shows consistent state")
     func testDuplicateImportsRuleConsistency() async throws {
         // Create a rule matching the reported issue
-        let duplicateImportsRule = await makeTestRule(
+        let duplicateImportsRule = makeTestRule(
             id: "duplicate_imports",
             name: "Duplicate Imports",
             isEnabled: true
@@ -223,7 +223,7 @@ struct RuleDisplayConsistencyTests {
         #expect(toggleIsOn == false, "Toggle should start as OFF")
         
         // Update rule to enabled
-        rule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
+        rule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
         
         // After creating new view with updated rule, toggle should sync
         // Note: This tests that init properly sets the state

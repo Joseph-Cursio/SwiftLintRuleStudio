@@ -103,7 +103,7 @@ struct ViolationDetailViewInteractionTests {
         }
         let tracker = await MainActor.run { CallbackTracker() }
 
-        let violation = await makeTestViolation(suppressed: false)
+        let violation = makeTestViolation(suppressed: false)
 
         try await MainActor.run {
             struct DialogHost: View {
@@ -138,8 +138,8 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView suppress button shows dialog")
     func testSuppressButtonShowsDialog() async throws {
-        let violation = await makeTestViolation(suppressed: false)
-        let hasDialog = try await MainActor.run {
+        let violation = makeTestViolation(suppressed: false)
+        let hasDialog = await MainActor.run {
             let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
             let dialogView = view.suppressDialogForTesting
             let dialogHeader = try? dialogView.inspect().find(text: "Suppression Reason")
@@ -151,7 +151,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView suppress dialog has cancel button")
     func testSuppressDialogHasCancelButton() async throws {
-        let violation = await makeTestViolation(suppressed: false)
+        let violation = makeTestViolation(suppressed: false)
         let hasCancelButton = try await MainActor.run {
             let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
             let dialogView = view.suppressDialogForTesting
@@ -167,7 +167,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView suppress dialog has suppress button")
     func testSuppressDialogHasSuppressButton() async throws {
-        let violation = await makeTestViolation(suppressed: false)
+        let violation = makeTestViolation(suppressed: false)
         let hasSuppressButton = try await MainActor.run {
             let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
             let dialogView = view.suppressDialogForTesting
@@ -183,8 +183,8 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView suppress dialog has text field for reason")
     func testSuppressDialogHasTextField() async throws {
-        let violation = await makeTestViolation(suppressed: false)
-        let hasTextField = try await MainActor.run {
+        let violation = makeTestViolation(suppressed: false)
+        let hasTextField = await MainActor.run {
             let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
             let dialogView = view.suppressDialogForTesting
             let textField = try? dialogView.inspect().find(ViewType.TextField.self)
@@ -242,7 +242,7 @@ struct ViolationDetailViewInteractionTests {
         }
         let tracker = await MainActor.run { CallbackTracker() }
 
-        let violation = await makeTestViolation(resolvedAt: nil)
+        let violation = makeTestViolation(resolvedAt: nil)
         let result = await Task { @MainActor in
             createViolationDetailView(
                 violation: violation,
@@ -268,7 +268,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView open in Xcode button exists")
     func testOpenInXcodeButtonExists() async throws {
-        let violation = await makeTestViolation()
+        let violation = makeTestViolation()
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 
@@ -292,7 +292,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView open in Xcode button is tappable")
     func testOpenInXcodeButtonIsTappable() async throws {
-        let violation = await makeTestViolation()
+        let violation = makeTestViolation()
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 
@@ -324,7 +324,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView suppress button is hidden when suppressed")
     func testSuppressButtonHiddenWhenSuppressed() async throws {
-        let violation = await makeTestViolation(suppressed: true)
+        let violation = makeTestViolation(suppressed: true)
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 
@@ -338,7 +338,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView resolve button is hidden when resolved")
     func testResolveButtonHiddenWhenResolved() async throws {
-        let violation = await makeTestViolation(resolvedAt: Date())
+        let violation = makeTestViolation(resolvedAt: Date())
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 
@@ -352,3 +352,6 @@ struct ViolationDetailViewInteractionTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
+
+
+

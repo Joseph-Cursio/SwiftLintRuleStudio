@@ -63,7 +63,7 @@ enum UITestDataFactory {
     static func createTestRules(count: Int, prefix: String = "test_rule") async -> [Rule] {
         var rules: [Rule] = []
         for index in 0..<count {
-            let rule = await createTestRule(
+            let rule = createTestRule(
                 id: "\(prefix)_\(index)",
                 name: "Test Rule \(index)",
                 description: "Test description \(index)",
@@ -115,7 +115,7 @@ enum UITestDataFactory {
     ) async -> [Violation] {
         var violations: [Violation] = []
         for index in 0..<count {
-            let violation = await createTestViolation(
+            let violation = createTestViolation(
                 ruleID: ruleID,
                 filePath: filePath,
                 line: index + 1,

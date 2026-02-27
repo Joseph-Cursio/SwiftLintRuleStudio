@@ -61,7 +61,7 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
             throw WorkspaceAnalyzerError.analysisFailed("Mock analysis failure")
         }
 
-        try await mockStorage.storeViolations(mockViolations, for: workspace.id)
+        try mockStorage.storeViolations(mockViolations, for: workspace.id)
 
         return AnalysisResult(
             violations: mockViolations,
@@ -146,7 +146,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
     }
 
     func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int {
-        let violations = try await fetchViolations(filter: filter, workspaceId: workspaceId)
+        let violations = try fetchViolations(filter: filter, workspaceId: workspaceId)
         return violations.count
     }
 }

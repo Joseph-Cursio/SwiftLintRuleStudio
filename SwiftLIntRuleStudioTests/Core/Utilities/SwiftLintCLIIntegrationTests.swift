@@ -80,7 +80,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // First call - should generate
         let firstCall = try await cli.generateDocsForRule(ruleId: "empty_count")
@@ -172,7 +172,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Initially no version cached
         let initialVersion = try cacheManager.getCachedSwiftLintVersion()
@@ -202,7 +202,7 @@ struct SwiftLintCLIIntegrationTests {
         let (cacheManager, cacheDir) = createIsolatedCacheManager()
         defer { cleanupCacheDirectory(cacheDir) }
         
-        let cli = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLI(cacheManager: cacheManager)
         
         // Initially no directory cached
         let initialDir = cacheManager.getCachedDocsDirectory()
@@ -304,7 +304,7 @@ struct SwiftLintCLIIntegrationTests {
         let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
         
         // Create second CLI instance with same cache manager
-        let cli2 = await SwiftLintCLI(cacheManager: cacheManager)
+        let cli2 = SwiftLintCLI(cacheManager: cacheManager)
         
         // Should still have cached version and directory
         let version2 = try cacheManager.getCachedSwiftLintVersion()

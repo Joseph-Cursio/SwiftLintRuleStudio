@@ -137,7 +137,7 @@ struct RuleDetailViewNewFeaturesTests {
         Also check SE-0456 for more details.
         """
         
-        let links = await extractSwiftEvolutionLinks(from: markdown)
+        let links = extractSwiftEvolutionLinks(from: markdown)
         #expect(links.count >= 1)
         #expect(links.contains { $0.absoluteString.contains("0123") || $0.absoluteString.contains("0456") } == true)
     }
@@ -150,7 +150,7 @@ struct RuleDetailViewNewFeaturesTests {
         This rule is based on SE-0123 and SE-0456.
         """
         
-        let links = await extractSwiftEvolutionLinks(from: markdown)
+        let links = extractSwiftEvolutionLinks(from: markdown)
         #expect(links.count >= 1)
     }
     
@@ -162,7 +162,7 @@ struct RuleDetailViewNewFeaturesTests {
         This is just regular text with no links.
         """
         
-        let links = await extractSwiftEvolutionLinks(from: markdown)
+        let links = extractSwiftEvolutionLinks(from: markdown)
         #expect(links.isEmpty == true)
     }
     
@@ -223,7 +223,7 @@ struct RuleDetailViewNewFeaturesTests {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
         
-        let container = await DependencyContainer.createForTesting()
+        let container = DependencyContainer.createForTesting()
         
         await MainActor.run {
             try? container.workspaceManager.openWorkspace(at: workspace)

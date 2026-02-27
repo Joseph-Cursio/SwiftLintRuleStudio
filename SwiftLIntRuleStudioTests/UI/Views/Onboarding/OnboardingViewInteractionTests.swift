@@ -108,7 +108,7 @@ struct OnboardingViewInteractionTests {
         let onboardingManager = result.onboardingManager
 
         // Find and tap Next button
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
             try? result.view.inspect().callOnAppear()
@@ -386,3 +386,4 @@ struct OnboardingViewInteractionTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
+
