@@ -10,9 +10,9 @@ import Testing
 import ViewInspector
 @testable import SwiftLIntRuleStudio
 
-// UserDefaults is thread-safe by design but not marked Sendable.
-// This conformance is safe for test code.
-extension UserDefaults: @unchecked Sendable {}
+// UserDefaults is passed across actor boundaries in tests; @retroactive silences the
+// "retroactive conformance" warning while keeping the required Sendable conformance.
+extension UserDefaults: @retroactive @unchecked Sendable {}
 
 // MARK: - Test Data Factories
 
@@ -60,7 +60,7 @@ enum UITestDataFactory {
     }
     
     /// Creates multiple test rules
-    static func createTestRules(count: Int, prefix: String = "test_rule") async -> [Rule] {
+    static func createTestRules(count: Int, prefix: String = "test_rule") -> [Rule] {
         var rules: [Rule] = []
         for index in 0..<count {
             let rule = createTestRule(
@@ -112,7 +112,7 @@ enum UITestDataFactory {
         count: Int,
         ruleID: String = "test_rule",
         filePath: String = "Test.swift"
-    ) async -> [Violation] {
+    ) -> [Violation] {
         var violations: [Violation] = []
         for index in 0..<count {
             let violation = createTestViolation(
@@ -240,8 +240,7 @@ enum UITestAssertions {
         enabled: Bool = true
     ) throws {
         let inspectable = try view.inspect()
-        let button = try inspectable.findButton(text: text)
-        #expect(button != nil, "Button with text '\(text)' should exist")
+        _ = try inspectable.findButton(text: text)
         // Note: Button enabled state may require additional inspection
     }
 }

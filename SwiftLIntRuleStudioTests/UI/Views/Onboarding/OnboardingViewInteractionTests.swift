@@ -129,7 +129,7 @@ struct OnboardingViewInteractionTests {
         let onboardingManager = result.onboardingManager
 
         // Find and tap Back button
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
             try? result.view.inspect().callOnAppear()
@@ -150,7 +150,7 @@ struct OnboardingViewInteractionTests {
         let onboardingManager = result.onboardingManager
 
         // Find and tap Get Started button
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
             try? result.view.inspect().callOnAppear()

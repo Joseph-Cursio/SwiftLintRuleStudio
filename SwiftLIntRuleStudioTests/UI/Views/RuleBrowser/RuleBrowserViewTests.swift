@@ -130,7 +130,7 @@ struct RuleBrowserViewTests {
         // Search is now handled by .searchable() on the parent NavigationSplitView.
         // Verify filter controls (Status/Category/Sort pickers) are present in the view.
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let hasFilters = try await MainActor.run {
+        let hasFilters = await MainActor.run {
             (try? result.view.inspect().find(ViewType.ScrollView.self)) != nil
         }
         #expect(hasFilters == true, "RuleBrowserView should display filter controls")
@@ -141,7 +141,7 @@ struct RuleBrowserViewTests {
         // Search is now handled by .searchable() on the parent NavigationSplitView.
         // Verify the view model exposes a searchText property for search-driven filtering.
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let hasFilters = try await MainActor.run {
+        let hasFilters = await MainActor.run {
             (try? result.view.inspect().find(ViewType.ScrollView.self)) != nil
         }
         #expect(hasFilters == true, "Filter controls should be accessible in the view")
@@ -152,7 +152,7 @@ struct RuleBrowserViewTests {
         // Search is now handled by .searchable() on the parent NavigationSplitView.
         // Verify that setting searchText on the view model affects filteredRules.
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        let hasFilters = try await MainActor.run {
+        let hasFilters = await MainActor.run {
             (try? result.view.inspect().find(ViewType.ScrollView.self)) != nil
         }
         #expect(hasFilters == true, "Filter controls should be present for search-driven filtering")
@@ -176,7 +176,7 @@ struct RuleBrowserViewTests {
             return ViewResult(view: view, container: container)
         }.value
 
-        let hasGuidance = try await MainActor.run {
+        let hasGuidance = await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
@@ -361,7 +361,6 @@ struct RuleBrowserViewTests {
     func testShowsLoadingMessage() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        #expect(result.view != nil)
 
         // Loading text is state-dependent: only visible before rules finish loading
         let found = await MainActor.run {
@@ -378,7 +377,6 @@ struct RuleBrowserViewTests {
     func testShowsEmptyDetailView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        #expect(result.view != nil)
 
         // Detail placeholder visibility depends on whether a rule is pre-selected
         let found = await MainActor.run {

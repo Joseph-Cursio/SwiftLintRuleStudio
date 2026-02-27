@@ -39,19 +39,19 @@ extension InspectableView {
     ///   - index: Optional index if multiple text fields exist (default: 0)
     /// - Throws: If text field cannot be found
     func setTextFieldInput(_ input: String, at index: Int = 0) throws {
-        let textField = try findAll(ViewType.TextField.self)[index]
+        let textField = findAll(ViewType.TextField.self)[index]
         try textField.setInput(input)
     }
-    
+
     /// Finds a text field and gets its input value
     /// - Parameter index: Optional index if multiple text fields exist (default: 0)
     /// - Returns: The current input value
     /// - Throws: If text field cannot be found
     func getTextFieldInput(at index: Int = 0) throws -> String {
-        let textField = try findAll(ViewType.TextField.self)[index]
+        let textField = findAll(ViewType.TextField.self)[index]
         return try textField.input()
     }
-    
+
     /// Finds a text field by placeholder text
     /// - Parameter placeholder: The placeholder text to find
     /// - Returns: The text field view
@@ -60,7 +60,7 @@ extension InspectableView {
         // Note: ViewInspector may not directly support placeholder search
         // This is a helper that attempts to find by searching for text fields
         // and checking their attributes
-        let textFields = try findAll(ViewType.TextField.self)
+        let textFields = findAll(ViewType.TextField.self)
         // For now, return first text field - can be enhanced if needed
         return textFields[0]
     }

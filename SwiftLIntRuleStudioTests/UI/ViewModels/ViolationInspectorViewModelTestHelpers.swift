@@ -145,6 +145,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
         storedViolations.removeAll()
     }
 
+    // swiftlint:disable:next async_without_await
     func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int {
         let violations = try fetchViolations(filter: filter, workspaceId: workspaceId)
         return violations.count

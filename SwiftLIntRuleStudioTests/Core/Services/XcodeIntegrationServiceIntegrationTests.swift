@@ -40,8 +40,8 @@ struct XcodeIntegrationServiceIntegrationTests {
     func testCompleteWorkflow() async throws {
         let workspace = try WorkspaceTestHelpers.createXcodeProjectWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
-        
-        let testFile = workspace.appendingPathComponent("TestFile.swift")
+
+        _ = workspace.appendingPathComponent("TestFile.swift")
         let workspaceModel = await MainActor.run { Workspace(path: workspace) }
         
         try await withServiceAsync { service, _ in

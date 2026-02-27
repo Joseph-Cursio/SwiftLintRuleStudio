@@ -211,7 +211,7 @@ struct RuleDisplayConsistencyTests {
     
     @Test("RuleDetailView syncs state on appear")
     func testDetailViewSyncsOnAppear() async throws {
-        var rule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
+        var rule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
         
         // Initially toggle should be off
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
@@ -250,6 +250,3 @@ struct RuleDisplayConsistencyTests {
 }
 
 // MARK: - ViewInspector Extensions
-
-extension RuleListItem: Inspectable {}
-extension RuleDetailView: Inspectable {}

@@ -16,7 +16,7 @@ struct RuleDetailVMWorkspaceIntegrationTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let workspaceManager = await RuleDetailVMIntegrationHelpers.createWorkspaceManager()
-        let (workspace, configPath) = try await openWorkspaceAndConfig(
+        let (_, configPath) = try await openWorkspaceAndConfig(
             workspaceManager: workspaceManager,
             at: tempDir
         )

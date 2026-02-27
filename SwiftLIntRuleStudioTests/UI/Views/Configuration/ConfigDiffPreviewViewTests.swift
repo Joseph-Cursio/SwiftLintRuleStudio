@@ -10,8 +10,6 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLIntRuleStudio
 
-extension ConfigDiffPreviewView: Inspectable {}
-
 // Tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution

@@ -161,7 +161,6 @@ struct ViolationInspectorViewTests {
     func testShowsEmptyState() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
-        #expect(result.view != nil)
 
         // Empty state text only visible when a workspace is set with no violations
         let found = await MainActor.run {
@@ -176,7 +175,6 @@ struct ViolationInspectorViewTests {
     func testShowsEmptyStateMessage() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
-        #expect(result.view != nil)
 
         // Filter message only visible when filters are active and produce no results
         let found = await MainActor.run {
@@ -209,7 +207,6 @@ struct ViolationInspectorViewTests {
     func testShowsEmptyDetailView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
-        #expect(result.view != nil)
 
         // Detail placeholder only visible when no violation is selected
         let found = await MainActor.run {
@@ -245,7 +242,7 @@ struct ViolationInspectorViewTests {
             return ViewResult(view: view)
         }.value
 
-        let hasDetail = try await MainActor.run {
+        let hasDetail = await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
@@ -261,7 +258,6 @@ struct ViolationInspectorViewTests {
     func testDisplaysViolationList() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
-        #expect(result.view != nil)
 
         // List only rendered when violations are present and not in analyzing state
         let found = await MainActor.run {
@@ -278,7 +274,6 @@ struct ViolationInspectorViewTests {
     func testShowsAnalyzingView() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationInspectorView() }.value
-        #expect(result.view != nil)
 
         // Analyzing overlay only visible while workspace analysis is in progress
         let found = await MainActor.run {

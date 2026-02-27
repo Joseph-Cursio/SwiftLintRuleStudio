@@ -39,7 +39,7 @@ struct OnboardingManagerIntegrationTests {
         // Swift Testing creates a fresh struct instance for each test, but we still need isolated UserDefaults
         let (hasManager, hasCompleted, currentStep) = try await withContainer { container in
             return (
-                container.onboardingManager != nil,
+                true,
                 container.onboardingManager.hasCompletedOnboarding,
                 container.onboardingManager.currentStep
             )
@@ -77,7 +77,7 @@ struct OnboardingManagerIntegrationTests {
             let container2 = DependencyContainer.createForTesting(userDefaults: userDefaults)
             // Note: Since completeOnboarding() doesn't save to UserDefaults, this will be false
             // But the isolation pattern is demonstrated
-            return (before, after, container2.onboardingManager != nil)
+            return (before, after, true)
         }
         
         #expect(hasCompleted1 == false)
@@ -195,7 +195,7 @@ struct OnboardingManagerIntegrationTests {
             // Note: Since completeOnboarding() doesn't persist to UserDefaults,
             // a new instance will start fresh, but this demonstrates the isolation pattern
             let container2 = DependencyContainer.createForTesting(userDefaults: userDefaults)
-            let hasManager2 = container2.onboardingManager != nil
+            let hasManager2 = true
 
             return (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2)
         }
@@ -222,7 +222,7 @@ struct OnboardingManagerIntegrationTests {
             let hasCompleted2: Bool
         }
 
-        let result: ResetResult = try await MainActor.run {
+        let result: ResetResult = await MainActor.run {
             let container = DependencyContainer.createForTesting()
             
             // Complete onboarding

@@ -29,8 +29,12 @@ struct RuleDetailVMNotificationIntegrationTests {
             yamlEngine: yamlEngine
         )
 
-        var notificationReceived = false
-        var receivedRuleId: String?
+        @MainActor
+        class CallbackTracker {
+            var notificationReceived = false
+            var receivedRuleId: String?
+        }
+        let tracker = await MainActor.run { CallbackTracker() }
         let expectedRuleId = await MainActor.run { rule.id }
 
         let observer = NotificationCenter.default.addObserver(
@@ -39,8 +43,8 @@ struct RuleDetailVMNotificationIntegrationTests {
             queue: .main
         ) { notification in
             if let ruleId = notification.userInfo?["ruleId"] as? String, ruleId == expectedRuleId {
-                notificationReceived = true
-                receivedRuleId = ruleId
+                tracker.notificationReceived = true
+                tracker.receivedRuleId = ruleId
             }
         }
         defer { NotificationCenter.default.removeObserver(observer) }
@@ -53,9 +57,11 @@ struct RuleDetailVMNotificationIntegrationTests {
         }.value
 
         _ = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 1.0) {
-            notificationReceived
+            await tracker.notificationReceived
         }
 
+        let notificationReceived = await tracker.notificationReceived
+        let receivedRuleId = await tracker.receivedRuleId
         #expect(notificationReceived == true)
         #expect(receivedRuleId == "test_rule")
     }

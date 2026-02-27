@@ -129,7 +129,7 @@ struct RuleDetailViewNewFeaturesTests {
     // MARK: - Swift Evolution Link Extraction Tests
     
     @Test("Extracts Swift Evolution links from markdown")
-    func testExtractSwiftEvolutionLinks() async throws {
+    func testExtractSwiftEvolutionLinks() throws {
         let markdown = """
         # Test Rule
         
@@ -143,7 +143,7 @@ struct RuleDetailViewNewFeaturesTests {
     }
     
     @Test("Extracts SE-XXXX format links")
-    func testExtractSELinks() async throws {
+    func testExtractSELinks() throws {
         let markdown = """
         # Test Rule
         
@@ -155,7 +155,7 @@ struct RuleDetailViewNewFeaturesTests {
     }
     
     @Test("Returns empty array when no Swift Evolution links")
-    func testExtractSwiftEvolutionLinksNone() async throws {
+    func testExtractSwiftEvolutionLinksNone() throws {
         let markdown = """
         # Test Rule
         
@@ -246,7 +246,8 @@ struct RuleDetailViewNewFeaturesTests {
             message: "Another violation"
         )
         
-        if let workspaceId = await MainActor.run { container.workspaceManager.currentWorkspace?.id } {
+        let currentWorkspaceId = await MainActor.run { container.workspaceManager.currentWorkspace?.id }
+        if let workspaceId = currentWorkspaceId {
             try await container.violationStorage.storeViolations([violation1, violation2], for: workspaceId)
             
             let count = try await container.violationStorage.getViolationCount(

@@ -15,7 +15,6 @@ import Foundation
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
-// swiftlint:disable:next type_body_length
 struct RuleBrowserViewInteractionTests {
 
     // MARK: - Test Data Helpers
@@ -205,7 +204,7 @@ struct RuleBrowserViewInteractionTests {
     @Test("RuleBrowserView allows rule selection")
     func testAllowsRuleSelection() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
-        let rule = await makeTestRule()
+        let rule = makeTestRule()
         let result = await Task { @MainActor in createRuleBrowserView(rules: [rule]) }.value
 
         // Find the List view

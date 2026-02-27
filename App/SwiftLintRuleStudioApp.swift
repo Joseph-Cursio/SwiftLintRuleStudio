@@ -99,7 +99,7 @@ struct SwiftLintRuleStudioApp: App {
 
 #if os(macOS)
     private func requestNotificationPermission() async {
-        try? await UNUserNotificationCenter.current().requestAuthorization(
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound])
     }
 #endif

@@ -230,7 +230,7 @@ struct XcodeIntegrationServiceTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
 
         let fileURL = workspace.appendingPathComponent("TestFile.swift")
-        let workspaceModel = Workspace(path: workspace)
+        _ = Workspace(path: workspace)
 
         try await withService { service, _ in
             let url = service.generateXcodeURL(

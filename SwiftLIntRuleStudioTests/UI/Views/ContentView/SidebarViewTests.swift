@@ -169,7 +169,7 @@ struct SidebarViewTests {
         // Find Violations link
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasViolationsText = try await MainActor.run {
-            try view.inspect().find(text: "Violations")
+            _ = try view.inspect().find(text: "Violations")
             return true
         }
         #expect(hasViolationsText == true, "SidebarView should display Violations navigation link")
@@ -184,7 +184,7 @@ struct SidebarViewTests {
         // Find Dashboard link
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasDashboardText = try await MainActor.run {
-            try view.inspect().find(text: "Dashboard")
+            _ = try view.inspect().find(text: "Dashboard")
             return true
         }
         #expect(hasDashboardText == true, "SidebarView should display Dashboard navigation link")
@@ -199,7 +199,7 @@ struct SidebarViewTests {
         // Find Safe Rules link
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasSafeRulesText = try await MainActor.run {
-            try view.inspect().find(text: "Safe Rules")
+            _ = try view.inspect().find(text: "Safe Rules")
             return true
         }
         #expect(hasSafeRulesText == true, "SidebarView should display Safe Rules navigation link")

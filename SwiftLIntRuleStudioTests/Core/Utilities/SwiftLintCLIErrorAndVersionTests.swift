@@ -45,16 +45,16 @@ struct SwiftLintCLIErrorAndVersionTests {
 
         do {
             _ = try await cli.getVersion()
-            #expect(false, "Expected invalidVersion error")
+            Issue.record("Expected invalidVersion error")
         } catch let error as SwiftLintError {
             switch error {
             case .invalidVersion:
                 #expect(true)
             default:
-                #expect(false, "Expected invalidVersion error")
+                Issue.record("Expected invalidVersion error")
             }
         } catch {
-            #expect(false, "Expected SwiftLintError")
+            Issue.record("Expected SwiftLintError")
         }
     }
 }

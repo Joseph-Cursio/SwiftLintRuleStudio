@@ -21,16 +21,16 @@ struct SwiftLintCLIShellOutputTests {
 
         do {
             _ = try await cli.executeRulesCommand()
-            #expect(false, "Expected notFound error")
+            Issue.record("Expected notFound error")
         } catch let error as SwiftLintError {
             switch error {
             case .notFound:
                 #expect(true)
             default:
-                #expect(false, "Expected notFound error")
+                Issue.record("Expected notFound error")
             }
         } catch {
-            #expect(false, "Expected SwiftLintError")
+            Issue.record("Expected SwiftLintError")
         }
     }
 
@@ -45,16 +45,16 @@ struct SwiftLintCLIShellOutputTests {
 
         do {
             _ = try await cli.executeRulesCommand()
-            #expect(false, "Expected executionFailed error")
+            Issue.record("Expected executionFailed error")
         } catch let error as SwiftLintError {
             switch error {
             case .executionFailed:
                 #expect(true)
             default:
-                #expect(false, "Expected executionFailed error")
+                Issue.record("Expected executionFailed error")
             }
         } catch {
-            #expect(false, "Expected SwiftLintError")
+            Issue.record("Expected SwiftLintError")
         }
     }
 

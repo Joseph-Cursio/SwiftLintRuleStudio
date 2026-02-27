@@ -8,7 +8,7 @@ struct WkspManagerIntegrationDepsTests {
     @Test("DependencyContainer includes WorkspaceManager")
     func testDependencyContainerIncludesWorkspaceManager() async throws {
         let (hasManager, hasWorkspace) = try await WorkspaceManagerIntegrationTestHelpers.withContainer { container in
-            (container.workspaceManager != nil, container.workspaceManager.currentWorkspace == nil)
+            (true, container.workspaceManager.currentWorkspace == nil)
         }
 
         #expect(hasManager == true)
@@ -17,7 +17,7 @@ struct WkspManagerIntegrationDepsTests {
 
     @Test("DependencyContainer shares WorkspaceManager instance")
     func testDependencyContainerSharesWorkspaceManager() async throws {
-        let areDifferent = try await MainActor.run {
+        let areDifferent = await MainActor.run {
             let container1 = DependencyContainer.createForTesting()
             let container2 = DependencyContainer.createForTesting()
             return container1.workspaceManager !== container2.workspaceManager

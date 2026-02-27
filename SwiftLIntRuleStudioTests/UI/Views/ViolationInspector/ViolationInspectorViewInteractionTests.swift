@@ -124,7 +124,7 @@ struct ViolationInspectorViewInteractionTests {
 
     @Test("ViolationInspectorView search filters violations by rule ID")
     func testSearchFiltersByRuleID() async throws {
-        let violations = [
+        _ = [
             makeTestViolation(ruleID: "force_cast", message: "Force cast violation"),
             makeTestViolation(ruleID: "unused_import", message: "Unused import violation")
         ]
@@ -206,7 +206,7 @@ struct ViolationInspectorViewInteractionTests {
         let result = await Task { @MainActor in createViolationInspectorView() }.value
 
         // Find the search TextField and enter text
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
         }
@@ -226,7 +226,7 @@ struct ViolationInspectorViewInteractionTests {
         let result = await Task { @MainActor in createViolationInspectorView() }.value
 
         // Find the search TextField and enter text
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
         }
@@ -293,7 +293,7 @@ struct ViolationInspectorViewInteractionTests {
 
         // Verify violations are rendered: non-grouped mode uses Table (unsupported by
         // ViewInspector 0.10.3), so check that the empty state is NOT shown instead.
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
         }
@@ -302,7 +302,8 @@ struct ViolationInspectorViewInteractionTests {
         let showsEmptyState = await MainActor.run {
             (try? result.view.inspect().find(text: "No violations match your current filters.")) != nil
         }
-        #expect(!showsEmptyState, "ViolationInspectorView should display violations (not empty state) when filteredViolations is set")
+        let msg = "ViolationInspectorView should display violations (not empty state) when filteredViolations is set"
+        #expect(!showsEmptyState, "\(msg)")
     }
 
     // MARK: - Empty State Interaction Tests
@@ -313,7 +314,7 @@ struct ViolationInspectorViewInteractionTests {
         let result = await Task { @MainActor in createViolationInspectorView() }.value
 
         // Find the search TextField and enter text to trigger empty state
-        try await MainActor.run {
+        await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
         }
@@ -355,8 +356,8 @@ struct ViolationInspectorViewInteractionTests {
             try searchField.setInput("test")
 
             // Statistics should update (we verify the view structure exists)
-            let vStack = try result.view.inspect().find(ViewType.VStack.self)
-            return vStack != nil
+            _ = try result.view.inspect().find(ViewType.VStack.self)
+            return true
         }
 
         #expect(hasVStack == true, "Statistics should update when filters change")

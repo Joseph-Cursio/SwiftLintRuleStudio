@@ -296,7 +296,7 @@ struct ViolationDetailViewTests {
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 
         // Should still display correctly with long paths
-        #expect(result.view != nil, "ViolationDetailView should handle long file paths")
+        _ = result.view
     }
 
     @Test("ViolationDetailView handles long messages")
@@ -307,7 +307,7 @@ struct ViolationDetailViewTests {
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 
         // Should still display correctly with long messages
-        #expect(result.view != nil, "ViolationDetailView should handle long messages")
+        _ = result.view
     }
 }
 

@@ -103,7 +103,7 @@ struct ViolationDetailViewInteractionTests {
         }
         let tracker = await MainActor.run { CallbackTracker() }
 
-        let violation = makeTestViolation(suppressed: false)
+        _ = makeTestViolation(suppressed: false)
 
         try await MainActor.run {
             struct DialogHost: View {
@@ -152,7 +152,7 @@ struct ViolationDetailViewInteractionTests {
     @Test("ViolationDetailView suppress dialog has cancel button")
     func testSuppressDialogHasCancelButton() async throws {
         let violation = makeTestViolation(suppressed: false)
-        let hasCancelButton = try await MainActor.run {
+        let hasCancelButton = await MainActor.run {
             let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
             let dialogView = view.suppressDialogForTesting
             let cancelButton = try? dialogView.inspect().find(ViewType.Button.self) { button in
@@ -171,11 +171,11 @@ struct ViolationDetailViewInteractionTests {
         let hasSuppressButton = try await MainActor.run {
             let view = ViolationDetailView(violation: violation, onSuppress: { _ in }, onResolve: {})
             let dialogView = view.suppressDialogForTesting
-            let dialogSuppressButton = try dialogView.inspect().find(ViewType.Button.self) { button in
+            _ = try dialogView.inspect().find(ViewType.Button.self) { button in
                 let text = try? button.labelView().find(ViewType.Text.self).string()
                 return text == "Suppress"
             }
-            return dialogSuppressButton != nil
+            return true
         }
 
         #expect(hasSuppressButton == true, "Suppress dialog should have suppress button")
@@ -276,7 +276,7 @@ struct ViolationDetailViewInteractionTests {
         // The button uses a Label, so we need to find it differently
         let hasOpenButton = try await MainActor.run {
             let buttons = try result.view.inspect().findAll(ViewType.Button.self)
-            let openButton = try buttons.first { button in
+            let openButton = buttons.first { button in
                 // Try to find text "Open in Xcode" within the button's label
                 do {
                     _ = try button.find(text: "Open in Xcode")
@@ -299,7 +299,7 @@ struct ViolationDetailViewInteractionTests {
         // Find the open in Xcode button by searching for buttons
         let isTappable = try await MainActor.run {
             let buttons = try result.view.inspect().findAll(ViewType.Button.self)
-            let openButton = try buttons.first { button in
+            let openButton = buttons.first { button in
                 // Try to find text "Open in Xcode" within the button's label
                 do {
                     _ = try button.find(text: "Open in Xcode")

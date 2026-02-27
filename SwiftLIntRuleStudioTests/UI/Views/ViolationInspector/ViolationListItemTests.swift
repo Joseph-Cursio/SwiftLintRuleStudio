@@ -259,10 +259,7 @@ struct ViolationListItemTests {
         }
 
         // The view should still render even with long paths
-        let viewExists = await MainActor.run {
-            result.view != nil
-        }
-        #expect(viewExists == true, "ViolationListItem should handle long file paths")
+        _ = result.view
     }
 
     // MARK: - Edge Cases
@@ -303,5 +300,3 @@ struct ViolationListItemTests {
 }
 
 // MARK: - ViewInspector Extensions
-
-extension ViolationListItem: Inspectable {}
