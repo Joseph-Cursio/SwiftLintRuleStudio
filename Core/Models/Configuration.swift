@@ -59,6 +59,6 @@ struct Workspace: Identifiable, Equatable, Sendable {
     }
 
     nonisolated static func == (lhs: Workspace, rhs: Workspace) -> Bool {
-        lhs.id == rhs.id && lhs.path == rhs.path
+        lhs.id == rhs.id && lhs.path == rhs.path && lhs.configPath == rhs.configPath
     }
 }

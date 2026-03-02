@@ -108,6 +108,11 @@ struct ViolationInspectorView: View {
                 }
             }
         }
+        .onChange(of: dependencies.workspaceManager.configFileMissing) { _, isMissing in
+            // Re-analyze when config file is created (missing → not missing transition)
+            guard !isMissing, dependencies.workspaceManager.currentWorkspace != nil else { return }
+            Task { try? await viewModel.refreshViolations() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .violationInspectorRefreshRequested)) { _ in
             Task { try? await viewModel.refreshViolations() }
         }
