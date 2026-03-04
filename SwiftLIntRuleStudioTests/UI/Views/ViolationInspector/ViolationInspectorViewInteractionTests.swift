@@ -366,4 +366,3 @@ struct ViolationInspectorViewInteractionTests {
 
 // MARK: - ViewInspector Extensions
 // Note: Inspectable conformance is no longer required in newer ViewInspector versions
-

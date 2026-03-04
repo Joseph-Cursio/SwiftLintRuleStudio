@@ -81,16 +81,20 @@ struct SwiftLintRuleStudioApp: App {
 
         CommandGroup(replacing: .help) {
             Button("SwiftLint Rule Studio Help") {
-                NSWorkspace.shared.open(URL(string: "https://github.com/realm/SwiftLint")!)
+                if let url = URL(string: "https://github.com/realm/SwiftLint") {
+                    NSWorkspace.shared.open(url)
+                }
             }
             Button("SwiftLint Rule Reference") {
-                NSWorkspace.shared.open(
-                    URL(string: "https://realm.github.io/SwiftLint/rule-directory.html")!)
+                if let url = URL(string: "https://realm.github.io/SwiftLint/rule-directory.html") {
+                    NSWorkspace.shared.open(url)
+                }
             }
             Divider()
             Button("Report an Issue…") {
-                NSWorkspace.shared.open(
-                    URL(string: "https://github.com/Joseph-Cursio/SwiftLintRuleStudio/issues")!)
+                if let url = URL(string: "https://github.com/Joseph-Cursio/SwiftLintRuleStudio/issues") {
+                    NSWorkspace.shared.open(url)
+                }
             }
         }
 

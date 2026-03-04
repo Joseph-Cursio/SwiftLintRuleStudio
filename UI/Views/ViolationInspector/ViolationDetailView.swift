@@ -225,7 +225,7 @@ struct ViolationDetailView: View {
     }
 #endif
     
-    private func openInXcode() async {
+    private func openInXcode() {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             errorMessage = "No workspace is currently open. Please select a workspace first."
             showErrorAlert = true

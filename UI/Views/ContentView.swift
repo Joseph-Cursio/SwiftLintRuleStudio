@@ -285,7 +285,10 @@ struct ContentView: View {
         }
     }
 
-    private func applyUITestOverrides() {
+}
+
+private extension ContentView {
+    func applyUITestOverrides() {
         let processInfo = ProcessInfo.processInfo
         guard processInfo.arguments.contains("-uiTesting") else { return }
 
@@ -304,7 +307,7 @@ struct ContentView: View {
         }
     }
 
-    private func createUITestWorkspace() throws -> URL {
+    func createUITestWorkspace() throws -> URL {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioUITests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
