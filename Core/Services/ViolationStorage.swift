@@ -32,9 +32,10 @@ actor ViolationStorage: ViolationStorageProtocol {
     
     let databasePath: URL
     let useInMemory: Bool
-    // Marked nonisolated(unsafe) to allow initialization from MainActor context
-    // Still safe because all access is through actor-isolated methods
-    nonisolated(unsafe) var database: OpaquePointer?
+    // Immutable after init; all reads are through actor-isolated methods.
+    // nonisolated(unsafe) is required because OpaquePointer is not Sendable,
+    // but safety is guaranteed by the let binding (no mutation after init).
+    nonisolated(unsafe) let database: OpaquePointer?
     
     // MARK: - Initialization
     
@@ -48,11 +49,10 @@ actor ViolationStorage: ViolationStorageProtocol {
     }
 
     deinit {
-        // Deinit cannot be async, but closing the database is a synchronous operation
-        // Accessing database directly in deinit is safe since deinit runs when actor is being deallocated
+        // Deinit runs after all actor tasks complete (tasks retain the actor).
+        // database is a let constant so this read is safe from any context.
         if let db = database {
             sqlite3_close(db)
-            database = nil
         }
     }
     

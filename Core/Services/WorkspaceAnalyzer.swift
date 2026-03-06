@@ -22,6 +22,9 @@ class WorkspaceAnalyzer: ObservableObject {
     let violationStorage: ViolationStorageProtocol
     let fileTracker: FileTracker
     var currentAnalysisTask: Task<Void, Never>?
+    // Stores a cancel action for the in-flight analyze() call so that
+    // cancelAnalysis() can reach it even though analyze() returns a value.
+    private var pendingAnalysisCancellation: (@Sendable () -> Void)?
     
     // MARK: - Initialization
     
@@ -59,26 +62,41 @@ class WorkspaceAnalyzer: ObservableObject {
         let startedAt = Date()
         beginAnalysis()
 
-        do {
-            let actualConfigPath = resolveConfigPath(configPath, workspace: workspace)
-            let violations = try await runLintAndParse(
-                configPath: actualConfigPath,
-                workspacePath: workspace.path
-            )
-            let configHash = try calculateConfigHash(configPath: configPath ?? workspace.configPath)
-            try await violationStorage.storeViolations(violations, for: workspace.id)
+        // Wrap the body in a Task so cancelAnalysis() can reach it externally.
+        // The Task inherits @MainActor from this method's context.
+        let task = Task<AnalysisResult, Error> {
+            do {
+                let actualConfigPath = self.resolveConfigPath(configPath, workspace: workspace)
+                let violations = try await self.runLintAndParse(
+                    configPath: actualConfigPath,
+                    workspacePath: workspace.path
+                )
+                let configHash = try self.calculateConfigHash(configPath: configPath ?? workspace.configPath)
+                try await self.violationStorage.storeViolations(violations, for: workspace.id)
 
-            let result = makeResult(
-                violations: violations,
-                filesAnalyzed: Set(violations.map { $0.filePath }).count,
-                startedAt: startedAt,
-                configHash: configHash
-            )
-            finalizeAnalysisSuccess(result: result, violationsCount: violations.count)
-            return result
-        } catch {
-            finalizeAnalysisFailure()
-            throw WorkspaceAnalyzerError.analysisFailed(error.localizedDescription)
+                let result = self.makeResult(
+                    violations: violations,
+                    filesAnalyzed: Set(violations.map { $0.filePath }).count,
+                    startedAt: startedAt,
+                    configHash: configHash
+                )
+                self.finalizeAnalysisSuccess(result: result, violationsCount: violations.count)
+                return result
+            } catch {
+                self.finalizeAnalysisFailure()
+                throw WorkspaceAnalyzerError.analysisFailed(error.localizedDescription)
+            }
+        }
+
+        // Store a cancel hook so cancelAnalysis() can cancel this task directly.
+        pendingAnalysisCancellation = { task.cancel() }
+        defer { pendingAnalysisCancellation = nil }
+
+        // Also propagate cancellation if the *caller's* task is cancelled.
+        return try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
         }
     }
 
@@ -145,6 +163,8 @@ class WorkspaceAnalyzer: ObservableObject {
     func cancelAnalysis() {
         currentAnalysisTask?.cancel()
         currentAnalysisTask = nil
+        pendingAnalysisCancellation?()
+        pendingAnalysisCancellation = nil
         isAnalyzing = false
         currentProgress = nil
     }
