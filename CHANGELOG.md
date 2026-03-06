@@ -10,6 +10,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.0.1] — 2026-03-06
+
+### Fixed
+- `ViolationStorage.database` changed from `nonisolated(unsafe) var` to `let`, preventing accidental mutation from outside the actor and eliminating a potential use-after-close race in `deinit`
+- `WorkspaceAnalyzer.analyze()` is now properly cancellable: external calls to `cancelAnalysis()` and caller-side task cancellation both correctly cancel the in-flight analysis
+
+---
+
 ## [1.0.0] — 2026-02-27
 
 ### Added
