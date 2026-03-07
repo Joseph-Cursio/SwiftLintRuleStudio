@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RuleDetailView: View {
-    @StateObject var viewModel: RuleDetailViewModel
+    @State var viewModel: RuleDetailViewModel
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var dependencies: DependencyContainer
     @State private var showSaveConfirmation = false
@@ -37,13 +37,13 @@ struct RuleDetailView: View {
         self.ruleId = rule.id
         _currentRule = State(initialValue: rule)
         // Create ViewModel - will be updated with workspace config in onAppear
-        _viewModel = StateObject(wrappedValue: RuleDetailViewModel(rule: rule))
+        _viewModel = State(initialValue: RuleDetailViewModel(rule: rule))
     }
 
     init(rule: Rule, viewModel: RuleDetailViewModel) {
         self.ruleId = rule.id
         _currentRule = State(initialValue: rule)
-        _viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
@@ -167,7 +167,7 @@ struct RuleDetailView: View {
             // New value not needed — just rebuild on any scheme change
             rebuildAttributedString()
         }
-        .sheet(isPresented: $viewModel.showDiffPreview) {
+        .sheet(isPresented: Bindable(viewModel).showDiffPreview) {
             if let diff = viewModel.generateDiff() {
                 ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
                     Task {

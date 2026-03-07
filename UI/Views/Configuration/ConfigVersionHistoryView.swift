@@ -9,10 +9,10 @@ import SwiftUI
 
 struct ConfigVersionHistoryView: View {
     @EnvironmentObject var dependencies: DependencyContainer
-    @StateObject private var viewModel: ConfigVersionHistoryViewModel
+    @State private var viewModel: ConfigVersionHistoryViewModel
 
     init(service: ConfigVersionHistoryServiceProtocol, configPath: URL?) {
-        _viewModel = StateObject(wrappedValue: ConfigVersionHistoryViewModel(
+        _viewModel = State(initialValue: ConfigVersionHistoryViewModel(
             service: service,
             configPath: configPath
         ))
@@ -56,7 +56,7 @@ struct ConfigVersionHistoryView: View {
         .onAppear {
             viewModel.loadBackups()
         }
-        .alert("Restore Configuration?", isPresented: $viewModel.showRestoreConfirmation) {
+        .alert("Restore Configuration?", isPresented: Bindable(viewModel).showRestoreConfirmation) {
             Button("Restore", role: .destructive) {
                 viewModel.restoreVersion()
             }

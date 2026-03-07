@@ -22,8 +22,8 @@ extension ViolationInspectorView {
                 if viewModel.groupingOption == .none {
                     Table(
                         viewModel.filteredViolations,
-                        selection: $viewModel.selectedViolationIds,
-                        sortOrder: $viewModel.tableSortOrder
+                        selection: Bindable(viewModel).selectedViolationIds,
+                        sortOrder: Bindable(viewModel).tableSortOrder
                     ) {
                         TableColumn("Severity", value: \.severity.rawValue) { violation in
                             Text(violation.severity.rawValue.capitalized)
@@ -63,7 +63,7 @@ extension ViolationInspectorView {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
-                TextField("Search violations...", text: $viewModel.searchText)
+                TextField("Search violations...", text: Bindable(viewModel).searchText)
                     .accessibilityIdentifier("ViolationInspectorSearchField")
             }
             .textFieldStyle(.roundedBorder)
@@ -268,7 +268,7 @@ extension ViolationInspectorView {
     }
 
     var groupedViolationListView: some View {
-        List(selection: $viewModel.selectedViolationIds) {
+        List(selection: Bindable(viewModel).selectedViolationIds) {
             let grouped = groupViolations(viewModel.filteredViolations, by: viewModel.groupingOption)
 
             ForEach(orderedGroupKeys(for: grouped, option: viewModel.groupingOption), id: \.self) { groupKey in

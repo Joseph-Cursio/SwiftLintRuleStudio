@@ -6,16 +6,17 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class GitBranchDiffViewModel: ObservableObject {
-    @Published var availableRefs: GitRefs?
-    @Published var selectedRef: String?
-    @Published var comparisonResult: ConfigComparisonResult?
-    @Published var isLoading: Bool = false
-    @Published var isNotGitRepo: Bool = false
-    @Published var error: Error?
+@Observable
+class GitBranchDiffViewModel {
+    var availableRefs: GitRefs?
+    var selectedRef: String?
+    var comparisonResult: ConfigComparisonResult?
+    var isLoading: Bool = false
+    var isNotGitRepo: Bool = false
+    var error: Error?
 
     private let service: GitBranchDiffServiceProtocol
     private let workspacePath: URL?

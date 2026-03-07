@@ -6,14 +6,15 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class VersionCompatibilityViewModel: ObservableObject {
-    @Published var report: CompatibilityReport?
-    @Published var isChecking: Bool = false
-    @Published var error: Error?
-    @Published var currentVersion: String?
+@Observable
+class VersionCompatibilityViewModel {
+    var report: CompatibilityReport?
+    var isChecking: Bool = false
+    var error: Error?
+    var currentVersion: String?
 
     private let checker: VersionCompatibilityCheckerProtocol
     private let swiftLintCLI: SwiftLintCLIProtocol

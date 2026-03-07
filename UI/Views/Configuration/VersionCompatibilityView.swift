@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct VersionCompatibilityView: View {
-    @StateObject var viewModel: VersionCompatibilityViewModel
+    @State var viewModel: VersionCompatibilityViewModel
 
     init(
         checker: VersionCompatibilityCheckerProtocol,
         swiftLintCLI: SwiftLintCLIProtocol,
         configPath: URL?
     ) {
-        _viewModel = StateObject(wrappedValue: VersionCompatibilityViewModel(
+        _viewModel = State(initialValue: VersionCompatibilityViewModel(
             checker: checker,
             swiftLintCLI: swiftLintCLI,
             configPath: configPath

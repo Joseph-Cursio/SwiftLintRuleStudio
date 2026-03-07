@@ -6,17 +6,18 @@
 //
 
 import Foundation
-import Combine
+import Observation
 import AppKit
 import UniformTypeIdentifiers
 
 @MainActor
-class ConfigComparisonViewModel: ObservableObject {
-    @Published var leftWorkspacePath: URL?
-    @Published var rightWorkspacePath: URL?
-    @Published var comparisonResult: ConfigComparisonResult?
-    @Published var isComparing: Bool = false
-    @Published var error: Error?
+@Observable
+class ConfigComparisonViewModel {
+    var leftWorkspacePath: URL?
+    var rightWorkspacePath: URL?
+    var comparisonResult: ConfigComparisonResult?
+    var isComparing: Bool = false
+    var error: Error?
 
     private let service: ConfigComparisonServiceProtocol
 

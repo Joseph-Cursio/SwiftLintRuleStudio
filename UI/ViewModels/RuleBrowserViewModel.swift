@@ -7,38 +7,40 @@
 
 import Foundation
 import Combine
+import Observation
 
 /// View model for the Rule Browser, managing search and filter state
 @MainActor
-class RuleBrowserViewModel: ObservableObject {
-    @Published var searchText: String = "" {
+@Observable
+class RuleBrowserViewModel {
+    var searchText: String = "" {
         didSet { updateFilteredRules() }
     }
-    @Published var selectedCategory: RuleCategory? {
+    var selectedCategory: RuleCategory? {
         didSet { updateFilteredRules() }
     }
-    @Published var selectedStatus: RuleStatusFilter = .all {
+    var selectedStatus: RuleStatusFilter = .all {
         didSet { updateFilteredRules() }
     }
-    @Published var selectedSortOption: SortOption = .name {
+    var selectedSortOption: SortOption = .name {
         didSet { updateFilteredRules() }
     }
-    
-    @Published var ruleRegistry: RuleRegistry {
+
+    var ruleRegistry: RuleRegistry {
         didSet {
             // Re-subscribe when ruleRegistry changes
             setupSubscriptions()
         }
     }
-    @Published private(set) var filteredRules: [Rule] = []
+    private(set) var filteredRules: [Rule] = []
 
     // Multi-select / bulk operations
-    @Published var isMultiSelectMode: Bool = false
-    @Published var selectedRuleIds: Set<String> = Set()
-    @Published var bulkDiff: YAMLConfigurationEngine.ConfigDiff?
-    @Published var showBulkDiffPreview: Bool = false
+    var isMultiSelectMode: Bool = false
+    var selectedRuleIds: Set<String> = Set()
+    var bulkDiff: YAMLConfigurationEngine.ConfigDiff?
+    var showBulkDiffPreview: Bool = false
 
-    private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     
     init(ruleRegistry: RuleRegistry) {
         self.ruleRegistry = ruleRegistry

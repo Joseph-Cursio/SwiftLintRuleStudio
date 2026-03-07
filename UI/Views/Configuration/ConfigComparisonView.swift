@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct ConfigComparisonView: View {
-    @StateObject private var viewModel: ConfigComparisonViewModel
+    @State private var viewModel: ConfigComparisonViewModel
 
     init(service: ConfigComparisonServiceProtocol, currentWorkspace: Workspace?) {
-        _viewModel = StateObject(wrappedValue: ConfigComparisonViewModel(
+        _viewModel = State(initialValue: ConfigComparisonViewModel(
             service: service,
             currentWorkspace: currentWorkspace
         ))

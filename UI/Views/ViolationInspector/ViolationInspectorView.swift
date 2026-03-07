@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 struct ViolationInspectorView: View {
     @EnvironmentObject var dependencies: DependencyContainer
-    @StateObject var viewModel: ViolationInspectorViewModel
+    @State var viewModel: ViolationInspectorViewModel
 
     init() {
         // Create temporary storage for initialization
@@ -35,12 +35,12 @@ struct ViolationInspectorView: View {
                 )
             }
         }
-        _viewModel = StateObject(wrappedValue: ViolationInspectorViewModel(violationStorage: tempStorage))
+        _viewModel = State(initialValue: ViolationInspectorViewModel(violationStorage: tempStorage))
     }
 
 #if DEBUG
     init(viewModel: ViolationInspectorViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = State(initialValue: viewModel)
     }
 #endif
     

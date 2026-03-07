@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct MigrationAssistantView: View {
-    @StateObject private var viewModel: MigrationAssistantViewModel
+    @State private var viewModel: MigrationAssistantViewModel
 
     init(
         assistant: MigrationAssistantProtocol,
         swiftLintCLI: SwiftLintCLIProtocol,
         configPath: URL?
     ) {
-        _viewModel = StateObject(wrappedValue: MigrationAssistantViewModel(
+        _viewModel = State(initialValue: MigrationAssistantViewModel(
             assistant: assistant,
             swiftLintCLI: swiftLintCLI,
             configPath: configPath
@@ -46,7 +46,7 @@ struct MigrationAssistantView: View {
                     Text("Previous Version")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    TextField("e.g. 0.45.0", text: $viewModel.previousVersion)
+                    TextField("e.g. 0.45.0", text: Bindable(viewModel).previousVersion)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 120)
                 }

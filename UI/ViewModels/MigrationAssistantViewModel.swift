@@ -6,18 +6,19 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class MigrationAssistantViewModel: ObservableObject {
-    @Published var currentVersion: String?
-    @Published var previousVersion: String = ""
-    @Published var migrationPlan: MigrationPlan?
-    @Published var previewDiff: YAMLConfigurationEngine.ConfigDiff?
-    @Published var isDetecting: Bool = false
-    @Published var isMigrating: Bool = false
-    @Published var error: Error?
-    @Published var migrationComplete: Bool = false
+@Observable
+class MigrationAssistantViewModel {
+    var currentVersion: String?
+    var previousVersion: String = ""
+    var migrationPlan: MigrationPlan?
+    var previewDiff: YAMLConfigurationEngine.ConfigDiff?
+    var isDetecting: Bool = false
+    var isMigrating: Bool = false
+    var error: Error?
+    var migrationComplete: Bool = false
 
     private let assistant: MigrationAssistantProtocol
     private let swiftLintCLI: SwiftLintCLIProtocol

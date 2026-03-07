@@ -6,17 +6,18 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class ConfigImportViewModel: ObservableObject {
-    @Published var urlString: String = ""
-    @Published var preview: ConfigImportPreview?
-    @Published var importMode: ImportMode = .merge
-    @Published var isFetching: Bool = false
-    @Published var isImporting: Bool = false
-    @Published var error: Error?
-    @Published var importComplete: Bool = false
+@Observable
+class ConfigImportViewModel {
+    var urlString: String = ""
+    var preview: ConfigImportPreview?
+    var importMode: ImportMode = .merge
+    var isFetching: Bool = false
+    var isImporting: Bool = false
+    var error: Error?
+    var importComplete: Bool = false
 
     private let importService: ConfigImportServiceProtocol
     private let configPath: URL?

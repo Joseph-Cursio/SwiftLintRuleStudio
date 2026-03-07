@@ -7,62 +7,64 @@
 
 import Foundation
 import Combine
+import Observation
 
 @MainActor
-class ViolationInspectorViewModel: ObservableObject {
-    
-    // MARK: - Published Properties
-    
-    @Published var violations: [Violation] = []
-    @Published var filteredViolations: [Violation] = []
-    @Published var selectedViolationId: UUID? {
+@Observable
+class ViolationInspectorViewModel {
+
+    // MARK: - Properties
+
+    var violations: [Violation] = []
+    var filteredViolations: [Violation] = []
+    var selectedViolationId: UUID? {
         didSet { syncSelectionFromSingle() }
     }
-    @Published var selectedViolationIds: Set<UUID> = [] {
+    var selectedViolationIds: Set<UUID> = [] {
         didSet { syncSelectionFromSet() }
     }
-    @Published var isAnalyzing: Bool = false
-    
+    var isAnalyzing: Bool = false
+
     // Filter properties
-    @Published var searchText: String = "" {
+    var searchText: String = "" {
         didSet { updateFilteredViolations() }
     }
-    @Published var selectedRuleIDs: Set<String> = [] {
+    var selectedRuleIDs: Set<String> = [] {
         didSet { updateFilteredViolations() }
     }
-    @Published var selectedSeverities: Set<Severity> = [] {
+    var selectedSeverities: Set<Severity> = [] {
         didSet { updateFilteredViolations() }
     }
-    @Published var selectedFiles: Set<String> = [] {
+    var selectedFiles: Set<String> = [] {
         didSet { updateFilteredViolations() }
     }
-    @Published var showSuppressedOnly: Bool = false {
+    var showSuppressedOnly: Bool = false {
         didSet { updateFilteredViolations() }
     }
-    
+
     // Grouping and sorting
-    @Published var groupingOption: ViolationGroupingOption = .none {
+    var groupingOption: ViolationGroupingOption = .none {
         didSet { updateFilteredViolations() }
     }
-    @Published var sortOption: ViolationSortOption = .file {
+    var sortOption: ViolationSortOption = .file {
         didSet { updateFilteredViolations() }
     }
-    @Published var sortOrder: ViolationSortOrder = .ascending {
+    var sortOrder: ViolationSortOrder = .ascending {
         didSet { updateFilteredViolations() }
     }
 
     // Table column sort order (used by SwiftUI Table in non-grouped mode)
-    @Published var tableSortOrder: [KeyPathComparator<Violation>] = []
-    
-    // MARK: - Properties
-    
+    var tableSortOrder: [KeyPathComparator<Violation>] = []
+
+    // MARK: - Non-observed properties
+
     var violationStorage: ViolationStorageProtocol
     var workspaceAnalyzer: WorkspaceAnalyzer?
-    var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored var cancellables = Set<AnyCancellable>()
     var workspaceId: UUID?
     var currentWorkspace: Workspace?
-    var isInitialized = false
-    var isUpdatingSelection = false
+    @ObservationIgnored var isInitialized = false
+    @ObservationIgnored var isUpdatingSelection = false
     
     // MARK: - Initialization
     

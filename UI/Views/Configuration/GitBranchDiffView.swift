@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct GitBranchDiffView: View {
-    @StateObject private var viewModel: GitBranchDiffViewModel
+    @State private var viewModel: GitBranchDiffViewModel
 
     init(service: GitBranchDiffServiceProtocol, workspacePath: URL?) {
-        _viewModel = StateObject(wrappedValue: GitBranchDiffViewModel(
+        _viewModel = State(initialValue: GitBranchDiffViewModel(
             service: service,
             workspacePath: workspacePath
         ))

@@ -6,18 +6,19 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class ConfigVersionHistoryViewModel: ObservableObject {
-    @Published var backups: [ConfigBackup] = []
-    @Published var selectedBackup: ConfigBackup?
-    @Published var comparisonBackup: ConfigBackup?
-    @Published var currentDiff: YAMLConfigurationEngine.ConfigDiff?
-    @Published var isLoading: Bool = false
-    @Published var error: Error?
-    @Published var showRestoreConfirmation: Bool = false
-    @Published var backupToRestore: ConfigBackup?
+@Observable
+class ConfigVersionHistoryViewModel {
+    var backups: [ConfigBackup] = []
+    var selectedBackup: ConfigBackup?
+    var comparisonBackup: ConfigBackup?
+    var currentDiff: YAMLConfigurationEngine.ConfigDiff?
+    var isLoading: Bool = false
+    var error: Error?
+    var showRestoreConfirmation: Bool = false
+    var backupToRestore: ConfigBackup?
 
     private let service: ConfigVersionHistoryServiceProtocol
     private let configPath: URL?

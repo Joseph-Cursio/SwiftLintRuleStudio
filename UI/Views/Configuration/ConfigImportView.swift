@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct ConfigImportView: View {
-    @StateObject private var viewModel: ConfigImportViewModel
+    @State private var viewModel: ConfigImportViewModel
 
     init(importService: ConfigImportServiceProtocol, configPath: URL?) {
-        _viewModel = StateObject(wrappedValue: ConfigImportViewModel(
+        _viewModel = State(initialValue: ConfigImportViewModel(
             importService: importService,
             configPath: configPath
         ))
@@ -52,7 +52,7 @@ struct ConfigImportView: View {
                 .font(.headline)
 
             HStack {
-                TextField("https://...", text: $viewModel.urlString)
+                TextField("https://...", text: Bindable(viewModel).urlString)
                     .textFieldStyle(.roundedBorder)
 
                 Button("Fetch") {
@@ -76,7 +76,7 @@ struct ConfigImportView: View {
             Text("Import Mode")
                 .font(.headline)
 
-            Picker("Mode", selection: $viewModel.importMode) {
+            Picker("Mode", selection: Bindable(viewModel).importMode) {
                 Text("Merge (imported rules override conflicts)").tag(ImportMode.merge)
                 Text("Replace (replace entire config)").tag(ImportMode.replace)
             }

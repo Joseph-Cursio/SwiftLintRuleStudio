@@ -6,20 +6,21 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class RuleDetailViewModel: ObservableObject {
-    
-    // MARK: - Published Properties
+@Observable
+class RuleDetailViewModel {
 
-    @Published var isEnabled: Bool
-    @Published var severity: Severity?
-    @Published var parameterValues: [String: AnyCodable] = [:]
-    @Published var isSaving: Bool = false
-    @Published var saveError: Error?
-    @Published var showDiffPreview: Bool = false
-    @Published var pendingChanges: PendingRuleChanges?
+    // MARK: - Properties
+
+    var isEnabled: Bool
+    var severity: Severity?
+    var parameterValues: [String: AnyCodable] = [:]
+    var isSaving: Bool = false
+    var saveError: Error?
+    var showDiffPreview: Bool = false
+    var pendingChanges: PendingRuleChanges?
 
     // MARK: - Properties
 

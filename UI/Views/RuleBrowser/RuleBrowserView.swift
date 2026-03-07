@@ -14,7 +14,7 @@ struct RuleBrowserView: View {
     @EnvironmentObject var ruleRegistry: RuleRegistry
     @EnvironmentObject var dependencies: DependencyContainer
     @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var viewModel: RuleBrowserViewModel
+    @State private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
     private var externalSearchText: Binding<String>?
     private var externalViewMode: Binding<Int>?
@@ -24,7 +24,7 @@ struct RuleBrowserView: View {
         externalSearchText: Binding<String>? = nil,
         externalViewMode: Binding<Int>? = nil
     ) {
-        _viewModel = StateObject(wrappedValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
+        _viewModel = State(initialValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
         self.externalSearchText = externalSearchText
         self.externalViewMode = externalViewMode
     }
@@ -34,7 +34,7 @@ struct RuleBrowserView: View {
         externalSearchText: Binding<String>? = nil,
         externalViewMode: Binding<Int>? = nil
     ) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = State(initialValue: viewModel)
         self.externalSearchText = externalSearchText
         self.externalViewMode = externalViewMode
     }
@@ -59,7 +59,7 @@ struct RuleBrowserView: View {
             .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
             .layoutPriority(1)
         }
-        .searchable(text: $viewModel.searchText, prompt: "Search rules")
+        .searchable(text: Bindable(viewModel).searchText, prompt: "Search rules")
         .onAppear {
             if let external = externalSearchText {
                 viewModel.searchText = external.wrappedValue
@@ -91,10 +91,10 @@ struct RuleBrowserView: View {
         return VStack(spacing: 0) {
             // Search and Filters
             RuleBrowserSearchAndFilters(
-                searchText: $viewModel.searchText,
-                selectedStatus: $viewModel.selectedStatus,
-                selectedCategory: $viewModel.selectedCategory,
-                selectedSortOption: $viewModel.selectedSortOption,
+                searchText: Bindable(viewModel).searchText,
+                selectedStatus: Bindable(viewModel).selectedStatus,
+                selectedCategory: Bindable(viewModel).selectedCategory,
+                selectedSortOption: Bindable(viewModel).selectedSortOption,
                 categoryCounts: viewModel.categoryCounts
             )
 
@@ -139,7 +139,7 @@ struct RuleBrowserView: View {
                 )
             } else if viewModel.isMultiSelectMode {
                 // Multi-select remains list-based for clarity and keyboard selection
-                List(selection: $viewModel.selectedRuleIds) {
+                List(selection: Bindable(viewModel).selectedRuleIds) {
                     ForEach(viewModel.filteredRules, id: \.id) { rule in
                         RuleListItem(rule: rule)
                             .tag(rule.id)
@@ -210,7 +210,7 @@ struct RuleBrowserView: View {
                 .accessibilityIdentifier("RuleBrowserClearFiltersButton")
             }
         }
-        .sheet(isPresented: $viewModel.showBulkDiffPreview) {
+        .sheet(isPresented: Bindable(viewModel).showBulkDiffPreview) {
             if let diff = viewModel.bulkDiff {
                 ConfigDiffPreviewView(
                     diff: diff,
