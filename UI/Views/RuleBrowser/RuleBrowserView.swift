@@ -119,9 +119,7 @@ struct RuleBrowserView: View {
                             viewModel.setSeverityForSelected(severity, yamlEngine: engine)
                         }
                     },
-                    onPreview: {
-                        viewModel.showBulkDiffPreview = true
-                    },
+                    onPreview: {},
                     onClearSelection: {
                         viewModel.clearSelection()
                     }
@@ -162,7 +160,7 @@ struct RuleBrowserView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(12)
                                     .background(.regularMaterial)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .buttonStyle(.plain)
                             .contextMenu { ruleContextMenu(for: rule) }
@@ -210,24 +208,21 @@ struct RuleBrowserView: View {
                 .accessibilityIdentifier("RuleBrowserClearFiltersButton")
             }
         }
-        .sheet(isPresented: Bindable(viewModel).showBulkDiffPreview) {
-            if let diff = viewModel.bulkDiff {
-                ConfigDiffPreviewView(
-                    diff: diff,
-                    ruleName: "\(viewModel.selectedRuleIds.count) rules"
-                ) {
-                    if let engine = currentYAMLEngine {
-                        do {
-                            try viewModel.saveBulkChanges(yamlEngine: engine)
-                            viewModel.showBulkDiffPreview = false
-                            viewModel.isMultiSelectMode = false
-                        } catch {
-                            print("Error saving bulk changes: \(error)")
-                        }
+        .sheet(item: Bindable(viewModel).bulkDiff) { diff in
+            ConfigDiffPreviewView(
+                diff: diff,
+                ruleName: "\(viewModel.selectedRuleIds.count) rules"
+            ) {
+                if let engine = currentYAMLEngine {
+                    do {
+                        try viewModel.saveBulkChanges(yamlEngine: engine)
+                        viewModel.isMultiSelectMode = false
+                    } catch {
+                        print("Error saving bulk changes: \(error)")
                     }
-                } onCancel: {
-                    viewModel.showBulkDiffPreview = false
                 }
+            } onCancel: {
+                viewModel.bulkDiff = nil
             }
         }
     }
@@ -275,7 +270,7 @@ private struct RuleBrowserSearchAndFilters: View {
     var body: some View {
         VStack(spacing: 12) {
             // Filters (search is handled by .searchable() in the parent NavigationSplitView)
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 HStack(spacing: 12) {
                     // Status Filter
                     Picker("Status", selection: $selectedStatus) {
@@ -318,6 +313,7 @@ private struct RuleBrowserSearchAndFilters: View {
                 }
                 .padding(.horizontal)
             }
+            .scrollIndicators(.hidden)
         }
         .padding(.bottom, 8)
     }

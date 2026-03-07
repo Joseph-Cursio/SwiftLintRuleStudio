@@ -39,9 +39,6 @@ class DependencyContainer: ObservableObject {
     let gitBranchDiffService: GitBranchDiffServiceProtocol
     let migrationAssistant: MigrationAssistantProtocol
 
-    private var cancellables = Set<AnyCancellable>()
-
-    // swiftlint:disable:next function_body_length
     init(
         ruleRegistry: RuleRegistry? = nil,
         swiftLintCLI: SwiftLintCLIProtocol? = nil,
@@ -138,17 +135,5 @@ class DependencyContainer: ObservableObject {
         self.migrationAssistant = migrationAssistant
             ?? MigrationAssistant()
 
-        // Forward changes from child ObservableObjects to trigger view updates
-        self.onboardingManager.objectWillChange
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
-        
-        self.workspaceManager.objectWillChange
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
     }
 }

@@ -9,7 +9,6 @@
 
 import Testing
 import Foundation
-import Combine
 @testable import SwiftLIntRuleStudio
 
 @MainActor
@@ -100,46 +99,6 @@ struct DependencyContainerTests {
         // Both managers must be created successfully with the custom defaults
         _ = container.workspaceManager
         _ = container.onboardingManager
-    }
-
-    // MARK: - objectWillChange Propagation
-
-    @Test("DependencyContainer forwards onboardingManager objectWillChange to its own publisher")
-    func testObjectWillChangeForwardingFromOnboarding() async {
-        let container = makeSafeContainer()
-
-        var receivedChange = false
-        let cancellable = container.objectWillChange.sink { receivedChange = true }
-        defer { cancellable.cancel() }
-
-        // Trigger a change on onboardingManager — this should bubble up via the
-        // Combine sink wired in DependencyContainer.init
-        container.onboardingManager.completeOnboarding()
-
-        await Task.yield()
-        #expect(receivedChange)
-    }
-
-    @Test("DependencyContainer forwards workspaceManager objectWillChange to its own publisher")
-    func testObjectWillChangeForwardingFromWorkspaceManager() async throws {
-        let container = makeSafeContainer()
-
-        var receivedChange = false
-        let cancellable = container.objectWillChange.sink { receivedChange = true }
-        defer { cancellable.cancel() }
-
-        // Opening a workspace triggers @Published changes in WorkspaceManager.
-        // validateSwiftWorkspace requires at least one .swift file in the directory.
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-        let dummySwift = tempDir.appendingPathComponent("Dummy.swift")
-        try "// dummy".write(to: dummySwift, atomically: true, encoding: .utf8)
-        _ = try? container.workspaceManager.openWorkspace(at: tempDir)
-
-        await Task.yield()
-        #expect(receivedChange)
     }
 
     // MARK: - Helpers

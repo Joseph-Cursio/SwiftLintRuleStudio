@@ -70,7 +70,7 @@ extension ViolationInspectorView {
             .padding(.horizontal)
 
             // Filter controls
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 HStack(spacing: 12) {
                     // Rule filter
                     if !viewModel.uniqueRules.isEmpty {
@@ -172,6 +172,7 @@ extension ViolationInspectorView {
                 }
                 .padding(.horizontal)
             }
+            .scrollIndicators(.hidden)
         }
         .padding(.vertical, 8)
     }

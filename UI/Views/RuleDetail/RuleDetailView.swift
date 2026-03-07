@@ -14,7 +14,6 @@ struct RuleDetailView: View {
     @State private var showSaveConfirmation = false
     @State private var showError = false
     @State private var errorMessage: String?
-    @State private var showImpactSimulation = false
     @State private var impactResult: RuleImpactResult?
     // These four properties are read by RuleDetailView+Sections.swift (a separate file),
     // so they cannot be private. internal is the minimum viable access level here.
@@ -167,21 +166,22 @@ struct RuleDetailView: View {
             // New value not needed — just rebuild on any scheme change
             rebuildAttributedString()
         }
-        .sheet(isPresented: Bindable(viewModel).showDiffPreview) {
-            if let diff = viewModel.generateDiff() {
-                ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
-                    Task {
-                        do {
-                            try viewModel.saveConfiguration()
-                            viewModel.showDiffPreview = false
-                            showSaveConfirmation = true
-                        } catch {
-                            showError = true
-                        }
+        .sheet(item: .init(
+            get: { viewModel.showDiffPreview ? viewModel.generateDiff() : nil },
+            set: { viewModel.showDiffPreview = $0 != nil }
+        )) { diff in
+            ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
+                Task {
+                    do {
+                        try viewModel.saveConfiguration()
+                        viewModel.showDiffPreview = false
+                        showSaveConfirmation = true
+                    } catch {
+                        showError = true
                     }
-                } onCancel: {
-                    viewModel.showDiffPreview = false
                 }
+            } onCancel: {
+                viewModel.showDiffPreview = false
             }
         }
         .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
@@ -196,15 +196,13 @@ struct RuleDetailView: View {
         } message: {
             Text(viewModel.saveError?.localizedDescription ?? "An error occurred while saving the configuration.")
         }
-        .sheet(isPresented: $showImpactSimulation) {
-            if let result = impactResult {
-                ImpactSimulationView(
-                    ruleId: rule.id,
-                    ruleName: rule.name,
-                    result: result,
-                    onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
-                )
-            }
+        .sheet(item: $impactResult) { result in
+            ImpactSimulationView(
+                ruleId: rule.id,
+                ruleName: rule.name,
+                result: result,
+                onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
+            )
         }
     }
     
@@ -259,7 +257,6 @@ struct RuleDetailView: View {
                 
                 impactResult = result
                 isSimulating = false
-                showImpactSimulation = true
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true

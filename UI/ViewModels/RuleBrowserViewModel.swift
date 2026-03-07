@@ -38,7 +38,6 @@ class RuleBrowserViewModel {
     var isMultiSelectMode: Bool = false
     var selectedRuleIds: Set<String> = Set()
     var bulkDiff: YAMLConfigurationEngine.ConfigDiff?
-    var showBulkDiffPreview: Bool = false
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     
@@ -248,7 +247,6 @@ class RuleBrowserViewModel {
             }
 
             bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
-            showBulkDiffPreview = true
         } catch {
             print("Error generating bulk enable diff: \(error)")
         }
@@ -270,7 +268,6 @@ class RuleBrowserViewModel {
             }
 
             bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
-            showBulkDiffPreview = true
         } catch {
             print("Error generating bulk disable diff: \(error)")
         }
@@ -288,7 +285,6 @@ class RuleBrowserViewModel {
             }
 
             bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
-            showBulkDiffPreview = true
         } catch {
             print("Error generating bulk severity diff: \(error)")
         }

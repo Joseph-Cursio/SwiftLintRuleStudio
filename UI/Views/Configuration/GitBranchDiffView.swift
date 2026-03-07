@@ -90,10 +90,7 @@ struct GitBranchDiffView: View {
                         Text("Compare with:")
                             .font(.subheadline)
 
-                        Picker("Branch", selection: Binding(
-                            get: { viewModel.selectedRef ?? "" },
-                            set: { viewModel.selectedRef = $0.isEmpty ? nil : $0 }
-                        )) {
+                        Picker("Branch", selection: Bindable(viewModel).selectedRefString) {
                             Text("Select a branch...").tag("")
 
                             if refs.branches.count > 1 {

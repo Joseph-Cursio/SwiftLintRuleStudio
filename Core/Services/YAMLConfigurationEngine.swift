@@ -47,7 +47,8 @@ class YAMLConfigurationEngine {
     }
     
     /// Represents a diff between two configurations
-    struct ConfigDiff {
+    struct ConfigDiff: Identifiable {
+        let id = UUID()
         let addedRules: [String]
         let removedRules: [String]
         let modifiedRules: [String]

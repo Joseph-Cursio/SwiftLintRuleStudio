@@ -6,17 +6,18 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 /// Service for managing workspace selection and history
 @MainActor
-class WorkspaceManager: ObservableObject {
-    
+@Observable
+class WorkspaceManager {
+
     // MARK: - Properties
-    
-    @Published var currentWorkspace: Workspace?
-    @Published var recentWorkspaces: [Workspace] = []
-    @Published var configFileMissing: Bool = false
+
+    var currentWorkspace: Workspace?
+    var recentWorkspaces: [Workspace] = []
+    var configFileMissing: Bool = false
     
     let recentWorkspacesKey = "SwiftLintRuleStudio.recentWorkspaces"
     let maxRecentWorkspaces = 10

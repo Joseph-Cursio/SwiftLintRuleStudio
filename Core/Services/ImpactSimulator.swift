@@ -8,8 +8,9 @@
 import Foundation
 
 /// Result of simulating a rule's impact
-struct RuleImpactResult: Sendable {
+struct RuleImpactResult: Sendable, Identifiable {
     nonisolated let ruleId: String
+    nonisolated var id: String { ruleId }
     nonisolated let violationCount: Int
     nonisolated let violations: [Violation]
     nonisolated let affectedFiles: Set<String>

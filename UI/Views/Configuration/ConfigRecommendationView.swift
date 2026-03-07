@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ConfigRecommendationView: View {
-    @ObservedObject var workspaceManager: WorkspaceManager
+    var workspaceManager: WorkspaceManager
     @State private var isCreatingConfig: Bool = false
     @State private var showError: Bool = false
     @State private var errorMessage: String?
@@ -134,7 +134,7 @@ struct ConfigBenefitRow: View {
 
 #Preview {
     struct Preview: View {
-        @StateObject private var workspaceManager = WorkspaceManager()
+        @State private var workspaceManager = WorkspaceManager()
         
         var body: some View {
             ConfigRecommendationView(workspaceManager: workspaceManager)

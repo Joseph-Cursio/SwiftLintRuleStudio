@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @ObservedObject var onboardingManager: OnboardingManager
-    @ObservedObject var workspaceManager: WorkspaceManager
+    var onboardingManager: OnboardingManager
+    var workspaceManager: WorkspaceManager
     let swiftLintCLI: SwiftLintCLIProtocol
     
     @State var swiftLintStatus: SwiftLintStatus = .checking

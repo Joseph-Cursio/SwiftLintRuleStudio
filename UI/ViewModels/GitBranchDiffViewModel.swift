@@ -13,6 +13,10 @@ import Observation
 class GitBranchDiffViewModel {
     var availableRefs: GitRefs?
     var selectedRef: String?
+    var selectedRefString: String {
+        get { selectedRef ?? "" }
+        set { selectedRef = newValue.isEmpty ? nil : newValue }
+    }
     var comparisonResult: ConfigComparisonResult?
     var isLoading: Bool = false
     var isNotGitRepo: Bool = false

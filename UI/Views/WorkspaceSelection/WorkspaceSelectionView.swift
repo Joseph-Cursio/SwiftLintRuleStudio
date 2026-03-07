@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct WorkspaceSelectionView: View {
-    @ObservedObject var workspaceManager: WorkspaceManager
+    var workspaceManager: WorkspaceManager
     @State private var isShowingFilePicker = false
     @State private var errorMessage: String?
     @State private var showError = false
