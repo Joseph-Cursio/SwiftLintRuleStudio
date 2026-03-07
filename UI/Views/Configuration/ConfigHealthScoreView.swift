@@ -128,6 +128,9 @@ struct BreakdownRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Button {
+                withAnimation { isExpanded.toggle() }
+            } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
@@ -154,12 +157,8 @@ struct BreakdownRow: View {
                     .foregroundStyle(scoreColor)
             }
             .contentShape(Rectangle())
-            .onTapGesture {
-                withAnimation {
-                    isExpanded.toggle()
-                }
             }
-            .accessibilityAddTraits(.isButton)
+            .buttonStyle(.plain)
             .accessibilityHint(isExpanded ? "Collapse details" : "Expand details")
 
             // Progress bar

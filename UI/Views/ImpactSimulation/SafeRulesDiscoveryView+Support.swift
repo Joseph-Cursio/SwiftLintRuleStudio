@@ -19,6 +19,7 @@ struct SafeRuleRow: View {
     let onToggle: () -> Void
 
     var body: some View {
+        Button(action: onToggle) {
         HStack {
             Button {
                 onToggle()
@@ -46,9 +47,7 @@ struct SafeRuleRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
-        .accessibilityAddTraits(.isButton)
-        .onTapGesture {
-            onToggle()
         }
+        .buttonStyle(.plain)
     }
 }

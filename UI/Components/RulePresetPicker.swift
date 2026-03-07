@@ -61,15 +61,16 @@ struct RulePresetBrowserView: View {
                         spacing: 16
                     ) {
                         ForEach(filteredPresets) { preset in
-                            PresetCard(preset: preset, isHovered: hoveredPreset?.id == preset.id)
-                                .onTapGesture {
-                                    onPresetSelected(preset)
-                                    dismiss()
-                                }
-                                .accessibilityAddTraits(.isButton)
-                                .onHover { isHovered in
-                                    hoveredPreset = isHovered ? preset : nil
-                                }
+                            Button {
+                                onPresetSelected(preset)
+                                dismiss()
+                            } label: {
+                                PresetCard(preset: preset, isHovered: hoveredPreset?.id == preset.id)
+                            }
+                            .buttonStyle(.plain)
+                            .onHover { isHovered in
+                                hoveredPreset = isHovered ? preset : nil
+                            }
                         }
                     }
                     .padding()

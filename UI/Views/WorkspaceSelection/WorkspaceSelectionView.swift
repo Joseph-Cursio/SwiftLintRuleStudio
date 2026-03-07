@@ -169,6 +169,21 @@ struct WorkspaceSelectionView: View {
     }
     
     private func recentWorkspaceRow(_ workspace: Workspace) -> some View {
+        Button {
+            do {
+                try workspaceManager.openWorkspace(at: workspace.path)
+            } catch let error as WorkspaceError {
+                var message = error.localizedDescription
+                if let suggestion = error.recoverySuggestion {
+                    message += "\n\n\(suggestion)"
+                }
+                errorMessage = message
+                showError = true
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        } label: {
         HStack {
             Image(systemName: "folder")
                 .foregroundStyle(.secondary)
@@ -206,23 +221,8 @@ struct WorkspaceSelectionView: View {
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
         .contentShape(Rectangle())
-        .accessibilityAddTraits(.isButton)
-        .onTapGesture {
-            do {
-                try workspaceManager.openWorkspace(at: workspace.path)
-            } catch let error as WorkspaceError {
-                // Use the full error description with recovery suggestion
-                var message = error.localizedDescription
-                if let suggestion = error.recoverySuggestion {
-                    message += "\n\n\(suggestion)"
-                }
-                errorMessage = message
-                showError = true
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-            }
         }
+        .buttonStyle(.plain)
     }
     
     private func handleFilePickerResult(_ result: Result<[URL], Error>) {
