@@ -52,7 +52,7 @@ enum ViolationDetailViewTestHelpers {
             onSuppress: { _ in },
             onResolve: {}
         )
-        .environmentObject(container)
+        .environment(\.dependencies, container)
 
         return ViewResult(view: view)
     }

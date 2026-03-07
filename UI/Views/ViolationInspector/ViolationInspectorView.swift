@@ -9,7 +9,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ViolationInspectorView: View {
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     @State var viewModel: ViolationInspectorViewModel
 
     init() {

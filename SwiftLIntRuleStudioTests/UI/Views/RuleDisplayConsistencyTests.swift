@@ -48,7 +48,7 @@ struct RuleDisplayConsistencyTests {
     private func createRuleDetailView(rule: Rule) -> AnyView {
         let container = DependencyContainer.createForTesting()
         return AnyView(RuleDetailView(rule: rule)
-            .environmentObject(container))
+            .environment(\.dependencies, container))
     }
     
     // Synchronous version for use within MainActor.run blocks
@@ -56,7 +56,7 @@ struct RuleDisplayConsistencyTests {
     private func createRuleDetailViewSync(rule: Rule) -> AnyView {
         let container = DependencyContainer.createForTesting()
         return AnyView(RuleDetailView(rule: rule)
-            .environmentObject(container))
+            .environment(\.dependencies, container))
     }
     
     // MARK: - Enabled State Consistency Tests

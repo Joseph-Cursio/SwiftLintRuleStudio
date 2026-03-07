@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Combine
 import Observation
 
 /// View model for the Rule Browser, managing search and filter state
@@ -27,10 +26,7 @@ class RuleBrowserViewModel {
     }
 
     var ruleRegistry: RuleRegistry {
-        didSet {
-            // Re-subscribe when ruleRegistry changes
-            setupSubscriptions()
-        }
+        didSet { observeRulesChanges() }
     }
     private(set) var filteredRules: [Rule] = []
 
@@ -39,27 +35,21 @@ class RuleBrowserViewModel {
     var selectedRuleIds: Set<String> = Set()
     var bulkDiff: YAMLConfigurationEngine.ConfigDiff?
 
-    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
-    
     init(ruleRegistry: RuleRegistry) {
         self.ruleRegistry = ruleRegistry
-        setupSubscriptions()
-    }
-    
-    private func setupSubscriptions() {
-        // Cancel old subscriptions
-        cancellables.removeAll()
-        
-        // Observe changes to ruleRegistry.rules and update filteredRules
-        ruleRegistry.$rules
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updateFilteredRules()
-            }
-            .store(in: &cancellables)
-        
-        // Initial update
         updateFilteredRules()
+        observeRulesChanges()
+    }
+
+    private func observeRulesChanges() {
+        withObservationTracking {
+            _ = ruleRegistry.rules
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.updateFilteredRules()
+                self?.observeRulesChanges()
+            }
+        }
     }
     
     private func updateFilteredRules() {

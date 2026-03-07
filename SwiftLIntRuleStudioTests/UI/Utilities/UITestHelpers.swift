@@ -162,9 +162,9 @@ enum UIViewTestHelpers {
         dependencyContainer: DependencyContainer? = nil
     ) -> AnyView {
         let container = dependencyContainer ?? DependencyContainer.createForTesting()
-        return AnyView(content.environmentObject(container))
+        return AnyView(content.environment(\.dependencies, container))
     }
-    
+
     /// Creates a view with both RuleRegistry and DependencyContainer
     @MainActor
     static func createViewWithFullDependencies<Content: View>(
@@ -178,8 +178,8 @@ enum UIViewTestHelpers {
         let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
 
         return AnyView(content
-            .environmentObject(registry)
-            .environmentObject(container))
+            .environment(\.ruleRegistry, registry)
+            .environment(\.dependencies, container))
     }
     
     /// Creates an OnboardingManager with isolated UserDefaults

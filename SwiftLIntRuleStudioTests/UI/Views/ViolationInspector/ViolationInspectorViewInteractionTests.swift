@@ -64,7 +64,7 @@ struct ViolationInspectorViewInteractionTests {
         }
 
         let view = ViolationInspectorView()
-            .environmentObject(container)
+            .environment(\.dependencies, container)
 
         return ViewResult(view: view, container: container)
     }
@@ -287,7 +287,7 @@ struct ViolationInspectorViewInteractionTests {
             viewModel.filteredViolations = violations
             viewModel.searchText = ""
             let view = ViolationInspectorView(viewModel: viewModel)
-                .environmentObject(container)
+                .environment(\.dependencies, container)
             return ViewResult(view: view, container: container)
         }.value
 

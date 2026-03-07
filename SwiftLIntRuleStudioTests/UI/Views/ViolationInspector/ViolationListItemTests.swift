@@ -49,7 +49,7 @@ struct ViolationListItemTests {
 
         var body: some View {
             ViolationListItem(violation: violation)
-                .environmentObject(container)
+                .environment(\.dependencies, container)
         }
     }
 

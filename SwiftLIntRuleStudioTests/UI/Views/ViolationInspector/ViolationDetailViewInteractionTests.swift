@@ -67,7 +67,7 @@ struct ViolationDetailViewInteractionTests {
             onSuppress: onSuppress,
             onResolve: onResolve
         )
-        .environmentObject(container)
+        .environment(\.dependencies, container)
 
         return ViewResult(view: view)
     }

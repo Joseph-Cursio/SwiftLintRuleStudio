@@ -77,8 +77,8 @@ struct RuleBrowserViewInteractionTests {
 
         let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
         let view = RuleBrowserView(viewModel: viewModel)
-            .environmentObject(ruleRegistry)
-            .environmentObject(container)
+            .environment(\.ruleRegistry, ruleRegistry)
+            .environment(\.dependencies, container)
 
         return ViewResult(view: view, container: container, viewModel: viewModel)
     }

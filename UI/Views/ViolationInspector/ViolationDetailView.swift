@@ -17,7 +17,7 @@ struct ViolationDetailView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var isOpeningInXcode = false
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     
     var body: some View {
         ScrollView {

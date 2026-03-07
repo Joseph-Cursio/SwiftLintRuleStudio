@@ -34,7 +34,7 @@ struct SafeRulesDiscoveryViewTests {
     private func createSafeRulesDiscoveryView() -> ViewResult {
         let container = DependencyContainer.createForTesting()
         let view = SafeRulesDiscoveryView()
-            .environmentObject(container)
+            .environment(\.dependencies, container)
         return ViewResult(view: view, container: container)
     }
 
@@ -69,7 +69,7 @@ struct SafeRulesDiscoveryViewTests {
         )
 
         let view = SafeRulesDiscoveryView()
-            .environmentObject(container)
+            .environment(\.dependencies, container)
 
         return ViewResult(view: view, container: container)
     }
@@ -259,7 +259,7 @@ struct SafeRulesDiscoveryViewTests {
             safeRules: safeRules,
             selectedRules: ["safe_rule_1", "safe_rule_2"]
         )
-        .environmentObject(container)
+        .environment(\.dependencies, container)
 
         await MainActor.run {
             ViewHosting.expel()

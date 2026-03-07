@@ -29,8 +29,8 @@ enum AppSection: Hashable {
 }
 
 struct ContentView: View {
-    @EnvironmentObject var ruleRegistry: RuleRegistry
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     @State private var errorMessage: String?
     @State private var showError: Bool = false
     @State private var didApplyUITestOverrides = false
@@ -328,8 +328,8 @@ private extension ContentView {
 
 struct SidebarView: View {
     @Binding var selection: AppSection?
-    @EnvironmentObject var dependencies: DependencyContainer
-    @EnvironmentObject var ruleRegistry: RuleRegistry
+    @Environment(\.dependencies) var dependencies: DependencyContainer
+    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     
     var body: some View {
         List(selection: $selection) {
@@ -400,6 +400,6 @@ struct SidebarView: View {
     )
     
     return ContentView()
-        .environmentObject(ruleRegistry)
-        .environmentObject(container)
+        .environment(\.ruleRegistry, ruleRegistry)
+        .environment(\.dependencies, container)
 }

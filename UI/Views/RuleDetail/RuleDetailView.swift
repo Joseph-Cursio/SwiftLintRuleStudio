@@ -10,7 +10,7 @@ import SwiftUI
 struct RuleDetailView: View {
     @State var viewModel: RuleDetailViewModel
     @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     @State private var showSaveConfirmation = false
     @State private var showError = false
     @State private var errorMessage: String?

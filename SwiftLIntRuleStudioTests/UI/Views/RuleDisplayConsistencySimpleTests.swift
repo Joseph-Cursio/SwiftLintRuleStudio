@@ -65,7 +65,7 @@ struct RuleDisplayConsistencySimpleTests {
         let container = DependencyContainer.createForTesting()
         _ = AnyView(
             RuleDetailView(rule: rule)
-                .environmentObject(container)
+                .environment(\.dependencies, container)
         )
     }
     

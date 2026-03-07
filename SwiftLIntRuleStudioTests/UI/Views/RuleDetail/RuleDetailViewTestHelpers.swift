@@ -46,7 +46,7 @@ enum RuleDetailViewTestHelpers {
 
         let detailView = viewModel.map { RuleDetailView(rule: rule, viewModel: $0) }
             ?? RuleDetailView(rule: rule)
-        let view = detailView.environmentObject(resolvedContainer)
+        let view = detailView.environment(\.dependencies, resolvedContainer)
         return ViewResult(view: view)
     }
 }

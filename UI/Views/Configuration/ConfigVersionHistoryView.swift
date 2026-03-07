@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ConfigVersionHistoryView: View {
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     @State private var viewModel: ConfigVersionHistoryViewModel
 
     init(service: ConfigVersionHistoryServiceProtocol, configPath: URL?) {

@@ -58,8 +58,8 @@ struct ContentViewTests {
         )
         
         let view = ContentView()
-            .environmentObject(ruleRegistry)
-            .environmentObject(dependencies)
+            .environment(\.ruleRegistry, ruleRegistry)
+            .environment(\.dependencies, dependencies)
         
         return ViewResult(view: view, dependencies: dependencies, ruleRegistry: ruleRegistry)
     }
@@ -155,8 +155,8 @@ struct ContentViewTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasSidebarTitle = try? await MainActor.run {
             let view = AnyView(ContentView()
-                .environmentObject(ruleRegistry)
-                .environmentObject(dependencies))
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, dependencies))
             _ = try view.inspect().find(text: "Dashboard")
             return true
         }
@@ -237,8 +237,8 @@ struct ContentViewTests {
         // The safeAreaInset at the bottom renders Label(workspace.path.path, systemImage: "folder").
         let hasPath = await MainActor.run {
             let view = AnyView(ContentView()
-                .environmentObject(ruleRegistry)
-                .environmentObject(dependencies))
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, dependencies))
             return (try? view.inspect().find(text: tempDir.path)) != nil
         }
         // ViewInspector safeAreaInset traversal depth can vary by version; mark intermittent.

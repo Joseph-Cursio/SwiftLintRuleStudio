@@ -74,8 +74,8 @@ struct RuleBrowserViewTests {
 
         // Note: RuleRegistry loads rules asynchronously, so we test the view structure
         let view = RuleBrowserView(ruleRegistry: ruleRegistry)
-            .environmentObject(ruleRegistry)
-            .environmentObject(container)
+            .environment(\.ruleRegistry, ruleRegistry)
+            .environment(\.dependencies, container)
 
         return ViewResult(view: view, container: container)
     }
@@ -171,8 +171,8 @@ struct RuleBrowserViewTests {
 
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
-                .environmentObject(ruleRegistry)
-                .environmentObject(container)
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, container)
             return ViewResult(view: view, container: container)
         }.value
 
@@ -290,8 +290,8 @@ struct RuleBrowserViewTests {
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
-                .environmentObject(ruleRegistry)
-                .environmentObject(container)
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, container)
             return ViewResult(view: view, container: container)
         }.value
 
@@ -319,8 +319,8 @@ struct RuleBrowserViewTests {
             viewModel.searchText = "missing"
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
-                .environmentObject(ruleRegistry)
-                .environmentObject(container)
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, container)
             return ViewResult(view: view, container: container)
         }.value
 
@@ -344,8 +344,8 @@ struct RuleBrowserViewTests {
             viewModel.searchText = "missing"
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
-                .environmentObject(ruleRegistry)
-                .environmentObject(container)
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, container)
             return ViewResult(view: view, container: container)
         }.value
 

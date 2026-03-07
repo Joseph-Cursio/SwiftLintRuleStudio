@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 /// Service for managing SwiftLint rules metadata
 @MainActor
@@ -18,15 +18,16 @@ protocol RuleRegistryProtocol {
 }
 
 @MainActor
-class RuleRegistry: RuleRegistryProtocol, ObservableObject {
-    @Published private(set) var rules: [Rule] = []
-    @Published private(set) var isLoading: Bool = false
-    @Published private(set) var error: Error?
-    
+@Observable
+class RuleRegistry: RuleRegistryProtocol {
+    private(set) var rules: [Rule] = []
+    private(set) var isLoading: Bool = false
+    private(set) var error: Error?
+
     let swiftLintCLI: SwiftLintCLIProtocol
     let cacheManager: CacheManagerProtocol
-    var backgroundLoadingTask: Task<Void, Never>?
-    
+    nonisolated(unsafe) var backgroundLoadingTask: Task<Void, Never>?
+
     init(swiftLintCLI: SwiftLintCLIProtocol, cacheManager: CacheManagerProtocol) {
         self.swiftLintCLI = swiftLintCLI
         self.cacheManager = cacheManager
@@ -39,21 +40,21 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
     nonisolated static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
-    
+
     func loadRules() async throws -> [Rule] {
         // Cancel any existing background loading
         backgroundLoadingTask?.cancel()
         backgroundLoadingTask = nil
-        
+
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             // Try to load from cache first
             if let cachedRules = try? cacheManager.loadCachedRules() {
                 self.rules = cachedRules
             }
-            
+
             // Always try to refresh from SwiftLint
             let freshRules = try await fetchRulesFromSwiftLint()
             self.rules = freshRules
@@ -68,7 +69,7 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
             return rules
         }
     }
-    
+
     func getRule(id: String) -> Rule? {
         rules.first { $0.id == id }
     }
@@ -76,7 +77,7 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
     func updateRules(_ updatedRules: [Rule]) {
         rules = updatedRules
     }
-    
+
     /// Fetch details for a specific rule on demand (useful when rule was loaded without details)
     func fetchRuleDetailsIfNeeded(id: String) async {
         guard let rule = getRule(id: id),
@@ -84,22 +85,22 @@ class RuleRegistry: RuleRegistryProtocol, ObservableObject {
             // Rule already has documentation
             return
         }
-        
+
         do {
             let detailedRule = try await fetchRuleDetails(identifier: rule.id, category: rule.category, isOptIn: rule.isOptIn)
-            
+
             // Update the rule in the rules array
             if let index = rules.firstIndex(where: { $0.id == id }) {
                 var updatedRules = rules
                 updatedRules[index] = detailedRule
                 updateRules(updatedRules)
-                objectWillChange.send()
+                // @Observable automatically notifies observers on mutation — no manual send needed
             }
         } catch {
             print("⚠️ Failed to fetch details for rule \(id): \(error.localizedDescription)")
         }
     }
-    
+
     func refreshRules() async throws {
         _ = try await loadRules()
     }

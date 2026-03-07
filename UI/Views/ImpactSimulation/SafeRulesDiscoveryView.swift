@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SafeRulesDiscoveryView: View {
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.dismiss) var dismiss
     
     @State var isDiscovering = false
@@ -89,5 +89,5 @@ struct SafeRulesDiscoveryView: View {
 
 #Preview {
     SafeRulesDiscoveryView()
-        .environmentObject(DependencyContainer())
+        .environment(\.dependencies, DependencyContainer())
 }

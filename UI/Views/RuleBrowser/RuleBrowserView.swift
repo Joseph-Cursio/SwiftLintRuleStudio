@@ -11,8 +11,8 @@ import AppKit
 #endif
 
 struct RuleBrowserView: View {
-    @EnvironmentObject var ruleRegistry: RuleRegistry
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
@@ -403,6 +403,6 @@ extension RuleBrowserView {
     )
     
     RuleBrowserView(ruleRegistry: ruleRegistry)
-        .environmentObject(ruleRegistry)
-        .environmentObject(container)
+        .environment(\.ruleRegistry, ruleRegistry)
+        .environment(\.dependencies, container)
 }

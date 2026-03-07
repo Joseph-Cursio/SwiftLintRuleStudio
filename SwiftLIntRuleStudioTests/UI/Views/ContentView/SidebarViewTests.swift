@@ -47,8 +47,8 @@ struct SidebarViewTests {
         }
         
         let view = SidebarView(selection: .constant(.rules))
-            .environmentObject(dependencies)
-            .environmentObject(ruleRegistry)
+            .environment(\.dependencies, dependencies)
+            .environment(\.ruleRegistry, ruleRegistry)
         
         return ViewResult(view: view, dependencies: dependencies)
     }

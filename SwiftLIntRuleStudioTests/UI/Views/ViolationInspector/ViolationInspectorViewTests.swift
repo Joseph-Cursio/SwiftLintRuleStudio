@@ -61,7 +61,7 @@ struct ViolationInspectorViewTests {
         }
 
         let view = ViolationInspectorView()
-            .environmentObject(container)
+            .environment(\.dependencies, container)
 
         return ViewResult(view: view)
     }
@@ -238,7 +238,7 @@ struct ViolationInspectorViewTests {
             viewModel.selectedViolationId = violation.id
 
             let view = ViolationInspectorView(viewModel: viewModel)
-                .environmentObject(container)
+                .environment(\.dependencies, container)
             return ViewResult(view: view)
         }.value
 
@@ -302,7 +302,7 @@ struct ViolationInspectorViewTests {
         let result = await Task { @MainActor in
             let container = DependencyContainer.createForTesting()
             let view = ViolationInspectorView()
-                .environmentObject(container)
+                .environment(\.dependencies, container)
             return ViewResult(view: view, container: container)
         }.value
 

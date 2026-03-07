@@ -6,11 +6,12 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
 /// Dependency injection container
 @MainActor
-class DependencyContainer: ObservableObject {
+@Observable
+class DependencyContainer {
     let ruleRegistry: RuleRegistry
     let swiftLintCLI: SwiftLintCLIProtocol
     let cacheManager: CacheManagerProtocol

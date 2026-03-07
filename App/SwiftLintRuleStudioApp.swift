@@ -13,32 +13,32 @@ import UserNotifications
 
 @main
 struct SwiftLintRuleStudioApp: App {
-    @StateObject private var ruleRegistry: RuleRegistry
-    @StateObject private var dependencyContainer: DependencyContainer
+    @State private var ruleRegistry: RuleRegistry
+    @State private var dependencyContainer: DependencyContainer
 #if os(macOS)
     @NSApplicationDelegateAdaptor(UITestWindowBootstrapper.self)
     private var uiTestWindowBootstrapper
 #endif
-    
+
     init() {
         let cacheManager = CacheManager()
         let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let container = DependencyContainer(
             ruleRegistry: ruleRegistry, swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
-        
-        _ruleRegistry = StateObject(wrappedValue: ruleRegistry)
-        _dependencyContainer = StateObject(wrappedValue: container)
+
+        _ruleRegistry = State(initialValue: ruleRegistry)
+        _dependencyContainer = State(initialValue: container)
 #if os(macOS)
         UITestWindowBootstrapper.dependencies = (ruleRegistry, container)
 #endif
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(ruleRegistry)
-                .environmentObject(dependencyContainer)
+                .environment(\.ruleRegistry, ruleRegistry)
+                .environment(\.dependencies, dependencyContainer)
                 .task { await requestNotificationPermission() }
         }
         .defaultSize(width: 1100, height: 700)
@@ -47,10 +47,10 @@ struct SwiftLintRuleStudioApp: App {
 
         Settings {
             AppSettingsView()
-                .environmentObject(dependencyContainer)
+                .environment(\.dependencies, dependencyContainer)
         }
     }
-    
+
     @CommandsBuilder
     var appCommands: some Commands {
         CommandGroup(replacing: .newItem) {
@@ -110,7 +110,7 @@ struct SwiftLintRuleStudioApp: App {
 }
 
 struct AppSettingsView: View {
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
 
     var body: some View {
         TabView {
@@ -166,8 +166,8 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
         guard let dependencies = Self.dependencies else { return }
 
         let rootView = ContentView()
-            .environmentObject(dependencies.0)
-            .environmentObject(dependencies.1)
+            .environment(\.ruleRegistry, dependencies.0)
+            .environment(\.dependencies, dependencies.1)
         let hostingView = NSHostingView(rootView: rootView)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 980, height: 700),

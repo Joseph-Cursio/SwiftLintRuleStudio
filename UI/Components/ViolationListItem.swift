@@ -11,7 +11,7 @@ struct ViolationListItem: View {
     let violation: Violation
     var onOpenInXcode: (() -> Void)?
     
-    @EnvironmentObject var dependencies: DependencyContainer
+    @Environment(\.dependencies) var dependencies: DependencyContainer
     
     var body: some View {
         HStack(spacing: 12) {
