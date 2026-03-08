@@ -9,23 +9,11 @@ import SwiftUI
 
 struct ConfigVersionHistoryEmptyStateView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text("No Version History")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-
+        ContentUnavailableView {
+            Label("No Version History", systemImage: "clock.arrow.circlepath")
+        } description: {
             Text("Configuration backups will appear here after you save changes.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 }
 
@@ -39,10 +27,8 @@ struct ConfigVersionHistoryBackupListView: View {
                     .font(.headline)
                 Spacer()
                 if viewModel.selectedBackup != nil || viewModel.comparisonBackup != nil {
-                    Button("Clear") {
-                        viewModel.clearComparison()
-                    }
-                    .font(.caption)
+                    Button("Clear", action: viewModel.clearComparison)
+                        .font(.caption)
                 }
             }
             .padding()

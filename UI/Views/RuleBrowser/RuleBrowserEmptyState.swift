@@ -19,30 +19,23 @@ struct RuleBrowserEmptyState: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text("No rules found")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-
-            if hasActiveFilters {
-                Text("Try adjusting your filters")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
+        if !searchText.isEmpty {
+            ContentUnavailableView.search
+        } else if hasActiveFilters {
+            ContentUnavailableView {
+                Label("No Rules Found", systemImage: "line.3.horizontal.decrease.circle")
+            } description: {
+                Text("Try adjusting your filters.")
+            } actions: {
                 Button("Clear Filters", action: onClearFilters)
                     .buttonStyle(.bordered)
-            } else if rulesAreEmpty {
-                Text("Loading rules...")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+            }
+        } else {
+            ContentUnavailableView {
+                Label("No Rules Found", systemImage: "magnifyingglass")
+            } description: {
+                Text("Loading rules\u{2026}")
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 }

@@ -20,7 +20,7 @@ struct BackupRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(backup.formattedDate)
                         .font(.body)
-                        .fontWeight(isSelected || isComparison ? .semibold : .regular)
+                        .fontWeight(isSelected || isComparison ? .bold : .regular)
 
                     Text(backup.formattedSize)
                         .font(.caption)

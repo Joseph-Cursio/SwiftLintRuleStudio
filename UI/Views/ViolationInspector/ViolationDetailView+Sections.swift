@@ -85,6 +85,7 @@ struct ViolationDetailLocationView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(isOpeningInXcode)
+            .accessibilityLabel("Open in Xcode")
             .accessibilityIdentifier("ViolationDetailOpenInXcodeButton")
         }
     }

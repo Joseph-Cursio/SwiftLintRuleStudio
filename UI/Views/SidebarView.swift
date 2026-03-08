@@ -18,12 +18,12 @@ struct SidebarView: View {
             if let workspace = dependencies.workspaceManager.currentWorkspace {
                 SwiftUI.Section("Workspace") {
                     VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Image(systemName: "folder.fill")
-                                .foregroundStyle(.blue)
-                                .accessibilityHidden(true)
+                        Label {
                             Text(workspace.name)
                                 .font(.headline)
+                        } icon: {
+                            Image(systemName: "folder.fill")
+                                .foregroundStyle(.blue)
                         }
                         Text(workspace.path.path)
                             .font(.caption.monospaced())

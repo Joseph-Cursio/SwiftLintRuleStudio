@@ -34,9 +34,7 @@ struct ConfigVersionHistoryView: View {
         .navigationTitle("Version History")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.loadBackups()
-                } label: {
+                Button(action: viewModel.loadBackups) {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 .accessibilityIdentifier("ConfigHistoryRefreshButton")
@@ -56,16 +54,11 @@ struct ConfigVersionHistoryView: View {
             viewModel.loadBackups()
         }
         .alert("Restore Configuration?", isPresented: Bindable(viewModel).showRestoreConfirmation) {
-            Button("Restore", role: .destructive) {
-                viewModel.restoreVersion()
-            }
+            Button("Restore", role: .destructive, action: viewModel.restoreVersion)
             Button("Cancel", role: .cancel) {}
         } message: {
             if let backup = viewModel.backupToRestore {
-                Text(
-                    "This will restore the configuration from \(backup.formattedDate)." +
-                    " A safety backup of the current configuration will be created first."
-                )
+                Text("This will restore the configuration from \(backup.formattedDate). A safety backup of the current configuration will be created first.")
             }
         }
         .alert("Error", isPresented: Bindable(viewModel).showError) {

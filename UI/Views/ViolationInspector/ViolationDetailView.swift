@@ -52,28 +52,24 @@ struct ViolationDetailView: View {
         }
         .navigationTitle(violation.ruleID)
         .sheet(isPresented: $showSuppressDialog) {
-            suppressDialog
+            SuppressViolationDialog(
+                reason: $suppressReason,
+                onSuppress: { reason in
+                    onSuppress(reason)
+                    showSuppressDialog = false
+                    suppressReason = ""
+                },
+                onCancel: {
+                    showSuppressDialog = false
+                    suppressReason = ""
+                }
+            )
         }
         .alert("Error Opening File", isPresented: TestGuard.alertBinding($showErrorAlert)) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)
         }
-    }
-
-    private var suppressDialog: some View {
-        SuppressViolationDialog(
-            reason: $suppressReason,
-            onSuppress: { reason in
-                onSuppress(reason)
-                showSuppressDialog = false
-                suppressReason = ""
-            },
-            onCancel: {
-                showSuppressDialog = false
-                suppressReason = ""
-            }
-        )
     }
 
 #if DEBUG

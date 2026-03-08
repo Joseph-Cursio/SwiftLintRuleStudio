@@ -16,6 +16,8 @@ struct RuleBrowserListView: View {
     @Bindable var viewModel: RuleBrowserViewModel
     @Binding var selectedRuleId: String?
     let externalViewMode: Binding<Int>?
+    @State private var bulkSaveError: String?
+    @State private var showBulkSaveError = false
 
     private var hasActiveFilters: Bool {
         !viewModel.searchText.isEmpty
@@ -118,9 +120,7 @@ struct RuleBrowserListView: View {
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.toggleMultiSelect()
-                } label: {
+                Button(action: viewModel.toggleMultiSelect) {
                     Label(
                         viewModel.isMultiSelectMode ? "Exit Multi-Select" : "Multi-Select",
                         systemImage: viewModel.isMultiSelectMode
@@ -135,9 +135,7 @@ struct RuleBrowserListView: View {
                 }
             }
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.clearFilters()
-                } label: {
+                Button(action: viewModel.clearFilters) {
                     Label("Clear Filters", systemImage: "xmark.circle")
                 }
                 .disabled(!hasActiveFilters)
@@ -154,12 +152,18 @@ struct RuleBrowserListView: View {
                         try viewModel.saveBulkChanges(yamlEngine: engine)
                         viewModel.isMultiSelectMode = false
                     } catch {
-                        print("Error saving bulk changes: \(error)")
+                        bulkSaveError = error.localizedDescription
+                        showBulkSaveError = true
                     }
                 }
             } onCancel: {
                 viewModel.bulkDiff = nil
             }
+        }
+        .alert("Save Failed", isPresented: $showBulkSaveError) {
+            Button("OK") { bulkSaveError = nil }
+        } message: {
+            Text(bulkSaveError ?? "")
         }
     }
 
