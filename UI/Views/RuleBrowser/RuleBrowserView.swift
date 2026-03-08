@@ -160,7 +160,7 @@ struct RuleBrowserView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(12)
                                     .background(.regularMaterial)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .clipShape(.rect(cornerRadius: 8))
                             }
                             .buttonStyle(.plain)
                             .contextMenu { ruleContextMenu(for: rule) }

@@ -69,10 +69,7 @@ struct ConfigVersionHistoryView: View {
                 )
             }
         }
-        .alert("Error", isPresented: Binding(
-            get: { viewModel.error != nil },
-            set: { if !$0 { viewModel.error = nil } }
-        )) {
+        .alert("Error", isPresented: Bindable(viewModel).showError) {
             Button("OK") { viewModel.error = nil }
         } message: {
             Text(viewModel.error?.localizedDescription ?? "An unknown error occurred.")
@@ -199,34 +196,38 @@ struct BackupRow: View {
     let onRestore: () -> Void
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(backup.formattedDate)
-                    .font(.body)
-                    .fontWeight(isSelected || isComparison ? .semibold : .regular)
+        Button(action: onSelect) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(backup.formattedDate)
+                        .font(.body)
+                        .fontWeight(isSelected || isComparison ? .semibold : .regular)
 
-                Text(backup.formattedSize)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    Text(backup.formattedSize)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "1.circle.fill")
+                        .foregroundStyle(.blue)
+                        .accessibilityLabel("First selection")
+                } else if isComparison {
+                    Image(systemName: "2.circle.fill")
+                        .foregroundStyle(.green)
+                        .accessibilityLabel("Second selection")
+                }
             }
-
-            Spacer()
-
-            if isSelected {
-                Image(systemName: "1.circle.fill")
-                    .foregroundStyle(.blue)
-                    .accessibilityLabel("First selection")
-            } else if isComparison {
-                Image(systemName: "2.circle.fill")
-                    .foregroundStyle(.green)
-                    .accessibilityLabel("Second selection")
-            }
+            .padding(.vertical, 2)
+            .background(
+                (isSelected || isComparison) ? Color.accentColor.opacity(0.1) : Color.clear
+            )
+            .clipShape(.rect(cornerRadius: 4))
         }
+        .buttonStyle(.plain)
         .contentShape(Rectangle())
-        .onTapGesture {
-            onSelect()
-        }
-        .accessibilityAddTraits(.isButton)
         .contextMenu {
             Button {
                 onRestore()
@@ -234,10 +235,5 @@ struct BackupRow: View {
                 Label("Restore This Version", systemImage: "arrow.uturn.backward")
             }
         }
-        .padding(.vertical, 2)
-        .background(
-            (isSelected || isComparison) ? Color.accentColor.opacity(0.1) : Color.clear
-        )
-        .clipShape(.rect(cornerRadius: 4))
     }
 }

@@ -118,9 +118,7 @@ struct ViolationDetailView: View {
             }
             
             Button {
-                Task {
-                    await openInXcode()
-                }
+                openInXcode()
             } label: {
                 if isOpeningInXcode {
                     ProgressView()

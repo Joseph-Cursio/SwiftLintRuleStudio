@@ -20,6 +20,7 @@ class RuleDetailViewModel {
     var isSaving: Bool = false
     var saveError: Error?
     var showDiffPreview: Bool = false
+    var pendingDiff: YAMLConfigurationEngine.ConfigDiff?
     var pendingChanges: PendingRuleChanges?
 
     // MARK: - Properties
@@ -204,6 +205,7 @@ class RuleDetailViewModel {
     /// Show diff preview
     func showPreview() {
         updatePendingChanges()
+        pendingDiff = generateDiff()
         showDiffPreview = true
     }
     

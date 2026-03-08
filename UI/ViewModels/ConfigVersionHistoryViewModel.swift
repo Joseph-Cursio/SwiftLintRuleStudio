@@ -17,6 +17,10 @@ class ConfigVersionHistoryViewModel {
     var currentDiff: YAMLConfigurationEngine.ConfigDiff?
     var isLoading: Bool = false
     var error: Error?
+    var showError: Bool {
+        get { error != nil }
+        set { if !newValue { error = nil } }
+    }
     var showRestoreConfirmation: Bool = false
     var backupToRestore: ConfigBackup?
 

@@ -131,6 +131,7 @@ struct ContentView: View {
                             Image(systemName: "sidebar.left")
                                 .accessibilityHidden(true)
                         }
+                        .accessibilityLabel("Toggle Sidebar")
                         .help("Toggle Sidebar")
                     }
 #endif
@@ -223,7 +224,7 @@ struct ContentView: View {
                             url = nil
                         }
                         guard let dropURL = url else { return }
-                        DispatchQueue.main.async {
+                        Task { @MainActor in
                             try? dependencies.workspaceManager.openWorkspace(at: dropURL)
                         }
                     }

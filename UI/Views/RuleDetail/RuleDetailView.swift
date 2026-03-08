@@ -166,14 +166,12 @@ struct RuleDetailView: View {
             // New value not needed — just rebuild on any scheme change
             rebuildAttributedString()
         }
-        .sheet(item: .init(
-            get: { viewModel.showDiffPreview ? viewModel.generateDiff() : nil },
-            set: { viewModel.showDiffPreview = $0 != nil }
-        )) { diff in
+        .sheet(item: Bindable(viewModel).pendingDiff) { diff in
             ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
                 Task {
                     do {
                         try viewModel.saveConfiguration()
+                        viewModel.pendingDiff = nil
                         viewModel.showDiffPreview = false
                         showSaveConfirmation = true
                     } catch {
@@ -181,6 +179,7 @@ struct RuleDetailView: View {
                     }
                 }
             } onCancel: {
+                viewModel.pendingDiff = nil
                 viewModel.showDiffPreview = false
             }
         }
