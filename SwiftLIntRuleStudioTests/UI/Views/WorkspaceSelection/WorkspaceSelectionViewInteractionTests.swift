@@ -166,10 +166,11 @@ struct WorkspaceSelectionViewInteractionTests {
             ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
             let inspector = try view.inspect()
-            let row = try inspector.find(ViewType.HStack.self) { hstack in
-                (try? hstack.find(text: tempDir.lastPathComponent)) != nil
+            // recentWorkspaceRow is now a Button (changed from onTapGesture in commit 840de33)
+            let button = try inspector.find(ViewType.Button.self) { button in
+                (try? button.find(text: tempDir.lastPathComponent)) != nil
             }
-            try row.callOnTapGesture()
+            try button.tap()
         }
 
         let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
