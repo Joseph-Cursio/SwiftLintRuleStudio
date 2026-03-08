@@ -97,16 +97,7 @@ struct RuleDetailView: View {
                     }
                     .accessibilityIdentifier("RuleDetailPreviewChangesButton")
                     
-                    Button {
-                        Task {
-                            do {
-                                try viewModel.saveConfiguration()
-                                showSaveConfirmation = true
-                            } catch {
-                                showError = true
-                            }
-                        }
-                    } label: {
+                    Button(action: saveConfigurationAction) {
                         if viewModel.isSaving {
                             ProgressView()
                                 .scaleEffect(0.7)
@@ -264,6 +255,17 @@ struct RuleDetailView: View {
         }
     }
     
+    private func saveConfigurationAction() {
+        Task {
+            do {
+                try viewModel.saveConfiguration()
+                showSaveConfirmation = true
+            } catch {
+                showError = true
+            }
+        }
+    }
+
     private func loadViolationCount() {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             violationCount = 0

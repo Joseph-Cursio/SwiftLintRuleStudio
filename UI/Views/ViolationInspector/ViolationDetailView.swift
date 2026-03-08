@@ -11,39 +11,42 @@ struct ViolationDetailView: View {
     let violation: Violation
     let onSuppress: (String) -> Void
     let onResolve: () -> Void
-    
+
     @State private var showSuppressDialog = false
     @State private var suppressReason = ""
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var isOpeningInXcode = false
     @Environment(\.dependencies) var dependencies: DependencyContainer
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // Header
-                headerView
-                
+                ViolationDetailHeaderView(violation: violation)
+
                 Divider()
-                
-                // Location
-                locationView
-                
+
+                ViolationDetailLocationView(
+                    violation: violation,
+                    isOpeningInXcode: $isOpeningInXcode,
+                    openInXcode: openInXcode
+                )
+
                 Divider()
-                
-                // Message
-                messageView
-                
+
+                ViolationDetailMessageView(violation: violation)
+
                 Divider()
-                
-                // Code snippet (if available)
-                codeSnippetView
-                
+
+                ViolationDetailCodeSnippetView()
+
                 Divider()
-                
-                // Actions
-                actionsView
+
+                ViolationDetailActionsView(
+                    violation: violation,
+                    showSuppressDialog: $showSuppressDialog,
+                    onResolve: onResolve
+                )
             }
             .padding()
         }
@@ -57,136 +60,9 @@ struct ViolationDetailView: View {
             Text(errorMessage)
         }
     }
-    
-    private var headerView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                SeverityBadge(severity: violation.severity)
-                
-                if violation.suppressed {
-                    Label("Suppressed", systemImage: "eye.slash")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                
-                if violation.resolvedAt != nil {
-                    Label("Resolved", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
-                }
-            }
-            
-            Text("Rule: \(violation.ruleID)")
-                .font(.title2)
-                .fontWeight(.bold)
-        }
-    }
-    
-    private var locationView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Location")
-                .font(.headline)
-            
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("File")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(violation.filePath)
-                        .font(.body)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Line")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("\(violation.line)")
-                        .font(.body)
-                }
-                
-                if let column = violation.column {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("Column")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("\(column)")
-                            .font(.body)
-                    }
-                }
-            }
-            
-            Button {
-                openInXcode()
-            } label: {
-                if isOpeningInXcode {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                } else {
-                    Label("Open in Xcode", systemImage: "arrow.right.circle")
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(isOpeningInXcode)
-            .accessibilityIdentifier("ViolationDetailOpenInXcodeButton")
-        }
-    }
-    
-    private var messageView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Message")
-                .font(.headline)
-            
-            Text(violation.message)
-                .font(.body)
-                .foregroundStyle(.primary)
-        }
-    }
-    
-    private var codeSnippetView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Code Context")
-                .font(.headline)
-            
-            // TODO: Load and display code snippet from file
-            Text("Code snippet loading not yet implemented")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .italic()
-        }
-    }
-    
-    private var actionsView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Actions")
-                .font(.headline)
-            
-            HStack(spacing: 12) {
-                if !violation.suppressed {
-                    Button {
-                        showSuppressDialog = true
-                    } label: {
-                        Label("Suppress", systemImage: "eye.slash")
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityIdentifier("ViolationDetailSuppressButton")
-                }
-                
-                if violation.resolvedAt == nil {
-                    Button {
-                        onResolve()
-                    } label: {
-                        Label("Mark as Resolved", systemImage: "checkmark.circle")
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
-        }
-    }
-    
+
     private var suppressDialog: some View {
-        buildSuppressDialog(
+        SuppressViolationDialog(
             reason: $suppressReason,
             onSuppress: { reason in
                 onSuppress(reason)
@@ -203,15 +79,15 @@ struct ViolationDetailView: View {
 #if DEBUG
     // Test-only: expose suppress dialog content for ViewInspector without presenting a sheet.
     var suppressDialogForTesting: some View {
-        buildSuppressDialog(reason: $suppressReason, onSuppress: { _ in }, onCancel: {})
+        SuppressViolationDialog(reason: $suppressReason, onSuppress: { _ in }, onCancel: {})
     }
-    
+
     /// Test-only builder that allows custom state binding.
     static func suppressDialogForTesting(
         reason: Binding<String>,
         onSuppress: @escaping (String) -> Void
     ) -> some View {
-        buildSuppressDialog(reason: reason, onSuppress: onSuppress, onCancel: {})
+        SuppressViolationDialog(reason: reason, onSuppress: onSuppress, onCancel: {})
     }
 
     /// Test-only alias kept for existing interaction tests.
@@ -222,17 +98,17 @@ struct ViolationDetailView: View {
         suppressDialogForTesting(reason: reason, onSuppress: onSuppress)
     }
 #endif
-    
+
     private func openInXcode() {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             errorMessage = "No workspace is currently open. Please select a workspace first."
             showErrorAlert = true
             return
         }
-        
+
         isOpeningInXcode = true
         defer { isOpeningInXcode = false }
-        
+
         do {
             let success = try dependencies.xcodeIntegrationService.openFile(
                 at: violation.filePath,
@@ -240,7 +116,7 @@ struct ViolationDetailView: View {
                 column: violation.column,
                 in: workspace
             )
-            
+
             if !success {
                 errorMessage = "Failed to open file in Xcode. Please ensure Xcode is installed and try again."
                 showErrorAlert = true
@@ -262,36 +138,4 @@ struct ViolationDetailView: View {
             showErrorAlert = true
         }
     }
-}
-
-private func buildSuppressDialog(
-    reason: Binding<String>,
-    onSuppress: @escaping (String) -> Void,
-    onCancel: @escaping () -> Void
-) -> some View {
-    NavigationStack {
-        Form {
-            SwiftUI.Section {
-                TextField("Reason (optional)", text: reason, axis: .vertical)
-                    .lineLimit(3...6)
-            } header: {
-                Text("Suppression Reason")
-            } footer: {
-                Text("Provide a reason for suppressing this violation. This helps with code review and maintenance.")
-            }
-        }
-        .navigationTitle("Suppress Violation")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel", action: onCancel)
-            }
-            
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Suppress") {
-                    onSuppress(reason.wrappedValue.isEmpty ? "Suppressed via Violation Inspector" : reason.wrappedValue)
-                }
-            }
-        }
-    }
-    .frame(width: 500, height: 300)
 }

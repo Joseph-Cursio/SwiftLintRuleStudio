@@ -1,0 +1,126 @@
+//
+//  ConfigVersionHistoryView+Sections.swift
+//  SwiftLintRuleStudio
+//
+//  Section views for the configuration version history screen
+//
+
+import SwiftUI
+
+struct ConfigVersionHistoryEmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+
+            Text("No Version History")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Text("Configuration backups will appear here after you save changes.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+}
+
+struct ConfigVersionHistoryBackupListView: View {
+    let viewModel: ConfigVersionHistoryViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Backups (\(viewModel.backups.count))")
+                    .font(.headline)
+                Spacer()
+                if viewModel.selectedBackup != nil || viewModel.comparisonBackup != nil {
+                    Button("Clear") {
+                        viewModel.clearComparison()
+                    }
+                    .font(.caption)
+                }
+            }
+            .padding()
+
+            Divider()
+
+            List {
+                ForEach(viewModel.backups) { backup in
+                    BackupRow(
+                        backup: backup,
+                        isSelected: viewModel.selectedBackup?.id == backup.id,
+                        isComparison: viewModel.comparisonBackup?.id == backup.id,
+                        onSelect: { viewModel.selectForComparison(backup) },
+                        onRestore: { viewModel.confirmRestore(backup) }
+                    )
+                }
+            }
+            .listStyle(.sidebar)
+
+            if viewModel.selectedBackup != nil && viewModel.comparisonBackup == nil {
+                Text("Select another backup to compare")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding()
+            }
+        }
+    }
+}
+
+struct ConfigVersionHistoryDiffDetailView: View {
+    let viewModel: ConfigVersionHistoryViewModel
+
+    var body: some View {
+        VStack {
+            if let diff = viewModel.currentDiff {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        if let first = viewModel.selectedBackup {
+                            Label(first.formattedDate, systemImage: "clock")
+                                .font(.caption)
+                                .foregroundStyle(.blue)
+                        }
+                        Image(systemName: "arrow.right")
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        if let second = viewModel.comparisonBackup {
+                            Label(second.formattedDate, systemImage: "clock")
+                                .font(.caption)
+                                .foregroundStyle(.green)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+
+                    ConfigDiffPreviewView(
+                        diff: diff,
+                        ruleName: "Version Comparison"
+                    ) {
+                        if let backup = viewModel.comparisonBackup {
+                            viewModel.confirmRestore(backup)
+                        }
+                    } onCancel: {
+                        viewModel.clearComparison()
+                    }
+                }
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+
+                    Text("Select two backups to compare")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+    }
+}

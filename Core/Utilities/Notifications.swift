@@ -29,4 +29,7 @@ extension Notification.Name {
 
     /// Posted when the user requests simulating impact for a rule (context menu)
     static let simulateImpactRequested = Notification.Name("SimulateImpactRequested")
+
+    /// Posted when the violation inspector should refresh its data
+    static let violationInspectorRefreshRequested = Notification.Name("ViolationInspectorRefreshRequested")
 }
