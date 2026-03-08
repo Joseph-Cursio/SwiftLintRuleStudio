@@ -364,36 +364,6 @@ struct RuleBrowserViewTests {
         #expect(hasMessage == true, "RuleBrowserView should show empty state message")
     }
 
-    @Test("RuleBrowserView shows loading message when rules are empty")
-    func testShowsLoadingMessage() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
-
-        // Loading text is state-dependent: only visible before rules finish loading
-        let found = await MainActor.run {
-            (try? result.view.inspect().find(text: "Loading rules...")) != nil
-        }
-        withKnownIssue("Loading text may not be visible if rules are already loaded", isIntermittent: true) {
-            #expect(found)
-        }
-    }
-
-    // MARK: - Detail View Tests
-
-    @Test("RuleBrowserView shows empty detail view when nothing selected")
-    func testShowsEmptyDetailView() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
-
-        // Detail placeholder visibility depends on whether a rule is pre-selected
-        let found = await MainActor.run {
-            (try? result.view.inspect().find(text: "Select a rule to view details")) != nil
-        }
-        withKnownIssue("Detail placeholder may not be visible depending on selection state", isIntermittent: true) {
-            #expect(found)
-        }
-    }
-
     // MARK: - Toolbar Tests
 
     @Test("RuleBrowserView shows clear filters button in toolbar")

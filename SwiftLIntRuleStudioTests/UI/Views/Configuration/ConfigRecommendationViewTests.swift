@@ -50,15 +50,24 @@ struct ConfigRecommendationViewTests {
     
     @Test("ConfigRecommendationView initializes correctly")
     func testInitialization() async throws {
-        let (view, _) = await createConfigRecommendationView()
+        let (view, workspaceManager) = await createConfigRecommendationView()
 
-        // View structure varies depending on whether a config file exists
+        // Open a workspace without a .swiftlint.yml so configFileMissing becomes true,
+        // which is the only state that causes the VStack body to render.
+        let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
+
+        try await MainActor.run {
+            try workspaceManager.openWorkspace(at: tempDir)
+        }
+
+        let didUpdate = await waitForConfigFileMissing(workspaceManager, expected: true)
+        #expect(didUpdate == true, "Workspace should report missing config file")
+
         let found = await MainActor.run {
             (try? view.inspect().find(ViewType.VStack.self)) != nil
         }
-        withKnownIssue("View structure may vary depending on config file state", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(found, "ConfigRecommendationView body should render a VStack when config is missing")
     }
     
     // MARK: - Display Tests

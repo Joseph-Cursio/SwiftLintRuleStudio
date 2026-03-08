@@ -256,32 +256,44 @@ struct ViolationInspectorViewTests {
 
     @Test("ViolationInspectorView displays violation list")
     func testDisplaysViolationList() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
+        // Use init(viewModel:) to pre-configure state: populate filteredViolations and
+        // set groupingOption to a non-.none value so the List branch (not Table) is rendered.
+        // Table is not supported by ViewInspector 0.10.3; List (grouped mode) is.
+        let result = await Task { @MainActor in
+            let container = DependencyContainer.createForTesting()
+            let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
+            // Set violations first so the groupingOption didSet (→ updateFilteredViolations)
+            // populates filteredViolations correctly when groupingOption is changed.
+            viewModel.violations = [makeTestViolation()]
+            viewModel.groupingOption = .rule
+            let view = ViolationInspectorView(viewModel: viewModel)
+            return ViewResult(view: view)
+        }.value
 
-        // List only rendered when violations are present and not in analyzing state
         let found = await MainActor.run {
             (try? result.view.inspect().find(ViewType.List.self)) != nil
         }
-        withKnownIssue("List may not be visible if empty or in analyzing state", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(found, "Grouped violation list should use a List (not Table) inspectable by ViewInspector")
     }
 
     // MARK: - Analyzing State Tests
 
     @Test("ViolationInspectorView shows analyzing view when analyzing")
     func testShowsAnalyzingView() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
+        // Use init(viewModel:) to set isAnalyzing=true before inspection so the
+        // analyzing overlay is rendered deterministically.
+        let result = await Task { @MainActor in
+            let container = DependencyContainer.createForTesting()
+            let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
+            viewModel.isAnalyzing = true
+            let view = ViolationInspectorView(viewModel: viewModel)
+            return ViewResult(view: view)
+        }.value
 
-        // Analyzing overlay only visible while workspace analysis is in progress
         let found = await MainActor.run {
             (try? result.view.inspect().find(text: "Analyzing Workspace")) != nil
         }
-        withKnownIssue("Analyzing text only visible when workspace is actively analyzing", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(found, "View should show 'Analyzing Workspace' when isAnalyzing is true")
     }
 
     // MARK: - Integration Tests

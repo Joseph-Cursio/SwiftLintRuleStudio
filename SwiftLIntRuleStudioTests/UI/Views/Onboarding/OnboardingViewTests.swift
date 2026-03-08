@@ -27,21 +27,23 @@ struct OnboardingViewTests {
 
     private func createOnboardingView(
         testName: String,
-        step: OnboardingManager.OnboardingStep = .welcome
+        step: OnboardingManager.OnboardingStep = .welcome,
+        swiftLintStatus: OnboardingView.SwiftLintStatus = .checking
     ) async -> OnboardingViewResult {
         return await MainActor.run {
             let userDefaults = IsolatedUserDefaults.create(for: testName)
             let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             onboardingManager.currentStep = step
-            
+
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
             let cacheManager = CacheManager.createForTesting()
             let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
-            
+
             let view = OnboardingView(
                 onboardingManager: onboardingManager,
                 workspaceManager: workspaceManager,
-                swiftLintCLI: swiftLintCLI
+                swiftLintCLI: swiftLintCLI,
+                swiftLintStatus: swiftLintStatus
             )
 
             return OnboardingViewResult(
@@ -185,44 +187,46 @@ struct OnboardingViewTests {
     
     @Test("OnboardingView SwiftLint check step shows not installed state")
     func testSwiftLintCheckStepShowsNotInstalled() async throws {
-        let view = (await createOnboardingView(testName: #function, step: .swiftLintCheck)).view
+        // Inject .notInstalled as the initial swiftLintStatus so the not-found branch
+        // renders immediately without relying on the environment or async file checks.
+        let view = (await createOnboardingView(
+            testName: #function,
+            step: .swiftLintCheck,
+            swiftLintStatus: .notInstalled
+        )).view
 
-        // "Not Found" text only visible when SwiftLint is absent from the environment
         let found = await MainActor.run {
             (try? view.inspect().find(text: "SwiftLint Not Found")) != nil
         }
-        withKnownIssue(
-            "Not-installed state only visible when SwiftLint is absent from environment",
-            isIntermittent: true
-        ) {
-            #expect(found)
-        }
+        #expect(found, "Not-installed step should show 'SwiftLint Not Found'")
     }
 
     @Test("OnboardingView SwiftLint check step shows installation options")
     func testSwiftLintCheckStepShowsInstallationOptions() async throws {
-        let view = (await createOnboardingView(testName: #function, step: .swiftLintCheck)).view
+        let view = (await createOnboardingView(
+            testName: #function,
+            step: .swiftLintCheck,
+            swiftLintStatus: .notInstalled
+        )).view
 
-        // Installation options only visible when SwiftLint is not installed
         let found = await MainActor.run {
             (try? view.inspect().find(text: "Installation Options:")) != nil
         }
-        withKnownIssue("Installation options only visible when SwiftLint is not installed", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(found, "Not-installed step should show installation options")
     }
 
     @Test("OnboardingView SwiftLint check step shows check again button")
     func testSwiftLintCheckStepShowsCheckAgainButton() async throws {
-        let view = (await createOnboardingView(testName: #function, step: .swiftLintCheck)).view
+        let view = (await createOnboardingView(
+            testName: #function,
+            step: .swiftLintCheck,
+            swiftLintStatus: .notInstalled
+        )).view
 
-        // Check Again button only visible when SwiftLint is not installed
         let found = await MainActor.run {
             (try? view.inspect().find(text: "Check Again")) != nil
         }
-        withKnownIssue("Check Again button only visible when SwiftLint is not installed", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(found, "Not-installed step should show 'Check Again' button")
     }
     
     // MARK: - Workspace Selection Step Tests
