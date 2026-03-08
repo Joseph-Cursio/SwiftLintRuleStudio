@@ -226,12 +226,12 @@ struct RuleBrowserViewInteractionTests {
     @Test("RuleBrowserView empty state shows filter guidance")
     func testEmptyStateShowsFilterGuidance() async throws {
         let result = await Task { @MainActor in createRuleBrowserView() }.value
-        await MainActor.run { result.viewModel.searchText = "nonexistent" }
-        // ContentUnavailableView.search uses system-defined strings not inspectable by ViewInspector 0.10.3.
+        // Use selectedCategory (not searchText) so the hasActiveFilters branch renders our
+        // custom ContentUnavailableView with inspectable text, rather than the system
+        // ContentUnavailableView.search whose strings are not inspectable by ViewInspector.
+        await MainActor.run { result.viewModel.selectedCategory = .style }
         let hasEmptyState = await waitForText(in: result.view, text: "No Rules Found")
-        withKnownIssue("ContentUnavailableView internal text is not inspectable by ViewInspector 0.10.3") {
-            #expect(hasEmptyState == true, "Empty state should show no rules message")
-        }
+        #expect(hasEmptyState == true, "Empty state should show no rules message")
     }
 
     // MARK: - Filter State Tests

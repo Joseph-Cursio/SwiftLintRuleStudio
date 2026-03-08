@@ -167,7 +167,10 @@ struct RuleBrowserViewTests {
                 cacheManager: cacheManager
             )
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
-            viewModel.searchText = "missing"
+            // Use selectedStatus (not searchText) so the hasActiveFilters branch is shown —
+            // that renders our custom ContentUnavailableView with inspectable text, rather
+            // than ContentUnavailableView.search whose strings are system-defined.
+            viewModel.selectedStatus = .enabled
 
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
@@ -183,9 +186,7 @@ struct RuleBrowserViewTests {
             return (try? result.view.inspect().find(text: "Try adjusting your filters.")) != nil
         }
 
-        withKnownIssue("ContentUnavailableView internal text is not inspectable by ViewInspector 0.10.3") {
-            #expect(hasGuidance == true)
-        }
+        #expect(hasGuidance == true)
     }
 
     // MARK: - Filter Tests
@@ -318,7 +319,9 @@ struct RuleBrowserViewTests {
                 cacheManager: cacheManager
             )
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
-            viewModel.searchText = "missing"
+            // Use selectedCategory (not searchText) so the hasActiveFilters branch renders
+            // our custom ContentUnavailableView with inspectable text.
+            viewModel.selectedCategory = .style
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
                 .environment(\.ruleRegistry, ruleRegistry)
@@ -331,9 +334,7 @@ struct RuleBrowserViewTests {
             _ = try result.view.inspect().find(text: "No Rules Found")
             return true
         }
-        withKnownIssue("ContentUnavailableView internal text is not inspectable by ViewInspector 0.10.3") {
-            #expect(hasEmptyText == true, "RuleBrowserView should show empty state")
-        }
+        #expect(hasEmptyText == true, "RuleBrowserView should show empty state")
     }
 
     @Test("RuleBrowserView shows empty state message")
@@ -345,7 +346,9 @@ struct RuleBrowserViewTests {
                 cacheManager: cacheManager
             )
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
-            viewModel.searchText = "missing"
+            // Use selectedCategory (not searchText) so the hasActiveFilters branch renders
+            // our custom ContentUnavailableView with inspectable text.
+            viewModel.selectedCategory = .style
             let container = DependencyContainer.createForTesting()
             let view = RuleBrowserView(viewModel: viewModel)
                 .environment(\.ruleRegistry, ruleRegistry)
@@ -358,9 +361,7 @@ struct RuleBrowserViewTests {
             _ = try result.view.inspect().find(text: "Try adjusting your filters.")
             return true
         }
-        withKnownIssue("ContentUnavailableView internal text is not inspectable by ViewInspector 0.10.3") {
-            #expect(hasMessage == true, "RuleBrowserView should show empty state message")
-        }
+        #expect(hasMessage == true, "RuleBrowserView should show empty state message")
     }
 
     @Test("RuleBrowserView shows loading message when rules are empty")
