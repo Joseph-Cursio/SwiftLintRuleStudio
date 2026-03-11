@@ -533,11 +533,7 @@ extension SwiftLIntRuleStudioUITests {
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
         rulesLink.tap()
 
-        // View mode picker and Reload Rules button must appear on the Rules section
-        let viewModePicker = findElement(in: window, identifier: "ContentViewViewModePicker")
-        XCTAssertTrue(viewModePicker.waitForExistence(timeout: 5),
-                      "View mode picker should be visible on the Rules section")
-
+        // Reload Rules button must appear on the Rules section
         let reloadButton = findElement(in: window, identifier: "ContentViewReloadRulesButton")
         XCTAssertTrue(reloadButton.exists,
                       "Reload Rules button should be visible on the Rules section")
@@ -547,11 +543,7 @@ extension SwiftLIntRuleStudioUITests {
         XCTAssertTrue(violationsLink.waitForExistence(timeout: 5))
         violationsLink.tap()
 
-        // View mode picker must disappear
-        XCTAssertFalse(viewModePicker.waitForExistence(timeout: 3),
-                       "View mode picker must not appear on the Violations section")
-
-        // Refresh Violations button must appear in its place
+        // Refresh Violations button must appear
         let refreshViolationsButton = findElement(in: window, identifier: "ContentViewRefreshViolationsButton")
         XCTAssertTrue(refreshViolationsButton.waitForExistence(timeout: 3),
                       "Refresh Violations button should appear on the Violations section")

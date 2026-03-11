@@ -20,7 +20,6 @@ struct ContentView: View {
     
     @State private var selection: AppSection? = .rules
     @State private var searchText: String = ""
-    @State private var viewMode: Int = 0
     @State private var showWorkspacePicker = false
     
     var body: some View {
@@ -53,8 +52,7 @@ struct ContentView: View {
                             case .rules:
                                 RuleBrowserView(
                                     ruleRegistry: dependencies.ruleRegistry,
-                                    externalSearchText: $searchText,
-                                    externalViewMode: $viewMode
+                                    externalSearchText: $searchText
                                 )
                             case .violations:
                                 ViolationInspectorView()
@@ -120,19 +118,6 @@ struct ContentView: View {
                     ToolbarItem(placement: .principal) {
                         Text("SwiftLint Rule Studio")
                             .font(.headline)
-                    }
-
-                    // Context-aware controls: only show in Rules section
-                    ToolbarItem(placement: .automatic) {
-                        if selection == .rules {
-                            Picker("", selection: $viewMode) {
-                                Text("List").tag(0)
-                                Text("Grid").tag(1)
-                            }
-                            .pickerStyle(.segmented)
-                            .help("Change View Mode")
-                            .accessibilityIdentifier("ContentViewViewModePicker")
-                        }
                     }
 
                     // Primary actions on the trailing side, vary by section

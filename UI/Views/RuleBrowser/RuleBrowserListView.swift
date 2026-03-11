@@ -15,7 +15,6 @@ struct RuleBrowserListView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Bindable var viewModel: RuleBrowserViewModel
     @Binding var selectedRuleId: String?
-    let externalViewMode: Binding<Int>?
     @State private var bulkSaveError: String?
     @State private var showBulkSaveError = false
 
@@ -82,30 +81,6 @@ struct RuleBrowserListView: View {
                     }
                 }
                 .listStyle(.sidebar)
-            } else if (externalViewMode?.wrappedValue ?? 0) == 1 {
-                // Grid mode
-                ScrollView {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 300, maximum: 420), spacing: 16, alignment: .top)],
-                        alignment: .leading,
-                        spacing: 16
-                    ) {
-                        ForEach(viewModel.filteredRules, id: \.id) { rule in
-                            Button {
-                                selectedRuleId = rule.id
-                            } label: {
-                                RuleListItem(rule: rule)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(12)
-                                    .background(.regularMaterial)
-                                    .clipShape(.rect(cornerRadius: 8))
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu { ruleContextMenu(for: rule) }
-                        }
-                    }
-                    .padding(16)
-                }
             } else {
                 // List mode
                 List(selection: $selectedRuleId) {

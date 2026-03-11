@@ -17,51 +17,70 @@ struct RuleBrowserView: View {
     @State private var viewModel: RuleBrowserViewModel
     @State private var selectedRuleId: String?
     private var externalSearchText: Binding<String>?
-    private var externalViewMode: Binding<Int>?
 
     init(
         ruleRegistry: RuleRegistry,
-        externalSearchText: Binding<String>? = nil,
-        externalViewMode: Binding<Int>? = nil
+        externalSearchText: Binding<String>? = nil
     ) {
         _viewModel = State(initialValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
         self.externalSearchText = externalSearchText
-        self.externalViewMode = externalViewMode
     }
 
     init(
         viewModel: RuleBrowserViewModel,
-        externalSearchText: Binding<String>? = nil,
-        externalViewMode: Binding<Int>? = nil
+        externalSearchText: Binding<String>? = nil
     ) {
         _viewModel = State(initialValue: viewModel)
         self.externalSearchText = externalSearchText
-        self.externalViewMode = externalViewMode
     }
     
+    @State private var listWidth: CGFloat = 450
+
     var body: some View {
-        HSplitView {
+        HStack(spacing: 0) {
             // Left panel: Rule List
             RuleBrowserListView(
                 viewModel: viewModel,
-                selectedRuleId: $selectedRuleId,
-                externalViewMode: externalViewMode
+                selectedRuleId: $selectedRuleId
             )
-            .frame(minWidth: 450, idealWidth: 450, maxWidth: 560)
+            .frame(width: listWidth)
+
+            // Draggable divider
+            Rectangle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(width: 1)
+                .overlay {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(width: 8)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    let newWidth = listWidth + value.translation.width
+                                    listWidth = min(max(newWidth, 300), 600)
+                                }
+                        )
+                }
+                .onHover { hovering in
+                    if hovering {
+                        NSCursor.resizeLeftRight.push()
+                    } else {
+                        NSCursor.pop()
+                    }
+                }
 
             // Right panel: Rule Detail
             Group {
                 if let selectedRuleId = selectedRuleId,
                    let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
                     RuleDetailView(rule: selectedRule)
-                        .id(selectedRuleId) // Force view recreation when selection changes
+                        .id(selectedRuleId)
                 } else {
-                    // Empty view - no message shown
                     Color.clear
                 }
             }
             .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
-            .layoutPriority(1)
         }
         .searchable(text: Bindable(viewModel).searchText, prompt: "Search rules")
         .onAppear {

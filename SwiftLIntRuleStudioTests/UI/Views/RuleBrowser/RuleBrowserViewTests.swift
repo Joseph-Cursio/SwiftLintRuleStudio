@@ -131,7 +131,7 @@ struct RuleBrowserViewTests {
         // Verify filter controls (Status/Category/Sort pickers) are present in the view.
         let result = await Task { @MainActor in createRuleBrowserView() }.value
         let hasFilters = await MainActor.run {
-            (try? result.view.inspect().find(ViewType.ScrollView.self)) != nil
+            (try? result.view.inspect().find(ViewType.Picker.self)) != nil
         }
         #expect(hasFilters == true, "RuleBrowserView should display filter controls")
     }
@@ -142,7 +142,7 @@ struct RuleBrowserViewTests {
         // Verify the view model exposes a searchText property for search-driven filtering.
         let result = await Task { @MainActor in createRuleBrowserView() }.value
         let hasFilters = await MainActor.run {
-            (try? result.view.inspect().find(ViewType.ScrollView.self)) != nil
+            (try? result.view.inspect().find(ViewType.Picker.self)) != nil
         }
         #expect(hasFilters == true, "Filter controls should be accessible in the view")
     }
@@ -153,7 +153,7 @@ struct RuleBrowserViewTests {
         // Verify that setting searchText on the view model affects filteredRules.
         let result = await Task { @MainActor in createRuleBrowserView() }.value
         let hasFilters = await MainActor.run {
-            (try? result.view.inspect().find(ViewType.ScrollView.self)) != nil
+            (try? result.view.inspect().find(ViewType.Picker.self)) != nil
         }
         #expect(hasFilters == true, "Filter controls should be present for search-driven filtering")
     }
