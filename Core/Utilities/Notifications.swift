@@ -32,4 +32,7 @@ extension Notification.Name {
 
     /// Posted when the violation inspector should refresh its data
     static let violationInspectorRefreshRequested = Notification.Name("ViolationInspectorRefreshRequested")
+
+    /// Posted when the user requests saving configuration changes (e.g. via File > Save menu)
+    static let saveConfigurationRequested = Notification.Name("SaveConfigurationRequested")
 }

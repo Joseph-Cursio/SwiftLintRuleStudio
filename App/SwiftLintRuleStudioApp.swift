@@ -60,6 +60,13 @@ struct SwiftLintRuleStudioApp: App {
             .keyboardShortcut("o", modifiers: .command)
         }
 
+        CommandGroup(replacing: .saveItem) {
+            Button("Save Configuration") {
+                NotificationCenter.default.post(name: .saveConfigurationRequested, object: nil)
+            }
+            .keyboardShortcut("s", modifiers: .command)
+        }
+
         CommandMenu("View") {
             Button("Toggle Detail Panel") {
                 NotificationCenter.default.post(name: .toggleDetailPanelRequested, object: nil)

@@ -21,7 +21,8 @@ struct SuppressViolationDialog: View {
                 } header: {
                     Text("Suppression Reason")
                 } footer: {
-                    Text("Provide a reason for suppressing this violation. This helps with code review and maintenance.")
+                    Text("Provide a reason for suppressing this violation." +
+                         " This helps with code review and maintenance.")
                 }
             }
             .navigationTitle("Suppress Violation")

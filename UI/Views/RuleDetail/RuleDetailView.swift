@@ -145,6 +145,10 @@ struct RuleDetailView: View {
                 try? viewModel.loadConfiguration()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .saveConfigurationRequested)) { _ in
+            guard viewModel.pendingChanges != nil else { return }
+            saveConfigurationAction()
+        }
         .id(rule.id) // Force view recreation when rule ID changes
         .onChange(of: dependencies.ruleRegistry.rules) { _, newRules in
             // Use newRules directly to avoid re-reading ambient registry state

@@ -24,6 +24,7 @@ struct SidebarView: View {
                         } icon: {
                             Image(systemName: "folder.fill")
                                 .foregroundStyle(.blue)
+                                .accessibilityHidden(true)
                         }
                         Text(workspace.path.path)
                             .font(.caption.monospaced())

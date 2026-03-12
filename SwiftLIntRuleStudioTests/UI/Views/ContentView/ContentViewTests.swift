@@ -182,8 +182,11 @@ struct ContentViewTests {
         let configFileMissing = await MainActor.run {
             dependencies.workspaceManager.configFileMissing
         }
-        #expect(configFileMissing == true,
-                "workspaceManager should report config file missing, driving ContentView to show the config recommendation")
+        #expect(
+            configFileMissing == true,
+            Comment(rawValue: "workspaceManager should report config file missing,"
+                + " driving ContentView to show the config recommendation")
+        )
     }
     
     @Test("ContentView shows default detail view when workspace open")
@@ -205,8 +208,11 @@ struct ContentViewTests {
         let hasWorkspace = await MainActor.run {
             dependencies.workspaceManager.currentWorkspace != nil
         }
-        #expect(hasWorkspace == true,
-                "Workspace should be open, driving ContentView to render the NavigationSplitView with RuleBrowserView as default")
+        #expect(
+            hasWorkspace == true,
+            Comment(rawValue: "Workspace should be open, driving ContentView"
+                + " to render the NavigationSplitView with RuleBrowserView as default")
+        )
     }
     
     // MARK: - Status Bar Tests

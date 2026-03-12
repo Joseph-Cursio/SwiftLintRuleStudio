@@ -58,7 +58,10 @@ struct ConfigVersionHistoryView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             if let backup = viewModel.backupToRestore {
-                Text("This will restore the configuration from \(backup.formattedDate). A safety backup of the current configuration will be created first.")
+                Text(
+                    "This will restore the configuration from \(backup.formattedDate)." +
+                    " A safety backup of the current configuration will be created first."
+                )
             }
         }
         .alert("Error", isPresented: Bindable(viewModel).showError) {

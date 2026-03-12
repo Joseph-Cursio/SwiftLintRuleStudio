@@ -5,6 +5,7 @@ extension ViolationStorage {
     func closeDatabase() {
         if let db = database {
             sqlite3_close(db)
+            database = nil
         }
     }
     

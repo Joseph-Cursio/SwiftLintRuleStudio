@@ -7,9 +7,6 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
-#if os(macOS)
-import AppKit
-#endif
 
 struct ContentView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
@@ -19,6 +16,7 @@ struct ContentView: View {
     @State private var didApplyUITestOverrides = false
     
     @State private var selection: AppSection? = .rules
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var searchText: String = ""
     @State private var showWorkspacePicker = false
     
@@ -35,7 +33,7 @@ struct ContentView: View {
                 // Show workspace selection when no workspace is open
                 WorkspaceSelectionView(workspaceManager: dependencies.workspaceManager)
             } else {
-                NavigationSplitView {
+                NavigationSplitView(columnVisibility: $columnVisibility) {
                     SidebarView(selection: $selection)
                         .navigationTitle("SwiftLint Rule Studio")
                         .listStyle(.sidebar)
@@ -103,17 +101,6 @@ struct ContentView: View {
                 }
                 .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
                 .toolbar {
-#if os(macOS)
-                    ToolbarItem(placement: .navigation) {
-                        Button(action: toggleSidebar) {
-                            Image(systemName: "sidebar.left")
-                                .accessibilityHidden(true)
-                        }
-                        .accessibilityLabel("Toggle Sidebar")
-                        .help("Toggle Sidebar")
-                    }
-#endif
-
                     // Title shown in the middle of the window titlebar
                     ToolbarItem(placement: .principal) {
                         Text("SwiftLint Rule Studio")
@@ -254,13 +241,6 @@ struct ContentView: View {
 }
 
 private extension ContentView {
-    func toggleSidebar() {
-#if os(macOS)
-        let selector = #selector(NSSplitViewController.toggleSidebar(_:))
-        NSApp.keyWindow?.firstResponder?.tryToPerform(selector, with: nil)
-#endif
-    }
-
     func applyUITestOverrides() {
         let processInfo = ProcessInfo.processInfo
         guard processInfo.arguments.contains("-uiTesting") else { return }
