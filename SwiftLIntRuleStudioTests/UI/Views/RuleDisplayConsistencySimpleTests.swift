@@ -47,7 +47,7 @@ struct RuleDisplayConsistencySimpleTests {
         let rule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
         // Extract value to avoid Swift 6 false positive
         let isEnabled = await MainActor.run { rule.isEnabled }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
     }
 
     @Test("Rule with isEnabled=false should have disabled state")
@@ -55,7 +55,7 @@ struct RuleDisplayConsistencySimpleTests {
         let rule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
         // Extract value to avoid Swift 6 false positive
         let isEnabled = await MainActor.run { rule.isEnabled }
-        #expect(isEnabled == false)
+        #expect(!isEnabled)
     }
 
     // MARK: - RuleDetailView Initialization Tests
@@ -83,7 +83,7 @@ struct RuleDisplayConsistencySimpleTests {
             return (enabledRule.id, enabledRule.isEnabled)
         }
         #expect(ruleId == "test_rule")
-        #expect(isEnabled == true)
+        #expect(isEnabled)
     }
 
     @Test("RuleDetailView syncs enabled state on initialization")
@@ -98,7 +98,7 @@ struct RuleDisplayConsistencySimpleTests {
         let (isEnabled, ruleId) = await MainActor.run {
             return (enabledRule.isEnabled, enabledRule.id)
         }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(ruleId == "duplicate_imports")
     }
 
@@ -120,7 +120,7 @@ struct RuleDisplayConsistencySimpleTests {
             return (listItem.rule.id, listItem.rule.isEnabled)
         }
         #expect(listItemId == "test_rule")
-        #expect(listItemEnabled == true)
+        #expect(listItemEnabled)
     }
 
     @Test("Duplicate imports rule consistency check")
@@ -143,7 +143,7 @@ struct RuleDisplayConsistencySimpleTests {
             return (listItem.rule.id, listItem.rule.isEnabled)
         }
         #expect(listItemId == "duplicate_imports")
-        #expect(listItemEnabled == true)
+        #expect(listItemEnabled)
     }
 
     // MARK: - Rule Lookup Tests

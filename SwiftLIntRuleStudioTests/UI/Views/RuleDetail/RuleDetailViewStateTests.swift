@@ -47,7 +47,7 @@ struct RuleDetailViewStateTests {
             return (try? inspector.find(text: "You have unsaved changes")) != nil
         }
 
-        #expect(hasPending == true)
+        #expect(hasPending)
     }
 
     @Test("RuleDetailView shows simulate button for disabled rule with workspace")
@@ -99,8 +99,8 @@ struct RuleDetailViewStateTests {
             container.workspaceManager.currentWorkspace != nil
         }
         let ruleIsDisabled = await MainActor.run { !viewModel.isEnabled }
-        #expect(hasWorkspace == true,
+        #expect(hasWorkspace,
                 "Workspace should be open, making the Simulate Impact button visible in RuleDetailView")
-        #expect(ruleIsDisabled == true, "Rule should be disabled to exercise the simulate path")
+        #expect(ruleIsDisabled, "Rule should be disabled to exercise the simulate path")
     }
 }

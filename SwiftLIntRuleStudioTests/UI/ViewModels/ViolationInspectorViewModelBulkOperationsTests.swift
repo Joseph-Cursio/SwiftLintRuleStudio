@@ -32,7 +32,7 @@ struct VIViewModelBulkOpsTests {
             return (suppressed.count, viewModel.selectedViolationIds.isEmpty)
         }
         #expect(suppressedCount == 2)
-        #expect(selectedIdsEmpty == true)
+        #expect(selectedIdsEmpty)
     }
 
     @Test("ViolationInspectorViewModel resolves selected violations")
@@ -64,6 +64,6 @@ struct VIViewModelBulkOpsTests {
             return (resolved.count, viewModel.selectedViolationIds.isEmpty)
         }
         #expect(resolvedCount == 2)
-        #expect(selectedIdsEmpty == true)
+        #expect(selectedIdsEmpty)
     }
 }

@@ -15,7 +15,7 @@ struct WkspManagerIntegrationErrorTests {
                 return (manager.currentWorkspace != nil, manager.recentWorkspaces.count)
             }
 
-        #expect(hasWorkspace == true)
+        #expect(hasWorkspace)
         #expect(recentCount == 1)
 
         WorkspaceTestHelpers.cleanupWorkspace(tempDir)
@@ -23,7 +23,7 @@ struct WkspManagerIntegrationErrorTests {
         let isEmpty = try await WorkspaceManagerIntegrationTestHelpers.withWorkspaceManager { newManager in
             newManager.recentWorkspaces.isEmpty
         }
-        #expect(isEmpty == true)
+        #expect(isEmpty)
     }
 
     @Test("Handles invalid workspace paths in recent workspaces")

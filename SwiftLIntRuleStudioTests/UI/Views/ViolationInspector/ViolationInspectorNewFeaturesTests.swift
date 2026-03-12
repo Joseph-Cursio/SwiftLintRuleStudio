@@ -99,7 +99,7 @@ struct ViolationInspectorNewFeaturesTests {
     @Test("Handles empty violations array")
     func testGroupViolationsEmpty() async throws {
         let grouped = await groupViolations([], by: .file)
-        #expect(grouped.isEmpty == true)
+        #expect(grouped.isEmpty)
     }
 
     // MARK: - Export Tests
@@ -122,7 +122,7 @@ struct ViolationInspectorNewFeaturesTests {
         try await exportToJSON(violations: violations, url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        #expect(FileManager.default.fileExists(atPath: tempURL.path) == true)
+        #expect(FileManager.default.fileExists(atPath: tempURL.path))
 
         let data = try Data(contentsOf: tempURL)
         let decoder = JSONDecoder()
@@ -153,13 +153,13 @@ struct ViolationInspectorNewFeaturesTests {
         try await exportToCSV(violations: violations, url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        #expect(FileManager.default.fileExists(atPath: tempURL.path) == true)
+        #expect(FileManager.default.fileExists(atPath: tempURL.path))
 
         let csv = try String(contentsOf: tempURL, encoding: .utf8)
-        #expect(csv.contains("test_rule") == true)
-        #expect(csv.contains("Test.swift") == true)
-        #expect(csv.contains("10") == true)
-        #expect(csv.contains("error") == true)
+        #expect(csv.contains("test_rule"))
+        #expect(csv.contains("Test.swift"))
+        #expect(csv.contains("10"))
+        #expect(csv.contains("error"))
     }
 
     @Test("CSV export handles special characters in messages")
@@ -196,7 +196,7 @@ struct ViolationInspectorNewFeaturesTests {
 
         let csv = try String(contentsOf: tempURL, encoding: .utf8)
         // CSV should properly escape quotes
-        #expect(csv.contains("\"\"quotes\"\"") == true || csv.contains("\"quotes\"") == true)
+        #expect(csv.contains("\"\"quotes\"\"") || csv.contains("\"quotes\""))
     }
 
     @Test("JSON export includes all violation fields")

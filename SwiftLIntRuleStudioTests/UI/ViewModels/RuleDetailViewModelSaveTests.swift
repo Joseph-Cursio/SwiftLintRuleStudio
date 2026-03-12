@@ -47,10 +47,10 @@ struct RuleDetailViewModelSaveTests {
             )
         }
 
-        #expect(snapshot.hasRule == true)
-        #expect(snapshot.isEnabled == true)
-        #expect(snapshot.severityMatch == true)
-        #expect(snapshot.pendingChangesCleared == true)
+        #expect(snapshot.hasRule)
+        #expect(snapshot.isEnabled)
+        #expect(snapshot.severityMatch)
+        #expect(snapshot.pendingChangesCleared)
     }
 
     @Test("RuleDetailViewModel saves disabled rule to config")
@@ -90,8 +90,8 @@ struct RuleDetailViewModelSaveTests {
             return (ruleConfig != nil, ruleConfig?.enabled == false)
         }
 
-        #expect(hasRule == true)
-        #expect(isEnabled == true)
+        #expect(hasRule)
+        #expect(isEnabled)
     }
 
     @Test("RuleDetailViewModel saves severity change")

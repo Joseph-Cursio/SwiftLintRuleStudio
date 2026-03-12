@@ -29,7 +29,7 @@ struct ViolationTests {
         #expect(violation.line == 42)
         #expect(violation.column == 10)
         #expect(violation.severity == .error)
-        #expect(violation.suppressed == false)
+        #expect(!violation.suppressed)
     }
 
     @Test("Violation can be suppressed")
@@ -45,7 +45,7 @@ struct ViolationTests {
         violation.suppressed = true
         violation.suppressionReason = "Legacy code"
 
-        #expect(violation.suppressed == true)
+        #expect(violation.suppressed)
         #expect(violation.suppressionReason == "Legacy code")
     }
 

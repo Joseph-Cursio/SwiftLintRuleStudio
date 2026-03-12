@@ -19,7 +19,7 @@ struct RuleDetailViewModelInitializationTests {
         }
 
         #expect(ruleId == "test_rule")
-        #expect(isEnabled == false)
+        #expect(!isEnabled)
         #expect(severity == nil)
         #expect(pendingChanges == nil)
     }
@@ -33,7 +33,7 @@ struct RuleDetailViewModelInitializationTests {
             (viewModel.rule.isOptIn, viewModel.isEnabled)
         }
 
-        #expect(isOptIn == true)
-        #expect(isEnabled == false)
+        #expect(isOptIn)
+        #expect(!isEnabled)
     }
 }

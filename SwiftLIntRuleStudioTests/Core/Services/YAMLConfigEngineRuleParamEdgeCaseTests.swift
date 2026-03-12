@@ -26,8 +26,8 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
                 severity: config.rules["line_length"]?.severity
             )
         }
-        #expect(ruleSnapshot.hasRule == true)
-        #expect(ruleSnapshot.hasParams == true)
+        #expect(ruleSnapshot.hasRule)
+        #expect(ruleSnapshot.hasParams)
         #expect(ruleSnapshot.severity == nil)
     }
 
@@ -54,7 +54,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
             )
         }
         #expect(disabledSnapshot.enabled == false)
-        #expect(disabledSnapshot.hasParams == true)
+        #expect(disabledSnapshot.hasParams)
     }
 
     @Test("YAMLConfigurationEngine handles empty rules dictionary")
@@ -78,7 +78,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
                 config.included
             )
         }
-        #expect(rulesEmpty == true)
+        #expect(rulesEmpty)
         #expect(included == ["Sources"])
     }
 
@@ -106,9 +106,9 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
                 fileLengthRule?.parameters?["error"] != nil
             )
         }
-        #expect(hasParams == true)
-        #expect(hasWarning == true)
-        #expect(hasError == true)
+        #expect(hasParams)
+        #expect(hasWarning)
+        #expect(hasError)
     }
 
     @Test("YAMLConfigurationEngine handles string rule parameters")
@@ -133,8 +133,8 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
                 config.rules["custom_rules"]?.parameters?["name"] != nil
             )
         }
-        #expect(hasParams == true)
-        #expect(hasName == true)
+        #expect(hasParams)
+        #expect(hasName)
     }
 
     @Test("YAMLConfigurationEngine handles array rule parameters")
@@ -160,8 +160,8 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
                 config.rules["excluded"]?.parameters?["paths"] != nil
             )
         }
-        #expect(hasParams == true)
-        #expect(hasPaths == true)
+        #expect(hasParams)
+        #expect(hasPaths)
     }
 
     @Test("YAMLConfigurationEngine handles nested rule configurations")
@@ -188,8 +188,8 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
                 nestingRule?.parameters?["function_level"] != nil
             )
         }
-        #expect(hasParams == true)
-        #expect(hasTypeLevel == true)
-        #expect(hasFunctionLevel == true)
+        #expect(hasParams)
+        #expect(hasTypeLevel)
+        #expect(hasFunctionLevel)
     }
 }

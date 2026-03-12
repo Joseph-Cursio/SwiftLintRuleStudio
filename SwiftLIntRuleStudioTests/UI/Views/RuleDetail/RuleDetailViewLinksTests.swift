@@ -48,6 +48,6 @@ struct RuleDetailViewLinksTests {
             return (try? inspector.find(text: proposalURL)) != nil
         }
 
-        #expect(hasLink == true)
+        #expect(hasLink)
     }
 }

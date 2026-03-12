@@ -50,10 +50,10 @@ struct RuleDetailViewSectionTests {
             return (hasConfiguration, hasWhyThisMatters, hasRelatedRules, hasSwiftEvolution)
         }
 
-        #expect(hasConfiguration == true)
-        #expect(hasWhyThisMatters == true)
-        #expect(hasRelatedRules == true)
-        #expect(hasSwiftEvolution == true)
+        #expect(hasConfiguration)
+        #expect(hasWhyThisMatters)
+        #expect(hasRelatedRules)
+        #expect(hasSwiftEvolution)
     }
 
     @Test("RuleDetailView shows rationale when markdown includes it")
@@ -100,8 +100,8 @@ struct RuleDetailViewSectionTests {
             return (hasRationaleHeader, hasRationaleBody)
         }
 
-        #expect(hasRationaleHeader == true)
-        #expect(hasRationaleBody == true)
+        #expect(hasRationaleHeader)
+        #expect(hasRationaleBody)
     }
 
     @Test("RuleDetailView shows related rules overflow")
@@ -186,6 +186,6 @@ struct RuleDetailViewSectionTests {
             return (try? inspector.find(text: "No description available")) != nil
         }
 
-        #expect(hasFallback == true)
+        #expect(hasFallback)
     }
 }

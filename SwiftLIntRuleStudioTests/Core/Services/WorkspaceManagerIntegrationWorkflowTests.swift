@@ -46,11 +46,11 @@ struct WorkspaceManagerIntegrationWorkflowTests {
             manager.closeWorkspace()
             return manager.currentWorkspace == nil
         }
-        #expect(hasWorkspace == true)
+        #expect(hasWorkspace)
 
         await viewModel.clearViolations()
         let isEmpty = await MainActor.run { viewModel.violations.isEmpty }
-        #expect(isEmpty == true)
+        #expect(isEmpty)
     }
 
     @Test("Workspace persistence across app restarts")

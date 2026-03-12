@@ -48,10 +48,10 @@ struct UITestHelpersCoverageTests {
         #expect(ruleValues.0 == "rule_id")
         #expect(ruleValues.1 == "Rule Name")
         #expect(ruleValues.2 == .style)
-        #expect(ruleValues.3 == true)
-        #expect(ruleValues.4 == true)
+        #expect(ruleValues.3)
+        #expect(ruleValues.4)
         #expect(ruleValues.5 == .warning)
-        #expect(ruleValues.6 == true)
+        #expect(ruleValues.6)
         #expect(ruleValues.7 == "5.9")
         #expect(ruleValues.8 == .error)
         #expect(ruleValues.9 == "Docs")
@@ -87,7 +87,7 @@ struct UITestHelpersCoverageTests {
         #expect(violationValues.1 == "File.swift")
         #expect(violationValues.2 == 42)
         #expect(violationValues.3 == .error)
-        #expect(violationValues.4 == true)
+        #expect(violationValues.4)
         #expect(violationValues.5 == "Testing")
 
         let violations = await UITestDataFactory.createTestViolations(count: 2)
@@ -102,7 +102,7 @@ struct UITestHelpersCoverageTests {
             (workspace.name, workspace.path.path.isEmpty)
         }
         #expect(workspaceValues.0 == "Workspace")
-        #expect(workspaceValues.1 == false)
+        #expect(!workspaceValues.1)
     }
 
     @Test("UIViewTestHelpers create dependency containers and views")
@@ -111,7 +111,7 @@ struct UITestHelpersCoverageTests {
         let isRecentWorkspacesEmpty = await MainActor.run {
             container.workspaceManager.recentWorkspaces.isEmpty
         }
-        #expect(isRecentWorkspacesEmpty == true)
+        #expect(isRecentWorkspacesEmpty)
 
         let view = Text("Hello")
         let hasHelloText = await MainActor.run {
@@ -121,7 +121,7 @@ struct UITestHelpersCoverageTests {
             defer { ViewHosting.expel() }
             return (try? wrappedView.inspect().find(text: "Hello")) != nil
         }
-        #expect(hasHelloText == true)
+        #expect(hasHelloText)
 
         let hasFullText = await MainActor.run {
             let fullView = UIViewTestHelpers.createViewWithFullDependencies(Text("Full"))
@@ -130,7 +130,7 @@ struct UITestHelpersCoverageTests {
             defer { ViewHosting.expel() }
             return (try? fullView.inspect().find(text: "Full")) != nil
         }
-        #expect(hasFullText == true)
+        #expect(hasFullText)
     }
 
     @Test("UIViewTestHelpers create managers for testing")
@@ -140,14 +140,14 @@ struct UITestHelpersCoverageTests {
             (onboardingManager.currentStep, onboardingManager.hasCompletedOnboarding)
         }
         #expect(onboardingValues.0 == .welcome)
-        #expect(onboardingValues.1 == false)
+        #expect(!onboardingValues.1)
 
         let workspaceManager = await UIViewTestHelpers.createTestWorkspaceManager(testName: #function)
         let workspaceValues = await MainActor.run {
             (workspaceManager.currentWorkspace == nil, workspaceManager.recentWorkspaces.isEmpty)
         }
-        #expect(workspaceValues.0 == true)
-        #expect(workspaceValues.1 == true)
+        #expect(workspaceValues.0)
+        #expect(workspaceValues.1)
     }
 
     @Test("UITestAssertions validate common view expectations")
@@ -171,24 +171,24 @@ struct UITestHelpersCoverageTests {
         let conditionTrue = await UIAsyncTestHelpers.waitForCondition(timeout: 0.2) {
             true
         }
-        #expect(conditionTrue == true)
+        #expect(conditionTrue)
 
         let conditionFalse = await UIAsyncTestHelpers.waitForCondition(timeout: 0.05) {
             false
         }
-        #expect(conditionFalse == false)
+        #expect(!conditionFalse)
 
         let textFound = await Task { @MainActor in
             let view = Text("Async Text")
             return await UIAsyncTestHelpers.waitForText(in: view, text: "Async Text", timeout: 0.2)
         }.value
-        #expect(textFound == true)
+        #expect(textFound)
 
         let viewTypeFound = await Task { @MainActor in
             let view = Text("Async Text")
             return await UIAsyncTestHelpers.waitForViewType(in: view, ViewType.Text.self, timeout: 0.05)
         }.value
-        #expect(viewTypeFound == false)
+        #expect(!viewTypeFound)
     }
 
     @Test("ViewInspector extensions support common interactions")
@@ -282,9 +282,9 @@ struct UITestHelpersCoverageTests {
             try linkInspector.tapNavigationLink(text: "Details")
         }
 
-        #expect(hasButton == true)
+        #expect(hasButton)
         #expect(inputValue == "Ada" || inputValue.isEmpty)
-        #expect(hasPicker == true)
+        #expect(hasPicker)
 
         let waitSuccess = await Task { @MainActor in
             do {
@@ -295,7 +295,7 @@ struct UITestHelpersCoverageTests {
                 return false
             }
         }.value
-        #expect(waitSuccess == true)
+        #expect(waitSuccess)
 
         let viewTypeFound = await Task { @MainActor in
             do {
@@ -306,6 +306,6 @@ struct UITestHelpersCoverageTests {
                 return false
             }
         }.value
-        #expect(viewTypeFound == false)
+        #expect(!viewTypeFound)
     }
 }

@@ -11,8 +11,8 @@ struct WkspManagerIntegrationDepsTests {
             (true, container.workspaceManager.currentWorkspace == nil)
         }
 
-        #expect(hasManager == true)
-        #expect(hasWorkspace == true)
+        #expect(hasManager)
+        #expect(hasWorkspace)
     }
 
     @Test("DependencyContainer shares WorkspaceManager instance")
@@ -23,6 +23,6 @@ struct WkspManagerIntegrationDepsTests {
             return container1.workspaceManager !== container2.workspaceManager
         }
 
-        #expect(areDifferent == true)
+        #expect(areDifferent)
     }
 }

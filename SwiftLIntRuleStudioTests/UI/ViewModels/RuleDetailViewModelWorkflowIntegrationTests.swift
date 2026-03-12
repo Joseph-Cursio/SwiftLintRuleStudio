@@ -119,7 +119,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
             let severity = config.rules["test_rule"]?.severity
             return (hasRule, isEnabled, severity)
         }
-        #expect(snapshot.0 == true)
+        #expect(snapshot.0)
         #expect(snapshot.1 == true)
         #expect(snapshot.2 == .error)
 
@@ -131,7 +131,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
         let (isEnabled, severity) = await MainActor.run {
             (viewModel2.isEnabled, viewModel2.severity)
         }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(severity == .error)
     }
 
@@ -180,7 +180,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
         let (isEnabled, pending) = await MainActor.run {
             (viewModel.isEnabled, viewModel.pendingChanges)
         }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(pending == nil)
     }
 
@@ -195,8 +195,8 @@ struct RuleDetailVMWorkflowIntegrationTests {
             let diff = viewModel.generateDiff()
             return (diff != nil, diff?.addedRules.contains(expectsRule) == true)
         }
-        #expect(hasDiff == true)
-        #expect(hasNewRule == true)
+        #expect(hasDiff)
+        #expect(hasNewRule)
     }
 
     private func saveConfig(_ viewModel: RuleDetailViewModel) async throws {
@@ -234,10 +234,10 @@ struct RuleDetailVMWorkflowIntegrationTests {
     }
 
     private func assertSnapshot(_ snapshot: RuleConfigSnapshot) {
-        #expect(snapshot.hasNewRule == true)
+        #expect(snapshot.hasNewRule)
         #expect(snapshot.newRuleEnabled == true)
         #expect(snapshot.newRuleSeverity == .error)
-        #expect(snapshot.hasExistingRule == true)
+        #expect(snapshot.hasExistingRule)
         #expect(snapshot.existingRuleEnabled == true)
         #expect(snapshot.existingRuleSeverity == .warning)
     }

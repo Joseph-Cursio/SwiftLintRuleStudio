@@ -124,7 +124,7 @@ struct YAMLConfigEngineSavingDiffTests {
             )
         }
 
-        #expect(diffSnapshot.hasChanges == true)
+        #expect(diffSnapshot.hasChanges)
         #expect(diffSnapshot.addedRules.contains("line_length"))
         #expect(diffSnapshot.removedRules.isEmpty)
         #expect(diffSnapshot.modifiedRules.isEmpty)
@@ -156,7 +156,7 @@ struct YAMLConfigEngineSavingDiffTests {
             )
         }
 
-        #expect(removedSnapshot.hasChanges == true)
+        #expect(removedSnapshot.hasChanges)
         #expect(removedSnapshot.removedRules.contains("line_length"))
         #expect(removedSnapshot.addedRules.isEmpty)
         #expect(removedSnapshot.modifiedRules.isEmpty)
@@ -188,7 +188,7 @@ struct YAMLConfigEngineSavingDiffTests {
             )
         }
 
-        #expect(modifiedSnapshot.hasChanges == true)
+        #expect(modifiedSnapshot.hasChanges)
         #expect(modifiedSnapshot.modifiedRules.contains("force_cast"))
         #expect(modifiedSnapshot.addedRules.isEmpty)
         #expect(modifiedSnapshot.removedRules.isEmpty)
@@ -216,7 +216,7 @@ struct YAMLConfigEngineSavingDiffTests {
             )
         }
 
-        #expect(diffSnapshot.0 == false)
+        #expect(!diffSnapshot.0)
         #expect(diffSnapshot.1.isEmpty)
         #expect(diffSnapshot.2.isEmpty)
         #expect(diffSnapshot.3.isEmpty)

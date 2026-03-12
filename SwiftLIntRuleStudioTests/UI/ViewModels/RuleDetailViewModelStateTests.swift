@@ -33,7 +33,7 @@ struct RuleDetailViewModelStateTests {
             (viewModel.pendingChanges != nil, viewModel.pendingChanges?.enabled)
         }
 
-        #expect(hasPendingChanges == true)
+        #expect(hasPendingChanges)
         #expect(enabled == false)
     }
 
@@ -67,7 +67,7 @@ struct RuleDetailViewModelStateTests {
             (viewModel.pendingChanges != nil, viewModel.pendingChanges?.severity)
         }
 
-        #expect(hasPendingChanges == true)
+        #expect(hasPendingChanges)
         #expect(severity == .error)
     }
 
@@ -102,7 +102,7 @@ struct RuleDetailViewModelStateTests {
             (viewModel.isEnabled, viewModel.severity, viewModel.pendingChanges)
         }
 
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(severity == .error)
         #expect(pendingChanges == nil)
     }
@@ -128,7 +128,7 @@ struct RuleDetailViewModelStateTests {
             (viewModel.showDiffPreview, viewModel.pendingChanges)
         }
 
-        #expect(showDiffPreview == true)
+        #expect(showDiffPreview)
         #expect(pendingChanges != nil)
     }
 
@@ -158,12 +158,12 @@ struct RuleDetailViewModelStateTests {
             viewModel.updateEnabled(false)
         }
         let hasPendingAfterChange = await MainActor.run { viewModel.pendingChanges != nil }
-        #expect(hasPendingAfterChange == true)
+        #expect(hasPendingAfterChange)
 
         await MainActor.run {
             viewModel.updateEnabled(true)
         }
         let hasPendingAfterRevert = await MainActor.run { viewModel.pendingChanges == nil }
-        #expect(hasPendingAfterRevert == true)
+        #expect(hasPendingAfterRevert)
     }
 }

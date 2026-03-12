@@ -110,7 +110,7 @@ struct ImpactSimulatorWorkflowTests {
             baseConfigPath: nil
         )
 
-        #expect(result.isSafe == true)
+        #expect(result.isSafe)
         #expect(result.violationCount == 0)
 
         // Now enable it
@@ -127,7 +127,7 @@ struct ImpactSimulatorWorkflowTests {
             let updatedConfig = yamlEngine.getConfig()
             return updatedConfig.rules["test_rule"]?.enabled == true
         }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
     }
 
     @Test("Workflow: batch simulation with progress tracking")

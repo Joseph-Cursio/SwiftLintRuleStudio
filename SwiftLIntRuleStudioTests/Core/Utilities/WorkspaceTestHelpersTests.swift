@@ -16,7 +16,7 @@ struct WorkspaceTestHelpersTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
 
         let packageSwift = workspace.appendingPathComponent("Package.swift")
-        #expect(FileManager.default.fileExists(atPath: packageSwift.path) == true)
+        #expect(FileManager.default.fileExists(atPath: packageSwift.path))
     }
 
     @Test("WorkspaceTestHelpers creates Xcode project workspace")
@@ -25,7 +25,7 @@ struct WorkspaceTestHelpersTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
 
         let projectDir = workspace.appendingPathComponent("TestProject.xcodeproj")
-        #expect(FileManager.default.fileExists(atPath: projectDir.path) == true)
+        #expect(FileManager.default.fileExists(atPath: projectDir.path))
     }
 
     @Test("WorkspaceTestHelpers creates workspace with nested files")
@@ -35,8 +35,8 @@ struct WorkspaceTestHelpersTests {
 
         let mainFile = workspace.appendingPathComponent("Sources/main.swift")
         let utilsFile = workspace.appendingPathComponent("Sources/Utils/Utils.swift")
-        #expect(FileManager.default.fileExists(atPath: mainFile.path) == true)
-        #expect(FileManager.default.fileExists(atPath: utilsFile.path) == true)
+        #expect(FileManager.default.fileExists(atPath: mainFile.path))
+        #expect(FileManager.default.fileExists(atPath: utilsFile.path))
     }
 
     @Test("WorkspaceTestHelpers creates workspace with config")
@@ -45,6 +45,6 @@ struct WorkspaceTestHelpersTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
 
         let configFile = workspace.appendingPathComponent(".swiftlint.yml")
-        #expect(FileManager.default.fileExists(atPath: configFile.path) == true)
+        #expect(FileManager.default.fileExists(atPath: configFile.path))
     }
 }

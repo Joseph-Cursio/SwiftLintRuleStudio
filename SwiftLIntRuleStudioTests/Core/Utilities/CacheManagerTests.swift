@@ -230,7 +230,7 @@ struct CacheManagerTests {
         #expect(cacheManager.getCachedDocsDirectory() == nil)
 
         // Directory should be removed
-        #expect(FileManager.default.fileExists(atPath: testDir.path) == false)
+        #expect(!FileManager.default.fileExists(atPath: testDir.path))
     }
 
     @Test("CacheManager clearDocsCache handles missing directory gracefully")

@@ -168,8 +168,8 @@ struct VIViewModelStatsSelectionTests {
             )
         }
         #expect(selectedCount == 2)
-        #expect(contains0 == true)
-        #expect(contains1 == true)
+        #expect(contains0)
+        #expect(contains1)
     }
 
     @Test("ViolationInspectorViewModel deselects all violations")
@@ -199,6 +199,6 @@ struct VIViewModelStatsSelectionTests {
         let isEmpty = await MainActor.run {
             viewModel.selectedViolationIds.isEmpty
         }
-        #expect(isEmpty == true)
+        #expect(isEmpty)
     }
 }

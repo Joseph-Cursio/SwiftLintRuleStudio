@@ -26,7 +26,7 @@ struct RuleRegistryTableParsingTests {
         let rule = try #require(rules.first, "Expected exactly one parsed rule")
         #expect(rule.id == "force_cast")
         #expect(rule.category == .lint)
-        #expect(rule.isOptIn == false)
+        #expect(!rule.isOptIn)
     }
 
     @Test("RuleRegistry parses table format with minimal fields")
@@ -45,7 +45,7 @@ struct RuleRegistryTableParsingTests {
         let rule = try #require(rules.first, "Expected exactly one parsed rule")
         #expect(rule.id == "simple_rule")
         #expect(rule.category == .style)
-        #expect(rule.isOptIn == false)
+        #expect(!rule.isOptIn)
     }
 
     @Test("RuleRegistry maps all category types correctly")
@@ -110,9 +110,9 @@ struct RuleRegistryTableParsingTests {
         let rules = try await registry.loadRules()
 
         try #require(rules.count == 3, "Expected 3 rules for opt-in parsing")
-        #expect(rules[0].isOptIn == true)
-        #expect(rules[1].isOptIn == false)
-        #expect(rules[2].isOptIn == false)
+        #expect(rules[0].isOptIn)
+        #expect(!rules[1].isOptIn)
+        #expect(!rules[2].isOptIn)
     }
 
     @Test("RuleRegistry parses multiple rules")

@@ -45,10 +45,10 @@ struct OnboardingManagerIntegrationTests {
             )
         }
 
-        #expect(hasManager == true)
+        #expect(hasManager)
         // On first run, onboarding should not be completed
         // With isolated UserDefaults, this test is now completely isolated from other tests
-        #expect(hasCompleted == false)
+        #expect(!hasCompleted)
         #expect(currentStep == .welcome)
     }
 
@@ -81,9 +81,9 @@ struct OnboardingManagerIntegrationTests {
             return (before, after, true)
         }
 
-        #expect(hasCompleted1 == false)
-        #expect(hasCompleted2 == true)
-        #expect(hasManager2 == true)
+        #expect(!hasCompleted1)
+        #expect(hasCompleted2)
+        #expect(hasManager2)
     }
 
     // MARK: - WorkspaceManager Integration
@@ -116,8 +116,8 @@ struct OnboardingManagerIntegrationTests {
         }
 
         #expect(stepAfterSkip == .workspaceSelection)
-        #expect(hasWorkspace == true)
-        #expect(hasCompleted == true)
+        #expect(hasWorkspace)
+        #expect(hasCompleted)
 
         // Cleanup
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
@@ -163,7 +163,7 @@ struct OnboardingManagerIntegrationTests {
         #expect(swiftLintStep == .swiftLintCheck)
         #expect(workspaceStep == .workspaceSelection)
         #expect(completeStep == .complete)
-        #expect(hasCompleted == true)
+        #expect(hasCompleted)
 
         // Cleanup
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")
@@ -201,11 +201,11 @@ struct OnboardingManagerIntegrationTests {
             return (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2)
         }
 
-        #expect(beforeCompleted == false)
+        #expect(!beforeCompleted)
         #expect(beforeStep == .welcome)
-        #expect(afterCompleted == true)
+        #expect(afterCompleted)
         #expect(afterStep == .complete)
-        #expect(hasManager2 == true)
+        #expect(hasManager2)
     }
 
     // MARK: - Reset and Re-onboarding
@@ -248,11 +248,11 @@ struct OnboardingManagerIntegrationTests {
             )
         }
 
-        #expect(result.afterComplete == true)
-        #expect(result.afterReset == false)
-        #expect(result.hasCompleted == false)
+        #expect(result.afterComplete)
+        #expect(!result.afterReset)
+        #expect(!result.hasCompleted)
         #expect(result.currentStep == .welcome)
-        #expect(result.hasCompleted2 == false)
+        #expect(!result.hasCompleted2)
 
         // Cleanup
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")

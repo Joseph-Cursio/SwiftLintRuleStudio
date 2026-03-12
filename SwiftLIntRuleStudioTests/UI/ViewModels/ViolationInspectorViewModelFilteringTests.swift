@@ -101,7 +101,7 @@ struct VIViewModelFilteringTests {
             return (count, allMatch)
         }
         #expect(filteredCount == filterCase.expectedCount)
-        #expect(allMatch == true)
+        #expect(allMatch)
     }
 
     @Test("ViolationInspectorViewModel filters suppressed violations")
@@ -125,7 +125,7 @@ struct VIViewModelFilteringTests {
         let filteredCount = await MainActor.run { viewModel.filteredViolations.count }
         #expect(filteredCount == 1)
         let first = try #require(await MainActor.run { viewModel.filteredViolations.first })
-        #expect(first.suppressed == true)
+        #expect(first.suppressed)
     }
 
     @Test("ViolationInspectorViewModel clears filters")
@@ -158,8 +158,8 @@ struct VIViewModelFilteringTests {
                 severitiesEmpty: viewModel.selectedSeverities.isEmpty
             )
         }
-        #expect(cleared.searchTextEmpty == true)
-        #expect(cleared.ruleIDsEmpty == true)
-        #expect(cleared.severitiesEmpty == true)
+        #expect(cleared.searchTextEmpty)
+        #expect(cleared.ruleIDsEmpty)
+        #expect(cleared.severitiesEmpty)
     }
 }

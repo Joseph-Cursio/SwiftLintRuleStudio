@@ -42,7 +42,7 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         let (isEnabled, severity) = await MainActor.run {
             (viewModel.isEnabled, viewModel.severity)
         }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(severity == .warning)
 
         await MainActor.run {
@@ -87,7 +87,7 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         }.value
 
         let isEnabled = await MainActor.run { viewModel.isEnabled }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
 
         await MainActor.run {
             viewModel.updateSeverity(.error)
@@ -108,7 +108,7 @@ struct RuleDetailViewModelYAMLIntegrationTests {
             return (ruleConfig != nil, ruleConfig?.enabled, ruleConfig?.severity)
         }
 
-        #expect(hasRuleConfig == true)
+        #expect(hasRuleConfig)
         #expect(enabled == true)
         #expect(severity == .error)
     }
@@ -161,11 +161,11 @@ struct RuleDetailViewModelYAMLIntegrationTests {
             return (config.rules["rule_2"]?.enabled, config.rules["rule_3"] != nil, config.rules["rule_3"]?.severity)
         }
 
-        #expect(hasRule1 == true)
+        #expect(hasRule1)
         #expect(rule1Severity == .error)
-        #expect(hasRule2 == true)
+        #expect(hasRule2)
         #expect(rule2Enabled == false)
-        #expect(hasRule3 == true)
+        #expect(hasRule3)
         #expect(rule3Severity == .error)
     }
 }

@@ -49,7 +49,7 @@ struct OnboardingManagerTests {
             return (manager.hasCompletedOnboarding, manager.currentStep)
         }
 
-        #expect(hasCompleted == false)
+        #expect(!hasCompleted)
         #expect(currentStep == .welcome)
     }
 
@@ -70,7 +70,7 @@ struct OnboardingManagerTests {
             return (manager.hasCompletedOnboarding, manager.currentStep)
         }
 
-        #expect(hasCompleted == false)
+        #expect(!hasCompleted)
         #expect(currentStep == .welcome)
     }
 
@@ -183,8 +183,8 @@ struct OnboardingManagerTests {
             return (before, manager.hasCompletedOnboarding, manager.currentStep)
         }
 
-        #expect(beforeCompleted == false)
-        #expect(afterCompleted == true)
+        #expect(!beforeCompleted)
+        #expect(afterCompleted)
         #expect(afterStep == .complete)
     }
 
@@ -204,7 +204,7 @@ struct OnboardingManagerTests {
             return (manager2.hasCompletedOnboarding, manager2.currentStep)
         }
 
-        #expect(hasCompleted == false) // New instance starts fresh
+        #expect(!hasCompleted) // New instance starts fresh
         #expect(currentStep == .welcome)
     }
 
@@ -230,9 +230,9 @@ struct OnboardingManagerTests {
             return (manager.hasCompletedOnboarding, manager.currentStep, keyExists)
         }
 
-        #expect(hasCompleted == false)
+        #expect(!hasCompleted)
         #expect(currentStep == .welcome)
-        #expect(keyExists == false)
+        #expect(!keyExists)
     }
 
     // MARK: - Step Enum

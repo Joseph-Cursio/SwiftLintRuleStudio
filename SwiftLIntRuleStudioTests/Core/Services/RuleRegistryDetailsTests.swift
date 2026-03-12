@@ -32,7 +32,7 @@ struct RuleRegistryDetailsTests {
         )
 
         #expect(rule.name == "Example Rule")
-        #expect(rule.description.contains("Example description") == true)
+        #expect(rule.description.contains("Example description"))
         #expect(rule.triggeringExamples.count == 1)
         #expect(rule.nonTriggeringExamples.count == 1)
         #expect(rule.triggeringExamples.first?.contains("↓") == false)
@@ -68,7 +68,7 @@ struct RuleRegistryDetailsTests {
         )
 
         #expect(rule.name == "Example Rule")
-        #expect(rule.description.contains("Example rule description.") == true)
+        #expect(rule.description.contains("Example rule description."))
         #expect(rule.triggeringExamples.count == 1)
         #expect(rule.nonTriggeringExamples.count == 1)
     }

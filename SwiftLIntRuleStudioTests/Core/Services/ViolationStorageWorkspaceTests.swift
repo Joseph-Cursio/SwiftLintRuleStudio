@@ -54,11 +54,11 @@ struct ViolationStorageWorkspaceTests {
 
         let secondFetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(secondFetched.count == 2)
-        #expect(secondFetched.allSatisfy { $0.ruleID == "rule4" || $0.ruleID == "rule5" } == true)
-        #expect(secondFetched.contains { $0.ruleID == "rule4" } == true)
-        #expect(secondFetched.contains { $0.ruleID == "rule5" } == true)
-        #expect(secondFetched.contains { $0.ruleID == "rule1" } == false)
-        #expect(secondFetched.contains { $0.ruleID == "rule2" } == false)
-        #expect(secondFetched.contains { $0.ruleID == "rule3" } == false)
+        #expect(secondFetched.allSatisfy { $0.ruleID == "rule4" || $0.ruleID == "rule5" })
+        #expect(secondFetched.contains { $0.ruleID == "rule4" })
+        #expect(secondFetched.contains { $0.ruleID == "rule5" })
+        #expect(!secondFetched.contains { $0.ruleID == "rule1" })
+        #expect(!secondFetched.contains { $0.ruleID == "rule2" })
+        #expect(!secondFetched.contains { $0.ruleID == "rule3" })
     }
 }

@@ -117,7 +117,7 @@ struct SwiftLintCLICachingTests {
         try cacheManager.clearDocsCache()
 
         // Directory should be removed
-        #expect(FileManager.default.fileExists(atPath: testDir.path) == false)
+        #expect(!FileManager.default.fileExists(atPath: testDir.path))
         #expect(cacheManager.getCachedDocsDirectory() == nil)
     }
 }

@@ -29,9 +29,9 @@ struct SwiftLintCLIEnvironmentTests {
             command: "swiftlint",
             arguments: ["rules", "my rule", "path/with space"]
         )
-        #expect(command.contains("swiftlint") == true)
-        #expect(command.contains("'my rule'") == true)
-        #expect(command.contains("'path/with space'") == true)
+        #expect(command.contains("swiftlint"))
+        #expect(command.contains("'my rule'"))
+        #expect(command.contains("'path/with space'"))
     }
 
     @Test("SwiftLintCLI buildLintArguments includes config when present")
@@ -53,8 +53,8 @@ struct SwiftLintCLIEnvironmentTests {
             fileExists: fileExists
         )
 
-        #expect(arguments.contains("--config") == true)
-        #expect(arguments.contains(configURL.path) == true)
+        #expect(arguments.contains("--config"))
+        #expect(arguments.contains(configURL.path))
     }
 
     @Test("SwiftLintCLI buildLintArguments skips config when missing")
@@ -72,7 +72,7 @@ struct SwiftLintCLIEnvironmentTests {
             fileExists: fileExists
         )
 
-        #expect(arguments.contains("--config") == false)
-        #expect(arguments.contains(configURL.path) == false)
+        #expect(!arguments.contains("--config"))
+        #expect(!arguments.contains(configURL.path))
     }
 }

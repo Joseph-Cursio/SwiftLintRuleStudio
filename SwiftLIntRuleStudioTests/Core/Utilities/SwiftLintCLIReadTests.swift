@@ -23,7 +23,7 @@ struct SwiftLintCLIReadTests {
         )
         #expect(String(data: timeoutResult.stdout, encoding: .utf8) == "ok")
         #expect(String(data: timeoutResult.stderr, encoding: .utf8) == "warn")
-        #expect(timeoutResult.didTimeout == false)
+        #expect(!timeoutResult.didTimeout)
     }
 
     @Test("SwiftLintCLI readWithTimeout handles timeout")
@@ -71,11 +71,11 @@ struct SwiftLintCLIReadTests {
             read: read,
             onTimeout: onTimeout
         )
-        #expect(timeoutResult.stdout.isEmpty == true)
-        #expect(timeoutResult.stderr.isEmpty == true)
-        #expect(timeoutResult.didTimeout == true)
+        #expect(timeoutResult.stdout.isEmpty)
+        #expect(timeoutResult.stderr.isEmpty)
+        #expect(timeoutResult.didTimeout)
         let didTimeout = await tracker.didTimeout
-        #expect(didTimeout == true)
+        #expect(didTimeout)
     }
 
     @Test("SwiftLintCLI readChunks accumulates data")

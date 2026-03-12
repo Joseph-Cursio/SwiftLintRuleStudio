@@ -51,7 +51,7 @@ struct YAMLConfigEngineLoadingTests {
         #expect(snapshot.excluded == ["Pods"])
         #expect(snapshot.reporter == "xcode")
         #expect(snapshot.rulesCount == 1)
-        #expect(snapshot.hasLineLength == true)
+        #expect(snapshot.hasLineLength)
     }
 
     @Test("YAMLConfigurationEngine handles non-existent file")
@@ -75,7 +75,7 @@ struct YAMLConfigEngineLoadingTests {
             )
         }
 
-        #expect(rulesEmpty == true)
+        #expect(rulesEmpty)
         #expect(included == nil)
         #expect(excluded == nil)
     }
@@ -107,7 +107,7 @@ struct YAMLConfigEngineLoadingTests {
         #expect(parseSnapshot.rulesCount == 2)
         let forceCastSeverity = try #require(parseSnapshot.forceCastSeverity)
         #expect(forceCastSeverity == .error)
-        #expect(parseSnapshot.hasLineLengthParams == true)
+        #expect(parseSnapshot.hasLineLengthParams)
     }
 
     @Test("YAMLConfigurationEngine parses boolean rule configuration")

@@ -62,7 +62,7 @@ struct RuleDetailVMNotificationIntegrationTests {
 
         let notificationReceived = await tracker.notificationReceived
         let receivedRuleId = await tracker.receivedRuleId
-        #expect(notificationReceived == true)
+        #expect(notificationReceived)
         #expect(receivedRuleId == "test_rule")
     }
 }

@@ -74,7 +74,7 @@ struct SwiftLintCLICommandAndPathTests {
     func testFallbackToShellRunner() async throws {
         let fileExists: SwiftLintFileExists = { _ in false }
         let shellRunner: SwiftLintShellRunner = { command, _, _ in
-            #expect(command.contains("swiftlint rules") == true)
+            #expect(command.contains("swiftlint rules"))
             return (Data("ok".utf8), Data())
         }
 
@@ -96,7 +96,7 @@ struct SwiftLintCLICommandAndPathTests {
         }
         let processRunner: SwiftLintProcessRunner = { url, arguments, environment in
             #expect(url.path == "/opt/homebrew/bin/swiftlint")
-            #expect(arguments.contains("rules") == true)
+            #expect(arguments.contains("rules"))
             #expect(environment["PATH"]?.contains("/opt/homebrew/bin") == true)
             return (Data("ok".utf8), Data("warning: ignore".utf8))
         }

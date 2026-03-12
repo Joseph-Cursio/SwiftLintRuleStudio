@@ -139,7 +139,7 @@ struct RuleDetailViewNewFeaturesTests {
 
         let links = extractSwiftEvolutionLinks(from: markdown)
         #expect(links.count >= 1)
-        #expect(links.contains { $0.absoluteString.contains("0123") || $0.absoluteString.contains("0456") } == true)
+        #expect(links.contains { $0.absoluteString.contains("0123") || $0.absoluteString.contains("0456") })
     }
 
     @Test("Extracts SE-XXXX format links")
@@ -163,7 +163,7 @@ struct RuleDetailViewNewFeaturesTests {
         """
 
         let links = extractSwiftEvolutionLinks(from: markdown)
-        #expect(links.isEmpty == true)
+        #expect(links.isEmpty)
     }
 
     // MARK: - Related Rules Tests
@@ -197,7 +197,7 @@ struct RuleDetailViewNewFeaturesTests {
 
         let related = await getRelatedRules(for: rule1, in: container)
         let relatedIds = await MainActor.run { Set(related.map(\.id)) }
-        #expect(relatedIds.contains("rule1") == false)
+        #expect(!relatedIds.contains("rule1"))
     }
 
     @Test("Returns empty array when no related rules")

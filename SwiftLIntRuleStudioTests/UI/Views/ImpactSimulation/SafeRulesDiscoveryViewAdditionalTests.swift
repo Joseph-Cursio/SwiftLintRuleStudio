@@ -74,9 +74,9 @@ struct SafeRulesDiscoveryViewAdditionalTests {
             return (rule1Enabled, rule2Enabled, disabledEmpty)
         }
 
-        #expect(rule1Enabled == true)
-        #expect(rule2Enabled == true)
-        #expect(disabledEmpty == true)
+        #expect(rule1Enabled)
+        #expect(rule2Enabled)
+        #expect(disabledEmpty)
     }
 
     @Test("BatchSimulationResult correctly categorizes rules")
@@ -125,8 +125,8 @@ struct SafeRulesDiscoveryViewAdditionalTests {
         }
         #expect(safeRulesCount == 2)
         #expect(violationsCount == 1)
-        #expect(allSafe == true)
-        #expect(allHaveViolations == true)
+        #expect(allSafe)
+        #expect(allHaveViolations)
     }
 
     @Test("BatchSimulationResult handles empty results")
@@ -142,7 +142,7 @@ struct SafeRulesDiscoveryViewAdditionalTests {
         let (safeRulesEmpty, violationsEmpty) = await MainActor.run {
             (batchResult.safeRules.isEmpty, batchResult.rulesWithViolations.isEmpty)
         }
-        #expect(safeRulesEmpty == true)
-        #expect(violationsEmpty == true)
+        #expect(safeRulesEmpty)
+        #expect(violationsEmpty)
     }
 }

@@ -18,8 +18,8 @@ struct VIViewModelLoadingTests {
         let (filteredEmpty, violationCount) = await MainActor.run {
             (viewModel.filteredViolations.isEmpty, viewModel.violationCount)
         }
-        #expect(isEmpty == true)
-        #expect(filteredEmpty == true)
+        #expect(isEmpty)
+        #expect(filteredEmpty)
         #expect(violationCount == 0)
     }
 

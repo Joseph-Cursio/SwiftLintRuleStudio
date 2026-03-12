@@ -28,9 +28,9 @@ struct YAMLConfigEnginePathEdgeCaseTests {
             )
         }
         #expect(includedCount == 3)
-        #expect(hasSources == true)
-        #expect(hasTests == true)
-        #expect(hasScripts == true)
+        #expect(hasSources)
+        #expect(hasTests)
+        #expect(hasScripts)
     }
 
     @Test("YAMLConfigurationEngine handles multiple excluded paths")
@@ -58,9 +58,9 @@ struct YAMLConfigEnginePathEdgeCaseTests {
             )
         }
         #expect(excludedCount == 3)
-        #expect(hasPods == true)
-        #expect(hasBuild == true)
-        #expect(hasGenerated == true)
+        #expect(hasPods)
+        #expect(hasBuild)
+        #expect(hasGenerated)
     }
 
     @Test("YAMLConfigurationEngine handles reporter configuration")
@@ -183,7 +183,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
                 config.excluded
             )
         }
-        #expect(rulesEmpty == true)
+        #expect(rulesEmpty)
         #expect(included == ["Sources"])
         #expect(excluded == ["Pods"])
     }

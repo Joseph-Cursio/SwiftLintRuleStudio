@@ -43,8 +43,8 @@ struct WkspManagerIntegrationStorageTests {
         let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspace.id)
 
         #expect(fetched.count == 2)
-        #expect(fetched.contains { $0.ruleID == "test_rule_1" } == true)
-        #expect(fetched.contains { $0.ruleID == "test_rule_2" } == true)
+        #expect(fetched.contains { $0.ruleID == "test_rule_1" })
+        #expect(fetched.contains { $0.ruleID == "test_rule_2" })
     }
 
     @Test("ViolationStorage isolates violations by workspace")

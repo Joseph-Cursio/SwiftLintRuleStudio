@@ -35,7 +35,7 @@ struct RuleDetailViewModelLoadingTests {
             (viewModel.isEnabled, viewModel.severity)
         }
 
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(severity == .error)
     }
 
@@ -56,7 +56,7 @@ struct RuleDetailViewModelLoadingTests {
         }
 
         let isEnabled = await MainActor.run { viewModel.isEnabled }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
     }
 
     @Test("RuleDetailViewModel loads disabled state for opt-in rule not in config")
@@ -76,7 +76,7 @@ struct RuleDetailViewModelLoadingTests {
         }
 
         let isEnabled = await MainActor.run { viewModel.isEnabled }
-        #expect(isEnabled == false)
+        #expect(!isEnabled)
     }
 
     @Test("RuleDetailViewModel honors only_rules when loading config")
@@ -103,7 +103,7 @@ struct RuleDetailViewModelLoadingTests {
             (viewModel.isEnabled, viewModel.severity, rule.defaultSeverity)
         }
 
-        #expect(isEnabled == true)
+        #expect(isEnabled)
         #expect(severity == defaultSeverity)
     }
 
@@ -131,7 +131,7 @@ struct RuleDetailViewModelLoadingTests {
             (viewModel.isEnabled, viewModel.severity, rule.defaultSeverity)
         }
 
-        #expect(isEnabled == false)
+        #expect(!isEnabled)
         #expect(severity == defaultSeverity)
     }
 
@@ -152,6 +152,6 @@ struct RuleDetailViewModelLoadingTests {
         }
 
         let isEnabled = await MainActor.run { viewModel.isEnabled }
-        #expect(isEnabled == true)
+        #expect(isEnabled)
     }
 }

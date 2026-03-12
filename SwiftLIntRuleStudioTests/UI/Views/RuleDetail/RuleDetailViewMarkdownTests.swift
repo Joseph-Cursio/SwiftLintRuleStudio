@@ -32,8 +32,8 @@ struct RuleDetailViewMarkdownTests {
         let html = await MainActor.run {
             RuleDetailView.convertMarkdownToHTMLForTesting(markdown)
         }
-        #expect(html.contains("<strong>bold</strong>") == true)
-        #expect(html.contains("<code>code</code>") == true)
+        #expect(html.contains("<strong>bold</strong>"))
+        #expect(html.contains("<code>code</code>"))
     }
 
     @Test("RuleDetailView wraps HTML with dark mode styles")
@@ -42,8 +42,8 @@ struct RuleDetailViewMarkdownTests {
         let wrapped = await MainActor.run {
             RuleDetailView.wrapHTMLInDocumentForTesting(body: html, colorScheme: .dark)
         }
-        #expect(wrapped.contains("#FFFFFF") == true)
-        #expect(wrapped.contains(html) == true)
+        #expect(wrapped.contains("#FFFFFF"))
+        #expect(wrapped.contains(html))
     }
 
     @Test("RuleDetailView hides short description when markdown contains it")
@@ -56,7 +56,7 @@ struct RuleDetailViewMarkdownTests {
         let processed = await MainActor.run {
             RuleDetailView.processContentForDisplayForTesting(markdown)
         }
-        #expect(processed.contains("# Test Rule") == false)
+        #expect(!processed.contains("# Test Rule"))
     }
 
     @Test("RuleDetailView markdown helpers process content")
@@ -69,7 +69,7 @@ struct RuleDetailViewMarkdownTests {
         let result = await MainActor.run {
             RuleDetailView.processContentForDisplayForTesting(markdown)
         }
-        #expect(result.contains("Title") == false)
-        #expect(result.contains("Regular text") == true)
+        #expect(!result.contains("Title"))
+        #expect(result.contains("Regular text"))
     }
 }

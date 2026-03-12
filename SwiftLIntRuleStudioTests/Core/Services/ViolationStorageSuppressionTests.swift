@@ -23,7 +23,7 @@ struct ViolationStorageSuppressionTests {
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(fetched.count == 1)
         let violation = try #require(fetched.first)
-        #expect(violation.suppressed == true)
+        #expect(violation.suppressed)
         #expect(violation.suppressionReason == "Not applicable")
     }
 

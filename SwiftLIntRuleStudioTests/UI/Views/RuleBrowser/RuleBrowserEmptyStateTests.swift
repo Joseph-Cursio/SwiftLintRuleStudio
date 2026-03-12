@@ -77,7 +77,7 @@ struct RuleBrowserEmptyStateTests {
         )
         let inspector = try view.inspect()
         try inspector.find(button: "Clear Filters").tap()
-        #expect(called == true)
+        #expect(called)
     }
 
     // MARK: - Loading branch

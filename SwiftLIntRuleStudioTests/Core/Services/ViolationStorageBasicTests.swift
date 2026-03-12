@@ -73,8 +73,8 @@ struct ViolationStorageBasicTests {
 
             let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
             #expect(fetched.count == 2)
-            #expect(fetched.contains { $0.ruleID == "rule1" } == true)
-            #expect(fetched.contains { $0.ruleID == "rule2" } == true)
+            #expect(fetched.contains { $0.ruleID == "rule1" })
+            #expect(fetched.contains { $0.ruleID == "rule2" })
         }
     }
 
@@ -137,14 +137,14 @@ struct ViolationStorageBasicTests {
             let suppressed = try await storage.fetchViolations(filter: filter1, workspaceId: workspaceId)
             #expect(suppressed.count == 1)
             let suppressedViolation = try #require(suppressed.first)
-            #expect(suppressedViolation.suppressed == true)
+            #expect(suppressedViolation.suppressed)
             #expect(suppressedViolation.suppressionReason == "Test reason")
 
             let filter2 = ViolationFilter(suppressedOnly: false)
             let notSuppressed = try await storage.fetchViolations(filter: filter2, workspaceId: workspaceId)
             #expect(notSuppressed.count == 1)
             let notSuppressedViolation = try #require(notSuppressed.first)
-            #expect(notSuppressedViolation.suppressed == false)
+            #expect(!notSuppressedViolation.suppressed)
         }
 
         @Test("ViolationStorage handles date range filtering")

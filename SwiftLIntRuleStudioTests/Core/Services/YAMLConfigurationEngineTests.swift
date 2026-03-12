@@ -154,7 +154,7 @@ struct YAMLConfigurationEngineTests {
             let config = engine.getConfig()
             return config.rules["force_cast"] != nil
         }
-        #expect(hasForceCast == true)
+        #expect(hasForceCast)
     }
 
     // MARK: - Round-Trip Tests
@@ -224,8 +224,8 @@ struct YAMLConfigurationEngineTests {
                 lineLengthRule?.parameters?.count ?? 0
             )
         }
-        #expect(hasLineLength == true)
-        #expect(hasParams == true)
+        #expect(hasLineLength)
+        #expect(hasParams)
         #expect(paramsCount >= 3)
     }
 

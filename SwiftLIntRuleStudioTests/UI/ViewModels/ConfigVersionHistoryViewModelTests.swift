@@ -182,7 +182,7 @@ struct ConfigVersionHistoryViewModelTests {
 
         viewModel.confirmRestore(backup)
 
-        #expect(viewModel.showRestoreConfirmation == true)
+        #expect(viewModel.showRestoreConfirmation)
         #expect(viewModel.backupToRestore?.id == backup.id)
     }
 

@@ -18,7 +18,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(isMissing == false)
+        #expect(!isMissing)
     }
 
     @Test("WorkspaceManager detects missing config file")
@@ -32,7 +32,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(isMissing == true)
+        #expect(isMissing)
     }
 
     @Test("WorkspaceManager detects existing config file")
@@ -46,7 +46,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(isMissing == false)
+        #expect(!isMissing)
     }
 
     @Test("WorkspaceManager creates default config file")
@@ -62,7 +62,7 @@ struct WorkspaceManagerConfigTests {
         }
 
         #expect(configPath != nil)
-        #expect(exists == true)
+        #expect(exists)
     }
 
     @Test("WorkspaceManager does not overwrite existing config file")
@@ -98,7 +98,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(isMissing == false)
+        #expect(!isMissing)
     }
 
     @Test("WorkspaceManager checks config file on workspace change")
@@ -112,6 +112,6 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(isMissing == true)
+        #expect(isMissing)
     }
 }

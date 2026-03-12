@@ -134,7 +134,7 @@ struct WkspManagerIntegrationVITests {
         let (isEmpty, countAfterClear) = await MainActor.run {
             (viewModel.violations.isEmpty, viewModel.violationCount)
         }
-        #expect(isEmpty == true)
+        #expect(isEmpty)
         #expect(countAfterClear == 0)
 
         let violations2 = [

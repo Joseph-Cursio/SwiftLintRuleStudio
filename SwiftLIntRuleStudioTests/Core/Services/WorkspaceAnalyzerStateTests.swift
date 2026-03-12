@@ -37,7 +37,7 @@ struct WorkspaceAnalyzerStateTests {
             return didEnter
         }
 
-        #expect(didEnterAnalyzing == true)
+        #expect(didEnterAnalyzing)
     }
 
     @Test("WorkspaceAnalyzer can cancel analysis")
@@ -71,7 +71,7 @@ struct WorkspaceAnalyzerStateTests {
                 timeoutSeconds: 1.0
             )
         }
-        #expect(didCancel == true)
+        #expect(didCancel)
     }
 
     @Test("WorkspaceAnalyzer handles invalid JSON gracefully")

@@ -102,9 +102,9 @@ struct SafeRulesDiscoveryViewTests {
             return (hasHeader, hasEmptyTitle, hasEmptySubtitle)
         }
 
-        #expect(hasHeader == true)
-        #expect(hasEmptyTitle == true)
-        #expect(hasEmptySubtitle == true)
+        #expect(hasHeader)
+        #expect(hasEmptyTitle)
+        #expect(hasEmptySubtitle)
     }
 
     @Test("SafeRulesDiscoveryView discovers safe rules and enables them")
@@ -194,7 +194,7 @@ struct SafeRulesDiscoveryViewTests {
         let container = result.container
         let hasWorkspace = await MainActor.run { container.workspaceManager.currentWorkspace != nil }
         let ruleCount = await MainActor.run { container.ruleRegistry.rules.count }
-        #expect(hasWorkspace == true)
+        #expect(hasWorkspace)
         #expect(ruleCount == 2)
         await MainActor.run {
             ViewHosting.expel()
@@ -221,7 +221,7 @@ struct SafeRulesDiscoveryViewTests {
                 try discoverButton.tap()
                 return true
             }
-            #expect(didTapDiscover == true)
+            #expect(didTapDiscover)
 
             let didComplete = await UIAsyncTestHelpers.waitForConditionAsync(timeout: 4.0) {
                 let (findCalls, simulateCalls) = await MainActor.run {
@@ -234,7 +234,7 @@ struct SafeRulesDiscoveryViewTests {
                 let mock = container.impactSimulator as? MockImpactSimulator
                 return (mock?.findSafeRulesCalls ?? 0, mock?.simulateRuleCalls ?? 0)
             }
-            #expect(didComplete == true)
+            #expect(didComplete)
             #expect(findCalls == 1)
             #expect(simulateCalls == 2)
         }
@@ -300,11 +300,11 @@ struct SafeRulesDiscoveryViewTests {
             timeout: 3.0
         )
 
-        #expect(hasSummary == true)
-        #expect(hasSelectAll == true)
-        #expect(hasDeselectAll == true)
-        #expect(hasRule1 == true)
-        #expect(hasRule2 == true)
+        #expect(hasSummary)
+        #expect(hasSelectAll)
+        #expect(hasDeselectAll)
+        #expect(hasRule1)
+        #expect(hasRule2)
     }
 
 }

@@ -185,7 +185,7 @@ struct RuleBrowserViewTests {
             return (try? result.view.inspect().find(text: "Try adjusting your filters.")) != nil
         }
 
-        #expect(hasGuidance == true)
+        #expect(hasGuidance)
     }
 
     // MARK: - Filter Tests
@@ -263,7 +263,7 @@ struct RuleBrowserViewTests {
 
         let processed = RuleBrowserView.processContentForDisplayForTesting(tableInput)
         #expect(processed.contains("Body text"))
-        #expect(processed.contains("<table>") == false)
+        #expect(!processed.contains("<table>"))
 
         let html = RuleBrowserView.convertMarkdownToHTMLForTesting(markdown)
         #expect(html.contains("<h1>Title</h1>"))

@@ -58,7 +58,7 @@ struct ImpactSimulatorIntegrationTests {
             return true
         }
 
-        #expect(hasSimulator == true)
+        #expect(hasSimulator)
     }
 
     // MARK: - WorkspaceManager Integration

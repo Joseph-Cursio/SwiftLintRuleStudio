@@ -36,7 +36,7 @@ struct RuleDetailViewModelDiffTests {
         }
 
         #expect(diff != nil)
-        #expect(hasNewRule == true)
+        #expect(hasNewRule)
     }
 
     @Test("RuleDetailViewModel generates diff for modified rule")
@@ -71,7 +71,7 @@ struct RuleDetailViewModelDiffTests {
         }
 
         #expect(diff != nil)
-        #expect(hasModifiedRule == true)
+        #expect(hasModifiedRule)
     }
 
     @Test("RuleDetailViewModel generates diff for disabled rule")
@@ -106,6 +106,6 @@ struct RuleDetailViewModelDiffTests {
         }
 
         #expect(diff != nil)
-        #expect(hasModifiedRule == true)
+        #expect(hasModifiedRule)
     }
 }

@@ -22,8 +22,8 @@ struct VIViewModelEdgeCaseTests {
                 viewModel.warningCount
             )
         }
-        #expect(violationsEmpty == true)
-        #expect(filteredEmpty == true)
+        #expect(violationsEmpty)
+        #expect(filteredEmpty)
         #expect(violationCount == 0)
         #expect(errorCount == 0)
         #expect(warningCount == 0)
