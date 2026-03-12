@@ -76,7 +76,7 @@ struct MigrationAssistantTests {
         let plan = MigrationPlan(
             fromVersion: "0.20.0",
             toVersion: "0.30.0",
-            steps: [.renameRule(from: "variable_name", to: "identifier_name")]
+            steps: [.renameRule(from: "variable_name", newName: "identifier_name")]
         )
 
         assistant.applyMigration(plan, to: &config)
@@ -90,7 +90,7 @@ struct MigrationAssistantTests {
         let plan = MigrationPlan(
             fromVersion: "0.20.0",
             toVersion: "0.30.0",
-            steps: [.renameRule(from: "variable_name", to: "identifier_name")]
+            steps: [.renameRule(from: "variable_name", newName: "identifier_name")]
         )
 
         assistant.applyMigration(plan, to: &config)
@@ -132,7 +132,7 @@ struct MigrationAssistantTests {
             fromVersion: "0.20.0",
             toVersion: "0.30.0",
             steps: [
-                .renameRule(from: "a", to: "b"),
+                .renameRule(from: "a", newName: "b"),
                 .removeDeprecatedRule(ruleId: "c", reason: "removed")
             ]
         )
@@ -145,7 +145,7 @@ struct MigrationAssistantTests {
             fromVersion: "0.20.0",
             toVersion: "0.30.0",
             steps: [
-                .renameRule(from: "a", to: "b"),
+                .renameRule(from: "a", newName: "b"),
                 .manualAction(description: "Do something")
             ]
         )

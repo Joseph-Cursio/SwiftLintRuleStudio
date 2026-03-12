@@ -17,77 +17,77 @@ import AppKit
 /// standard SwiftUI or NSParagraphStyle APIs.
 struct AttributedTextView: NSViewRepresentable {
     let attributedString: NSAttributedString
-    
+
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         let textView = NSTextView()
-        
+
         // Configure text view for display-only attributed text
         textView.isEditable = false
         textView.isSelectable = true
         textView.drawsBackground = false
         textView.backgroundColor = .clear
-        
+
         // Remove all text container margins and padding
         textView.textContainerInset = .zero
         if let textContainer = textView.textContainer {
             textContainer.lineFragmentPadding = 0
             textContainer.widthTracksTextView = true
         }
-        
+
         // Configure scroll view
         scrollView.documentView = textView
         scrollView.hasVerticalScroller = false
         scrollView.hasHorizontalScroller = false
         scrollView.drawsBackground = false
         scrollView.backgroundColor = .clear
-        
+
         return scrollView
     }
-    
+
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
-        
+
         // Post-process attributed string to remove leading whitespace/newlines
         let cleanedString = stripLeadingWhitespace(from: attributedString)
-        
+
         // Update attributed string content
         textView.textStorage?.setAttributedString(cleanedString)
-        
+
         // Invalidate intrinsic content size to trigger layout update
         textView.invalidateIntrinsicContentSize()
     }
-    
+
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSScrollView, context: Context) -> CGSize? {
         guard let textView = nsView.documentView as? NSTextView else {
             return nil
         }
-        
+
         // Use proposed width if available, otherwise use a reasonable default
         let width = proposal.width ?? 400
-        
+
         // Calculate the height needed to display all text at this width
         guard let layoutManager = textView.layoutManager,
               let textContainer = textView.textContainer else {
             return nil
         }
-        
+
         // Set container width to match proposal
         textContainer.containerSize = NSSize(width: width, height: .greatestFiniteMagnitude)
-        
+
         // Force layout
         layoutManager.ensureLayout(for: textContainer)
-        
+
         // Get used rect
         let usedRect = layoutManager.usedRect(for: textContainer)
-        
+
         return CGSize(width: width, height: ceil(usedRect.height))
     }
-    
+
     /// Strips leading whitespace and newline characters from an attributed string
     private func stripLeadingWhitespace(from attributedString: NSAttributedString) -> NSAttributedString {
         let string = attributedString.string
-        
+
         // Find the offset of the first non-whitespace character
         var offset = 0
         for char in string {
@@ -96,13 +96,13 @@ struct AttributedTextView: NSViewRepresentable {
             }
             offset += 1
         }
-        
+
         // If there's leading whitespace, create a substring without it
         if offset > 0 && offset < attributedString.length {
             let range = NSRange(location: offset, length: attributedString.length - offset)
             return attributedString.attributedSubstring(from: range)
         }
-        
+
         return attributedString
     }
 }

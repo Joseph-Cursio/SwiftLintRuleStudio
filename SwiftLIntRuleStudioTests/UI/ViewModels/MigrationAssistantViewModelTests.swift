@@ -32,20 +32,20 @@ struct MigrationAssistantViewModelTests {
     @Test("Initial state has empty previousVersion, nil plan, not detecting/migrating")
     func testInitialState() {
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: nil
         )
 
-        #expect(vm.previousVersion.isEmpty)
-        #expect(vm.currentVersion == nil)
-        #expect(vm.migrationPlan == nil)
-        #expect(vm.previewDiff == nil)
-        #expect(!vm.isDetecting)
-        #expect(!vm.isMigrating)
-        #expect(vm.error == nil)
-        #expect(!vm.migrationComplete)
+        #expect(viewModel.previousVersion.isEmpty)
+        #expect(viewModel.currentVersion == nil)
+        #expect(viewModel.migrationPlan == nil)
+        #expect(viewModel.previewDiff == nil)
+        #expect(!viewModel.isDetecting)
+        #expect(!viewModel.isMigrating)
+        #expect(viewModel.error == nil)
+        #expect(!viewModel.migrationComplete)
     }
 
     // MARK: - detectMigrations() guard paths
@@ -53,32 +53,32 @@ struct MigrationAssistantViewModelTests {
     @Test("detectMigrations with empty previousVersion sets MigrationError synchronously without spawning Task")
     func testDetectMigrationsEmptyPreviousVersionSetsError() {
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: URL(fileURLWithPath: "/tmp/.swiftlint.yml")
         )
-        vm.previousVersion = ""
+        viewModel.previousVersion = ""
 
-        vm.detectMigrations()
+        viewModel.detectMigrations()
 
-        #expect(vm.error is MigrationError)
+        #expect(viewModel.error is MigrationError)
         #expect(spy.detectCallCount == 0)
     }
 
     @Test("detectMigrations with nil configPath sets YAMLConfigError synchronously without spawning Task")
     func testDetectMigrationsNilConfigPathSetsError() {
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: nil
         )
-        vm.previousVersion = "5.0"
+        viewModel.previousVersion = "5.0"
 
-        vm.detectMigrations()
+        viewModel.detectMigrations()
 
-        #expect(vm.error is YAMLConfigError)
+        #expect(viewModel.error is YAMLConfigError)
         #expect(spy.detectCallCount == 0)
     }
 
@@ -88,18 +88,18 @@ struct MigrationAssistantViewModelTests {
     func testDetectMigrationsCLIErrorSetsError() async throws {
         let spy = SpyMigrationAssistant()
         let cli = SpyMigrationCLI(shouldThrow: true)
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: cli,
             configPath: URL(fileURLWithPath: "/tmp/.swiftlint.yml")
         )
-        vm.previousVersion = "5.0"
+        viewModel.previousVersion = "5.0"
 
-        vm.detectMigrations()
+        viewModel.detectMigrations()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.error != nil)
-        #expect(!vm.isDetecting)
+        #expect(viewModel.error != nil)
+        #expect(!viewModel.isDetecting)
         #expect(spy.detectCallCount == 0)
     }
 
@@ -111,23 +111,23 @@ struct MigrationAssistantViewModelTests {
         let plan = MigrationPlan(
             fromVersion: "5.0",
             toVersion: "6.0",
-            steps: [.renameRule(from: "old_rule", to: "new_rule")]
+            steps: [.renameRule(from: "old_rule", newName: "new_rule")]
         )
         let spy = SpyMigrationAssistant(planToReturn: plan)
         let cli = SpyMigrationCLI(versionToReturn: "6.0")
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: cli,
             configPath: configPath
         )
-        vm.previousVersion = "5.0"
+        viewModel.previousVersion = "5.0"
 
-        vm.detectMigrations()
+        viewModel.detectMigrations()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(spy.detectCallCount == 1)
-        #expect(vm.migrationPlan?.steps.count == 1)
-        #expect(vm.error == nil)
+        #expect(viewModel.migrationPlan?.steps.count == 1)
+        #expect(viewModel.error == nil)
     }
 
     @Test("detectMigrations sets currentVersion from CLI response")
@@ -137,17 +137,17 @@ struct MigrationAssistantViewModelTests {
 
         let spy = SpyMigrationAssistant()
         let cli = SpyMigrationCLI(versionToReturn: "0.57.0")
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: cli,
             configPath: configPath
         )
-        vm.previousVersion = "5.0"
+        viewModel.previousVersion = "5.0"
 
-        vm.detectMigrations()
+        viewModel.detectMigrations()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.currentVersion == "0.57.0")
+        #expect(viewModel.currentVersion == "0.57.0")
     }
 
     @Test("detectMigrations clears isDetecting after task completes")
@@ -155,33 +155,33 @@ struct MigrationAssistantViewModelTests {
         let (configPath, tempDir) = try makeTempConfigURL()
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: SpyMigrationAssistant(),
             swiftLintCLI: SpyMigrationCLI(),
             configPath: configPath
         )
-        vm.previousVersion = "5.0"
+        viewModel.previousVersion = "5.0"
 
-        vm.detectMigrations()
+        viewModel.detectMigrations()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!vm.isDetecting)
+        #expect(!viewModel.isDetecting)
     }
 
     // MARK: - previewChanges()
 
     @Test("previewChanges with nil migrationPlan does nothing")
     func testPreviewChangesNilPlanDoesNothing() {
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: SpyMigrationAssistant(),
             swiftLintCLI: SpyMigrationCLI(),
             configPath: URL(fileURLWithPath: "/tmp/.swiftlint.yml")
         )
 
-        vm.previewChanges()
+        viewModel.previewChanges()
 
-        #expect(vm.previewDiff == nil)
-        #expect(vm.error == nil)
+        #expect(viewModel.previewDiff == nil)
+        #expect(viewModel.error == nil)
     }
 
     @Test("previewChanges calls assistant.applyMigration and sets previewDiff")
@@ -190,18 +190,18 @@ struct MigrationAssistantViewModelTests {
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: configPath
         )
-        vm.migrationPlan = makeEmptyPlan()
+        viewModel.migrationPlan = makeEmptyPlan()
 
-        vm.previewChanges()
+        viewModel.previewChanges()
 
         #expect(spy.applyCallCount == 1)
-        #expect(vm.previewDiff != nil)
-        #expect(vm.error == nil)
+        #expect(viewModel.previewDiff != nil)
+        #expect(viewModel.error == nil)
     }
 
     // MARK: - applyMigration()
@@ -209,16 +209,16 @@ struct MigrationAssistantViewModelTests {
     @Test("applyMigration with nil migrationPlan does nothing")
     func testApplyMigrationNilPlanDoesNothing() {
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: URL(fileURLWithPath: "/tmp/.swiftlint.yml")
         )
 
-        vm.applyMigration()
+        viewModel.applyMigration()
 
         #expect(spy.applyCallCount == 0)
-        #expect(!vm.migrationComplete)
+        #expect(!viewModel.migrationComplete)
     }
 
     @Test("applyMigration calls assistant.applyMigration, saves file, and sets migrationComplete")
@@ -227,36 +227,36 @@ struct MigrationAssistantViewModelTests {
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: configPath
         )
-        vm.migrationPlan = makeEmptyPlan()
+        viewModel.migrationPlan = makeEmptyPlan()
 
-        vm.applyMigration()
+        viewModel.applyMigration()
 
         #expect(spy.applyCallCount == 1)
-        #expect(vm.migrationComplete)
-        #expect(!vm.isMigrating)
-        #expect(vm.error == nil)
+        #expect(viewModel.migrationComplete)
+        #expect(!viewModel.isMigrating)
+        #expect(viewModel.error == nil)
     }
 
     @Test("applyMigration stores error and clears isMigrating when file does not exist")
     func testApplyMigrationErrorOnMissingFile() {
         let spy = SpyMigrationAssistant()
-        let vm = MigrationAssistantViewModel(
+        let viewModel = MigrationAssistantViewModel(
             assistant: spy,
             swiftLintCLI: SpyMigrationCLI(),
             configPath: URL(fileURLWithPath: "/nonexistent/path/.swiftlint.yml")
         )
-        vm.migrationPlan = makeEmptyPlan()
+        viewModel.migrationPlan = makeEmptyPlan()
 
-        vm.applyMigration()
+        viewModel.applyMigration()
 
-        #expect(vm.error != nil)
-        #expect(!vm.migrationComplete)
-        #expect(!vm.isMigrating)
+        #expect(viewModel.error != nil)
+        #expect(!viewModel.migrationComplete)
+        #expect(!viewModel.isMigrating)
     }
 }
 

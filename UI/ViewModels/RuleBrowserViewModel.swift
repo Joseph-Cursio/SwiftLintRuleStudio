@@ -51,11 +51,11 @@ class RuleBrowserViewModel {
             }
         }
     }
-    
+
     private func updateFilteredRules() {
         let allRules = ruleRegistry.rules
         var rules = allRules
-        
+
         // Apply search filter
         if !searchText.isEmpty {
             let searchLower = searchText.lowercased().trimmingCharacters(in: .whitespaces)
@@ -68,12 +68,12 @@ class RuleBrowserViewModel {
                 (rule.description.lowercased() != "loading..." && rule.description.lowercased().contains(searchLower))
             }
         }
-        
+
         // Apply category filter
         if let category = selectedCategory {
             rules = rules.filter { $0.category == category }
         }
-        
+
         // Apply status filter
         switch selectedStatus {
         case .all:
@@ -88,7 +88,7 @@ class RuleBrowserViewModel {
             // Show only opt-in rules (rules that must be explicitly enabled)
             rules = rules.filter { $0.isOptIn }
         }
-        
+
         // Apply sorting
         switch selectedSortOption {
         case .name:
@@ -104,14 +104,14 @@ class RuleBrowserViewModel {
                 return first.name.localizedCaseInsensitiveCompare(second.name) == .orderedAscending
             }
         }
-        
+
         filteredRules = rules
     }
-    
+
     var categoryCounts: [RuleCategory: Int] {
         // Count rules in each category, respecting current filters (except category filter)
         var rules = ruleRegistry.rules
-        
+
         // Apply search filter if active
         if !searchText.isEmpty {
             let searchLower = searchText.lowercased().trimmingCharacters(in: .whitespaces)
@@ -121,7 +121,7 @@ class RuleBrowserViewModel {
                 (rule.description.lowercased() != "loading..." && rule.description.lowercased().contains(searchLower))
             }
         }
-        
+
         // Apply status filter if active
         switch selectedStatus {
         case .all:
@@ -133,11 +133,11 @@ class RuleBrowserViewModel {
         case .optIn:
             rules = rules.filter { $0.isOptIn }
         }
-        
+
         return Dictionary(grouping: rules, by: { $0.category })
             .mapValues { $0.count }
     }
-    
+
     func clearFilters() {
         searchText = ""
         selectedCategory = nil
@@ -330,9 +330,9 @@ enum RuleStatusFilter: String, CaseIterable, Identifiable {
     case enabled
     case disabled
     case optIn
-    
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         switch self {
         case .all: return "All"
@@ -348,9 +348,9 @@ enum SortOption: String, CaseIterable, Identifiable {
     case name
     case identifier
     case category
-    
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         switch self {
         case .name: return "Name"

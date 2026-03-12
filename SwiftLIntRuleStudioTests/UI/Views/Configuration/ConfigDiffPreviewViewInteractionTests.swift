@@ -16,19 +16,19 @@ import Foundation
 // to allow parallel test execution
 @Suite(.serialized)
 struct ConfigDiffPreviewViewInteractionTests {
-    
+
     // MARK: - Test Data Helpers
-    
+
     @MainActor
     private class CallbackTracker {
         var saveCalled = false
         var cancelCalled = false
     }
-    
+
     @MainActor
     private func createConfigDiffPreviewViewSync() -> (view: ConfigDiffPreviewView, tracker: CallbackTracker) {
         let tracker = CallbackTracker()
-        
+
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["new_rule"],
             removedRules: ["old_rule"],
@@ -36,14 +36,14 @@ struct ConfigDiffPreviewViewInteractionTests {
             before: "rules:\n  old_rule: error\n  force_cast: error",
             after: "rules:\n  force_cast: warning\n  new_rule: error"
         )
-        
+
         let view = ConfigDiffPreviewView(
             diff: diff,
             ruleName: "Test Rule",
             onSave: { tracker.saveCalled = true },
             onCancel: { tracker.cancelCalled = true }
         )
-        
+
         return (view, tracker)
     }
 
@@ -59,7 +59,7 @@ struct ConfigDiffPreviewViewInteractionTests {
         let view: ConfigDiffPreviewView
         let tracker: CallbackTracker
     }
-    
+
     private func createConfigDiffPreviewView() async -> ViewResult {
         await Task { @MainActor in
             let result = createConfigDiffPreviewViewSync()
@@ -77,15 +77,15 @@ struct ConfigDiffPreviewViewInteractionTests {
             }
         }
     }
-    
+
     // MARK: - Button Interaction Tests
-    
+
     @Test("ConfigDiffPreviewView Cancel button calls onCancel")
     func testCancelButtonCallsOnCancel() async throws {
         let result = await createConfigDiffPreviewView()
         let view = result.view
         let tracker = result.tracker
-        
+
         // Find and tap Cancel button
         try await MainActor.run {
             ViewHosting.host(view: view)
@@ -93,20 +93,20 @@ struct ConfigDiffPreviewViewInteractionTests {
             let button = try findButton(in: view, label: "Cancel")
             try button.tap()
         }
-        
+
         // Verify callback was called
         let cancelCalled = await waitForCondition {
             tracker.cancelCalled
         }
         #expect(cancelCalled == true, "Cancel button should call onCancel")
     }
-    
+
     @Test("ConfigDiffPreviewView Save Changes button calls onSave")
     func testSaveChangesButtonCallsOnSave() async throws {
         let result = await createConfigDiffPreviewView()
         let view = result.view
         let tracker = result.tracker
-        
+
         // Find and tap Save Changes button
         try await MainActor.run {
             ViewHosting.host(view: view)
@@ -114,21 +114,21 @@ struct ConfigDiffPreviewViewInteractionTests {
             let button = try findButton(in: view, label: "Save Changes")
             try button.tap()
         }
-        
+
         // Verify callback was called
         let saveCalled = await waitForCondition {
             tracker.saveCalled
         }
         #expect(saveCalled == true, "Save Changes button should call onSave")
     }
-    
+
     // MARK: - View Mode Picker Tests
-    
+
     @Test("ConfigDiffPreviewView view mode picker switches views")
     func testViewModePickerSwitchesViews() async throws {
         let result = await createConfigDiffPreviewView()
         let view = result.view
-        
+
         // Note: Interacting with the picker would require finding and tapping it
         // This is complex with ViewInspector, so we verify the structure exists
         let hasSummaryText = await MainActor.run {

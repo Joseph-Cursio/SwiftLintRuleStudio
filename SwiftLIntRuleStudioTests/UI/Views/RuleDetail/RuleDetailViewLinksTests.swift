@@ -43,7 +43,9 @@ struct RuleDetailViewLinksTests {
             ViewHosting.host(view: result.view)
             defer { ViewHosting.expel() }
             let inspector = try result.view.inspect()
-            return (try? inspector.find(text: "https://github.com/apple/swift-evolution/blob/main/proposals/0001.md")) != nil
+            let proposalURL = "https://github.com/apple/swift-evolution/"
+                + "blob/main/proposals/0001.md"
+            return (try? inspector.find(text: proposalURL)) != nil
         }
 
         #expect(hasLink == true)

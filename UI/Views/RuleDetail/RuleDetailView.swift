@@ -23,15 +23,15 @@ struct RuleDetailView: View {
     @State var cachedAttributedString: AttributedString?
     // currentRule is only used within this file — private is correct
     @State private var currentRule: Rule
-    
+
     let ruleId: String
-    
+
     // Get the latest rule from registry (may have updated documentation)
     // Made internal for testing
     var rule: Rule {
         dependencies.ruleRegistry.getRule(id: ruleId) ?? currentRule
     }
-    
+
     init(rule: Rule) {
         self.ruleId = rule.id
         _currentRule = State(initialValue: rule)
@@ -44,40 +44,40 @@ struct RuleDetailView: View {
         _currentRule = State(initialValue: rule)
         _viewModel = State(initialValue: viewModel)
     }
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 // Header
                 headerView
-                
+
                 Divider()
-                
+
                 // Configuration
                 configurationView
-                
+
                 Divider()
-                
+
                 // Description
                 descriptionView
-                
+
                 Divider()
-                
+
                 // Why This Matters (Rationale)
                 whyThisMattersView
-                
+
                 Divider()
-                
+
                 // Violations Count
                 violationsCountView
-                
+
                 Divider()
-                
+
                 // Related Rules
                 relatedRulesView
-                
+
                 Divider()
-                
+
                 // Swift Evolution Links
                 swiftEvolutionView
             }
@@ -96,7 +96,7 @@ struct RuleDetailView: View {
                         Label("Preview Changes", systemImage: "eye")
                     }
                     .accessibilityIdentifier("RuleDetailPreviewChangesButton")
-                    
+
                     Button(action: saveConfigurationAction) {
                         if viewModel.isSaving {
                             ProgressView()
@@ -116,7 +116,7 @@ struct RuleDetailView: View {
                 let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
                 viewModel.yamlEngine = yamlEngine
                 viewModel.workspaceManager = dependencies.workspaceManager
-                
+
                 // Load current configuration
                 do {
                     try viewModel.loadConfiguration()
@@ -124,7 +124,7 @@ struct RuleDetailView: View {
                     print("Warning: Failed to load configuration: \(error)")
                 }
             }
-            
+
         }
         .task {
             // Fetch rule details if documentation is missing
@@ -199,7 +199,7 @@ struct RuleDetailView: View {
             )
         }
     }
-    
+
     /// Builds the HTML attributed string for the description section on the main thread.
     /// NSAttributedString(data:options:) with .html document type MUST be called on the
     /// main thread only. Calling it inside a SwiftUI body can hit non-main threads during
@@ -237,9 +237,9 @@ struct RuleDetailView: View {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             return
         }
-        
+
         isSimulating = true
-        
+
         Task {
             do {
                 let result = try await dependencies.impactSimulator.simulateRule(
@@ -248,7 +248,7 @@ struct RuleDetailView: View {
                     baseConfigPath: workspace.configPath,
                     isOptIn: rule.isOptIn
                 )
-                
+
                 impactResult = result
                 isSimulating = false
             } catch {
@@ -258,7 +258,7 @@ struct RuleDetailView: View {
             }
         }
     }
-    
+
     private func saveConfigurationAction() {
         Task {
             do {
@@ -275,9 +275,9 @@ struct RuleDetailView: View {
             violationCount = 0
             return
         }
-        
+
         isLoadingViolationCount = true
-        
+
         Task {
             do {
                 let filter = ViolationFilter(ruleIDs: [rule.id], suppressedOnly: false)
@@ -285,7 +285,7 @@ struct RuleDetailView: View {
                     filter: filter,
                     workspaceId: workspace.id
                 )
-                
+
                 violationCount = count
                 isLoadingViolationCount = false
             } catch {

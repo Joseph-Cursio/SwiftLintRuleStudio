@@ -19,9 +19,9 @@ extension UserDefaults: @retroactive @unchecked Sendable {}
 // Factory methods for creating test data
 // Using async functions with MainActor.run to allow parallel test execution
 enum UITestDataFactory {
-    
+
     // MARK: - Rule Factory
-    
+
     /// Creates a test Rule with customizable properties
     static func createTestRule(
         id: String = "test_rule",
@@ -58,7 +58,7 @@ enum UITestDataFactory {
             markdownDocumentation: markdownDocumentation
         )
     }
-    
+
     /// Creates multiple test rules
     static func createTestRules(count: Int, prefix: String = "test_rule") -> [Rule] {
         var rules: [Rule] = []
@@ -75,9 +75,9 @@ enum UITestDataFactory {
         }
         return rules
     }
-    
+
     // MARK: - Violation Factory
-    
+
     /// Creates a test Violation with customizable properties
     static func createTestViolation(
         id: UUID = UUID(),
@@ -106,7 +106,7 @@ enum UITestDataFactory {
             suppressionReason: suppressionReason
         )
     }
-    
+
     /// Creates multiple test violations
     static func createTestViolations(
         count: Int,
@@ -126,9 +126,9 @@ enum UITestDataFactory {
         }
         return violations
     }
-    
+
     // MARK: - Workspace Factory
-    
+
     /// Creates a test Workspace
     static func createTestWorkspace(
         name: String = "TestWorkspace",
@@ -145,7 +145,7 @@ enum UITestDataFactory {
 // Helpers for creating views with proper environment objects
 // Using async functions with MainActor.run to allow parallel test execution
 enum UIViewTestHelpers {
-    
+
     /// Creates a DependencyContainer with isolated UserDefaults for testing
     static func createTestDependencyContainer(
         userDefaults: UserDefaults? = nil
@@ -154,7 +154,7 @@ enum UIViewTestHelpers {
             DependencyContainer.createForTesting(userDefaults: userDefaults)
         }
     }
-    
+
     /// Creates a view with DependencyContainer as environment object
     @MainActor
     static func createViewWithDependencies<Content: View>(
@@ -181,7 +181,7 @@ enum UIViewTestHelpers {
             .environment(\.ruleRegistry, registry)
             .environment(\.dependencies, container))
     }
-    
+
     /// Creates an OnboardingManager with isolated UserDefaults
     static func createTestOnboardingManager(
         testName: String = UUID().uuidString
@@ -190,7 +190,7 @@ enum UIViewTestHelpers {
             OnboardingManager.createForTesting(testName: testName)
         }
     }
-    
+
     /// Creates a WorkspaceManager for testing with isolated UserDefaults
     static func createTestWorkspaceManager(testName: String = UUID().uuidString) async -> WorkspaceManager {
         return await MainActor.run {
@@ -203,7 +203,7 @@ enum UIViewTestHelpers {
 
 // Helpers for common test assertions
 enum UITestAssertions {
-    
+
     /// Asserts that a view contains specific text
     static func assertContainsText(
         _ view: some View,
@@ -212,7 +212,7 @@ enum UITestAssertions {
         let inspectable = try view.inspect()
         #expect(inspectable.containsText(text), "View should contain text: \(text)")
     }
-    
+
     /// Asserts that a view does not contain specific text
     static func assertNotContainsText(
         _ view: some View,
@@ -221,7 +221,7 @@ enum UITestAssertions {
         let inspectable = try view.inspect()
         #expect(!inspectable.containsText(text), "View should not contain text: \(text)")
     }
-    
+
     /// Asserts that a view contains a specific view type
     /// Note: Use concrete ViewType methods like find(ViewType.List.self) for better type safety
     static func assertContainsViewType<T>(
@@ -232,7 +232,7 @@ enum UITestAssertions {
         // For example: try view.inspect().find(ViewType.List.self)
         #expect(true, "Use concrete ViewType methods for type checking")
     }
-    
+
     /// Asserts that a button exists and is enabled
     static func assertButtonExists(
         _ view: some View,
@@ -249,7 +249,7 @@ enum UITestAssertions {
 
 // Helpers for async test operations
 enum UIAsyncTestHelpers {
-    
+
     /// Waits for a condition to become true
     static func waitForCondition(
         timeout: TimeInterval = 1.0,
@@ -298,7 +298,7 @@ enum UIAsyncTestHelpers {
         }
         return false
     }
-    
+
     /// Waits for text to appear in a view
     @MainActor
     static func waitForText(
@@ -315,7 +315,7 @@ enum UIAsyncTestHelpers {
             }
         }
     }
-    
+
     /// Waits for a view type to appear
     /// Note: Use concrete ViewType methods for better type safety
     static func waitForViewType<T>(

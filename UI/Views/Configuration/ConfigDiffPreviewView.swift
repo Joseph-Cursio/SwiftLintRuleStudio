@@ -15,7 +15,7 @@ struct ConfigDiffPreviewView: View {
 
     @State var selectedView: DiffViewMode = .summary
     @State private var showCopiedFeedback = false
-    
+
     enum DiffViewMode {
         case summary
         case full
@@ -34,7 +34,7 @@ struct ConfigDiffPreviewView: View {
         self.onCancel = onCancel
         self._selectedView = State(initialValue: selectedView)
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -42,7 +42,7 @@ struct ConfigDiffPreviewView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Preview Configuration Changes")
                         .font(.headline)
-                    
+
                     Text("Review the changes that will be made to your .swiftlint.yml file")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -50,27 +50,27 @@ struct ConfigDiffPreviewView: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color(NSColor.controlBackgroundColor))
-                
+
                 Divider()
-                
+
                 // Content
                 if selectedView == .summary {
                     summaryView
                 } else {
                     fullDiffView
                 }
-                
+
                 Divider()
-                
+
                 // Actions
                 HStack {
                     Button("Cancel") {
                         onCancel()
                     }
                     .keyboardShortcut(.escape)
-                    
+
                     Spacer()
-                    
+
                     Button("Save Changes") {
                         onSave()
                     }
@@ -101,7 +101,7 @@ struct ConfigDiffPreviewView: View {
             }
         }
     }
-    
+
     private var summaryView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -109,7 +109,7 @@ struct ConfigDiffPreviewView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Changes Summary")
                         .font(.headline)
-                    
+
                     if !diff.addedRules.isEmpty {
                         changeSection(
                             title: "Rules to be Added",
@@ -118,7 +118,7 @@ struct ConfigDiffPreviewView: View {
                             icon: "plus.circle.fill"
                         )
                     }
-                    
+
                     if !diff.removedRules.isEmpty {
                         changeSection(
                             title: "Rules to be Removed",
@@ -127,7 +127,7 @@ struct ConfigDiffPreviewView: View {
                             icon: "minus.circle.fill"
                         )
                     }
-                    
+
                     if !diff.modifiedRules.isEmpty {
                         changeSection(
                             title: "Rules to be Modified",
@@ -136,7 +136,7 @@ struct ConfigDiffPreviewView: View {
                             icon: "pencil.circle.fill"
                         )
                     }
-                    
+
                     if diff.addedRules.isEmpty && diff.removedRules.isEmpty && diff.modifiedRules.isEmpty {
                         Text("No changes detected")
                             .foregroundStyle(.secondary)
@@ -148,7 +148,7 @@ struct ConfigDiffPreviewView: View {
             .padding()
         }
     }
-    
+
     private func changeSection(title: String, rules: [String], color: Color, icon: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -159,7 +159,7 @@ struct ConfigDiffPreviewView: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
             }
-            
+
             ForEach(rules, id: \.self) { ruleId in
                 HStack {
                     Text("•")
@@ -174,7 +174,7 @@ struct ConfigDiffPreviewView: View {
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
     }
-    
+
     private var fullDiffView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -183,7 +183,7 @@ struct ConfigDiffPreviewView: View {
                     Text("Before")
                         .font(.headline)
                         .foregroundStyle(.red)
-                    
+
                     Text(diff.before.isEmpty ? "(empty configuration)" : diff.before)
                         .font(.system(.body, design: .monospaced))
                         .padding()
@@ -191,15 +191,15 @@ struct ConfigDiffPreviewView: View {
                         .background(Color(NSColor.textBackgroundColor))
                         .clipShape(.rect(cornerRadius: 8))
                 }
-                
+
                 Divider()
-                
+
                 // After
                 VStack(alignment: .leading, spacing: 8) {
                     Text("After")
                         .font(.headline)
                         .foregroundStyle(.green)
-                    
+
                     Text(diff.after.isEmpty ? "(empty configuration)" : diff.after)
                         .font(.system(.body, design: .monospaced))
                         .padding()
@@ -233,7 +233,7 @@ struct ConfigDiffPreviewView: View {
         before: "rules:\n  force_cast: error",
         after: "rules:\n  force_cast: warning\n  new_rule: error"
     )
-    
+
     return ConfigDiffPreviewView(
         diff: diff,
         ruleName: "Test Rule",

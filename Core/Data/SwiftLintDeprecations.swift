@@ -153,16 +153,16 @@ enum SwiftLintDeprecations {
 
     // MARK: - Helpers
 
-    /// Compare two semantic version strings. Returns true if v1 < v2.
-    static func isVersion(_ v1: String, lessThan v2: String) -> Bool {
-        let parts1 = v1.split(separator: ".").compactMap { Int($0) }
-        let parts2 = v2.split(separator: ".").compactMap { Int($0) }
+    /// Compare two semantic version strings. Returns true if lhs < rhs.
+    static func isVersion(_ lhs: String, lessThan rhs: String) -> Bool {
+        let parts1 = lhs.split(separator: ".").compactMap { Int($0) }
+        let parts2 = rhs.split(separator: ".").compactMap { Int($0) }
 
-        for i in 0..<max(parts1.count, parts2.count) {
-            let p1 = i < parts1.count ? parts1[i] : 0
-            let p2 = i < parts2.count ? parts2[i] : 0
-            if p1 < p2 { return true }
-            if p1 > p2 { return false }
+        for idx in 0..<max(parts1.count, parts2.count) {
+            let val1 = idx < parts1.count ? parts1[idx] : 0
+            let val2 = idx < parts2.count ? parts2[idx] : 0
+            if val1 < val2 { return true }
+            if val1 > val2 { return false }
         }
         return false
     }

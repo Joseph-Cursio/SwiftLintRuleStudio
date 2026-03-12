@@ -13,9 +13,9 @@ import SwiftUI
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
 struct ViolationInspectorNewFeaturesTests {
-    
+
     // MARK: - Test Data Helpers
-    
+
     private func makeTestViolation(
         id: UUID = UUID(),
         ruleID: String = "test_rule",
@@ -34,9 +34,9 @@ struct ViolationInspectorNewFeaturesTests {
             )
         }
     }
-    
+
     // MARK: - Grouping Tests
-    
+
     @Test("Groups violations by file")
     func testGroupViolationsByFile() async throws {
         let violations = [
@@ -44,14 +44,14 @@ struct ViolationInspectorNewFeaturesTests {
             await makeTestViolation(filePath: "File1.swift"),
             await makeTestViolation(filePath: "File2.swift")
         ]
-        
+
         let grouped = await groupViolations(violations, by: .file)
-        
+
         #expect(grouped.count == 2)
         #expect(grouped["File1.swift"]?.count == 2)
         #expect(grouped["File2.swift"]?.count == 1)
     }
-    
+
     @Test("Groups violations by rule")
     func testGroupViolationsByRule() async throws {
         let violations = [
@@ -59,14 +59,14 @@ struct ViolationInspectorNewFeaturesTests {
             await makeTestViolation(ruleID: "rule1"),
             await makeTestViolation(ruleID: "rule2")
         ]
-        
+
         let grouped = await groupViolations(violations, by: .rule)
-        
+
         #expect(grouped.count == 2)
         #expect(grouped["rule1"]?.count == 2)
         #expect(grouped["rule2"]?.count == 1)
     }
-    
+
     @Test("Groups violations by severity")
     func testGroupViolationsBySeverity() async throws {
         let violations = [
@@ -74,14 +74,14 @@ struct ViolationInspectorNewFeaturesTests {
             await makeTestViolation(severity: .error),
             await makeTestViolation(severity: .warning)
         ]
-        
+
         let grouped = await groupViolations(violations, by: .severity)
-        
+
         #expect(grouped.count == 2)
         #expect(grouped["Error"]?.count == 2)
         #expect(grouped["Warning"]?.count == 1)
     }
-    
+
     @Test("Returns all violations when grouping is none")
     func testGroupViolationsNone() async throws {
         let violations = [
@@ -89,21 +89,21 @@ struct ViolationInspectorNewFeaturesTests {
             await makeTestViolation(),
             await makeTestViolation()
         ]
-        
+
         let grouped = await groupViolations(violations, by: .none)
-        
+
         #expect(grouped.count == 1)
         #expect(grouped["All"]?.count == 3)
     }
-    
+
     @Test("Handles empty violations array")
     func testGroupViolationsEmpty() async throws {
         let grouped = await groupViolations([], by: .file)
         #expect(grouped.isEmpty == true)
     }
-    
+
     // MARK: - Export Tests
-    
+
     @Test("Exports violations to JSON format")
     func testExportToJSON() async throws {
         let violations = [
@@ -115,27 +115,27 @@ struct ViolationInspectorNewFeaturesTests {
                 severity: .error
             )
         ]
-        
+
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test_export_\(UUID().uuidString).json")
-        
+
         try await exportToJSON(violations: violations, url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
-        
+
         #expect(FileManager.default.fileExists(atPath: tempURL.path) == true)
-        
+
         let data = try Data(contentsOf: tempURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         let decoded = try await MainActor.run {
             try decoder.decode([Violation].self, from: data)
         }
-        
+
         #expect(decoded.count == 1)
         let decodedRuleID = await MainActor.run { decoded.first?.ruleID }
         #expect(decodedRuleID == "test_rule")
     }
-    
+
     @Test("Exports violations to CSV format")
     func testExportToCSV() async throws {
         let violations = [
@@ -146,22 +146,22 @@ struct ViolationInspectorNewFeaturesTests {
                 severity: .error
             )
         ]
-        
+
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test_export_\(UUID().uuidString).csv")
-        
+
         try await exportToCSV(violations: violations, url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
-        
+
         #expect(FileManager.default.fileExists(atPath: tempURL.path) == true)
-        
+
         let csv = try String(contentsOf: tempURL, encoding: .utf8)
         #expect(csv.contains("test_rule") == true)
         #expect(csv.contains("Test.swift") == true)
         #expect(csv.contains("10") == true)
         #expect(csv.contains("error") == true)
     }
-    
+
     @Test("CSV export handles special characters in messages")
     func testExportToCSVSpecialCharacters() async throws {
         let violation = await makeTestViolation(
@@ -170,7 +170,7 @@ struct ViolationInspectorNewFeaturesTests {
             line: 10,
             severity: .error
         )
-        
+
         // Create violation with special characters - access properties on MainActor
         let violationWithSpecialChars = await MainActor.run {
             Violation(
@@ -187,18 +187,18 @@ struct ViolationInspectorNewFeaturesTests {
                 suppressionReason: violation.suppressionReason
             )
         }
-        
+
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test_export_\(UUID().uuidString).csv")
-        
+
         try await exportToCSV(violations: [violationWithSpecialChars], url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
-        
+
         let csv = try String(contentsOf: tempURL, encoding: .utf8)
         // CSV should properly escape quotes
         #expect(csv.contains("\"\"quotes\"\"") == true || csv.contains("\"quotes\"") == true)
     }
-    
+
     @Test("JSON export includes all violation fields")
     func testExportToJSONAllFields() async throws {
         let violation = await MainActor.run {
@@ -216,20 +216,20 @@ struct ViolationInspectorNewFeaturesTests {
                 suppressionReason: "Test reason"
             )
         }
-        
+
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test_export_\(UUID().uuidString).json")
-        
+
         try await exportToJSON(violations: [violation], url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
-        
+
         let data = try Data(contentsOf: tempURL)
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         let decoded = try await MainActor.run {
             try decoder.decode([Violation].self, from: data)
         }
-        
+
         #expect(decoded.count == 1)
         let exported = try #require(decoded.first)
         let exportedData = await MainActor.run {
@@ -251,10 +251,13 @@ struct ViolationInspectorNewFeaturesTests {
         #expect(exportedData.suppressed == violationData.suppressed)
         #expect(exportedData.suppressionReason == violationData.suppressionReason)
     }
-    
+
     // MARK: - Helper Methods
-    
-    private func groupViolations(_ violations: [Violation], by option: ViolationGroupingOption) async -> [String: [Violation]] {
+
+    private func groupViolations(
+        _ violations: [Violation],
+        by option: ViolationGroupingOption
+    ) async -> [String: [Violation]] {
         await MainActor.run {
             switch option {
             case .none:
@@ -268,18 +271,18 @@ struct ViolationInspectorNewFeaturesTests {
             }
         }
     }
-    
+
     private func exportToJSON(violations: [Violation], url: URL) async throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        
+
         let data = try await MainActor.run {
             try encoder.encode(violations)
         }
         try data.write(to: url)
     }
-    
+
     private func exportToCSV(violations: [Violation], url: URL) async throws {
         let header = [
             "Rule ID",
@@ -294,7 +297,7 @@ struct ViolationInspectorNewFeaturesTests {
             "Suppression Reason"
         ].joined(separator: ",")
         var csv = "\(header)\n"
-        
+
         // Access violation properties on MainActor
         let violationData = await MainActor.run {
             violations.map { violation in
@@ -312,7 +315,7 @@ struct ViolationInspectorNewFeaturesTests {
                 )
             }
         }
-        
+
         for data in violationData {
             let line = [
                 data.ruleID,
@@ -328,7 +331,7 @@ struct ViolationInspectorNewFeaturesTests {
             ].joined(separator: ",")
             csv += line + "\n"
         }
-        
+
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 }

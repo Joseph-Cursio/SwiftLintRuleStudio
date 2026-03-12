@@ -37,15 +37,15 @@ struct ConfigImportViewModelTests {
     @Test("Initial state has empty urlString, no preview, merge mode, not fetching")
     func testInitialState() {
         let service = SpyConfigImportService()
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
 
-        #expect(vm.urlString.isEmpty)
-        #expect(vm.preview == nil)
-        #expect(vm.importMode == .merge)
-        #expect(!vm.isFetching)
-        #expect(!vm.isImporting)
-        #expect(vm.error == nil)
-        #expect(!vm.importComplete)
+        #expect(viewModel.urlString.isEmpty)
+        #expect(viewModel.preview == nil)
+        #expect(viewModel.importMode == .merge)
+        #expect(!viewModel.isFetching)
+        #expect(!viewModel.isImporting)
+        #expect(viewModel.error == nil)
+        #expect(!viewModel.importComplete)
     }
 
     // MARK: - fetchPreview()
@@ -53,52 +53,52 @@ struct ConfigImportViewModelTests {
     @Test("fetchPreview with empty urlString sets invalidURL error synchronously")
     func testFetchPreviewEmptyURLSetsError() {
         let service = SpyConfigImportService()
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = ""
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = ""
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
 
-        #expect(vm.error != nil)
+        #expect(viewModel.error != nil)
         #expect(service.fetchCallCount == 0)
     }
 
     @Test("fetchPreview with invalid urlString sets error synchronously")
     func testFetchPreviewInvalidURLSetsError() {
         let service = SpyConfigImportService()
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "not a url"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "not a url"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
 
         // URL(string:) succeeds for "not a url" but it is still treated as invalid by the VM
         // The VM checks !urlString.isEmpty so this actually proceeds to Task
         // Test that the error path still works correctly for truly empty strings
-        _ = vm // result checked by empty string test above
+        _ = viewModel // result checked by empty string test above
     }
 
     @Test("fetchPreview calls service and populates preview on success")
     func testFetchPreviewPopulatesPreview() async throws {
         let preview = makePreview()
         let service = SpyConfigImportService(previewToReturn: preview)
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(service.fetchCallCount == 1)
-        #expect(vm.preview?.sourceURL.absoluteString == "https://example.com/.swiftlint.yml")
-        #expect(!vm.isFetching)
+        #expect(viewModel.preview?.sourceURL.absoluteString == "https://example.com/.swiftlint.yml")
+        #expect(!viewModel.isFetching)
     }
 
     @Test("fetchPreview passes correct URL to service")
     func testFetchPreviewPassesCorrectURL() async throws {
         let service = SpyConfigImportService(previewToReturn: makePreview())
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
         let urlString = "https://raw.githubusercontent.com/example/.swiftlint.yml"
-        vm.urlString = urlString
+        viewModel.urlString = urlString
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(service.lastFetchURL?.absoluteString == urlString)
@@ -107,39 +107,39 @@ struct ConfigImportViewModelTests {
     @Test("fetchPreview clears isFetching after task completes")
     func testFetchPreviewClearsFetchingFlag() async throws {
         let service = SpyConfigImportService(previewToReturn: makePreview())
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!vm.isFetching)
+        #expect(!viewModel.isFetching)
     }
 
     @Test("fetchPreview stores error and clears isFetching when service throws")
     func testFetchPreviewServiceErrorSetsError() async throws {
         let service = SpyConfigImportService(shouldThrow: true)
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.error != nil)
-        #expect(vm.preview == nil)
-        #expect(!vm.isFetching)
+        #expect(viewModel.error != nil)
+        #expect(viewModel.preview == nil)
+        #expect(!viewModel.isFetching)
     }
 
     @Test("fetchPreview resets importComplete to false at start")
     func testFetchPreviewResetsImportComplete() async throws {
         let service = SpyConfigImportService(previewToReturn: makePreview())
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!vm.importComplete)
+        #expect(!viewModel.importComplete)
     }
 
     // MARK: - applyImport()
@@ -147,26 +147,26 @@ struct ConfigImportViewModelTests {
     @Test("applyImport with nil preview does not call service")
     func testApplyImportNilPreviewDoesNothing() {
         let service = SpyConfigImportService()
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
 
-        vm.applyImport()
+        viewModel.applyImport()
 
         #expect(service.applyCallCount == 0)
-        #expect(!vm.importComplete)
+        #expect(!viewModel.importComplete)
     }
 
     @Test("applyImport with nil configPath does not call service")
     func testApplyImportNilConfigPathDoesNothing() async throws {
         let preview = makePreview()
         let service = SpyConfigImportService(previewToReturn: preview)
-        let vm = ConfigImportViewModel(importService: service, configPath: nil)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: nil)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
         // Populate preview first
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        vm.applyImport()
+        viewModel.applyImport()
 
         #expect(service.applyCallCount == 0)
     }
@@ -175,14 +175,14 @@ struct ConfigImportViewModelTests {
     func testApplyImportDelegatesToServiceWithMode() async throws {
         let preview = makePreview()
         let service = SpyConfigImportService(previewToReturn: preview)
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
-        vm.importMode = .replace
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
+        viewModel.importMode = .replace
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        vm.applyImport()
+        viewModel.applyImport()
 
         #expect(service.applyCallCount == 1)
         #expect(service.lastApplyMode == .replace)
@@ -192,31 +192,31 @@ struct ConfigImportViewModelTests {
     func testApplyImportSetsImportComplete() async throws {
         let preview = makePreview()
         let service = SpyConfigImportService(previewToReturn: preview)
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
-        vm.applyImport()
+        viewModel.applyImport()
 
-        #expect(vm.importComplete)
-        #expect(!vm.isImporting)
+        #expect(viewModel.importComplete)
+        #expect(!viewModel.isImporting)
     }
 
     @Test("applyImport on service error stores error and clears isImporting")
     func testApplyImportServiceErrorSetsError() async throws {
         let preview = makePreview()
         let service = SpyConfigImportService(previewToReturn: preview, shouldThrowOnApply: true)
-        let vm = ConfigImportViewModel(importService: service, configPath: Self.configPath)
-        vm.urlString = "https://example.com/.swiftlint.yml"
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
 
-        vm.fetchPreview()
+        viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
-        vm.applyImport()
+        viewModel.applyImport()
 
-        #expect(vm.error != nil)
-        #expect(!vm.importComplete)
-        #expect(!vm.isImporting)
+        #expect(viewModel.error != nil)
+        #expect(!viewModel.importComplete)
+        #expect(!viewModel.isImporting)
     }
 }
 

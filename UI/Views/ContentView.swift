@@ -14,12 +14,12 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showError: Bool = false
     @State private var didApplyUITestOverrides = false
-    
+
     @State private var selection: AppSection? = .rules
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var searchText: String = ""
     @State private var showWorkspacePicker = false
-    
+
     var body: some View {
         Group {
             // Always show onboarding if not completed for this session
@@ -288,7 +288,7 @@ private extension ContentView {
         swiftLintCLI: swiftLintCLI,
         cacheManager: cacheManager
     )
-    
+
     return ContentView()
         .environment(\.ruleRegistry, ruleRegistry)
         .environment(\.dependencies, container)

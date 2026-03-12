@@ -43,12 +43,12 @@ struct ViolationInspectorView: View {
         _viewModel = State(initialValue: viewModel)
     }
 #endif
-    
+
     var body: some View {
         HSplitView {
             // Left panel: Violation List
             violationListView
-                .frame(minWidth: 450, idealWidth: 450, maxWidth: 560)
+                .frame(minWidth: 450, idealWidth: 500, maxWidth: 800)
 
             // Right panel: Violation Detail or Empty State
             Group {
@@ -79,7 +79,7 @@ struct ViolationInspectorView: View {
             // Update viewModel with actual storage and analyzer from dependencies
             viewModel.violationStorage = dependencies.violationStorage
             viewModel.workspaceAnalyzer = dependencies.workspaceAnalyzer
-            
+
             // Load violations for current workspace if available
             if let workspace = dependencies.workspaceManager.currentWorkspace {
                 Task {
@@ -132,7 +132,7 @@ struct ViolationInspectorView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
                 .accessibilityIdentifier("ViolationInspectorRefreshButton")
-                
+
                 Menu {
                     SwiftUI.Section("Filtered") {
                         Button("Export Filtered as JSON") {
@@ -156,7 +156,7 @@ struct ViolationInspectorView: View {
                 } label: {
                     Label("Export", systemImage: "square.and.arrow.up")
                 }
-                
+
                 Button {
                     viewModel.selectNextViolation()
                 } label: {
@@ -216,7 +216,7 @@ struct ViolationInspectorView: View {
             }
         }
     }
-    
+
 }
 
 enum ViolationExportScope: String {
@@ -235,14 +235,14 @@ struct StatisticBadge: View {
     let label: String
     let value: String
     let color: Color
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
                 .foregroundStyle(color)
-            
+
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)

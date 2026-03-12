@@ -33,14 +33,14 @@ class RuleDetailViewModel {
     private var originalEnabled: Bool
     private var originalSeverity: Severity?
     private var originalParameters: [String: AnyCodable]?
-    
+
     // MARK: - Initialization
-    
+
     init(rule: Rule, yamlEngine: YAMLConfigurationEngine? = nil, workspaceManager: WorkspaceManager? = nil) {
         self.rule = rule
         self.yamlEngine = yamlEngine
         self.workspaceManager = workspaceManager
-        
+
         // Initialize from rule's current state
         self.isEnabled = rule.isEnabled
         self.severity = rule.severity
@@ -51,17 +51,17 @@ class RuleDetailViewModel {
             self.parameterValues = configured
         }
     }
-    
+
     // MARK: - Public Methods
-    
+
     /// Load current configuration from workspace
     func loadConfiguration() throws {
         guard let yamlEngine = yamlEngine else { return }
-        
+
         // Load current config
         try yamlEngine.load()
         let config = yamlEngine.getConfig()
-        
+
         // Update local state from config
         if let ruleConfig = config.rules[rule.id] {
             self.severity = ruleConfig.severity
@@ -92,7 +92,7 @@ class RuleDetailViewModel {
             // Only set default severity if rule has one
             self.severity = rule.defaultSeverity
         }
-        
+
         // Load parameter values from config
         if let ruleConfig = config.rules[rule.id],
            let params = ruleConfig.parameters {
@@ -107,13 +107,13 @@ class RuleDetailViewModel {
         self.originalSeverity = self.severity
         self.originalParameters = self.parameterValues.isEmpty ? nil : self.parameterValues
     }
-    
+
     /// Update enabled state
     func updateEnabled(_ enabled: Bool) {
         isEnabled = enabled
         updatePendingChanges()
     }
-    
+
     /// Update severity
     func updateSeverity(_ newSeverity: Severity) {
         severity = newSeverity
@@ -135,16 +135,16 @@ class RuleDetailViewModel {
         }
         return defaults
     }
-    
+
     /// Generate diff for pending changes
     func generateDiff() -> YAMLConfigurationEngine.ConfigDiff? {
         guard let yamlEngine = yamlEngine else { return nil }
-        
+
         do {
             try yamlEngine.load()
             let currentConfig = yamlEngine.getConfig()
             var proposedConfig = currentConfig
-            
+
             // Apply current state changes
             let params = parameterValues.isEmpty ? nil : parameterValues
             if isEnabled {
@@ -172,23 +172,23 @@ class RuleDetailViewModel {
                     proposedConfig.rules[rule.id] = RuleConfiguration(enabled: false)
                 }
             }
-            
+
             return yamlEngine.generateDiff(proposedConfig: proposedConfig)
         } catch {
             saveError = error
             return nil
         }
     }
-    
+
     /// Save configuration changes
     func saveConfiguration() throws {
         guard let yamlEngine = yamlEngine else {
             throw RuleConfigurationError.noWorkspace
         }
-        
+
         isSaving = true
         defer { isSaving = false }
-        
+
         do {
             try yamlEngine.load()
             var config = yamlEngine.getConfig()
@@ -201,23 +201,23 @@ class RuleDetailViewModel {
             throw error
         }
     }
-    
+
     /// Show diff preview
     func showPreview() {
         updatePendingChanges()
         pendingDiff = generateDiff()
         showDiffPreview = true
     }
-    
+
     /// Cancel pending changes
     func cancelChanges() {
         // Reload from config
         try? loadConfiguration()
         pendingChanges = nil
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func updatePendingChanges() {
         let hasParameterChanges = parametersHaveChanged()
         // Check if there are actual changes from original state
@@ -337,7 +337,7 @@ enum RuleConfigurationError: LocalizedError {
     case noWorkspace
     case configLoadFailed
     case saveFailed
-    
+
     var errorDescription: String? {
         switch self {
         case .noWorkspace:

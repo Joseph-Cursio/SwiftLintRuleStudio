@@ -91,8 +91,8 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     @Test("YAMLConfigurationEngine handles very large configuration")
     func testLargeConfiguration() async throws {
         var yamlContent = "rules:\n"
-        for i in 1...50 {
-            yamlContent += "  rule_\(i): true\n"
+        for idx in 1...50 {
+            yamlContent += "  rule_\(idx): true\n"
         }
 
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)

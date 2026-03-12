@@ -1,80 +1,188 @@
-# SwiftLint Configuration for SwiftLint Rule Studio
-# This configuration follows best practices for excluding third-party code
-# and setting reasonable defaults for a macOS application.
-
-# Exclude common build and dependency directories
-excluded:
-  - .build                    # Swift Package Manager dependencies
-  - Pods                      # CocoaPods dependencies
-  - .git                      # Git metadata
-  - DerivedData               # Xcode build artifacts
-  - .swiftpm                  # Swift Package Manager metadata
-  - xcuserdata                # Xcode user-specific data
-  - .xcode                    # Xcode project files
-  - SwiftLIntRuleStudio.xcodeproj  # Xcode project bundle
-
-# Disable rules that are too strict for this project
 disabled_rules:
-  - todo                      # Allow TODO comments during development
-
-# Opt-in rules (enable specific rules that are valuable)
+- todo
+excluded:
+- .build
+- Pods
+- .git
+- DerivedData
+- .swiftpm
+- xcuserdata
+- .xcode
+- SwiftLIntRuleStudio.xcodeproj
 opt_in_rules:
-  - empty_count               # Prefer isEmpty over count == 0
-  - empty_string              # Prefer isEmpty over == ""
-  - first_where               # Prefer first(where:) over filter.first
-  - accessibility_trait_for_button  # SwiftUI: require button trait for tappable views
-  - accessibility_label_for_image   # SwiftUI: require labels on images
-  - force_unwrapping          # Warn about force unwraps
-  - implicitly_unwrapped_optional  # Warn about IUOs
-  - overridden_super_call     # Ensure super calls in overrides
-  - prohibited_super_call    # Prevent incorrect super calls
-  - redundant_nil_coalescing  # Remove redundant ?? nil
-  - redundant_sendable        # Swift 6: Flag redundant Sendable conformances
-  - single_test_class         # One test class per file
-  - unneeded_parentheses_in_closure_argument  # Clean closure syntax
-  - vertical_parameter_alignment_on_call  # Align parameters
-  - incompatible_concurrency_annotation  # Swift 6: Flag incompatible concurrency annotations
-  - async_without_await       # Swift 6: Flag async functions without await calls
-  - unhandled_throwing_task   # Swift 6: Flag tasks where errors are not handled
+- empty_count
+- empty_string
+- first_where
+- accessibility_trait_for_button
+- force_unwrapping
+- implicitly_unwrapped_optional
+- overridden_super_call
+- prohibited_super_call
+- redundant_nil_coalescing
+- redundant_sendable
+- single_test_class
+- unneeded_parentheses_in_closure_argument
+- vertical_parameter_alignment_on_call
+- incompatible_concurrency_annotation
+- async_without_await
+- unhandled_throwing_task
+- period_spacing
+- last_where
+- unavailable_function
+- array_init
+- override_in_extension
+- literal_expression_end_indentation
+- missing_docs
+- prefer_zero_over_explicit_init
+- private_subject
+- quick_discouraged_pending_test
+- extension_access_modifier
+- shorthand_argument
+- private_outlet
+- enum_case_associated_values_count
+- unowned_variable_capture
+- xct_specific_matcher
+- modifier_order
+- explicit_init
+- discarded_notification_center_observer
+- empty_collection_literal
+- static_operator
+- toggle_bool
+- fatal_error_message
+- prefer_self_type_over_type_of_self
+- multiline_literal_brackets
+- reduce_into
+- sorted_first_last
+- multiline_parameters_brackets
+- strict_fileprivate
+- unused_import
+- contains_over_first_not_nil
+- file_header
+- lower_acl_than_parent
+- unused_declaration
+- discouraged_assert
+- explicit_self
+- return_value_from_void_function
+- private_action
+- local_doc_comment
+- optional_enum_case_matching
+- non_overridable_class_declaration
+- strong_iboutlet
+- prohibited_interface_builder
+- required_enum_case
+- nslocalizedstring_require_bundle
+- collection_alignment
+- empty_xctest_method
+- file_name_no_space
+- quick_discouraged_call
+- test_case_accessibility
+- discouraged_object_literal
+- joined_default_parameter
+- nslocalizedstring_key
+- nimble_operator
+- contains_over_filter_count
+- expiring_todo
+- quick_discouraged_focused_test
+- contains_over_filter_is_empty
+- comma_inheritance
+- final_test_case
+- untyped_error_in_catch
+- prefer_asset_symbols
+- ibinspectable_in_extension
+- identical_operands
+- yoda_condition
+- contains_over_range_nil_comparison
+- flatmap_over_map_reduce
+- capture_variable
+- object_literal
+- fallthrough
+- self_binding
+- typesafe_array_init
+- closure_spacing
+- operator_usage_whitespace
+- weak_delegate
+- closure_end_indentation
+- accessibility_label_for_image
+reporter: xcode
+rules:
+  accessibility_label_for_image: true
+  array_init: true
+  capture_variable: true
+  closure_end_indentation: true
+  closure_spacing: true
+  collection_alignment: true
+  comma_inheritance: true
+  contains_over_filter_count: true
+  contains_over_filter_is_empty: true
+  contains_over_first_not_nil: true
+  contains_over_range_nil_comparison: true
+  discarded_notification_center_observer: true
+  discouraged_assert: true
+  discouraged_object_literal: true
+  empty_collection_literal: true
+  empty_xctest_method: true
+  enum_case_associated_values_count: true
+  expiring_todo: true
+  explicit_init: true
+  explicit_self: true
+  extension_access_modifier: true
+  fallthrough: true
+  fatal_error_message: true
+  file_header: true
+  file_name_no_space: true
+  final_test_case: true
+  flatmap_over_map_reduce: true
+  ibinspectable_in_extension: true
+  identical_operands: true
+  joined_default_parameter: true
+  last_where: true
+  literal_expression_end_indentation: true
+  local_doc_comment: true
+  lower_acl_than_parent: true
+  missing_docs: true
+  modifier_order: true
+  multiline_literal_brackets: true
+  multiline_parameters_brackets: true
+  nimble_operator: true
+  non_overridable_class_declaration: true
+  nslocalizedstring_key: true
+  nslocalizedstring_require_bundle: true
+  object_literal: true
+  operator_usage_whitespace: true
+  optional_enum_case_matching: true
+  override_in_extension: true
+  period_spacing: true
+  prefer_asset_symbols: true
+  prefer_self_type_over_type_of_self: true
+  prefer_zero_over_explicit_init: true
+  private_action: true
+  private_outlet: true
+  private_subject: true
+  prohibited_interface_builder: true
+  quick_discouraged_call: true
+  quick_discouraged_focused_test: true
+  quick_discouraged_pending_test: true
+  reduce_into: true
+  required_enum_case: true
+  return_value_from_void_function: true
+  self_binding: true
+  shorthand_argument: true
+  sorted_first_last: true
+  static_operator: true
+  strict_fileprivate: true
+  strong_iboutlet: true
+  test_case_accessibility: true
+  toggle_bool: true
+  typesafe_array_init: true
+  unavailable_function: true
+  unowned_variable_capture: true
+  untyped_error_in_catch: true
+  unused_declaration: true
+  unused_import: true
+  weak_delegate: true
+  xct_specific_matcher: true
+  yoda_condition: true
 
-# Custom rules
-custom_rules:
-  discarded_task:
-    name: "Discarded Task"
-    regex: 'let _ = Task\('
-    message: "Use `_ = Task(...)` instead of `let _ = Task(...)` when discarding a task."
-    severity: warning
 
-# Rule configurations
-file_length:
-  warning: 600    # Comprehensive UI test files covering 10+ workflows naturally exceed 400 lines
-  error: 1000
-
-trailing_whitespace:
-  ignores_empty_lines: true
-
-line_length:
-  warning: 120
-  error: 150
-  ignores_function_declarations: true
-  ignores_comments: true
-  ignores_urls: true
-
-function_parameter_count:
-  warning: 5
-  error: 8
-
-identifier_name:
-  min_length: 2
-  excluded:
-    - i
-    - j
-    - id
-
-nesting:
-  type_level: 2
-  function_level: 3
-
-# Reporter type (xcode, json, csv, checkstyle, junit, html, emoji, sonarqube, markdown)
-reporter: "xcode"
-
+# Preserved comments:
+# yoda_condition: yoda_condition: yoda_condition: severity: Rule configurations

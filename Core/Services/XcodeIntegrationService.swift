@@ -13,7 +13,7 @@ import AppKit
 class XcodeIntegrationService {
     private let workspaceManager: WorkspaceManager
     private var projectCache: [URL: URL] = [:] // Cache workspace -> project mapping
-    
+
     init(workspaceManager: WorkspaceManager) {
         self.workspaceManager = workspaceManager
     }
@@ -25,7 +25,7 @@ class XcodeIntegrationService {
     nonisolated static var isUITesting: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
     }
-    
+
     /// Open a file in Xcode at a specific line and column
     /// - Parameters:
     ///   - path: File path (can be absolute or relative to workspace)
@@ -42,7 +42,7 @@ class XcodeIntegrationService {
     ) throws -> Bool {
         // 1. Resolve file path
         let fileURL = try resolveFileURL(path, in: workspace)
-        
+
         // 2. Validate file exists and is a file
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: fileURL.path, isDirectory: &isDirectory) else {
@@ -51,14 +51,14 @@ class XcodeIntegrationService {
         guard !isDirectory.boolValue else {
             throw XcodeIntegrationError.invalidPath(path: fileURL.path)
         }
-        
+
         // 3. Find associated Xcode project/workspace
         let projectURL = findXcodeProject(for: fileURL, in: workspace)
 
         if Self.isRunningTests || Self.isUITesting {
             return true
         }
-        
+
         // 4. Try to open using various methods
         return try openFileInXcode(
             fileURL: fileURL,
@@ -67,59 +67,59 @@ class XcodeIntegrationService {
             projectURL: projectURL
         )
     }
-    
+
     /// Resolve a file path (absolute or relative) to a full URL
     func resolveFileURL(_ path: String, in workspace: Workspace) throws -> URL {
         let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedPath.isEmpty else {
             throw XcodeIntegrationError.invalidPath(path: path)
         }
-        
+
         let expandedPath = (trimmedPath as NSString).expandingTildeInPath
-        
+
         // If path is already absolute, use it directly
         if expandedPath.hasPrefix("/") {
             return URL(fileURLWithPath: expandedPath).standardizedFileURL
         }
-        
+
         // Otherwise, resolve relative to workspace root
         return workspace.path.appendingPathComponent(expandedPath).standardizedFileURL
     }
-    
+
     /// Find the closest Xcode project or workspace for a given file
     func findXcodeProject(for fileURL: URL, in workspace: Workspace) -> URL? {
         // Check cache first
         if let cached = projectCache[workspace.path] {
             return cached
         }
-        
+
         // Search for .xcodeproj or .xcworkspace files
         let fileManager = FileManager.default
         var foundProjects: [URL] = []
-        
+
         // Search from file location up to workspace root
         var currentDir = fileURL.deletingLastPathComponent()
         let workspacePath = workspace.path.path
-        
+
         while currentDir.path.hasPrefix(workspacePath) {
             do {
                 let contents = try fileManager.contentsOfDirectory(
                     at: currentDir,
                     includingPropertiesForKeys: [.isDirectoryKey]
                 )
-                
+
                 for item in contents {
                     let name = item.lastPathComponent
                     if name.hasSuffix(".xcodeproj") || name.hasSuffix(".xcworkspace") {
                         foundProjects.append(item)
                     }
                 }
-                
+
                 // If we found projects, break (closest ones first)
                 if !foundProjects.isEmpty {
                     break
                 }
-                
+
                 // Move up one directory
                 let parent = currentDir.deletingLastPathComponent()
                 if parent.path == currentDir.path {
@@ -130,11 +130,11 @@ class XcodeIntegrationService {
                 break
             }
         }
-        
+
         // Prefer workspace over project, prefer closest
         let workspaceProjects = foundProjects.filter { $0.pathExtension == "xcworkspace" }
         let projectFiles = foundProjects.filter { $0.pathExtension == "xcodeproj" }
-        
+
         let selected: URL?
         if !workspaceProjects.isEmpty {
             selected = workspaceProjects.first
@@ -143,15 +143,15 @@ class XcodeIntegrationService {
         } else {
             selected = nil
         }
-        
+
         // Cache the result
         if let selected = selected {
             projectCache[workspace.path] = selected
         }
-        
+
         return selected
     }
-    
+
     /// Check if Xcode is installed
     func isXcodeInstalled() -> Bool {
         // Check if Xcode.app exists
@@ -159,15 +159,15 @@ class XcodeIntegrationService {
         if FileManager.default.fileExists(atPath: xcodePath) {
             return true
         }
-        
+
         // Check if xcode:// URL scheme is registered
         if let xcodeURL = URL(string: "xcode://") {
             return NSWorkspace.shared.urlForApplication(toOpen: xcodeURL) != nil
         }
-        
+
         return false
     }
-    
+
     /// Open file in Xcode using various fallback methods
     private func openFileInXcode(
         fileURL: URL,
@@ -180,22 +180,22 @@ class XcodeIntegrationService {
         if try openWithXedCommand(fileURL: fileURL, line: line) {
             return true
         }
-        
+
         // Method 2: Try xcode:// URL scheme as fallback
         if let xcodeURL = generateXcodeURL(fileURL: fileURL, line: line, column: column, projectURL: projectURL) {
             if NSWorkspace.shared.open(xcodeURL) {
                 return true
             }
         }
-        
+
         // Method 3: Fallback to opening file in default editor
         if NSWorkspace.shared.open(fileURL) {
             return true
         }
-        
+
         throw XcodeIntegrationError.failedToOpen
     }
-    
+
     /// Generate xcode:// URL for opening file
     func generateXcodeURL(
         fileURL: URL,
@@ -207,7 +207,7 @@ class XcodeIntegrationService {
         var components = URLComponents()
         components.scheme = "xcode"
         components.host = "file"
-        
+
         // URL-encode the path properly
         let pathString = fileURL.path
         var queryItems = [
@@ -218,10 +218,10 @@ class XcodeIntegrationService {
             queryItems.append(URLQueryItem(name: "column", value: "\(column)"))
         }
         components.queryItems = queryItems
-        
+
         return components.url
     }
-    
+
     /// Try opening file using xed command line tool
     private func openWithXedCommand(fileURL: URL, line: Int) throws -> Bool {
         // xed is typically in /usr/bin/xed, but can also be accessed via xcode-select
@@ -229,13 +229,13 @@ class XcodeIntegrationService {
         guard FileManager.default.fileExists(atPath: xedPath) else {
             return false
         }
-        
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: xedPath)
         process.arguments = ["--line", "\(line)", fileURL.path]
         process.standardOutput = nil
         process.standardError = nil
-        
+
         do {
             try process.run()
             // Don't wait for exit - xed opens Xcode asynchronously
@@ -245,7 +245,7 @@ class XcodeIntegrationService {
             return false
         }
     }
-    
+
     /// Clear project cache (useful when workspace changes)
     func clearCache() {
         projectCache.removeAll()
@@ -258,7 +258,7 @@ enum XcodeIntegrationError: LocalizedError {
     case invalidPath(path: String)
     case xcodeNotInstalled
     case failedToOpen
-    
+
     var errorDescription: String? {
         switch self {
         case .fileNotFound(let path):

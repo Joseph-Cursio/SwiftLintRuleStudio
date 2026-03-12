@@ -8,7 +8,7 @@ extension RuleRegistry {
         }
         // Cancel any existing background loading task
         backgroundLoadingTask?.cancel()
-        
+
         let rulesData = buildRulesData(from: rules, startingIndex: startingIndex)
         backgroundLoadingTask = Task { [swiftLintCLI] in
             await Self.runBackgroundBatches(

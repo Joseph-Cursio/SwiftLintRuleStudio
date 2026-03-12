@@ -3,13 +3,13 @@ import SwiftUI
 struct CodeBlock: View {
     let code: String
     let isError: Bool
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             Rectangle()
                 .fill(isError ? Color.red : Color.green)
                 .frame(width: 4)
-            
+
             Text(code)
                 .font(.system(.body, design: .monospaced))
                 .padding(12)

@@ -22,7 +22,7 @@ struct IsolatedUserDefaults {
         }
         return userDefaults
     }
-    
+
     /// Creates a shared UserDefaults suite for a test suite
     /// Useful when tests need to share state within a suite but isolate from others
     static func createShared(for suiteName: String) -> UserDefaults {
@@ -32,7 +32,7 @@ struct IsolatedUserDefaults {
         }
         return userDefaults
     }
-    
+
     /// Cleans up a UserDefaults suite
     /// Note: UserDefaults doesn't expose suiteName, so we remove all keys manually
     static func cleanup(_ userDefaults: UserDefaults) {
@@ -62,12 +62,12 @@ extension DependencyContainer {
         let testUserDefaults = userDefaults
             ?? UserDefaults(suiteName: "test.DependencyContainer.\(UUID().uuidString)")
             ?? .standard
-        
+
         // Create OnboardingManager with isolated UserDefaults if not provided
         let testOnboardingManager = onboardingManager ?? OnboardingManager(userDefaults: testUserDefaults)
-        
+
         let testViolationStorage = violationStorage ?? (try? ViolationStorage(useInMemory: true))
-        
+
         return DependencyContainer(
             ruleRegistry: ruleRegistry,
             swiftLintCLI: swiftLintCLI,

@@ -12,25 +12,25 @@ import Foundation
 // ImpactSimulator is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 struct ImpactSimulatorWorkflowTests {
-    
+
     // Helper to run ImpactSimulator operations on MainActor
     private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLI) async -> ImpactSimulator {
         return await MainActor.run {
             ImpactSimulator(swiftLintCLI: swiftLintCLI)
         }
     }
-    
+
     // MARK: - Test Helpers
-    
+
     // Use WorkspaceTestHelpers for creating valid Swift workspaces
     // This ensures WorkspaceManager validation passes
-    
+
     private func createSwiftFile(in directory: URL, name: String, content: String) throws -> URL {
         let fileURL = directory.appendingPathComponent(name)
         try content.write(to: fileURL, atomically: true, encoding: .utf8)
         return fileURL
     }
-    
+
     private func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
         let mockCLI = MockSwiftLintCLI()
 
@@ -53,25 +53,25 @@ struct ImpactSimulatorWorkflowTests {
 
         return mockCLI
     }
-    
+
     // MARK: - End-to-End Workflow Tests
-    
+
     @Test("Full workflow: discover safe rules and enable them")
     func testFullWorkflowDiscoverAndEnable() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         // Create Swift files
         _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
-        
+
         let configPath = try writeDisabledRulesConfig(in: tempDir)
         let workspace = Workspace(path: tempDir)
         let mockCLI = MockSwiftLintCLI()
-        
+
         await configureMockCLIForSafeRuleDiscovery(mockCLI)
-        
+
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
-        
+
         // Discover safe rules
         let disabledRuleIds = ["safe_rule_1", "safe_rule_2", "unsafe_rule"]
         let safeRuleIds = try await simulator.findSafeRules(
@@ -79,26 +79,26 @@ struct ImpactSimulatorWorkflowTests {
             baseConfigPath: configPath,
             disabledRuleIds: disabledRuleIds
         )
-        
+
         #expect(safeRuleIds.count == 2)
         #expect(safeRuleIds.contains("safe_rule_1"))
         #expect(safeRuleIds.contains("safe_rule_2"))
         #expect(!safeRuleIds.contains("unsafe_rule"))
-        
+
         let ruleEnablement = try await enableRules(safeRuleIds, configPath: configPath)
         assertRuleEnablement(ruleEnablement)
-        
+
         // At minimum, verify the save operation completed
         #expect(FileManager.default.fileExists(atPath: configPath.path))
     }
-    
+
     @Test("Workflow: simulate rule before enabling")
     func testSimulateBeforeEnable() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
-        
+
         let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLI(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
@@ -112,7 +112,7 @@ struct ImpactSimulatorWorkflowTests {
 
         #expect(result.isSafe == true)
         #expect(result.violationCount == 0)
-        
+
         // Now enable it
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
         let isEnabled = try await MainActor.run {
@@ -121,7 +121,7 @@ struct ImpactSimulatorWorkflowTests {
             var config = yamlEngine.getConfig()
             config.rules["test_rule"] = RuleConfiguration(enabled: true)
             try yamlEngine.save(config: config, createBackup: false)
-            
+
             // Verify it's enabled
             try yamlEngine.load()
             let updatedConfig = yamlEngine.getConfig()
@@ -129,21 +129,21 @@ struct ImpactSimulatorWorkflowTests {
         }
         #expect(isEnabled == true)
     }
-    
+
     @Test("Workflow: batch simulation with progress tracking")
     func testBatchSimulationWithProgress() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         let workspace = Workspace(path: tempDir)
         let mockCLI = MockSwiftLintCLI()
 
         await mockCLI.setLintCommandHandler { _, _ in
             return try JSONSerialization.data(withJSONObject: [])
         }
-        
+
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
-        
+
         let ruleIds = ["rule1", "rule2", "rule3", "rule4", "rule5"]
         let (resultsCount, progressUpdates) = try await simulateBatchWithProgress(
             simulator: simulator,

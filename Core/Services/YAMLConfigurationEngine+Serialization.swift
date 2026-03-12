@@ -9,7 +9,7 @@ extension YAMLConfigurationEngine {
         swiftLintConfig.included = config.included
         swiftLintConfig.excluded = config.excluded
         swiftLintConfig.reporter = config.reporter
-        
+
         // Encode to YAML using Yams
         do {
             // Convert to dictionary for Yams encoding
@@ -17,22 +17,22 @@ extension YAMLConfigurationEngine {
             let node = try Node(dict)
             // Yams.serialize returns a String directly
             let yamlString = try Yams.serialize(node: node)
-            
+
             // Reinsert comments if possible
             return reinsertComments(into: yamlString, config: config)
         } catch {
             throw YAMLConfigError.serializationError(error.localizedDescription)
         }
     }
-    
+
     private func configToDictionary(_ config: YAMLConfig) -> [String: Any] {
         var dict: [String: Any] = [:]
-        
+
         // Add rules
         if !config.rules.isEmpty {
             dict["rules"] = buildRulesDictionary(from: config.rules)
         }
-        
+
         // Add other fields
         if let included = config.included {
             dict["included"] = included
@@ -55,10 +55,10 @@ extension YAMLConfigurationEngine {
         if let onlyRules = config.onlyRules {
             dict["only_rules"] = onlyRules
         }
-        
+
         return dict
     }
-    
+
     private func buildRulesDictionary(from rules: [String: RuleConfiguration]) -> [String: Any] {
         var rulesDict: [String: Any] = [:]
         for (ruleId, ruleConfig) in rules {
@@ -66,7 +66,7 @@ extension YAMLConfigurationEngine {
         }
         return rulesDict
     }
-    
+
     private func ruleDictionaryValue(for ruleConfig: RuleConfiguration) -> Any {
         if isSimpleBooleanRule(ruleConfig, enabled: true) {
             return true
@@ -74,7 +74,7 @@ extension YAMLConfigurationEngine {
         if isSimpleBooleanRule(ruleConfig, enabled: false) {
             return false
         }
-        
+
         var ruleDict: [String: Any] = [:]
         if let severity = ruleConfig.severity {
             ruleDict["severity"] = severity.rawValue
@@ -89,7 +89,7 @@ extension YAMLConfigurationEngine {
         }
         return ruleDict
     }
-    
+
     private func isSimpleBooleanRule(_ ruleConfig: RuleConfiguration, enabled: Bool) -> Bool {
         ruleConfig.severity == nil && ruleConfig.parameters == nil && ruleConfig.enabled == enabled
     }

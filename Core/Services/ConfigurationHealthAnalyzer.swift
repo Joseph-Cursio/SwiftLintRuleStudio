@@ -54,19 +54,19 @@ struct ConfigHealthReport: Identifiable, Sendable {
     let breakdown: ScoreBreakdown
     let recommendations: [HealthRecommendation]
 
+    struct HealthScoreDetail: Sendable {
+        let name: String
+        let score: Int
+        let weight: Int
+        let description: String
+    }
+
     struct ScoreBreakdown: Sendable {
         let rulesCoverage: Int       // 40% weight - enabled rules / total rules
         let categoryBalance: Int     // 20% weight - coverage across categories
         let optInAdoption: Int       // 15% weight - opted-in recommended rules
         let noDeprecatedRules: Int   // 10% weight - no deprecated rules
         let pathConfiguration: Int   // 15% weight - proper excludes set up
-
-        struct HealthScoreDetail: Sendable {
-            let name: String
-            let score: Int
-            let weight: Int
-            let description: String
-        }
 
         var details: [HealthScoreDetail] {
             [

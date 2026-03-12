@@ -8,7 +8,7 @@ extension SwiftLintCLI {
             let (stdout, stderr) = try await commandRunner(command, arguments)
             return try processCommandOutput(stdout: stdout, stderr: stderr)
         }
-        
+
         guard let swiftLintPath = await resolveSwiftLintPath() else {
             return try await executeCommandViaShellFallback(command: command, arguments: arguments)
         }
@@ -17,25 +17,25 @@ extension SwiftLintCLI {
             arguments: arguments
         )
     }
-    
+
     /// Fallback: Execute command via shell - works better with sandboxed apps
     /// The shell's PATH will resolve the command name
     private func executeCommandViaShellFallback(command: String, arguments: [String]) async throws -> Data {
         let shellPath = "/bin/zsh"
-        
+
         let commandString = Self.buildShellCommand(command: command, arguments: arguments)
         return try await runShellProcess(shellPath: shellPath, commandString: commandString)
     }
-    
+
     private func processCommandOutput(stdout: Data, stderr: Data) throws -> Data {
         print("📖 Read \(stdout.count) bytes of output")
-        
+
         // Check for errors in stderr output (SwiftLint writes warnings to stderr even on success)
         if !stderr.isEmpty, let errorMessage = String(data: stderr, encoding: .utf8) {
             if errorMessage.contains("command not found") || errorMessage.contains("swiftlint: command not found") {
                 throw SwiftLintError.notFound
             }
-            
+
             let lowercased = errorMessage.lowercased()
             let isError = lowercased.contains("error:")
             let isWarning = lowercased.contains("warning:")
@@ -44,16 +44,16 @@ extension SwiftLintCLI {
                 throw SwiftLintError.executionFailed(message: errorMessage)
             }
         }
-        
+
         return stdout
     }
-    
+
     struct ReadWithTimeoutResult {
         let stdout: Data
         let stderr: Data
         let didTimeout: Bool
     }
-    
+
     nonisolated static func readWithTimeout(
         timeoutSeconds: UInt64,
         read: @escaping @Sendable () async -> (Data, Data),
@@ -63,7 +63,7 @@ extension SwiftLintCLI {
         var timedOut = false
         var stdout = Data()
         var stderr = Data()
-        
+
         do {
             try await withThrowingTaskGroup(of: (Data, Data).self) { group in
                 group.addTask { @Sendable in
@@ -76,7 +76,7 @@ extension SwiftLintCLI {
                     let message = "SwiftLint command timed out after \(timeoutSeconds) seconds."
                     throw SwiftLintError.executionFailed(message: message)
                 }
-                
+
                 if let result = try await group.next() {
                     stdout = result.0
                     stderr = result.1
@@ -91,10 +91,10 @@ extension SwiftLintCLI {
                 throw error
             }
         }
-        
+
         return ReadWithTimeoutResult(stdout: stdout, stderr: stderr, didTimeout: timedOut)
     }
-    
+
     nonisolated static func readChunks(
         read: @escaping @Sendable () -> Data,
         sleep: @escaping @Sendable (UInt64) async -> Void,

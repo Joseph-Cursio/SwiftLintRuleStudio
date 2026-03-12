@@ -18,20 +18,20 @@ class WorkspaceManager {
     var currentWorkspace: Workspace?
     var recentWorkspaces: [Workspace] = []
     var configFileMissing: Bool = false
-    
+
     let recentWorkspacesKey = "SwiftLintRuleStudio.recentWorkspaces"
     let maxRecentWorkspaces = 10
     let userDefaults: UserDefaults
-    
+
     // MARK: - Initialization
-    
+
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
         loadRecentWorkspaces()
     }
-    
+
     // MARK: - Workspace Selection
-    
+
     /// Open a workspace from a file URL
     func openWorkspace(at url: URL) throws {
         // Validate that the URL is a directory
@@ -40,10 +40,10 @@ class WorkspaceManager {
               isDirectory.boolValue else {
             throw WorkspaceError.notADirectory
         }
-        
+
         // Validate that it's a valid Swift project workspace
         try validateSwiftWorkspace(at: url)
-        
+
         // Check if workspace already exists in recent workspaces
         if let existingIndex = recentWorkspaces.firstIndex(where: { $0.path == url }) {
             // Move existing workspace to top
@@ -58,11 +58,11 @@ class WorkspaceManager {
             currentWorkspace = workspace
             addToRecentWorkspaces(workspace)
         }
-        
+
         // Check if config file exists
         checkConfigFileExists()
     }
-    
+
     /// Close the current workspace
     func closeWorkspace() {
         currentWorkspace = nil
@@ -77,7 +77,7 @@ enum WorkspaceError: LocalizedError {
     case invalidPath
     case accessDenied
     case notASwiftProject(directory: String)
-    
+
     var errorDescription: String? {
         switch self {
         case .notADirectory:
@@ -89,17 +89,17 @@ enum WorkspaceError: LocalizedError {
         case .notASwiftProject(let directory):
             return """
             The selected folder "\(directory)" does not appear to be a valid Swift project workspace.
-            
+
             A valid Swift workspace should contain:
             • Swift source files (.swift)
             • An Xcode project (.xcodeproj) or workspace (.xcworkspace)
             • A Package.swift file (for Swift Package Manager projects)
-            
+
             Please select a directory that contains your Swift project files.
             """
         }
     }
-    
+
     var recoverySuggestion: String? {
         switch self {
         case .notASwiftProject:

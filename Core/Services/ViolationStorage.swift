@@ -27,18 +27,18 @@ protocol ViolationStorageProtocol: Sendable {
 /// SQLite-based violation storage
 /// Uses Swift concurrency actor for thread-safe database access
 actor ViolationStorage: ViolationStorageProtocol {
-    
+
     // MARK: - Properties
-    
+
     let databasePath: URL
     let useInMemory: Bool
     // nonisolated(unsafe) is required because OpaquePointer is not Sendable.
     // Mutated only by actor-isolated closeDatabase() and non-isolated deinit
     // (which runs after all actor tasks complete).
     nonisolated(unsafe) var database: OpaquePointer?
-    
+
     // MARK: - Initialization
-    
+
     init(databasePath: URL? = nil, useInMemory: Bool = false) throws {
         self.useInMemory = useInMemory
 
@@ -52,13 +52,13 @@ actor ViolationStorage: ViolationStorageProtocol {
         // Use sqlite3_close_v2 which safely defers closing until all outstanding
         // statements are finalized — avoids "illegal multi-threaded access" when
         // deinit runs on a thread pool thread while statements are still pending.
-        if let db = database {
-            sqlite3_close_v2(db)
+        if let handle = database {
+            sqlite3_close_v2(handle)
         }
     }
-    
+
     // MARK: - ViolationStorageProtocol
-    
+
 }
 
 // MARK: - Errors
@@ -67,7 +67,7 @@ enum ViolationStorageError: LocalizedError {
     case databaseNotOpen
     case databaseOpenFailed(String)
     case sqlError(String)
-    
+
     var errorDescription: String? {
         switch self {
         case .databaseNotOpen:

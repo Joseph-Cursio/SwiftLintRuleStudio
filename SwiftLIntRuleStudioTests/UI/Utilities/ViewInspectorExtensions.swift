@@ -14,7 +14,7 @@ import SwiftUI
 // Extension for InspectableView to add common interaction helpers
 // Note: This extension works with any InspectableView that can find text and buttons
 extension InspectableView {
-    
+
     /// Finds and taps a button by its text label
     /// - Parameter text: The button text to find
     /// - Throws: If button cannot be found
@@ -23,7 +23,7 @@ extension InspectableView {
         let button = try buttonText.parent().find(ViewType.Button.self)
         try button.tap()
     }
-    
+
     /// Finds a button by its text label
     /// - Parameter text: The button text to find
     /// - Returns: The button view
@@ -32,7 +32,7 @@ extension InspectableView {
         let buttonText = try find(text: text)
         return try buttonText.parent().find(ViewType.Button.self)
     }
-    
+
     /// Finds a text field and sets its input value
     /// - Parameters:
     ///   - input: The text to enter
@@ -64,7 +64,7 @@ extension InspectableView {
         // For now, return first text field - can be enhanced if needed
         return textFields[0]
     }
-    
+
     /// Verifies that text exists in the view
     /// - Parameter text: The text to search for
     /// - Returns: True if text is found, false otherwise
@@ -76,7 +76,7 @@ extension InspectableView {
             return false
         }
     }
-    
+
     /// Verifies that a view type exists
     /// - Parameter viewType: The view type to search for
     /// - Returns: True if view type is found, false otherwise
@@ -86,7 +86,7 @@ extension InspectableView {
         // For example: find(ViewType.List.self), find(ViewType.Button.self), etc.
         return false
     }
-    
+
     /// Finds a navigation link by its label text
     /// - Parameter text: The navigation link label text
     /// - Returns: The navigation link view
@@ -95,7 +95,7 @@ extension InspectableView {
         let linkText = try find(text: text)
         return try linkText.parent().find(ViewType.NavigationLink.self)
     }
-    
+
     /// Taps a navigation link by its label text
     /// - Parameter text: The navigation link label text
     /// - Throws: If navigation link cannot be found
@@ -103,7 +103,7 @@ extension InspectableView {
         let link = try findNavigationLink(text: text)
         try link.activate()
     }
-    
+
     /// Finds a picker by its selection binding or label
     /// - Parameter label: Optional label text to find the picker
     /// - Returns: The picker view
@@ -118,7 +118,7 @@ extension InspectableView {
             return try find(ViewType.Picker.self)
         }
     }
-    
+
     /// Waits for a view to appear (useful for async state changes)
     /// - Parameters:
     ///   - text: The text to wait for

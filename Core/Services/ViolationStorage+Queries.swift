@@ -6,7 +6,7 @@ extension ViolationStorage {
         filter: ViolationFilter,
         workspaceId: UUID?
     ) throws -> [Violation] {
-        guard let db = database else {
+        guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
         }
         let query = buildFilterQuery(filter: filter, workspaceId: workspaceId)
@@ -16,68 +16,68 @@ extension ViolationStorage {
             "FROM violations \(query.whereClause)",
             "ORDER BY detected_at DESC;"
         ].joined(separator: " ")
-        
+
         var statement: OpaquePointer?
         defer {
             if statement != nil {
                 sqlite3_finalize(statement)
             }
         }
-        
-        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+
+        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
-        
+
         let bindError = "Failed to allocate memory for parameter"
         try bindParameters(query.parameters, to: statement, errorMessagePrefix: bindError)
-        
+
         var violations: [Violation] = []
-        
+
         while sqlite3_step(statement) == SQLITE_ROW {
             if let violation = parseViolation(from: statement) {
                 violations.append(violation)
             }
         }
-        
+
         return violations
     }
-    
+
     func getViolationCount(
         filter: ViolationFilter,
         workspaceId: UUID?
     ) throws -> Int {
-        guard let db = database else {
+        guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
         }
         let query = buildFilterQuery(filter: filter, workspaceId: workspaceId)
         let sql = "SELECT COUNT(*) FROM violations \(query.whereClause);"
-        
+
         var statement: OpaquePointer?
         defer {
             if statement != nil {
                 sqlite3_finalize(statement)
             }
         }
-        
-        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+
+        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
-        
+
         let countError = "Failed to allocate memory for count parameter"
         try bindParameters(query.parameters, to: statement, errorMessagePrefix: countError)
-        
+
         guard sqlite3_step(statement) == SQLITE_ROW else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
-        
+
         return Int(sqlite3_column_int(statement, 0))
     }
-    
+
     private struct FilterQuery {
         let whereClause: String
         let parameters: [Any]
     }
-    
+
     private func buildFilterQuery(filter: ViolationFilter, workspaceId: UUID?) -> FilterQuery {
         var conditions: [String] = []
         var parameters: [Any] = []
@@ -119,7 +119,7 @@ extension ViolationStorage {
         let whereClause = conditions.isEmpty ? "" : "WHERE " + conditions.joined(separator: " AND ")
         return FilterQuery(whereClause: whereClause, parameters: parameters)
     }
-    
+
     private func bindParameters(
         _ parameters: [Any],
         to statement: OpaquePointer?,
@@ -139,7 +139,7 @@ extension ViolationStorage {
             }
         }
     }
-    
+
     private func parseViolation(from statement: OpaquePointer?) -> Violation? {
         guard let idString = sqlite3_column_text(statement, 0),
               let id = UUID(uuidString: String(cString: idString)),

@@ -46,9 +46,9 @@ final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
     func listBackups(for configPath: URL) -> [ConfigBackup] {
         let directory = configPath.deletingLastPathComponent()
         let configFileName = configPath.lastPathComponent
-        let fm = FileManager.default
+        let fileManager = FileManager.default
 
-        guard let contents = try? fm.contentsOfDirectory(
+        guard let contents = try? fileManager.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: [.fileSizeKey],
             options: []
@@ -91,15 +91,15 @@ final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
     }
 
     func restoreBackup(_ backup: ConfigBackup, to configPath: URL) throws {
-        let fm = FileManager.default
+        let fileManager = FileManager.default
 
         // Create a safety backup of current config before restoring
-        if fm.fileExists(atPath: configPath.path) {
+        if fileManager.fileExists(atPath: configPath.path) {
             let timestamp = Int(Date().timeIntervalSince1970)
             let safetyBackupName = "\(configPath.lastPathComponent).\(timestamp).backup"
             let safetyBackupPath = configPath.deletingLastPathComponent()
                 .appendingPathComponent(safetyBackupName)
-            try fm.copyItem(at: configPath, to: safetyBackupPath)
+            try fileManager.copyItem(at: configPath, to: safetyBackupPath)
         }
 
         // Copy backup content to config path

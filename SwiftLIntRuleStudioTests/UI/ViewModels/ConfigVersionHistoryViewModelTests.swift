@@ -44,15 +44,15 @@ struct ConfigVersionHistoryViewModelTests {
     @Test("Initial state has empty backups and no selection")
     func testInitialState() {
         let service = SpyVersionHistoryService()
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: nil)
-        #expect(vm.backups.isEmpty)
-        #expect(vm.selectedBackup == nil)
-        #expect(vm.comparisonBackup == nil)
-        #expect(vm.currentDiff == nil)
-        #expect(!vm.isLoading)
-        #expect(!vm.showRestoreConfirmation)
-        #expect(vm.backupToRestore == nil)
-        #expect(vm.error == nil)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: nil)
+        #expect(viewModel.backups.isEmpty)
+        #expect(viewModel.selectedBackup == nil)
+        #expect(viewModel.comparisonBackup == nil)
+        #expect(viewModel.currentDiff == nil)
+        #expect(!viewModel.isLoading)
+        #expect(!viewModel.showRestoreConfirmation)
+        #expect(viewModel.backupToRestore == nil)
+        #expect(viewModel.error == nil)
     }
 
     // MARK: - loadBackups
@@ -60,9 +60,9 @@ struct ConfigVersionHistoryViewModelTests {
     @Test("loadBackups with nil configPath returns empty list and does not call service")
     func testLoadBackupsNilPath() {
         let service = SpyVersionHistoryService()
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: nil)
-        vm.loadBackups()
-        #expect(vm.backups.isEmpty)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: nil)
+        viewModel.loadBackups()
+        #expect(viewModel.backups.isEmpty)
         #expect(service.listBackupsCallCount == 0)
     }
 
@@ -71,12 +71,12 @@ struct ConfigVersionHistoryViewModelTests {
         let backup1 = makeBackup(timestamp: Date(timeIntervalSince1970: 1_000))
         let backup2 = makeBackup(timestamp: Date(timeIntervalSince1970: 2_000))
         let service = SpyVersionHistoryService(backups: [backup1, backup2])
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.loadBackups()
+        viewModel.loadBackups()
 
-        #expect(vm.backups.count == 2)
-        #expect(!vm.isLoading)
+        #expect(viewModel.backups.count == 2)
+        #expect(!viewModel.isLoading)
         #expect(service.listBackupsCallCount == 1)
     }
 
@@ -84,9 +84,9 @@ struct ConfigVersionHistoryViewModelTests {
     func testLoadBackupsPassesCorrectPath() {
         let expectedPath = URL(fileURLWithPath: "/project/.swiftlint.yml")
         let service = SpyVersionHistoryService()
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: expectedPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: expectedPath)
 
-        vm.loadBackups()
+        viewModel.loadBackups()
 
         #expect(service.lastListBackupsPath == expectedPath)
     }
@@ -97,13 +97,13 @@ struct ConfigVersionHistoryViewModelTests {
     func testFirstSelectionSetsSelectedBackup() {
         let backup = makeBackup()
         let service = SpyVersionHistoryService(backups: [backup])
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.selectForComparison(backup)
+        viewModel.selectForComparison(backup)
 
-        #expect(vm.selectedBackup?.id == backup.id)
-        #expect(vm.comparisonBackup == nil)
-        #expect(vm.currentDiff == nil)
+        #expect(viewModel.selectedBackup?.id == backup.id)
+        #expect(viewModel.comparisonBackup == nil)
+        #expect(viewModel.currentDiff == nil)
     }
 
     @Test("Second selectForComparison call sets comparisonBackup and generates diff")
@@ -112,14 +112,14 @@ struct ConfigVersionHistoryViewModelTests {
         let backup2 = makeBackup(timestamp: Date(timeIntervalSince1970: 2_000))
         let diff = makeDiff(addedRules: ["force_cast"])
         let service = SpyVersionHistoryService(backups: [backup1, backup2], diffResult: diff)
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.selectForComparison(backup1)
-        vm.selectForComparison(backup2)
+        viewModel.selectForComparison(backup1)
+        viewModel.selectForComparison(backup2)
 
-        #expect(vm.selectedBackup?.id == backup1.id)
-        #expect(vm.comparisonBackup?.id == backup2.id)
-        #expect(vm.currentDiff?.addedRules.contains("force_cast") == true)
+        #expect(viewModel.selectedBackup?.id == backup1.id)
+        #expect(viewModel.comparisonBackup?.id == backup2.id)
+        #expect(viewModel.currentDiff?.addedRules.contains("force_cast") == true)
     }
 
     @Test("Third selectForComparison call resets selection to the new backup")
@@ -128,15 +128,15 @@ struct ConfigVersionHistoryViewModelTests {
         let backup2 = makeBackup(timestamp: Date(timeIntervalSince1970: 2_000))
         let backup3 = makeBackup(timestamp: Date(timeIntervalSince1970: 3_000))
         let service = SpyVersionHistoryService(backups: [backup1, backup2, backup3])
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.selectForComparison(backup1)
-        vm.selectForComparison(backup2)
-        vm.selectForComparison(backup3)
+        viewModel.selectForComparison(backup1)
+        viewModel.selectForComparison(backup2)
+        viewModel.selectForComparison(backup3)
 
-        #expect(vm.selectedBackup?.id == backup3.id)
-        #expect(vm.comparisonBackup == nil)
-        #expect(vm.currentDiff == nil)
+        #expect(viewModel.selectedBackup?.id == backup3.id)
+        #expect(viewModel.comparisonBackup == nil)
+        #expect(viewModel.currentDiff == nil)
     }
 
     @Test("Diff generation error is stored in error property")
@@ -144,13 +144,13 @@ struct ConfigVersionHistoryViewModelTests {
         let backup1 = makeBackup()
         let backup2 = makeBackup()
         let service = SpyVersionHistoryService(shouldThrowOnDiff: true)
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.selectForComparison(backup1)
-        vm.selectForComparison(backup2)
+        viewModel.selectForComparison(backup1)
+        viewModel.selectForComparison(backup2)
 
-        #expect(vm.error != nil)
-        #expect(vm.currentDiff == nil)
+        #expect(viewModel.error != nil)
+        #expect(viewModel.currentDiff == nil)
     }
 
     // MARK: - clearComparison
@@ -161,15 +161,15 @@ struct ConfigVersionHistoryViewModelTests {
         let backup2 = makeBackup()
         let diff = makeDiff()
         let service = SpyVersionHistoryService(diffResult: diff)
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.selectForComparison(backup1)
-        vm.selectForComparison(backup2)
-        vm.clearComparison()
+        viewModel.selectForComparison(backup1)
+        viewModel.selectForComparison(backup2)
+        viewModel.clearComparison()
 
-        #expect(vm.selectedBackup == nil)
-        #expect(vm.comparisonBackup == nil)
-        #expect(vm.currentDiff == nil)
+        #expect(viewModel.selectedBackup == nil)
+        #expect(viewModel.comparisonBackup == nil)
+        #expect(viewModel.currentDiff == nil)
     }
 
     // MARK: - confirmRestore / restoreVersion
@@ -178,26 +178,26 @@ struct ConfigVersionHistoryViewModelTests {
     func testConfirmRestore() {
         let backup = makeBackup()
         let service = SpyVersionHistoryService()
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.confirmRestore(backup)
+        viewModel.confirmRestore(backup)
 
-        #expect(vm.showRestoreConfirmation == true)
-        #expect(vm.backupToRestore?.id == backup.id)
+        #expect(viewModel.showRestoreConfirmation == true)
+        #expect(viewModel.backupToRestore?.id == backup.id)
     }
 
     @Test("restoreVersion delegates to service and reloads backups")
     func testRestoreVersionCallsService() {
         let backup = makeBackup()
         let service = SpyVersionHistoryService(backups: [backup])
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.confirmRestore(backup)
-        vm.restoreVersion()
+        viewModel.confirmRestore(backup)
+        viewModel.restoreVersion()
 
         #expect(service.restoreCallCount == 1)
-        #expect(vm.backupToRestore == nil)
-        #expect(vm.error == nil)
+        #expect(viewModel.backupToRestore == nil)
+        #expect(viewModel.error == nil)
         // loadBackups is called again after restore
         #expect(service.listBackupsCallCount == 1)
     }
@@ -206,10 +206,10 @@ struct ConfigVersionHistoryViewModelTests {
     func testRestoreVersionNilPath() {
         let backup = makeBackup()
         let service = SpyVersionHistoryService()
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: nil)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: nil)
 
-        vm.confirmRestore(backup)
-        vm.restoreVersion()
+        viewModel.confirmRestore(backup)
+        viewModel.restoreVersion()
 
         #expect(service.restoreCallCount == 0)
     }
@@ -218,13 +218,13 @@ struct ConfigVersionHistoryViewModelTests {
     func testRestoreVersionError() {
         let backup = makeBackup()
         let service = SpyVersionHistoryService(shouldThrowOnRestore: true)
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.confirmRestore(backup)
-        vm.restoreVersion()
+        viewModel.confirmRestore(backup)
+        viewModel.restoreVersion()
 
-        #expect(vm.error != nil)
-        #expect(vm.backupToRestore == nil)
+        #expect(viewModel.error != nil)
+        #expect(viewModel.backupToRestore == nil)
     }
 
     // MARK: - pruneOld
@@ -232,9 +232,9 @@ struct ConfigVersionHistoryViewModelTests {
     @Test("pruneOld delegates to service with correct keepCount and reloads backups")
     func testPruneOldDelegates() {
         let service = SpyVersionHistoryService()
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.pruneOld(keepCount: 3)
+        viewModel.pruneOld(keepCount: 3)
 
         #expect(service.pruneCallCount == 1)
         #expect(service.lastPruneKeepCount == 3)
@@ -245,11 +245,11 @@ struct ConfigVersionHistoryViewModelTests {
     @Test("pruneOld on service error stores error property")
     func testPruneOldError() {
         let service = SpyVersionHistoryService(shouldThrowOnPrune: true)
-        let vm = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
+        let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
-        vm.pruneOld(keepCount: 5)
+        viewModel.pruneOld(keepCount: 5)
 
-        #expect(vm.error != nil)
+        #expect(viewModel.error != nil)
     }
 }
 

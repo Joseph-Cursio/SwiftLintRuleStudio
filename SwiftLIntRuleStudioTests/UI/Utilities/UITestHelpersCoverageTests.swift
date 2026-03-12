@@ -13,7 +13,7 @@ import ViewInspector
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
 struct UITestHelpersCoverageTests {
-    
+
     @Test("UITestDataFactory creates rules and violations")
     // swiftlint:disable:next function_body_length
     func testDataFactoryRulesAndViolations() async throws {
@@ -30,7 +30,7 @@ struct UITestHelpersCoverageTests {
             defaultSeverity: .error,
             markdownDocumentation: "Docs"
         )
-        
+
         let ruleValues = await MainActor.run {
             (
                 rule.id,
@@ -55,7 +55,7 @@ struct UITestHelpersCoverageTests {
         #expect(ruleValues.7 == "5.9")
         #expect(ruleValues.8 == .error)
         #expect(ruleValues.9 == "Docs")
-        
+
         let rules = await UITestDataFactory.createTestRules(count: 3, prefix: "rule")
         let ruleCategories = await MainActor.run {
             (rules.count, rules[0].category, rules[1].category)
@@ -63,7 +63,7 @@ struct UITestHelpersCoverageTests {
         #expect(ruleCategories.0 == 3)
         #expect(ruleCategories.1 == .lint)
         #expect(ruleCategories.2 == .style)
-        
+
         let violation = UITestDataFactory.createTestViolation(
             ruleID: "rule_id",
             filePath: "File.swift",
@@ -72,7 +72,7 @@ struct UITestHelpersCoverageTests {
             suppressed: true,
             suppressionReason: "Testing"
         )
-        
+
         let violationValues = await MainActor.run {
             (
                 violation.ruleID,
@@ -89,12 +89,12 @@ struct UITestHelpersCoverageTests {
         #expect(violationValues.3 == .error)
         #expect(violationValues.4 == true)
         #expect(violationValues.5 == "Testing")
-        
+
         let violations = await UITestDataFactory.createTestViolations(count: 2)
         let violationCount = await MainActor.run { violations.count }
         #expect(violationCount == 2)
     }
-    
+
     @Test("UITestDataFactory creates workspaces")
     func testWorkspaceFactory() async throws {
         let workspace = UITestDataFactory.createTestWorkspace(name: "Workspace")
@@ -104,7 +104,7 @@ struct UITestHelpersCoverageTests {
         #expect(workspaceValues.0 == "Workspace")
         #expect(workspaceValues.1 == false)
     }
-    
+
     @Test("UIViewTestHelpers create dependency containers and views")
     func testViewHelpers() async throws {
         let container = await UIViewTestHelpers.createTestDependencyContainer()
@@ -112,7 +112,7 @@ struct UITestHelpersCoverageTests {
             container.workspaceManager.recentWorkspaces.isEmpty
         }
         #expect(isRecentWorkspacesEmpty == true)
-        
+
         let view = Text("Hello")
         let hasHelloText = await MainActor.run {
             let wrappedView = UIViewTestHelpers.createViewWithDependencies(view, dependencyContainer: container)
@@ -122,7 +122,7 @@ struct UITestHelpersCoverageTests {
             return (try? wrappedView.inspect().find(text: "Hello")) != nil
         }
         #expect(hasHelloText == true)
-        
+
         let hasFullText = await MainActor.run {
             let fullView = UIViewTestHelpers.createViewWithFullDependencies(Text("Full"))
             ViewHosting.expel()
@@ -132,7 +132,7 @@ struct UITestHelpersCoverageTests {
         }
         #expect(hasFullText == true)
     }
-    
+
     @Test("UIViewTestHelpers create managers for testing")
     func testManagerHelpers() async throws {
         let onboardingManager = await UIViewTestHelpers.createTestOnboardingManager(testName: #function)
@@ -141,7 +141,7 @@ struct UITestHelpersCoverageTests {
         }
         #expect(onboardingValues.0 == .welcome)
         #expect(onboardingValues.1 == false)
-        
+
         let workspaceManager = await UIViewTestHelpers.createTestWorkspaceManager(testName: #function)
         let workspaceValues = await MainActor.run {
             (workspaceManager.currentWorkspace == nil, workspaceManager.recentWorkspaces.isEmpty)
@@ -149,7 +149,7 @@ struct UITestHelpersCoverageTests {
         #expect(workspaceValues.0 == true)
         #expect(workspaceValues.1 == true)
     }
-    
+
     @Test("UITestAssertions validate common view expectations")
     func testAssertionsHelpers() async throws {
         try await MainActor.run {
@@ -157,7 +157,7 @@ struct UITestHelpersCoverageTests {
             try UITestAssertions.assertContainsText(textView, text: "Hello")
             try UITestAssertions.assertNotContainsText(textView, text: "Missing")
             try UITestAssertions.assertContainsViewType(textView, ViewType.Text.self)
-            
+
             let buttonView = VStack {
                 Text("Tap Me")
                 Button("Tap Me") {}
@@ -165,32 +165,32 @@ struct UITestHelpersCoverageTests {
             try UITestAssertions.assertButtonExists(buttonView, text: "Tap Me")
         }
     }
-    
+
     @Test("UIAsyncTestHelpers wait for conditions and text")
     func testAsyncHelpers() async throws {
         let conditionTrue = await UIAsyncTestHelpers.waitForCondition(timeout: 0.2) {
             true
         }
         #expect(conditionTrue == true)
-        
+
         let conditionFalse = await UIAsyncTestHelpers.waitForCondition(timeout: 0.05) {
             false
         }
         #expect(conditionFalse == false)
-        
+
         let textFound = await Task { @MainActor in
             let view = Text("Async Text")
             return await UIAsyncTestHelpers.waitForText(in: view, text: "Async Text", timeout: 0.2)
         }.value
         #expect(textFound == true)
-        
+
         let viewTypeFound = await Task { @MainActor in
             let view = Text("Async Text")
             return await UIAsyncTestHelpers.waitForViewType(in: view, ViewType.Text.self, timeout: 0.05)
         }.value
         #expect(viewTypeFound == false)
     }
-    
+
     @Test("ViewInspector extensions support common interactions")
     // swiftlint:disable:next function_body_length
     func testViewInspectorExtensions() async throws {
@@ -202,14 +202,14 @@ struct UITestHelpersCoverageTests {
                 }
             }
         }
-        
+
         struct TextFieldView: View {
             @State private var name = ""
             var body: some View {
                 TextField("Name", text: $name)
             }
         }
-        
+
         struct PickerView: View {
             @State private var selection = "A"
             var body: some View {
@@ -222,7 +222,7 @@ struct UITestHelpersCoverageTests {
                 }
             }
         }
-        
+
         struct NavigationLinkView: View {
             @State private var selection: String?
             var body: some View {
@@ -238,7 +238,7 @@ struct UITestHelpersCoverageTests {
                 }
             }
         }
-        
+
         let hasButton = try await MainActor.run {
             let buttonView = ButtonView()
             ViewHosting.expel()
@@ -249,7 +249,7 @@ struct UITestHelpersCoverageTests {
             _ = try buttonInspector.findButton(text: "Tap Me")
             return true
         }
-        
+
         let inputValue = try await MainActor.run {
             let textFieldView = TextFieldView()
             ViewHosting.expel()
@@ -261,7 +261,7 @@ struct UITestHelpersCoverageTests {
             _ = try textFieldInspector.findTextField(placeholder: "Name")
             return inputValue
         }
-        
+
         let hasPicker = try await MainActor.run {
             let pickerView = PickerView()
             ViewHosting.expel()
@@ -271,7 +271,7 @@ struct UITestHelpersCoverageTests {
             _ = try pickerInspector.findPicker(label: "Options")
             return true
         }
-        
+
         try await MainActor.run {
             let linkView = NavigationLinkView()
             ViewHosting.expel()
@@ -281,11 +281,11 @@ struct UITestHelpersCoverageTests {
             _ = try linkInspector.findNavigationLink(text: "Details")
             try linkInspector.tapNavigationLink(text: "Details")
         }
-        
+
         #expect(hasButton == true)
         #expect(inputValue == "Ada" || inputValue.isEmpty)
         #expect(hasPicker == true)
-        
+
         let waitSuccess = await Task { @MainActor in
             do {
                 let textView = Text("Hello")
@@ -296,7 +296,7 @@ struct UITestHelpersCoverageTests {
             }
         }.value
         #expect(waitSuccess == true)
-        
+
         let viewTypeFound = await Task { @MainActor in
             do {
                 let textView = Text("Hello")

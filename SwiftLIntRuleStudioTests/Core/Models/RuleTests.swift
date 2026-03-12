@@ -12,7 +12,7 @@ import Testing
 // Model tests don't need @MainActor - but Swift 6 false positive requires it temporarily
 @MainActor
 struct RuleTests {
-    
+
     @Test("Rule can be created with all properties")
     func testRuleCreation() {
         let rule = Rule(
@@ -27,14 +27,14 @@ struct RuleTests {
             nonTriggeringExamples: ["let x = y as? String"],
             documentation: nil
         )
-        
+
         #expect(rule.id == "force_cast")
         #expect(rule.name == "Force Cast")
         #expect(rule.category == .lint)
         #expect(rule.isOptIn == false)
         #expect(rule.severity == .error)
     }
-    
+
     @Test("RuleCategory has correct display names")
     func testRuleCategoryDisplayNames() {
         #expect(RuleCategory.style.displayName == "Style")
@@ -43,13 +43,13 @@ struct RuleTests {
         #expect(RuleCategory.performance.displayName == "Performance")
         #expect(RuleCategory.idiomatic.displayName == "Idiomatic")
     }
-    
+
     @Test("Severity has correct display names")
     func testSeverityDisplayNames() {
         #expect(Severity.warning.displayName == "Warning")
         #expect(Severity.error.displayName == "Error")
     }
-    
+
     @Test("Rule is Codable")
     func testRuleCodable() throws {
         let rule = Rule(
@@ -64,13 +64,13 @@ struct RuleTests {
             nonTriggeringExamples: ["good code"],
             documentation: nil
         )
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(rule)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(Rule.self, from: data)
-        
+
         #expect(decoded.id == rule.id)
         #expect(decoded.name == rule.name)
         #expect(decoded.category == rule.category)

@@ -65,9 +65,9 @@ class ViolationInspectorViewModel {
     var currentWorkspace: Workspace?
     @ObservationIgnored var isInitialized = false
     @ObservationIgnored var isUpdatingSelection = false
-    
+
     // MARK: - Initialization
-    
+
     init(violationStorage: ViolationStorageProtocol, workspaceAnalyzer: WorkspaceAnalyzer? = nil) {
         self.violationStorage = violationStorage
         self.workspaceAnalyzer = workspaceAnalyzer
@@ -75,5 +75,5 @@ class ViolationInspectorViewModel {
         // This prevents didSet observers from running during initialization
         self.isInitialized = true
     }
-    
+
 }

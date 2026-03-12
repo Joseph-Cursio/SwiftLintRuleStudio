@@ -18,9 +18,9 @@ import SwiftUI
 // to allow parallel test execution
 @Suite(.serialized)
 struct RuleDisplayConsistencyTests {
-    
+
     // MARK: - Test Data Helpers
-    
+
     private func makeTestRule(id: String, name: String, isEnabled: Bool, isOptIn: Bool = false) -> Rule {
         Rule(
             id: id,
@@ -40,7 +40,7 @@ struct RuleDisplayConsistencyTests {
             markdownDocumentation: nil
         )
     }
-    
+
     // Helper to create RuleDetailView with environment objects
     // Workaround for Swift 6 strict concurrency: Keep helper @MainActor
     // because 'AnyView' cannot be returned from Task.value (requires Sendable)
@@ -50,7 +50,7 @@ struct RuleDisplayConsistencyTests {
         return AnyView(RuleDetailView(rule: rule)
             .environment(\.dependencies, container))
     }
-    
+
     // Synchronous version for use within MainActor.run blocks
     @MainActor
     private func createRuleDetailViewSync(rule: Rule) -> AnyView {
@@ -58,16 +58,16 @@ struct RuleDisplayConsistencyTests {
         return AnyView(RuleDetailView(rule: rule)
             .environment(\.dependencies, container))
     }
-    
+
     // MARK: - Enabled State Consistency Tests
-    
+
     @Test("RuleListItem shows enabled state")
     func testRuleListItemShowsEnabledState() async throws {
         let enabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
         let view = await MainActor.run {
             RuleListItem(rule: enabledRule)
         }
-        
+
         // Inspect the view to find the enabled label
         let hasEnabledLabel = await MainActor.run {
             (try? view.inspect().find(ViewType.Text.self, where: { view in
@@ -76,14 +76,14 @@ struct RuleDisplayConsistencyTests {
         }
         #expect(hasEnabledLabel == true, "RuleListItem should show 'Enabled' label for enabled rules")
     }
-    
+
     @Test("RuleListItem hides enabled state for disabled rules")
     func testRuleListItemHidesEnabledStateForDisabledRules() async throws {
         let disabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
         let view = await MainActor.run {
             RuleListItem(rule: disabledRule)
         }
-        
+
         // Try to find the enabled label - it should not exist
         let foundEnabled = await MainActor.run {
             (try? view.inspect().find(ViewType.Text.self, where: { view in
@@ -92,11 +92,11 @@ struct RuleDisplayConsistencyTests {
         }
         #expect(foundEnabled == false, "RuleListItem should not show 'Enabled' label for disabled rules")
     }
-    
+
     @Test("RuleDetailView shows enabled state")
     func testRuleDetailViewShowsEnabledState() async throws {
         let enabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
-        
+
         // Inspect the view to find the enabled label in the header
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasEnabledLabel = await MainActor.run {
@@ -107,11 +107,11 @@ struct RuleDisplayConsistencyTests {
         }
         #expect(hasEnabledLabel == true, "RuleDetailView should show 'Enabled' label for enabled rules")
     }
-    
+
     @Test("RuleDetailView toggle matches enabled state")
     func testRuleDetailViewToggleMatchesEnabledState() async throws {
         let enabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
-        
+
         // Find the toggle in the toolbar
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let isOn = try await MainActor.run {
@@ -121,64 +121,64 @@ struct RuleDisplayConsistencyTests {
         }
         #expect(isOn == true, "RuleDetailView toggle should be ON for enabled rules")
     }
-    
+
     // MARK: - Consistency Between Views Tests
-    
+
     @Test("Enabled state is consistent between list and detail views")
     func testEnabledStateConsistencyBetweenListAndDetail() async throws {
         // Test with enabled rule
         let enabledRule = makeTestRule(id: "duplicate_imports", name: "Duplicate Imports", isEnabled: true)
-        
+
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let (listShowsEnabled, detailShowsEnabled, toggleIsOn) = try await MainActor.run {
             let listView = RuleListItem(rule: enabledRule)
             let detailView = createRuleDetailViewSync(rule: enabledRule)
-            
+
             let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self, where: { view in
                 try view.string() == "Enabled"
             })) != nil
-            
+
             let detailShowsEnabled = (try? detailView.inspect().find(ViewType.Text.self, where: { view in
                 try view.string() == "Enabled"
             })) != nil
-            
+
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
             let toggleIsOn = try toggle.isOn()
-            
+
             return (listShowsEnabled, detailShowsEnabled, toggleIsOn)
         }
-        
+
         #expect(listShowsEnabled == true, "List view should show enabled state")
         #expect(detailShowsEnabled == true, "Detail view should show enabled state")
         #expect(toggleIsOn == true, "Detail view toggle should match enabled state")
     }
-    
+
     @Test("Disabled state is consistent between list and detail views")
     func testDisabledStateConsistencyBetweenListAndDetail() async throws {
         // Test with disabled rule
         let disabledRule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
-        
+
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let (listShowsEnabled, toggleIsOn) = try await MainActor.run {
             let listView = RuleListItem(rule: disabledRule)
             let detailView = createRuleDetailViewSync(rule: disabledRule)
-            
+
             let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self, where: { view in
                 try view.string() == "Enabled"
             })) != nil
-            
+
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
             let toggleIsOn = try toggle.isOn()
-            
+
             return (listShowsEnabled, toggleIsOn)
         }
-        
+
         #expect(listShowsEnabled == false, "List view should not show enabled state for disabled rules")
         #expect(toggleIsOn == false, "Detail view toggle should be OFF for disabled rules")
     }
-    
+
     // MARK: - Specific Rule Tests
-    
+
     @Test("Duplicate imports rule shows consistent state")
     func testDuplicateImportsRuleConsistency() async throws {
         // Create a rule matching the reported issue
@@ -187,32 +187,32 @@ struct RuleDisplayConsistencyTests {
             name: "Duplicate Imports",
             isEnabled: true
         )
-        
+
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let (listShowsEnabled, detailShowsEnabled, toggleIsOn) = try await MainActor.run {
             let listView = RuleListItem(rule: duplicateImportsRule)
             let detailView = createRuleDetailViewSync(rule: duplicateImportsRule)
-            
+
             let listShowsEnabled = (try? listView.inspect().find(text: "Enabled")) != nil
             let detailShowsEnabled = (try? detailView.inspect().find(text: "Enabled")) != nil
-            
+
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
             let toggleIsOn = try toggle.isOn()
-            
+
             return (listShowsEnabled, detailShowsEnabled, toggleIsOn)
         }
-        
+
         #expect(listShowsEnabled == true, "duplicate_imports should show as enabled in list")
         #expect(detailShowsEnabled == true, "duplicate_imports should show as enabled in detail header")
         #expect(toggleIsOn == true, "duplicate_imports toggle should be ON")
     }
-    
+
     // MARK: - State Synchronization Tests
-    
+
     @Test("RuleDetailView syncs state on appear")
     func testDetailViewSyncsOnAppear() async throws {
         var rule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
-        
+
         // Initially toggle should be off
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         var toggleIsOn = try await MainActor.run {
@@ -221,10 +221,10 @@ struct RuleDisplayConsistencyTests {
             return try toggle.isOn()
         }
         #expect(toggleIsOn == false, "Toggle should start as OFF")
-        
+
         // Update rule to enabled
         rule = makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: true)
-        
+
         // After creating new view with updated rule, toggle should sync
         // Note: This tests that init properly sets the state
         toggleIsOn = try await MainActor.run {
@@ -234,9 +234,9 @@ struct RuleDisplayConsistencyTests {
         }
         #expect(toggleIsOn == true, "Toggle should sync to rule's enabled state")
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func findEnabledLabel(in view: InspectableView<ViewType.View<RuleListItem>>) -> Bool {
         do {
             _ = try view.find(ViewType.Text.self, where: { textView in

@@ -317,27 +317,27 @@ class ConfigurationValidator: ConfigurationValidatorProtocol {
     }
 
     /// Calculate Levenshtein edit distance between two strings
-    private func levenshteinDistance(_ s1: String, _ s2: String) -> Int {
-        let s1Array = Array(s1)
-        let s2Array = Array(s2)
-        let rows = s1Array.count
-        let cols = s2Array.count
+    private func levenshteinDistance(_ source: String, _ target: String) -> Int {
+        let sourceChars = Array(source)
+        let targetChars = Array(target)
+        let rows = sourceChars.count
+        let cols = targetChars.count
 
         if rows == 0 { return cols }
         if cols == 0 { return rows }
 
         var matrix = [[Int]](repeating: [Int](repeating: 0, count: cols + 1), count: rows + 1)
 
-        for i in 0...rows { matrix[i][0] = i }
-        for j in 0...cols { matrix[0][j] = j }
+        for row in 0...rows { matrix[row][0] = row }
+        for col in 0...cols { matrix[0][col] = col }
 
-        for i in 1...rows {
-            for j in 1...cols {
-                let cost = s1Array[i - 1] == s2Array[j - 1] ? 0 : 1
-                matrix[i][j] = min(
-                    matrix[i - 1][j] + 1,      // deletion
-                    matrix[i][j - 1] + 1,      // insertion
-                    matrix[i - 1][j - 1] + cost  // substitution
+        for row in 1...rows {
+            for col in 1...cols {
+                let cost = sourceChars[row - 1] == targetChars[col - 1] ? 0 : 1
+                matrix[row][col] = min(
+                    matrix[row - 1][col] + 1,      // deletion
+                    matrix[row][col - 1] + 1,      // insertion
+                    matrix[row - 1][col - 1] + cost  // substitution
                 )
             }
         }

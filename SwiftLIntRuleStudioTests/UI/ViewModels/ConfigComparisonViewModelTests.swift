@@ -36,22 +36,22 @@ struct ConfigComparisonViewModelTests {
         let workspaceDir = URL(fileURLWithPath: "/project/left")
         let workspace = Workspace(path: workspaceDir)
         let service = SpyConfigComparisonService()
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: workspace)
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: workspace)
 
-        #expect(vm.leftWorkspacePath == workspace.configPath)
-        #expect(vm.rightWorkspacePath == nil)
-        #expect(vm.comparisonResult == nil)
-        #expect(!vm.isComparing)
-        #expect(vm.error == nil)
+        #expect(viewModel.leftWorkspacePath == workspace.configPath)
+        #expect(viewModel.rightWorkspacePath == nil)
+        #expect(viewModel.comparisonResult == nil)
+        #expect(!viewModel.isComparing)
+        #expect(viewModel.error == nil)
     }
 
     @Test("Init with nil workspace leaves both paths nil")
     func testInitWithNilWorkspaceLeavesPathsNil() {
         let service = SpyConfigComparisonService()
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
 
-        #expect(vm.leftWorkspacePath == nil)
-        #expect(vm.rightWorkspacePath == nil)
+        #expect(viewModel.leftWorkspacePath == nil)
+        #expect(viewModel.rightWorkspacePath == nil)
     }
 
     // MARK: - compare()
@@ -60,87 +60,87 @@ struct ConfigComparisonViewModelTests {
     func testCompareWithBothPathsCallsService() {
         let result = makeResult()
         let service = SpyConfigComparisonService(resultToReturn: result)
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.leftWorkspacePath = Self.leftPath
-        vm.rightWorkspacePath = Self.rightPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.leftWorkspacePath = Self.leftPath
+        viewModel.rightWorkspacePath = Self.rightPath
 
-        vm.compare()
+        viewModel.compare()
 
         #expect(service.compareCallCount == 1)
-        #expect(vm.comparisonResult != nil)
-        #expect(vm.comparisonResult?.onlyInFirst == ["rule_a"])
-        #expect(vm.error == nil)
+        #expect(viewModel.comparisonResult != nil)
+        #expect(viewModel.comparisonResult?.onlyInFirst == ["rule_a"])
+        #expect(viewModel.error == nil)
     }
 
     @Test("compare() with missing leftWorkspacePath does not call service")
     func testCompareWithMissingLeftPathDoesNothing() {
         let service = SpyConfigComparisonService()
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.rightWorkspacePath = Self.rightPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.rightWorkspacePath = Self.rightPath
 
-        vm.compare()
+        viewModel.compare()
 
         #expect(service.compareCallCount == 0)
-        #expect(vm.comparisonResult == nil)
+        #expect(viewModel.comparisonResult == nil)
     }
 
     @Test("compare() with missing rightWorkspacePath does not call service")
     func testCompareWithMissingRightPathDoesNothing() {
         let service = SpyConfigComparisonService()
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.leftWorkspacePath = Self.leftPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.leftWorkspacePath = Self.leftPath
 
-        vm.compare()
+        viewModel.compare()
 
         #expect(service.compareCallCount == 0)
-        #expect(vm.comparisonResult == nil)
+        #expect(viewModel.comparisonResult == nil)
     }
 
     @Test("compare() on service error stores error and leaves comparisonResult nil")
     func testCompareServiceErrorSetsError() {
         let service = SpyConfigComparisonService(shouldThrow: true)
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.leftWorkspacePath = Self.leftPath
-        vm.rightWorkspacePath = Self.rightPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.leftWorkspacePath = Self.leftPath
+        viewModel.rightWorkspacePath = Self.rightPath
 
-        vm.compare()
+        viewModel.compare()
 
-        #expect(vm.error != nil)
-        #expect(vm.comparisonResult == nil)
+        #expect(viewModel.error != nil)
+        #expect(viewModel.comparisonResult == nil)
     }
 
     @Test("compare() clears isComparing after successful completion")
     func testCompareIsComparingClearedOnSuccess() {
         let service = SpyConfigComparisonService(resultToReturn: makeResult())
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.leftWorkspacePath = Self.leftPath
-        vm.rightWorkspacePath = Self.rightPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.leftWorkspacePath = Self.leftPath
+        viewModel.rightWorkspacePath = Self.rightPath
 
-        vm.compare()
+        viewModel.compare()
 
-        #expect(!vm.isComparing)
+        #expect(!viewModel.isComparing)
     }
 
     @Test("compare() clears isComparing after service error")
     func testCompareIsComparingClearedOnError() {
         let service = SpyConfigComparisonService(shouldThrow: true)
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.leftWorkspacePath = Self.leftPath
-        vm.rightWorkspacePath = Self.rightPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.leftWorkspacePath = Self.leftPath
+        viewModel.rightWorkspacePath = Self.rightPath
 
-        vm.compare()
+        viewModel.compare()
 
-        #expect(!vm.isComparing)
+        #expect(!viewModel.isComparing)
     }
 
     @Test("compare() passes the correct label derived from parent directory name")
     func testComparePassesCorrectLabels() {
         let service = SpyConfigComparisonService(resultToReturn: makeResult())
-        let vm = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
-        vm.leftWorkspacePath = Self.leftPath
-        vm.rightWorkspacePath = Self.rightPath
+        let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
+        viewModel.leftWorkspacePath = Self.leftPath
+        viewModel.rightWorkspacePath = Self.rightPath
 
-        vm.compare()
+        viewModel.compare()
 
         #expect(service.lastLabel1 == "left")
         #expect(service.lastLabel2 == "right")

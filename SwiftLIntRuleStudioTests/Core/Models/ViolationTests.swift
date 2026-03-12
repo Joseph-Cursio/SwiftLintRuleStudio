@@ -12,7 +12,7 @@ import Testing
 // Model tests don't need @MainActor - but Swift 6 false positive requires it temporarily
 @MainActor
 struct ViolationTests {
-    
+
     @Test("Violation can be created with required properties")
     func testViolationCreation() {
         let violation = Violation(
@@ -23,7 +23,7 @@ struct ViolationTests {
             severity: .error,
             message: "Force casts should be avoided"
         )
-        
+
         #expect(violation.ruleID == "force_cast")
         #expect(violation.filePath == "/path/to/file.swift")
         #expect(violation.line == 42)
@@ -31,7 +31,7 @@ struct ViolationTests {
         #expect(violation.severity == .error)
         #expect(violation.suppressed == false)
     }
-    
+
     @Test("Violation can be suppressed")
     func testViolationSuppression() {
         var violation = Violation(
@@ -41,23 +41,23 @@ struct ViolationTests {
             severity: .warning,
             message: "Test message"
         )
-        
+
         violation.suppressed = true
         violation.suppressionReason = "Legacy code"
-        
+
         #expect(violation.suppressed == true)
         #expect(violation.suppressionReason == "Legacy code")
     }
-    
+
     @Test("ViolationFilter has all option")
     func testViolationFilterAll() {
         let filter = ViolationFilter.all
-        
+
         #expect(filter.ruleIDs == nil)
         #expect(filter.filePaths == nil)
         #expect(filter.suppressedOnly == nil)
     }
-    
+
     @Test("Violation is Codable")
     func testViolationCodable() throws {
         let violation = Violation(
@@ -67,13 +67,13 @@ struct ViolationTests {
             severity: .error,
             message: "Test violation"
         )
-        
+
         let encoder = JSONEncoder()
         let data = try encoder.encode(violation)
-        
+
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(Violation.self, from: data)
-        
+
         #expect(decoded.ruleID == violation.ruleID)
         #expect(decoded.filePath == violation.filePath)
         #expect(decoded.line == violation.line)

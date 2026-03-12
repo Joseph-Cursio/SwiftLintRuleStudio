@@ -12,7 +12,7 @@ struct ConfigRecommendationView: View {
     @State private var isCreatingConfig: Bool = false
     @State private var showError: Bool = false
     @State private var errorMessage: String?
-    
+
     var body: some View {
         if workspaceManager.configFileMissing {
             VStack(alignment: .leading, spacing: 12) {
@@ -21,11 +21,11 @@ struct ConfigRecommendationView: View {
                         .foregroundStyle(.blue)
                         .font(.title2)
                         .accessibilityLabel("Information")
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("SwiftLint Configuration File Missing")
                             .font(.headline)
-                        
+
                         Text("""
                         Your workspace doesn't have a `.swiftlint.yml` configuration file.
                         Creating one will help you:
@@ -34,7 +34,7 @@ struct ConfigRecommendationView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                
+
                 VStack(alignment: .leading, spacing: 8) {
                     ConfigBenefitRow(
                         icon: "checkmark.circle.fill",
@@ -50,7 +50,7 @@ struct ConfigRecommendationView: View {
                     )
                 }
                 .padding(.leading, 32)
-                
+
                 HStack {
                     Button(action: createConfigFile) {
                         HStack {
@@ -67,7 +67,7 @@ struct ConfigRecommendationView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(isCreatingConfig)
-                    
+
                     Button("Learn More") {
                         // Open documentation or help
                         if let url = URL(string: "https://github.com/realm/SwiftLint#configuration") {
@@ -96,10 +96,10 @@ struct ConfigRecommendationView: View {
             }
         }
     }
-    
+
     private func createConfigFile() {
         isCreatingConfig = true
-        
+
         Task { @MainActor in
             do {
                 _ = try workspaceManager.createDefaultConfigFile()
@@ -109,7 +109,7 @@ struct ConfigRecommendationView: View {
                 errorMessage = error.localizedDescription
                 showError = true
             }
-            
+
             isCreatingConfig = false
         }
     }
@@ -118,7 +118,7 @@ struct ConfigRecommendationView: View {
 struct ConfigBenefitRow: View {
     let icon: String
     let text: String
-    
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
@@ -135,7 +135,7 @@ struct ConfigBenefitRow: View {
 #Preview {
     struct Preview: View {
         @State private var workspaceManager = WorkspaceManager()
-        
+
         var body: some View {
             ConfigRecommendationView(workspaceManager: workspaceManager)
                 .padding()
@@ -149,6 +149,6 @@ struct ConfigBenefitRow: View {
                 }
         }
     }
-    
+
     return Preview()
 }

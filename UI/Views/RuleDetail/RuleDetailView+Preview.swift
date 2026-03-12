@@ -24,7 +24,7 @@ import SwiftUI
         defaultSeverity: .error,
         markdownDocumentation: nil
     )
-    
+
     NavigationStack {
         RuleDetailView(rule: rule)
     }

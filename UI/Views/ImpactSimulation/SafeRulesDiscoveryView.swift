@@ -10,7 +10,7 @@ import SwiftUI
 struct SafeRulesDiscoveryView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.dismiss) var dismiss
-    
+
     @State var isDiscovering = false
     @State var discoveryProgress: DiscoveryProgress?
     @State var safeRules: [RuleImpactResult] = []
@@ -32,15 +32,15 @@ struct SafeRulesDiscoveryView: View {
         _isDiscovering = State(initialValue: isDiscovering)
         _discoveryProgress = State(initialValue: discoveryProgress)
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Header
                 headerView
-                
+
                 Divider()
-                
+
                 if isDiscovering {
                     discoveringView
                 } else if safeRules.isEmpty && !isDiscovering {
@@ -56,7 +56,7 @@ struct SafeRulesDiscoveryView: View {
                         dismiss()
                     }
                 }
-                
+
                 if !safeRules.isEmpty {
                     ToolbarItem(placement: .confirmationAction) {
                         Button {

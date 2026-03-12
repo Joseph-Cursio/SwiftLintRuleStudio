@@ -22,7 +22,7 @@ extension RuleDetailView {
         )
         return RuleDetailView(rule: rule).extractRationale(from: markdown)
     }
-    
+
     @MainActor static func extractSwiftEvolutionLinksForTesting(_ markdown: String) -> [URL] {
         let rule = Rule(
             id: "test_rule",
@@ -43,7 +43,7 @@ extension RuleDetailView {
         )
         return RuleDetailView(rule: rule).extractSwiftEvolutionLinks(from: markdown)
     }
-    
+
     @MainActor static func processContentForDisplayForTesting(_ content: String) -> String {
         let rule = Rule(
             id: "test_rule",
@@ -64,7 +64,7 @@ extension RuleDetailView {
         )
         return RuleDetailView(rule: rule).processContentForDisplay(content: content)
     }
-    
+
     @MainActor static func convertMarkdownToHTMLForTesting(_ content: String) -> String {
         let rule = Rule(
             id: "test_rule",
@@ -85,7 +85,7 @@ extension RuleDetailView {
         )
         return RuleDetailView(rule: rule).convertMarkdownToHTML(content: content)
     }
-    
+
     @MainActor static func wrapHTMLInDocumentForTesting(body: String, colorScheme: ColorScheme) -> String {
         let rule = Rule(
             id: "test_rule",

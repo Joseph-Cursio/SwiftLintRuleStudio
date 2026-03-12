@@ -39,14 +39,14 @@ struct GitBranchDiffViewModelTests {
     @Test("Initial state has nil refs, no selection, not loading, not flagged as non-git-repo")
     func testInitialState() {
         let service = SpyGitBranchDiffService()
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
 
-        #expect(vm.availableRefs == nil)
-        #expect(vm.selectedRef == nil)
-        #expect(vm.comparisonResult == nil)
-        #expect(!vm.isLoading)
-        #expect(!vm.isNotGitRepo)
-        #expect(vm.error == nil)
+        #expect(viewModel.availableRefs == nil)
+        #expect(viewModel.selectedRef == nil)
+        #expect(viewModel.comparisonResult == nil)
+        #expect(!viewModel.isLoading)
+        #expect(!viewModel.isNotGitRepo)
+        #expect(viewModel.error == nil)
     }
 
     // MARK: - loadRefs()
@@ -54,11 +54,11 @@ struct GitBranchDiffViewModelTests {
     @Test("loadRefs with nil workspacePath sets isNotGitRepo synchronously without calling service")
     func testLoadRefsWithNilWorkspacePathSetsIsNotGitRepo() {
         let service = SpyGitBranchDiffService()
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: nil)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: nil)
 
-        vm.loadRefs()
+        viewModel.loadRefs()
 
-        #expect(vm.isNotGitRepo)
+        #expect(viewModel.isNotGitRepo)
         #expect(service.listRefsCallCount == 0)
     }
 
@@ -66,29 +66,29 @@ struct GitBranchDiffViewModelTests {
     func testLoadRefsPopulatesAvailableRefs() async throws {
         let refs = makeRefs()
         let service = SpyGitBranchDiffService(refsToReturn: refs)
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
 
-        vm.loadRefs()
+        viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(service.listRefsCallCount == 1)
-        #expect(vm.availableRefs?.currentBranch == "main")
-        #expect(vm.availableRefs?.branches == ["main", "develop"])
-        #expect(!vm.isLoading)
-        #expect(!vm.isNotGitRepo)
+        #expect(viewModel.availableRefs?.currentBranch == "main")
+        #expect(viewModel.availableRefs?.branches == ["main", "develop"])
+        #expect(!viewModel.isLoading)
+        #expect(!viewModel.isNotGitRepo)
     }
 
     @Test("loadRefs with GitBranchDiffError sets isNotGitRepo (not error property)")
     func testLoadRefsGitBranchDiffErrorSetsIsNotGitRepo() async throws {
         let service = SpyGitBranchDiffService(errorToThrow: GitBranchDiffError.notGitRepo)
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
 
-        vm.loadRefs()
+        viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.isNotGitRepo)
-        #expect(vm.error == nil)
-        #expect(!vm.isLoading)
+        #expect(viewModel.isNotGitRepo)
+        #expect(viewModel.error == nil)
+        #expect(!viewModel.isLoading)
     }
 
     @Test("loadRefs with configNotFoundOnBranch error also sets isNotGitRepo")
@@ -96,13 +96,13 @@ struct GitBranchDiffViewModelTests {
         let service = SpyGitBranchDiffService(
             errorToThrow: GitBranchDiffError.configNotFoundOnBranch(branch: "feature")
         )
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
 
-        vm.loadRefs()
+        viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.isNotGitRepo)
-        #expect(vm.error == nil)
+        #expect(viewModel.isNotGitRepo)
+        #expect(viewModel.error == nil)
     }
 
     @Test("loadRefs with non-GitBranchDiffError sets error property")
@@ -110,24 +110,24 @@ struct GitBranchDiffViewModelTests {
         let service = SpyGitBranchDiffService(
             errorToThrow: NSError(domain: "SpyError", code: 99, userInfo: nil)
         )
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
 
-        vm.loadRefs()
+        viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.error != nil)
-        #expect(!vm.isNotGitRepo)
+        #expect(viewModel.error != nil)
+        #expect(!viewModel.isNotGitRepo)
     }
 
     @Test("loadRefs clears isLoading after task completes")
     func testLoadRefsClearsIsLoading() async throws {
         let service = SpyGitBranchDiffService(refsToReturn: makeRefs())
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
 
-        vm.loadRefs()
+        viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!vm.isLoading)
+        #expect(!viewModel.isLoading)
     }
 
     // MARK: - compareWithSelected()
@@ -135,42 +135,42 @@ struct GitBranchDiffViewModelTests {
     @Test("compareWithSelected with nil selectedRef does not call service")
     func testCompareWithNilSelectedRefDoesNothing() {
         let service = SpyGitBranchDiffService()
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
-        vm.selectedRef = nil
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        viewModel.selectedRef = nil
 
-        vm.compareWithSelected()
+        viewModel.compareWithSelected()
 
         #expect(service.compareCallCount == 0)
-        #expect(vm.comparisonResult == nil)
+        #expect(viewModel.comparisonResult == nil)
     }
 
     @Test("compareWithSelected calls service with selectedRef and populates comparisonResult")
     func testCompareWithSelectedCallsService() async throws {
         let result = makeComparisonResult()
         let service = SpyGitBranchDiffService(refsToReturn: makeRefs(), comparisonResultToReturn: result)
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
-        vm.selectedRef = "develop"
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        viewModel.selectedRef = "develop"
 
-        vm.compareWithSelected()
+        viewModel.compareWithSelected()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(service.compareCallCount == 1)
         #expect(service.lastComparedBranch == "develop")
-        #expect(vm.comparisonResult?.onlyInSecond == ["new_rule"])
-        #expect(!vm.isLoading)
+        #expect(viewModel.comparisonResult?.onlyInSecond == ["new_rule"])
+        #expect(!viewModel.isLoading)
     }
 
     @Test("compareWithSelected passes correct configRelativePath to service")
     func testCompareWithSelectedPassesConfigRelativePath() async throws {
         let service = SpyGitBranchDiffService(comparisonResultToReturn: makeComparisonResult())
-        let vm = GitBranchDiffViewModel(
+        let viewModel = GitBranchDiffViewModel(
             service: service,
             workspacePath: Self.workspacePath,
             configRelativePath: ".config/.swiftlint.yml"
         )
-        vm.selectedRef = "main"
+        viewModel.selectedRef = "main"
 
-        vm.compareWithSelected()
+        viewModel.compareWithSelected()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(service.lastCompareConfigPath == ".config/.swiftlint.yml")
@@ -181,15 +181,15 @@ struct GitBranchDiffViewModelTests {
         let service = SpyGitBranchDiffService(
             compareErrorToThrow: NSError(domain: "SpyError", code: 1, userInfo: nil)
         )
-        let vm = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
-        vm.selectedRef = "develop"
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+        viewModel.selectedRef = "develop"
 
-        vm.compareWithSelected()
+        viewModel.compareWithSelected()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.error != nil)
-        #expect(vm.comparisonResult == nil)
-        #expect(!vm.isLoading)
+        #expect(viewModel.error != nil)
+        #expect(viewModel.comparisonResult == nil)
+        #expect(!viewModel.isLoading)
     }
 }
 

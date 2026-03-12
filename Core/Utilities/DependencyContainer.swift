@@ -66,23 +66,23 @@ class DependencyContainer {
         let cache = cacheManager ?? CacheManager()
         let cli = swiftLintCLI ?? SwiftLintCLI(cacheManager: cache)
         let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
-        
+
         self.ruleRegistry = registry
         self.swiftLintCLI = cli
         self.cacheManager = cache
-        
+
         // Use provided UserDefaults or default to .standard
         let defaults = userDefaults ?? .standard
-        
+
         // Initialize workspace manager
         self.workspaceManager = workspaceManager ?? WorkspaceManager(userDefaults: defaults)
-        
+
         // Initialize onboarding manager
         self.onboardingManager = onboardingManager ?? OnboardingManager(userDefaults: defaults)
-        
+
         // Initialize impact simulator
         self.impactSimulator = impactSimulator ?? ImpactSimulator(swiftLintCLI: cli)
-        
+
         // Initialize violation storage
         if let providedStorage = violationStorage {
             self.violationStorage = providedStorage
@@ -94,14 +94,14 @@ class DependencyContainer {
                 fatalError("Failed to initialize violation storage: \(error)")
             }
         }
-        
+
         // Initialize workspace analyzer with file tracker
         self.workspaceAnalyzer = WorkspaceAnalyzer(
             swiftLintCLI: cli,
             violationStorage: self.violationStorage,
             fileTracker: nil // Will create default file tracker
         )
-        
+
         // Initialize Xcode integration service
         self.xcodeIntegrationService = xcodeIntegrationService
             ?? XcodeIntegrationService(workspaceManager: self.workspaceManager)

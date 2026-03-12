@@ -12,7 +12,7 @@ import Foundation
 // DependencyContainer and ImpactSimulator are @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 struct ImpactSimulatorIntegrationTests {
-    
+
     // Helper to access DependencyContainer on MainActor
     private func withContainer<T: Sendable>(
         operation: @MainActor (DependencyContainer) throws -> T
@@ -22,16 +22,16 @@ struct ImpactSimulatorIntegrationTests {
             return try operation(container)
         }
     }
-    
+
     // Helper to create ImpactSimulator on MainActor
     private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLI) async -> ImpactSimulator {
         return await MainActor.run {
             ImpactSimulator(swiftLintCLI: swiftLintCLI)
         }
     }
-    
+
     // MARK: - Test Helpers
-    
+
     private func createTempWorkspaceDirectory() throws -> URL {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
@@ -39,37 +39,37 @@ struct ImpactSimulatorIntegrationTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         return tempDir
     }
-    
+
     private func createSwiftFile(in directory: URL, name: String, content: String) throws -> URL {
         let fileURL = directory.appendingPathComponent(name)
         try content.write(to: fileURL, atomically: true, encoding: .utf8)
         return fileURL
     }
-    
+
     private func cleanupTempDirectory(_ url: URL) {
         try? FileManager.default.removeItem(at: url)
     }
-    
+
     // MARK: - DependencyContainer Integration
-    
+
     @Test("ImpactSimulator is initialized in DependencyContainer")
     func testDependencyContainerIntegration() async throws {
         let hasSimulator = try await withContainer { _ in
             return true
         }
-        
+
         #expect(hasSimulator == true)
     }
-    
+
     // MARK: - WorkspaceManager Integration
-    
+
     @Test("ImpactSimulator works with WorkspaceManager")
     func testWorkspaceManagerIntegration() async throws {
         let tempDir = try createTempWorkspaceDirectory()
         defer { cleanupTempDirectory(tempDir) }
-        
+
         try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
-        
+
         let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLI(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
@@ -88,14 +88,14 @@ struct ImpactSimulatorIntegrationTests {
 
         #expect(result.ruleId == "test_rule")
     }
-    
+
     // MARK: - YAMLConfigurationEngine Integration
-    
+
     @Test("ImpactSimulator creates temporary configs correctly")
     func testTemporaryConfigCreation() async throws {
         let tempDir = try createTempWorkspaceDirectory()
         defer { cleanupTempDirectory(tempDir) }
-        
+
         // Create a base config file
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
         let baseConfig = """
@@ -103,7 +103,7 @@ struct ImpactSimulatorIntegrationTests {
           - test_rule
         """
         try baseConfig.write(to: configPath, atomically: true, encoding: .utf8)
-        
+
         let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLI(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
@@ -118,9 +118,9 @@ struct ImpactSimulatorIntegrationTests {
         #expect(result.ruleId == "test_rule")
         // Temp config should be cleaned up automatically
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
         let mockCLI = MockSwiftLintCLI()
 

@@ -11,23 +11,23 @@ struct OnboardingView: View {
     var onboardingManager: OnboardingManager
     var workspaceManager: WorkspaceManager
     let swiftLintCLI: SwiftLintCLIProtocol
-    
+
     @State var swiftLintStatus: SwiftLintStatus = .checking
     @State var swiftLintPath: URL?
     @State var swiftLintVersion: String?
     @State var errorMessage: String?
-    
+
     enum SwiftLintStatus: Equatable {
         case checking
         case installed(URL, String) // path and version
         case notInstalled
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Progress indicator
             progressIndicator
-            
+
             // Content area
             Group {
                 switch onboardingManager.currentStep {
@@ -43,7 +43,7 @@ struct OnboardingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.easeInOut, value: onboardingManager.currentStep)
-            
+
             // Navigation buttons
             navigationButtons
         }
@@ -78,7 +78,7 @@ struct OnboardingView: View {
     let onboardingManager = OnboardingManager()
     let workspaceManager = WorkspaceManager()
     let swiftLintCLI: SwiftLintCLIProtocol = SwiftLintCLI(cacheManager: CacheManager())
-    
+
     return OnboardingView(
         onboardingManager: onboardingManager,
         workspaceManager: workspaceManager,

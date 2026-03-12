@@ -11,13 +11,13 @@ import Combine
 /// Service for analyzing workspaces with SwiftLint
 @MainActor
 class WorkspaceAnalyzer: ObservableObject {
-    
+
     // MARK: - Properties
-    
+
     @Published var isAnalyzing: Bool = false
     @Published var currentProgress: AnalysisProgress?
     @Published var lastAnalysisResult: AnalysisResult?
-    
+
     let swiftLintCLI: SwiftLintCLIProtocol
     let violationStorage: ViolationStorageProtocol
     let fileTracker: FileTracker
@@ -25,9 +25,9 @@ class WorkspaceAnalyzer: ObservableObject {
     // Stores a cancel action for the in-flight analyze() call so that
     // cancelAnalysis() can reach it even though analyze() returns a value.
     private var pendingAnalysisCancellation: (@Sendable () -> Void)?
-    
+
     // MARK: - Initialization
-    
+
     init(
         swiftLintCLI: SwiftLintCLIProtocol,
         violationStorage: ViolationStorageProtocol,
@@ -35,7 +35,7 @@ class WorkspaceAnalyzer: ObservableObject {
     ) {
         self.swiftLintCLI = swiftLintCLI
         self.violationStorage = violationStorage
-        
+
         // Create file tracker with cache in app support directory
         if let providedTracker = fileTracker {
             self.fileTracker = providedTracker

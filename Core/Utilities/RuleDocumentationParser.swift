@@ -15,7 +15,7 @@ struct RuleDocumentationParser {
         let description = extractDescription(from: lines, foundTitle: foundTitle)
         let metadata = extractMetadata(from: lines)
         let examples = extractExamples(from: lines)
-        
+
         // Limit description length for list view (first 250 characters or first sentence)
         var trimmedDescription = description
         if !trimmedDescription.isEmpty && trimmedDescription.count > 250 {
@@ -29,7 +29,7 @@ struct RuleDocumentationParser {
                 trimmedDescription = truncated.trimmingCharacters(in: .whitespaces) + "..."
             }
         }
-        
+
         return ParsedRuleDocumentation(
             name: name,
             description: trimmedDescription,
@@ -41,7 +41,7 @@ struct RuleDocumentationParser {
             fullMarkdown: markdown
         )
     }
-    
+
     private enum SectionType {
         case triggering
         case nonTriggering

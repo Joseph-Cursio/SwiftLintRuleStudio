@@ -33,7 +33,7 @@ struct RuleBrowserView: View {
         _viewModel = State(initialValue: viewModel)
         self.externalSearchText = externalSearchText
     }
-    
+
     @State private var listWidth: CGFloat = 450
 
     var body: some View {
@@ -87,6 +87,7 @@ struct RuleBrowserView: View {
             if let external = externalSearchText {
                 viewModel.searchText = external.wrappedValue
             }
+            syncEnabledStatesFromConfig()
         }
         .onChange(of: externalSearchText?.wrappedValue ?? "") { _, newValue in
             if let external = externalSearchText, external.wrappedValue != viewModel.searchText {
@@ -99,6 +100,9 @@ struct RuleBrowserView: View {
             }
         }
         .navigationTitle("Rules")
+        .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { _ in
+            syncEnabledStatesFromConfig()
+        }
         .onChange(of: viewModel.filteredRules) { _, newRules in
             // Use newRules directly to avoid re-reading ambient viewModel state
             if let selectedRuleId, !newRules.contains(where: { $0.id == selectedRuleId }) {
@@ -106,7 +110,20 @@ struct RuleBrowserView: View {
             }
         }
     }
-    
+
+    private func syncEnabledStatesFromConfig() {
+        guard let workspace = dependencies.workspaceManager.currentWorkspace else { return }
+        let configPath = workspace.configPath
+            ?? workspace.path.appendingPathComponent(".swiftlint.yml")
+        let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+        do {
+            try yamlEngine.load()
+            let config = yamlEngine.getConfig()
+            ruleRegistry.syncEnabledStates(with: config)
+        } catch {
+            // No config file or parse error — leave states as-is
+        }
+    }
 }
 
 #if DEBUG
@@ -151,7 +168,7 @@ extension RuleBrowserView {
         swiftLintCLI: swiftLintCLI,
         cacheManager: cacheManager
     )
-    
+
     RuleBrowserView(ruleRegistry: ruleRegistry)
         .environment(\.ruleRegistry, ruleRegistry)
         .environment(\.dependencies, container)

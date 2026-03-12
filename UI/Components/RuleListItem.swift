@@ -9,43 +9,43 @@ import SwiftUI
 
 struct RuleListItem: View {
     let rule: Rule
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Status indicator
             Circle()
                 .fill(statusColor)
                 .frame(width: 8, height: 8)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 // Rule name and identifier
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(rule.name)
                         .font(.headline)
                         .lineLimit(1)
-                    
+
                     Text(rule.id)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
-                
+
                 // Description
                 Text(rule.description)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
-                
+
                 // Category badge and opt-in indicator
                 HStack(spacing: 8) {
                     CategoryBadge(category: rule.category)
-                    
+
                     if rule.isOptIn {
                         Label("Opt-In", systemImage: "star.fill")
                             .font(.caption2)
                             .foregroundStyle(.orange)
                     }
-                    
+
                     if rule.isEnabled {
                         Label("Enabled", systemImage: "checkmark.circle.fill")
                             .font(.caption2)
@@ -53,13 +53,13 @@ struct RuleListItem: View {
                     }
                 }
             }
-            
+
             Spacer()
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
     }
-    
+
     private var statusColor: Color {
         if rule.isEnabled {
             return .green
@@ -73,7 +73,7 @@ struct RuleListItem: View {
 
 struct CategoryBadge: View {
     let category: RuleCategory
-    
+
     var body: some View {
         Text(category.displayName)
             .font(.caption2)
@@ -83,7 +83,7 @@ struct CategoryBadge: View {
             .foregroundStyle(categoryColor)
             .clipShape(.rect(cornerRadius: 4))
     }
-    
+
     private var categoryColor: Color {
         switch category {
         case .style:
@@ -118,7 +118,7 @@ struct CategoryBadge: View {
         defaultSeverity: nil,
         markdownDocumentation: nil
     )
-    
+
     return List {
         RuleListItem(rule: rule)
         RuleListItem(rule: Rule(

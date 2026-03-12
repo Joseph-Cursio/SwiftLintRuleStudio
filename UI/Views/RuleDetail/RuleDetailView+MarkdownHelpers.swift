@@ -8,68 +8,68 @@ extension RuleDetailView {
             with: "",
             options: .regularExpression
         )
-        
+
         // Remove inline styles
         stripped = stripped.replacingOccurrences(
             of: #"style\s*=\s*["'][^"']*["']"#,
             with: "",
             options: .regularExpression
         )
-        
+
         // Convert markdown to plain text
         let lines = stripped.components(separatedBy: .newlines)
         var processedLines: [String] = []
-        
+
         for line in lines {
             var processedLine = line
-            
+
             // Remove markdown headers
             processedLine = processedLine.replacingOccurrences(
                 of: #"^#+\s+"#,
                 with: "",
                 options: [.regularExpression, .anchored]
             )
-            
+
             // Remove markdown bold
             processedLine = processedLine.replacingOccurrences(
                 of: #"\*\*([^*]+)\*\*"#,
                 with: "$1",
                 options: .regularExpression
             )
-            
+
             // Remove markdown italic
             processedLine = processedLine.replacingOccurrences(
                 of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
                 with: "$1",
                 options: .regularExpression
             )
-            
+
             // Remove markdown inline code (keep the content)
             processedLine = processedLine.replacingOccurrences(
                 of: #"`([^`]+)`"#,
                 with: "$1",
                 options: .regularExpression
             )
-            
+
             processedLines.append(processedLine)
         }
-        
+
         return processedLines.joined(separator: "\n")
     }
-    
+
     func processContentForDisplay(content: String) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
         var skipTable = false
-        
+
         for (index, line) in lines.enumerated() {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            
+
             // Skip the main title (we already show it in the header)
             if index == 0 && (trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")) {
                 continue
             }
-            
+
             // Skip metadata section (we show this info in badges/configuration)
             if trimmed.contains("* **") || trimmed.hasPrefix("* **") {
                 // Check if this is the default configuration line
@@ -79,7 +79,7 @@ extension RuleDetailView {
                 }
                 continue
             }
-            
+
             // Skip HTML table if we're in the metadata section
             if skipTable {
                 if trimmed.hasPrefix("<table>") || trimmed.contains("<table>") {
@@ -96,19 +96,19 @@ extension RuleDetailView {
                     continue
                 }
             }
-            
+
             processedLines.append(line)
         }
-        
+
         return processedLines.joined(separator: "\n")
     }
-    
+
     func convertMarkdownToHTML(content: String) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
         var inCodeBlock = false
         var codeBlockLanguage = ""
-        
+
         for line in lines {
             let converted = convertMarkdownLine(
                 line: line,
@@ -117,61 +117,61 @@ extension RuleDetailView {
             )
             processedLines.append(contentsOf: converted)
         }
-        
+
         // Close any open code block
         if inCodeBlock {
             processedLines.append("</code></pre>")
         }
-        
+
         return processedLines.joined(separator: "\n")
     }
-    
+
     func wrapHTMLInDocument(body: String, colorScheme: ColorScheme) -> String {
         // Detect if we're in dark mode
         let isDarkMode = colorScheme == .dark
-        
+
         let textColor = isDarkMode ? "#FFFFFF" : "#000000"
         let codeBgColor = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
         let tableBorderColor = isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)"
         let tableHeaderBg = isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"
-        
+
         let styles = htmlStyleBlock(
             textColor: textColor,
             codeBgColor: codeBgColor,
             tableBorderColor: tableBorderColor,
             tableHeaderBg: tableHeaderBg
         )
-        
+
         // Use HTML fragment approach instead of full document to avoid document-level margins
         // Wrap in a div with inline styles - keep HTML compact to avoid whitespace rendering
         let divStyle = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; " +
             "font-size: 14px; line-height: 1.6; color: \(textColor); margin: 0; padding: 0;"
         return "<div style=\"\(divStyle)\"><style>\(styles)</style>\(body)</div>"
     }
-    
+
     private func convertMarkdownLine(
         line: String,
         inCodeBlock: inout Bool,
         codeBlockLanguage: inout String
     ) -> [String] {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
-        
+
         // Check if line already contains HTML tags - preserve it as-is
         let hasHTMLTags = trimmed.contains("<") && trimmed.contains(">")
-        
+
         if line.hasPrefix("```") {
             if inCodeBlock {
                 inCodeBlock = false
                 codeBlockLanguage = ""
                 return ["</code></pre>"]
             }
-            
+
             let language = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
             codeBlockLanguage = language.isEmpty ? "" : " class=\"language-\(language)\""
             inCodeBlock = true
             return ["<pre><code\(codeBlockLanguage)>"]
         }
-        
+
         if inCodeBlock {
             let escaped = line
                 .replacingOccurrences(of: "&", with: "&amp;")
@@ -179,60 +179,60 @@ extension RuleDetailView {
                 .replacingOccurrences(of: ">", with: "&gt;")
             return [escaped]
         }
-        
+
         if hasHTMLTags {
             return [line]
         }
-        
+
         if line.hasPrefix("# ") {
             let text = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
             return ["<h1>\(text)</h1>"]
         }
-        
+
         if line.hasPrefix("## ") {
             let text = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
             return ["<h2>\(text)</h2>"]
         }
-        
+
         if line.hasPrefix("### ") {
             let text = String(line.dropFirst(4)).trimmingCharacters(in: .whitespaces)
             return ["<h3>\(text)</h3>"]
         }
-        
+
         if trimmed.isEmpty {
             return ["<br>"]
         }
-        
+
         return [inlineMarkdownHTML(from: line)]
     }
-    
+
     private func inlineMarkdownHTML(from line: String) -> String {
         var processedLine = line
-        
+
         // Convert inline code (handle backticks)
         processedLine = processedLine.replacingOccurrences(
             of: #"`([^`]+)`"#,
             with: "<code>$1</code>",
             options: .regularExpression
         )
-        
+
         // Convert bold
         processedLine = processedLine.replacingOccurrences(
             of: #"\*\*([^*]+)\*\*"#,
             with: "<strong>$1</strong>",
             options: .regularExpression
         )
-        
+
         // Convert italic (but be careful not to match bold markers)
         processedLine = processedLine.replacingOccurrences(
             of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
             with: "<em>$1</em>",
             options: .regularExpression
         )
-        
+
         return processedLine
     }
-    
+
     private func htmlStyleBlock(
         textColor: String,
         codeBgColor: String,

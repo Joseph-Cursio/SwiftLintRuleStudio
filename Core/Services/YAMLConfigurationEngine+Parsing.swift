@@ -6,7 +6,7 @@ extension YAMLConfigurationEngine {
         guard case .mapping(let mapping) = node else {
             throw YAMLConfigError.parseError("Expected mapping node")
         }
-        
+
         var dict: [String: Any] = [:]
         for (keyNode, valueNode) in mapping {
             guard let key = keyNode.string else {
@@ -67,15 +67,15 @@ extension YAMLConfigurationEngine {
     private func isFloatScalar(tagDescription: String) -> Bool {
         tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float")
     }
-    
+
     func parseDictionaryToConfig(_ dict: [String: Any]) throws -> SwiftLintConfiguration {
         var config = SwiftLintConfiguration()
-        
+
         // Parse rules
         if let rulesDict = dict["rules"] as? [String: Any] {
             config.rules = parseRulesConfig(from: rulesDict)
         }
-        
+
         // Parse other fields
         if let included = dict["included"] as? [String] {
             config.included = included
@@ -98,7 +98,7 @@ extension YAMLConfigurationEngine {
         if let onlyRules = dict["only_rules"] as? [String] {
             config.onlyRules = onlyRules
         }
-        
+
         return config
     }
 

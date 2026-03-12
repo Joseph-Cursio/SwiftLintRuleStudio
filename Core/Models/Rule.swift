@@ -77,7 +77,7 @@ enum RuleCategory: String, Codable, CaseIterable, Identifiable {
     case metrics
     case performance
     case idiomatic
-    
+
     nonisolated var id: String { rawValue }
 
     nonisolated var displayName: String {
@@ -146,7 +146,7 @@ struct AnyCodable: Codable, Hashable, @unchecked Sendable {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported type")
         }
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch value {
@@ -166,7 +166,7 @@ struct AnyCodable: Codable, Hashable, @unchecked Sendable {
             throw EncodingError.invalidValue(value, context)
         }
     }
-    
+
     static func == (lhs: AnyCodable, rhs: AnyCodable) -> Bool {
         String(describing: lhs.value) == String(describing: rhs.value)
     }

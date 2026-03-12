@@ -40,16 +40,16 @@ struct VersionCompatibilityViewModelTests {
 
     @Test("Initial state has nil report, not checking, no error, no current version")
     func testInitialState() {
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: nil
         )
 
-        #expect(vm.report == nil)
-        #expect(!vm.isChecking)
-        #expect(vm.error == nil)
-        #expect(vm.currentVersion == nil)
+        #expect(viewModel.report == nil)
+        #expect(!viewModel.isChecking)
+        #expect(viewModel.error == nil)
+        #expect(viewModel.currentVersion == nil)
     }
 
     // MARK: - checkCompatibility() guard path
@@ -57,15 +57,15 @@ struct VersionCompatibilityViewModelTests {
     @Test("checkCompatibility with nil configPath sets YAMLConfigError synchronously")
     func testCheckCompatibilityNilConfigPathSetsError() {
         let checker = SpyCompatibilityChecker()
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: checker,
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: nil
         )
 
-        vm.checkCompatibility()
+        viewModel.checkCompatibility()
 
-        #expect(vm.error is YAMLConfigError)
+        #expect(viewModel.error is YAMLConfigError)
         #expect(checker.checkCallCount == 0)
     }
 
@@ -74,18 +74,18 @@ struct VersionCompatibilityViewModelTests {
     @Test("checkCompatibility stores error and clears isChecking when CLI throws")
     func testCheckCompatibilityCLIErrorSetsError() async throws {
         let cli = SpyCompatibilityCLI(shouldThrow: true)
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: cli,
             configPath: URL(fileURLWithPath: "/tmp/.swiftlint.yml")
         )
 
-        vm.checkCompatibility()
+        viewModel.checkCompatibility()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.error != nil)
-        #expect(!vm.isChecking)
-        #expect(vm.report == nil)
+        #expect(viewModel.error != nil)
+        #expect(!viewModel.isChecking)
+        #expect(viewModel.report == nil)
     }
 
     @Test("checkCompatibility populates report from checker on success")
@@ -96,18 +96,18 @@ struct VersionCompatibilityViewModelTests {
         let expectedReport = makeReport(version: "0.57.0")
         let checker = SpyCompatibilityChecker(reportToReturn: expectedReport)
         let cli = SpyCompatibilityCLI(versionToReturn: "0.57.0")
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: checker,
             swiftLintCLI: cli,
             configPath: configPath
         )
 
-        vm.checkCompatibility()
+        viewModel.checkCompatibility()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(checker.checkCallCount == 1)
-        #expect(vm.report?.swiftLintVersion == "0.57.0")
-        #expect(vm.error == nil)
+        #expect(viewModel.report?.swiftLintVersion == "0.57.0")
+        #expect(viewModel.error == nil)
     }
 
     @Test("checkCompatibility sets currentVersion from CLI response")
@@ -116,16 +116,16 @@ struct VersionCompatibilityViewModelTests {
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let cli = SpyCompatibilityCLI(versionToReturn: "0.57.0")
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: cli,
             configPath: configPath
         )
 
-        vm.checkCompatibility()
+        viewModel.checkCompatibility()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(vm.currentVersion == "0.57.0")
+        #expect(viewModel.currentVersion == "0.57.0")
     }
 
     @Test("checkCompatibility clears isChecking after task completes")
@@ -133,16 +133,16 @@ struct VersionCompatibilityViewModelTests {
         let (configPath, tempDir) = try makeTempConfigURL()
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: configPath
         )
 
-        vm.checkCompatibility()
+        viewModel.checkCompatibility()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!vm.isChecking)
+        #expect(!viewModel.isChecking)
     }
 
     @Test("checkCompatibility passes parsed config to checker")
@@ -151,13 +151,13 @@ struct VersionCompatibilityViewModelTests {
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let checker = SpyCompatibilityChecker()
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: checker,
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: configPath
         )
 
-        vm.checkCompatibility()
+        viewModel.checkCompatibility()
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(checker.lastCheckedVersion == "0.57.0")
@@ -167,16 +167,16 @@ struct VersionCompatibilityViewModelTests {
 
     @Test("applyRenaming with nil configPath does nothing")
     func testApplyRenamingNilConfigPathDoesNothing() {
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: nil
         )
 
         let rule = RenamedRuleInfo(id: "test", oldRuleId: "old_rule", newRuleId: "new_rule")
-        vm.applyRenaming(rule)
+        viewModel.applyRenaming(rule)
 
-        #expect(vm.error == nil)
+        #expect(viewModel.error == nil)
     }
 
     @Test("applyRenaming with valid config file updates rule names and does not produce error")
@@ -185,45 +185,45 @@ struct VersionCompatibilityViewModelTests {
         let (configPath, tempDir) = try makeTempConfigURL(yaml: yaml)
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: configPath
         )
 
         let rule = RenamedRuleInfo(id: "test", oldRuleId: "old_rule", newRuleId: "new_rule")
-        vm.applyRenaming(rule)
+        viewModel.applyRenaming(rule)
 
-        #expect(vm.error == nil)
+        #expect(viewModel.error == nil)
     }
 
     @Test("applyRenaming stores error when config file does not exist")
     func testApplyRenamingErrorOnMissingFile() {
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: URL(fileURLWithPath: "/nonexistent/path/.swiftlint.yml")
         )
 
         let rule = RenamedRuleInfo(id: "test", oldRuleId: "old_rule", newRuleId: "new_rule")
-        vm.applyRenaming(rule)
+        viewModel.applyRenaming(rule)
 
-        #expect(vm.error != nil)
+        #expect(viewModel.error != nil)
     }
 
     // MARK: - applyAllFixes()
 
     @Test("applyAllFixes with nil report does nothing")
     func testApplyAllFixesNilReportDoesNothing() {
-        let vm = VersionCompatibilityViewModel(
+        let viewModel = VersionCompatibilityViewModel(
             checker: SpyCompatibilityChecker(),
             swiftLintCLI: SpyCompatibilityCLI(),
             configPath: nil
         )
 
-        vm.applyAllFixes()
+        viewModel.applyAllFixes()
 
-        #expect(vm.error == nil)
+        #expect(viewModel.error == nil)
     }
 }
 

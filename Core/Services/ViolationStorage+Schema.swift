@@ -15,7 +15,7 @@ extension ViolationStorage {
         try? FileManager.default.createDirectory(at: dbDir, withIntermediateDirectories: true)
         return dbDir.appendingPathComponent("violations.db")
     }
-    
+
     static func openDatabase(at path: URL, useInMemory: Bool) throws -> OpaquePointer {
         let dbPath: String = useInMemory ? ":memory:" : path.path
         if !useInMemory {
@@ -25,21 +25,23 @@ extension ViolationStorage {
             }
         }
 
-        var db: OpaquePointer?
-        let result = sqlite3_open(dbPath, &db)
+        var dbHandle: OpaquePointer?
+        let result = sqlite3_open(dbPath, &dbHandle)
         guard result == SQLITE_OK else {
-            let errorMsg = db != nil ? String(cString: sqlite3_errmsg(db)) : "Unknown error (code: \(result))"
-            if db != nil {
-                sqlite3_close(db)
+            let errorMsg = dbHandle != nil
+                ? String(cString: sqlite3_errmsg(dbHandle))
+                : "Unknown error (code: \(result))"
+            if dbHandle != nil {
+                sqlite3_close(dbHandle)
             }
             throw ViolationStorageError.databaseOpenFailed("Failed to open database at '\(dbPath)': \(errorMsg)")
         }
-        guard let databaseHandle = db else {
+        guard let databaseHandle = dbHandle else {
             throw ViolationStorageError.databaseNotOpen
         }
         return databaseHandle
     }
-    
+
     static func createSchema(in databaseHandle: OpaquePointer) throws {
         let createViolationsTable = """
         CREATE TABLE IF NOT EXISTS violations (
@@ -69,7 +71,7 @@ extension ViolationStorage {
         try executeInitSQL(createViolationsTable, on: databaseHandle)
         try executeInitSQL(createIndexes, on: databaseHandle)
     }
-    
+
     private static func executeInitSQL(_ sql: String, on databaseHandle: OpaquePointer) throws {
         var statement: OpaquePointer?
         defer {

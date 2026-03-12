@@ -20,14 +20,14 @@ extension Tag {
     /// Tests that exercise ViewModel state and behavior
     @Tag static var viewModel: Self
     /// Tests that exercise SwiftUI view structure
-    @Tag static var ui: Self
+    @Tag static var userInterface: Self
     /// Tests that wire real service implementations together
     @Tag static var integration: Self
 }
 
 // Main test suite - individual test files are organized by module
 struct SwiftLIntRuleStudioTests {
-    
+
     @Test("Test suite is properly configured")
     func testSuiteConfiguration() {
         // Verify test infrastructure is working

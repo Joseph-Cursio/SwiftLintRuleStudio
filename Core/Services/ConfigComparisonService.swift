@@ -120,14 +120,14 @@ final class ConfigComparisonService: ConfigComparisonServiceProtocol {
     ) -> RuleComparisonDiff {
         var differences: [String] = []
         if rc1?.enabled != rc2?.enabled {
-            let e1 = rc1?.enabled == true ? "enabled" : "disabled"
-            let e2 = rc2?.enabled == true ? "enabled" : "disabled"
-            differences.append("\(label1): \(e1), \(label2): \(e2)")
+            let state1 = rc1?.enabled == true ? "enabled" : "disabled"
+            let state2 = rc2?.enabled == true ? "enabled" : "disabled"
+            differences.append("\(label1): \(state1), \(label2): \(state2)")
         }
         if rc1?.severity != rc2?.severity {
-            let s1 = rc1?.severity?.rawValue ?? "default"
-            let s2 = rc2?.severity?.rawValue ?? "default"
-            differences.append("Severity: \(label1)=\(s1), \(label2)=\(s2)")
+            let sev1 = rc1?.severity?.rawValue ?? "default"
+            let sev2 = rc2?.severity?.rawValue ?? "default"
+            differences.append("Severity: \(label1)=\(sev1), \(label2)=\(sev2)")
         }
         if rc1?.parameters != rc2?.parameters {
             differences.append("Parameters differ")

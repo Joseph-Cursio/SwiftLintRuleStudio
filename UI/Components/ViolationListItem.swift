@@ -10,56 +10,56 @@ import SwiftUI
 struct ViolationListItem: View {
     let violation: Violation
     var onOpenInXcode: (() -> Void)?
-    
+
     @Environment(\.dependencies) var dependencies: DependencyContainer
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Severity indicator
             Circle()
                 .fill(severityColor)
                 .frame(width: 8, height: 8)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 // Rule ID and severity
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(violation.ruleID)
                         .font(.headline)
                         .lineLimit(1)
-                    
+
                     SeverityBadge(severity: violation.severity)
-                    
+
                     if violation.suppressed {
                         Label("Suppressed", systemImage: "eye.slash")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
                 }
-                
+
                 // Message
                 Text(violation.message)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
-                
+
                 // File and line
                 HStack(spacing: 8) {
                     Label(violation.filePath, systemImage: "doc.text")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
-                    
+
                     Text("•")
                         .foregroundStyle(.secondary)
-                    
+
                     Label("Line \(violation.line)", systemImage: "number")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            
+
             Spacer()
-            
+
             // Open in Xcode button (compact)
             if let onOpenInXcode = onOpenInXcode {
                 Button {
@@ -88,7 +88,7 @@ struct ViolationListItem: View {
             }
         }
     }
-    
+
     private func openInXcode(workspace: Workspace) {
         do {
             _ = try dependencies.xcodeIntegrationService.openFile(
@@ -102,7 +102,7 @@ struct ViolationListItem: View {
             print("Failed to open file in Xcode: \(error)")
         }
     }
-    
+
     private var severityColor: Color {
         switch violation.severity {
         case .error:
@@ -115,7 +115,7 @@ struct ViolationListItem: View {
 
 struct SeverityBadge: View {
     let severity: Severity
-    
+
     var body: some View {
         Text(severity.rawValue.uppercased())
             .font(.caption2)
@@ -126,7 +126,7 @@ struct SeverityBadge: View {
             .foregroundStyle(severityColor)
             .clipShape(.rect(cornerRadius: 4))
     }
-    
+
     private var severityColor: Color {
         switch severity {
         case .error:

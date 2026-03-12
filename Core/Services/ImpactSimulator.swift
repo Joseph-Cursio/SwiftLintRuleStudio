@@ -43,21 +43,21 @@ struct BatchSimulationResult: Sendable {
 /// Service for simulating the impact of enabling rules
 @MainActor
 class ImpactSimulator {
-    
+
     // MARK: - Properties
-    
+
     private let swiftLintCLI: SwiftLintCLIProtocol
     private let fileManager: FileManager
-    
+
     // MARK: - Initialization
-    
+
     init(swiftLintCLI: SwiftLintCLIProtocol, fileManager: FileManager = .default) {
         self.swiftLintCLI = swiftLintCLI
         self.fileManager = fileManager
     }
-    
+
     // MARK: - Single Rule Simulation
-    
+
     /// Simulate the impact of enabling a single rule
     /// - Parameters:
     ///   - ruleId: The rule identifier to simulate
@@ -71,7 +71,7 @@ class ImpactSimulator {
         isOptIn: Bool = false
     ) async throws -> RuleImpactResult {
         let startTime = Date()
-        
+
         // Create temporary config with rule enabled
         let tempConfigPath = try createTemporaryConfig(
             ruleId: ruleId,
@@ -80,29 +80,29 @@ class ImpactSimulator {
             workspace: workspace,
             isOptIn: isOptIn
         )
-        
+
         defer {
             // Clean up temporary config
             try? fileManager.removeItem(at: tempConfigPath)
         }
-        
+
         // Run SwiftLint with temporary config
         let lintData = try await swiftLintCLI.executeLintCommand(
             configPath: tempConfigPath,
             workspacePath: workspace.path
         )
-        
+
         // Parse violations
         let allViolations = try parseViolations(from: lintData, workspacePath: workspace.path)
-        
+
         // Filter to only violations for this specific rule
         let ruleViolations = allViolations.filter { $0.ruleID == ruleId }
-        
+
         // Extract affected files
         let affectedFiles = Set(ruleViolations.map { $0.filePath })
-        
+
         let duration = Date().timeIntervalSince(startTime)
-        
+
         return RuleImpactResult(
             ruleId: ruleId,
             violationCount: ruleViolations.count,
@@ -111,9 +111,9 @@ class ImpactSimulator {
             simulationDuration: duration
         )
     }
-    
+
     // MARK: - Batch Simulation
-    
+
     /// Simulate the impact of enabling multiple rules
     /// - Parameters:
     ///   - ruleIds: Array of rule identifiers to simulate
@@ -130,11 +130,11 @@ class ImpactSimulator {
     ) async throws -> BatchSimulationResult {
         let startTime = Date()
         var results: [RuleImpactResult] = []
-        
+
         for (index, ruleId) in ruleIds.enumerated() {
             // Report progress
             progressHandler?(index, ruleIds.count, ruleId)
-            
+
             do {
                 let result = try await simulateRule(
                     ruleId: ruleId,
@@ -156,16 +156,16 @@ class ImpactSimulator {
                 results.append(errorResult)
             }
         }
-        
+
         let duration = Date().timeIntervalSince(startTime)
-        
+
         return BatchSimulationResult(
             results: results,
             totalDuration: duration,
             completedAt: Date()
         )
     }
-    
+
     /// Find all disabled rules with zero violations (safe to enable)
     /// - Parameters:
     ///   - workspace: The workspace to analyze
@@ -187,15 +187,15 @@ class ImpactSimulator {
             optInRuleIds: optInRuleIds,
             progressHandler: progressHandler
         )
-        
+
         // Filter to rules with zero violations (and no errors)
         return batchResult.safeRules
             .filter { $0.violationCount >= 0 } // Exclude error cases
             .map { $0.ruleId }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Create a temporary SwiftLint configuration with a specific rule enabled
     private func createTemporaryConfig(
         ruleId: String,
@@ -208,21 +208,21 @@ class ImpactSimulator {
         let tempDir = fileManager.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        
+
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        
+
         let tempConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
-        
+
         // Load base config if it exists
         let configPathToUse = baseConfigPath
             ?? workspace.configPath
             ?? workspace.path.appendingPathComponent(".swiftlint.yml")
         let yamlEngine = YAMLConfigurationEngine(configPath: configPathToUse)
-        
+
         if fileManager.fileExists(atPath: configPathToUse.path) {
             try yamlEngine.load()
         }
-        
+
         var config = yamlEngine.getConfig()
 
         // Ensure default exclusions are present so simulations
@@ -265,29 +265,29 @@ class ImpactSimulator {
                 config.onlyRules = onlyRules
             }
         }
-        
+
         // Remove from disabled rules list if present
         if var disabledRules = config.disabledRules {
             disabledRules.removeAll { $0 == ruleId }
             config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
         }
-        
+
         // Save to temporary location
         let tempEngine = YAMLConfigurationEngine(configPath: tempConfigPath)
         tempEngine.updateConfig(config)
         try tempEngine.save(config: config, createBackup: false)
-        
+
         return tempConfigPath
     }
-    
+
     /// Parse violations from SwiftLint JSON output
     private func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
             return []
         }
-        
+
         var violations: [Violation] = []
-        
+
         for item in json {
             guard let ruleId = item["rule_id"] as? String,
                   let reason = item["reason"] as? String,
@@ -295,14 +295,14 @@ class ImpactSimulator {
                   let file = item["file"] as? String else {
                 continue
             }
-            
+
             // Parse line and column
             let line = item["line"] as? Int ?? 0
             let column = item["column"] as? Int ?? 0
-            
+
             // Parse severity
             let severity = Severity(rawValue: severityString.lowercased()) ?? .warning
-            
+
             // Convert file path to relative path
             let fullPath = URL(fileURLWithPath: file)
             let relativePath: String
@@ -312,7 +312,7 @@ class ImpactSimulator {
             } else {
                 relativePath = file
             }
-            
+
             let violation = Violation(
                 id: UUID(),
                 ruleID: ruleId,
@@ -323,10 +323,10 @@ class ImpactSimulator {
                 message: reason,
                 detectedAt: Date()
             )
-            
+
             violations.append(violation)
         }
-        
+
         return violations
     }
 }

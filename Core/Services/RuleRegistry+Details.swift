@@ -21,7 +21,7 @@ extension RuleRegistry {
 
         return updatedRules
     }
-    
+
     private func fetchDetailedRuleResult(rule: Rule, index: Int) async -> (Int, Rule) {
         do {
             let detailedRule = try await fetchRuleDetailsWithTimeout(rule: rule)
@@ -31,7 +31,7 @@ extension RuleRegistry {
             return (index, rule)
         }
     }
-    
+
     private func fetchRuleDetailsWithTimeout(rule: Rule) async throws -> Rule {
         try await withThrowingTaskGroup(of: Rule.self) { timeoutGroup in
             timeoutGroup.addTask {
@@ -61,7 +61,7 @@ extension RuleRegistry {
             return result
         }
     }
-    
+
     func fetchRuleDetails(identifier: String, category: RuleCategory, isOptIn: Bool) async throws -> Rule {
         return try await Self.fetchRuleDetailsHelper(
             identifier: identifier,
@@ -70,7 +70,7 @@ extension RuleRegistry {
             swiftLintCLI: swiftLintCLI
         )
     }
-    
+
     /// Helper to fetch rule details without requiring self (to avoid data race warnings)
     static func fetchRuleDetailsHelper(
         identifier: String,

@@ -16,9 +16,9 @@ import Foundation
 // to allow parallel test execution
 @Suite(.serialized)
 struct WorkspaceSelectionViewInteractionTests {
-    
+
     // MARK: - Test Data Helpers
-    
+
     private func createWorkspaceSelectionView() async -> (view: some View, workspaceManager: WorkspaceManager) {
         return await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
@@ -26,7 +26,7 @@ struct WorkspaceSelectionViewInteractionTests {
             return (view, workspaceManager)
         }
     }
-    
+
     @MainActor
     private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
         try view.inspect().find(ViewType.Button.self) { button in
@@ -58,13 +58,13 @@ struct WorkspaceSelectionViewInteractionTests {
             }
         }
     }
-    
+
     // MARK: - Button Interaction Tests
-    
+
     @Test("WorkspaceSelectionView Open Workspace button triggers file picker")
     func testOpenWorkspaceButtonTriggersFilePicker() async throws {
         let (view, _) = await createWorkspaceSelectionView()
-        
+
         // Find and tap Open Workspace button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
@@ -74,65 +74,65 @@ struct WorkspaceSelectionViewInteractionTests {
             let openButton = try findButton(in: view, label: "Open Workspace...")
             try openButton.tap()
         }
-        
+
         // Verify button is tappable (no crash)
         #expect(true, "Open Workspace button should trigger file picker")
     }
-    
+
     @Test("WorkspaceSelectionView Close Workspace button closes workspace")
     func testCloseWorkspaceButtonClosesWorkspace() async throws {
         let (_, workspaceManager) = await createWorkspaceSelectionView()
-        
+
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         try await MainActor.run {
             try workspaceManager.openWorkspace(at: tempDir)
         }
-        
+
         let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
         #expect(didOpenWorkspace == true, "Workspace should open before closing")
-        
+
         // Recreate the view after opening workspace so the button is visible
         let view = await MainActor.run {
             WorkspaceSelectionView(workspaceManager: workspaceManager)
         }
-        
+
         // Find and tap Close Workspace button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
             let closeButton = try findButton(in: view, label: "Close Workspace")
             try closeButton.tap()
         }
-        
+
         let didCloseWorkspace = await waitForWorkspace(workspaceManager, exists: false)
         #expect(didCloseWorkspace == true, "Close Workspace button should close workspace")
     }
-    
+
     // MARK: - Recent Workspace Interaction Tests
-    
+
     @Test("WorkspaceSelectionView recent workspace row opens workspace")
     func testRecentWorkspaceRowOpensWorkspace() async throws {
         let (_, workspaceManager) = await createWorkspaceSelectionView()
-        
+
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         try await MainActor.run {
             try workspaceManager.openWorkspace(at: tempDir)
             workspaceManager.closeWorkspace()
         }
-        
+
         let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
         #expect(didRegisterRecent == true, "Recent workspaces should register")
-        
+
         // Recreate the view after recent workspaces update
         let view = await MainActor.run {
             WorkspaceSelectionView(workspaceManager: workspaceManager)
         }
-        
+
         // Note: Tapping recent workspace row would require finding the specific row
         // This is complex with ViewInspector, so we verify the structure exists
         let hasRecentWorkspaces = try? await MainActor.run {
@@ -176,63 +176,63 @@ struct WorkspaceSelectionViewInteractionTests {
         let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
         #expect(didOpenWorkspace == true, "Tapping recent workspace row should open workspace")
     }
-    
+
     @Test("WorkspaceSelectionView Clear button clears recent workspaces")
     func testClearButtonClearsRecentWorkspaces() async throws {
         let (_, workspaceManager) = await createWorkspaceSelectionView()
-        
+
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         try await MainActor.run {
             try workspaceManager.openWorkspace(at: tempDir)
             workspaceManager.closeWorkspace()
         }
-        
+
         let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
         #expect(didRegisterRecent == true, "Should have recent workspaces")
-        
+
         // Recreate the view after recent workspaces update
         let view = await MainActor.run {
             WorkspaceSelectionView(workspaceManager: workspaceManager)
         }
-        
+
         // Find and tap Clear button
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         try await MainActor.run {
             let clearButton = try findButton(in: view, label: "Clear")
             try clearButton.tap()
         }
-        
+
         let didClear = await waitForRecentWorkspaces(workspaceManager, isEmpty: true)
         #expect(didClear == true, "Clear button should clear recent workspaces")
     }
-    
+
     @Test("WorkspaceSelectionView remove button removes workspace from recent")
     func testRemoveButtonRemovesWorkspace() async throws {
         let (_, workspaceManager) = await createWorkspaceSelectionView()
-        
+
         // Create and open a temporary workspace
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-        
+
         try await MainActor.run {
             try workspaceManager.openWorkspace(at: tempDir)
             workspaceManager.closeWorkspace()
         }
-        
+
         let didRegisterRecent = await waitForRecentWorkspaces(workspaceManager, isEmpty: false)
         let initialCount = await MainActor.run {
             workspaceManager.recentWorkspaces.count
         }
         #expect(didRegisterRecent == true, "Should have recent workspaces")
-        
+
         // Recreate the view after recent workspaces update
         let view = await MainActor.run {
             WorkspaceSelectionView(workspaceManager: workspaceManager)
         }
-        
+
         // Note: Tapping remove button would require finding the specific button
         // This is complex with ViewInspector, so we verify the structure exists
         let hasRecentWorkspaces = try? await MainActor.run {

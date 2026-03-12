@@ -14,7 +14,7 @@ import ViewInspector
 // to allow parallel test execution
 @Suite(.serialized)
 struct ImpactSimulationViewTests {
-    
+
     @Test("ImpactSimulationView displays safe rule correctly")
     func testSafeRuleDisplay() async throws {
         let result = RuleImpactResult(
@@ -24,7 +24,7 @@ struct ImpactSimulationViewTests {
             affectedFiles: [],
             simulationDuration: 1.5
         )
-        
+
         let view = await MainActor.run {
             ImpactSimulationView(
                 ruleId: "test_rule",
@@ -33,7 +33,7 @@ struct ImpactSimulationViewTests {
                 onEnable: nil
             )
         }
-        
+
         // Verify core text and summary content
         let (hasRuleName, hasRuleId, hasSafeText, hasSummary, hasNoViolationsText) = try await MainActor.run {
             ViewHosting.expel()
@@ -47,14 +47,14 @@ struct ImpactSimulationViewTests {
             let hasNoViolationsText = (try? inspector.find(text: "No violations found")) != nil
             return (hasRuleName, hasRuleId, hasSafeText, hasSummary, hasNoViolationsText)
         }
-        
+
         #expect(hasRuleName == true)
         #expect(hasRuleId == true)
         #expect(hasSafeText == true)
         #expect(hasSummary == true)
         #expect(hasNoViolationsText == false)
     }
-    
+
     @Test("ImpactSimulationView displays rule with violations correctly")
     func testRuleWithViolationsDisplay() async throws {
         let violations = [
@@ -75,7 +75,7 @@ struct ImpactSimulationViewTests {
                 message: "Another violation"
             )
         ]
-        
+
         let result = RuleImpactResult(
             ruleId: "test_rule",
             violationCount: 2,
@@ -83,7 +83,7 @@ struct ImpactSimulationViewTests {
             affectedFiles: ["Test.swift", "Another.swift"],
             simulationDuration: 2.3
         )
-        
+
         let view = await MainActor.run {
             ImpactSimulationView(
                 ruleId: "test_rule",
@@ -92,7 +92,7 @@ struct ImpactSimulationViewTests {
                 onEnable: nil
             )
         }
-        
+
         // Verify violation rows render
         let (hasViolationHeader, hasFirstFile, hasSecondFile) = try await MainActor.run {
             ViewHosting.expel()
@@ -104,12 +104,12 @@ struct ImpactSimulationViewTests {
             let hasSecondFile = (try? inspector.find(text: "Another.swift")) != nil
             return (hasViolationHeader, hasFirstFile, hasSecondFile)
         }
-        
+
         #expect(hasViolationHeader == true)
         #expect(hasFirstFile == true)
         #expect(hasSecondFile == true)
     }
-    
+
     @Test("ImpactSimulationView shows empty state when violations list is empty")
     func testViolationsEmptyState() async throws {
         let result = RuleImpactResult(
@@ -119,7 +119,7 @@ struct ImpactSimulationViewTests {
             affectedFiles: [],
             simulationDuration: 0.8
         )
-        
+
         let view = await MainActor.run {
             ImpactSimulationView(
                 ruleId: "test_rule",
@@ -128,7 +128,7 @@ struct ImpactSimulationViewTests {
                 onEnable: nil
             )
         }
-        
+
         let hasEmptyText = try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: view)
@@ -136,10 +136,10 @@ struct ImpactSimulationViewTests {
             let inspector = try view.inspect()
             return (try? inspector.find(text: "No violations found")) != nil
         }
-        
+
         #expect(hasEmptyText == true)
     }
-    
+
     @Test("ImpactSimulationView shows overflow text for many violations")
     func testViolationsOverflowText() async throws {
         let violations = await UITestDataFactory.createTestViolations(count: 22)
@@ -150,7 +150,7 @@ struct ImpactSimulationViewTests {
             affectedFiles: ["Test.swift"],
             simulationDuration: 1.1
         )
-        
+
         let view = await MainActor.run {
             ImpactSimulationView(
                 ruleId: "test_rule",
@@ -159,7 +159,7 @@ struct ImpactSimulationViewTests {
                 onEnable: nil
             )
         }
-        
+
         let hasOverflowText = try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: view)
@@ -167,10 +167,10 @@ struct ImpactSimulationViewTests {
             let inspector = try view.inspect()
             return (try? inspector.find(text: "... and 2 more violations")) != nil
         }
-        
+
         #expect(hasOverflowText == true)
     }
-    
+
     @Test("RuleImpactResult correctly identifies safe rules")
     func testRuleImpactResultSafeRules() async throws {
         let safeResult = RuleImpactResult(
@@ -180,14 +180,14 @@ struct ImpactSimulationViewTests {
             affectedFiles: [],
             simulationDuration: 1.0
         )
-        
+
         // Extract values to avoid Swift 6 false positives
         let (safeIsSafe, safeHasViolations) = await MainActor.run {
             (safeResult.isSafe, safeResult.hasViolations)
         }
         #expect(safeIsSafe == true)
         #expect(safeHasViolations == false)
-        
+
         let unsafeResult = RuleImpactResult(
             ruleId: "unsafe_rule",
             violationCount: 5,
@@ -195,7 +195,7 @@ struct ImpactSimulationViewTests {
             affectedFiles: ["file.swift"],
             simulationDuration: 1.0
         )
-        
+
         // Extract values to avoid Swift 6 false positives
         let (unsafeIsSafe, unsafeHasViolations) = await MainActor.run {
             (unsafeResult.isSafe, unsafeResult.hasViolations)

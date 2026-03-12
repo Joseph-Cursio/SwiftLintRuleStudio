@@ -3,44 +3,44 @@ import SQLite3
 
 extension ViolationStorage {
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
-        guard let db = database else {
+        guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
         }
-        
+
         // Use transaction for performance
-        try beginTransaction(db: db)
-        
+        try beginTransaction(dbHandle: handle)
+
         var transactionCommitted = false
         defer {
             if !transactionCommitted {
                 // Only rollback if we didn't commit successfully
-                try? executeSQL("ROLLBACK", db: db)
+                try? executeSQL("ROLLBACK", dbHandle: handle)
             }
         }
-        
-        let deleted = try deleteExistingViolations(for: workspaceId, db: db)
+
+        let deleted = try deleteExistingViolations(for: workspaceId, dbHandle: handle)
         logDeletedViolations(deleted)
 
-        let statement = try prepareInsertStatement(db: db)
+        let statement = try prepareInsertStatement(dbHandle: handle)
         defer { sqlite3_finalize(statement) }
 
         let insertionResult = try insertViolations(
             violations,
             workspaceId: workspaceId,
-            db: db,
+            dbHandle: handle,
             statement: statement
         )
         logDuplicateViolations(insertionResult, total: violations.count)
-        
+
         // Commit transaction
-        try executeSQL("COMMIT", db: db)
+        try executeSQL("COMMIT", dbHandle: handle)
         transactionCommitted = true
-        
+
         print("💾 Stored \(insertionResult.insertedCount) violations for workspace: \(workspaceId.uuidString)")
     }
-    
-    private func beginTransaction(db: OpaquePointer) throws {
-        try executeSQL("BEGIN TRANSACTION", db: db)
+
+    private func beginTransaction(dbHandle: OpaquePointer) throws {
+        try executeSQL("BEGIN TRANSACTION", dbHandle: dbHandle)
     }
 
     private struct InsertionResult {
@@ -52,7 +52,7 @@ extension ViolationStorage {
     private func insertViolations(
         _ violations: [Violation],
         workspaceId: UUID,
-        db: OpaquePointer,
+        dbHandle: OpaquePointer,
         statement: OpaquePointer
     ) throws -> InsertionResult {
         var insertedCount = 0
@@ -78,7 +78,7 @@ extension ViolationStorage {
             if stepResult == SQLITE_DONE {
                 insertedCount += 1
             } else {
-                let errorMsg = String(cString: sqlite3_errmsg(db))
+                let errorMsg = String(cString: sqlite3_errmsg(dbHandle))
                 print("❌ Error inserting violation \(index): \(errorMsg) (code: \(stepResult))")
                 sqlite3_reset(statement)
                 throw ViolationStorageError.sqlError("Failed to insert violation at index \(index): \(errorMsg)")
@@ -121,15 +121,15 @@ extension ViolationStorage {
             "(total violations: \(total), unique IDs: \(result.uniqueCount))"
         print(message)
     }
-    
-    private func deleteExistingViolations(for workspaceId: UUID, db: OpaquePointer) throws -> Int {
+
+    private func deleteExistingViolations(for workspaceId: UUID, dbHandle: OpaquePointer) throws -> Int {
         let deleteSQL = "DELETE FROM violations WHERE workspace_id = ?;"
         var deleteStatement: OpaquePointer?
         defer { sqlite3_finalize(deleteStatement) }
 
-        guard sqlite3_prepare_v2(db, deleteSQL, -1, &deleteStatement, nil) == SQLITE_OK,
+        guard sqlite3_prepare_v2(dbHandle, deleteSQL, -1, &deleteStatement, nil) == SQLITE_OK,
               let statement = deleteStatement else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(dbHandle)))
         }
         let deleteError = "Failed to allocate memory for delete workspace ID"
         try bindText(
@@ -139,13 +139,13 @@ extension ViolationStorage {
             errorMessage: deleteError
         )
         guard sqlite3_step(statement) == SQLITE_DONE else {
-            let errorMsg = String(cString: sqlite3_errmsg(db))
+            let errorMsg = String(cString: sqlite3_errmsg(dbHandle))
             throw ViolationStorageError.sqlError(errorMsg)
         }
-        return Int(sqlite3_changes(db))
+        return Int(sqlite3_changes(dbHandle))
     }
-    
-    private func prepareInsertStatement(db: OpaquePointer) throws -> OpaquePointer {
+
+    private func prepareInsertStatement(dbHandle: OpaquePointer) throws -> OpaquePointer {
         let insertSQL = """
         INSERT OR REPLACE INTO violations
         (id, workspace_id, rule_id, file_path, line, column, severity, message,
@@ -153,22 +153,22 @@ extension ViolationStorage {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """
         var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(db, insertSQL, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+        guard sqlite3_prepare_v2(dbHandle, insertSQL, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(dbHandle)))
         }
         guard let prepared = statement else {
             throw ViolationStorageError.databaseNotOpen
         }
         return prepared
     }
-    
+
     private func resetStatement(_ statement: OpaquePointer, shouldReset: Bool) {
         if shouldReset {
             sqlite3_reset(statement)
             sqlite3_clear_bindings(statement)
         }
     }
-    
+
     private func bindViolation(_ violation: Violation, workspaceId: UUID, statement: OpaquePointer) throws {
         let idString = violation.id.uuidString
         let idError = "Failed to allocate memory for violation ID"
@@ -203,39 +203,39 @@ extension ViolationStorage {
             sqlite3_bind_null(statement, 12)
         }
     }
-    
+
     private func bindText(_ value: String, index: Int32, statement: OpaquePointer, errorMessage: String) throws {
         guard let cString = strdup(value) else {
             throw ViolationStorageError.sqlError(errorMessage)
         }
         sqlite3_bind_text(statement, index, cString, -1, free)
     }
-    
+
     func suppressViolations(_ violationIds: [UUID], reason: String) throws {
-        guard let db = database else {
+        guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
         }
-        
+
         let placeholders = violationIds.map { _ in "?" }.joined(separator: ", ")
         let sql = "UPDATE violations SET suppressed = 1, suppression_reason = ? WHERE id IN (\(placeholders));"
-        
+
         var statement: OpaquePointer?
         defer {
             if statement != nil {
                 sqlite3_finalize(statement)
             }
         }
-        
-        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+
+        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
-        
+
         // Bind reason using strdup to ensure string persists
         guard let reasonCString = strdup(reason) else {
             throw ViolationStorageError.sqlError("Failed to allocate memory for suppression reason")
         }
         sqlite3_bind_text(statement, 1, reasonCString, -1, free)
-        
+
         // Bind violation IDs using strdup
         var idCStrings: [UnsafeMutablePointer<CChar>?] = []
         defer {
@@ -246,7 +246,7 @@ extension ViolationStorage {
                 }
             }
         }
-        
+
         for (index, id) in violationIds.enumerated() {
             guard let idCString = strdup(id.uuidString) else {
                 throw ViolationStorageError.sqlError("Failed to allocate memory for violation ID")
@@ -254,36 +254,36 @@ extension ViolationStorage {
             idCStrings.append(idCString)
             sqlite3_bind_text(statement, Int32(index + 2), idCString, -1, free)
         }
-        
+
         // Clear the defer cleanup since SQLite will manage the memory now
         idCStrings.removeAll()
-        
+
         guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
     }
-    
+
     func resolveViolations(_ violationIds: [UUID]) throws {
-        guard let db = database else {
+        guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
         }
-        
+
         let placeholders = violationIds.map { _ in "?" }.joined(separator: ", ")
         let sql = "UPDATE violations SET resolved_at = ? WHERE id IN (\(placeholders));"
-        
+
         var statement: OpaquePointer?
         defer {
             if statement != nil {
                 sqlite3_finalize(statement)
             }
         }
-        
-        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+
+        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
-        
+
         sqlite3_bind_double(statement, 1, Date().timeIntervalSince1970)
-        
+
         // Bind violation IDs using strdup
         var idCStrings: [UnsafeMutablePointer<CChar>?] = []
         defer {
@@ -294,7 +294,7 @@ extension ViolationStorage {
                 }
             }
         }
-        
+
         for (index, id) in violationIds.enumerated() {
             guard let idCString = strdup(id.uuidString) else {
                 throw ViolationStorageError.sqlError("Failed to allocate memory for violation ID")
@@ -302,40 +302,40 @@ extension ViolationStorage {
             idCStrings.append(idCString)
             sqlite3_bind_text(statement, Int32(index + 2), idCString, -1, free)
         }
-        
+
         // Clear the defer cleanup since SQLite will manage the memory now
         idCStrings.removeAll()
-        
+
         guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
     }
-    
+
     func deleteViolations(for workspaceId: UUID) throws {
-        guard let db = database else {
+        guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
         }
-        
+
         let sql = "DELETE FROM violations WHERE workspace_id = ?;"
-        
+
         var statement: OpaquePointer?
         defer {
             if statement != nil {
                 sqlite3_finalize(statement)
             }
         }
-        
-        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+
+        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
-        
+
         guard let deleteWorkspaceIdCString = strdup(workspaceId.uuidString) else {
             throw ViolationStorageError.sqlError("Failed to allocate memory for delete workspace ID")
         }
         sqlite3_bind_text(statement, 1, deleteWorkspaceIdCString, -1, free)
-        
+
         guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(db)))
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
     }
 }

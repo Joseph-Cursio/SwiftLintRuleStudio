@@ -5,7 +5,7 @@ extension RuleRegistry {
         let output = try await swiftLintCLI.executeRulesCommand()
         return try await parseRules(from: output)
     }
-    
+
     private func parseRules(from data: Data) async throws -> [Rule] {
         let text = try decodeRuleText(from: data)
         print("SwiftLint output (first 500 chars):\n\(String(text.prefix(500)))")
@@ -32,7 +32,7 @@ extension RuleRegistry {
 
         return updatedRules
     }
-    
+
     private func decodeRuleText(from data: Data) throws -> String {
         guard let text = String(data: data, encoding: .utf8) else {
             throw NSError(
@@ -43,11 +43,11 @@ extension RuleRegistry {
         }
         return text
     }
-    
+
     private func parseRulesTable(from text: String) -> [Rule] {
         text.components(separatedBy: .newlines).compactMap(parseRuleLine(from:))
     }
-    
+
     private func parseRuleLine(from line: String) -> Rule? {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         guard shouldParseRuleLine(trimmed) else { return nil }
@@ -86,14 +86,14 @@ extension RuleRegistry {
             markdownDocumentation: nil
         )
     }
-    
+
     private func shouldParseRuleLine(_ trimmed: String) -> Bool {
         if trimmed.isEmpty || trimmed.hasPrefix("+") || !trimmed.hasPrefix("|") {
             return false
         }
-        return !trimmed.lowercased().contains("identifier")
+        return !trimmed.lowercased().hasPrefix("| identifier ")
     }
-    
+
     private func mapCategory(_ kind: String) -> RuleCategory {
         switch kind {
         case "style":

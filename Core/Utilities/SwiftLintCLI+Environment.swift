@@ -10,14 +10,14 @@ extension SwiftLintCLI {
         }
         return environment
     }
-    
+
     nonisolated static func buildShellCommand(command: String, arguments: [String]) -> String {
         var commandParts = [command]
         commandParts.append(contentsOf: arguments)
         let escapedParts = commandParts.map { escapeShellArgument($0) }
         return escapedParts.joined(separator: " ")
     }
-    
+
     nonisolated static func escapeShellArgument(_ value: String) -> String {
         if value.contains(" ") || value.contains("'") || value.contains("\"") {
             let escaped = value.replacingOccurrences(of: "'", with: "'\"'\"'")
@@ -25,7 +25,7 @@ extension SwiftLintCLI {
         }
         return value
     }
-    
+
     nonisolated static func buildLintArguments(
         configPath: URL?,
         workspacePath: URL,

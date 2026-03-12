@@ -11,7 +11,7 @@ import Testing
 
 @MainActor
 struct RuleBrowserViewModelTests {
-    
+
     private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
         func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
         func executeRulesCommand() throws -> Data { Data() }
@@ -20,14 +20,14 @@ struct RuleBrowserViewModelTests {
         func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
         func getVersion() throws -> String { "0.0.0" }
     }
-    
+
     private func makeRegistry(with rules: [Rule]) -> RuleRegistry {
         let cache = CacheManager.createForTesting()
         let registry = RuleRegistry(swiftLintCLI: StubSwiftLintCLI(), cacheManager: cache)
         registry.setRulesForTesting(rules)
         return registry
     }
-    
+
     private struct RuleSeed {
         let id: String
         let name: String
@@ -56,7 +56,7 @@ struct RuleBrowserViewModelTests {
             markdownDocumentation: nil
         )
     }
-    
+
     @Test("RuleBrowserViewModel filters by search and status")
     func testSearchAndStatusFilters() {
         let rules = [
@@ -85,26 +85,26 @@ struct RuleBrowserViewModelTests {
                 isEnabled: false
             ))
         ]
-        
+
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
-        
+
         viewModel.searchText = "force"
         #expect(viewModel.filteredRules.map(\.id) == ["force_cast"])
-        
+
         viewModel.searchText = "loading"
         #expect(viewModel.filteredRules.isEmpty == true)
-        
+
         viewModel.searchText = ""
         viewModel.selectedStatus = .enabled
         #expect(viewModel.filteredRules.map(\.id) == ["force_cast"])
-        
+
         viewModel.selectedStatus = .disabled
         #expect(viewModel.filteredRules.map(\.id).sorted() == ["opt_in_rule", "trailing_whitespace"])
-        
+
         viewModel.selectedStatus = .optIn
         #expect(viewModel.filteredRules.map(\.id) == ["opt_in_rule"])
     }
-    
+
     @Test("RuleBrowserViewModel filters by category and sorts")
     func testCategoryAndSorting() {
         let rules = [
@@ -133,17 +133,17 @@ struct RuleBrowserViewModelTests {
                 isEnabled: true
             ))
         ]
-        
+
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
-        
+
         viewModel.selectedCategory = .style
         #expect(viewModel.filteredRules.map(\.id).sorted() == ["b_rule", "c_rule"])
-        
+
         viewModel.selectedCategory = nil
         viewModel.selectedSortOption = .identifier
         #expect(viewModel.filteredRules.map(\.id) == ["a_rule", "b_rule", "c_rule"])
     }
-    
+
     @Test("RuleBrowserViewModel categoryCounts respect filters")
     func testCategoryCounts() {
         let rules = [
@@ -172,18 +172,18 @@ struct RuleBrowserViewModelTests {
                 isEnabled: true
             ))
         ]
-        
+
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
-        
+
         viewModel.searchText = "rule"
         viewModel.selectedStatus = .enabled
-        
+
         let counts = viewModel.categoryCounts
         #expect(counts[.lint] == 1)
         #expect(counts[.performance] == 1)
         #expect(counts[.style] == nil)
     }
-    
+
     @Test("RuleBrowserViewModel clearFilters resets state")
     func testClearFilters() {
         let rules = [
@@ -197,11 +197,11 @@ struct RuleBrowserViewModelTests {
             ))
         ]
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
-        
+
         viewModel.searchText = "rule"
         viewModel.selectedCategory = .lint
         viewModel.selectedStatus = .enabled
-        
+
         viewModel.clearFilters()
         #expect(viewModel.searchText.isEmpty == true)
         #expect(viewModel.selectedCategory == nil)

@@ -137,11 +137,11 @@ struct ConfigVersionHistoryServiceTests {
         defer { cleanup(dir) }
 
         try "rules: {}".write(to: configPath, atomically: true, encoding: .utf8)
-        for i in 0..<5 {
+        for idx in 0..<5 {
             try createBackupFile(
                 in: dir,
                 configName: ".swiftlint.yml",
-                timestamp: 1700000000 + (i * 1000),
+                timestamp: 1700000000 + (idx * 1000),
                 content: "rules: {}"
             )
         }

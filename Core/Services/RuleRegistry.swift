@@ -87,7 +87,9 @@ class RuleRegistry: RuleRegistryProtocol {
         }
 
         do {
-            let detailedRule = try await fetchRuleDetails(identifier: rule.id, category: rule.category, isOptIn: rule.isOptIn)
+            let detailedRule = try await fetchRuleDetails(
+                identifier: rule.id, category: rule.category, isOptIn: rule.isOptIn
+            )
 
             // Update the rule in the rules array
             if let index = rules.firstIndex(where: { $0.id == id }) {
@@ -103,6 +105,41 @@ class RuleRegistry: RuleRegistryProtocol {
 
     func refreshRules() async throws {
         _ = try await loadRules()
+    }
+
+    /// Update each rule's `isEnabled` to match the actual YAML configuration.
+    func syncEnabledStates(with config: YAMLConfigurationEngine.YAMLConfig) {
+        var updated = rules
+        for index in updated.indices {
+            updated[index].isEnabled = isRuleEnabled(updated[index], config: config)
+        }
+        rules = updated
+    }
+
+    private func isRuleEnabled(
+        _ rule: Rule,
+        config: YAMLConfigurationEngine.YAMLConfig
+    ) -> Bool {
+        if let onlyRules = config.onlyRules {
+            return onlyRules.contains(rule.id)
+        }
+        if rule.isOptIn {
+            if let ruleConfig = config.rules[rule.id],
+               ruleConfig.enabled == false {
+                return false
+            }
+            if let optInRules = config.optInRules {
+                return optInRules.contains(rule.id)
+            }
+            return false
+        }
+        if config.disabledRules?.contains(rule.id) == true {
+            return false
+        }
+        if let ruleConfig = config.rules[rule.id] {
+            return ruleConfig.enabled
+        }
+        return true
     }
 
 #if DEBUG

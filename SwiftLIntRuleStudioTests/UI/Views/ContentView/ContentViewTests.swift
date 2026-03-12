@@ -15,22 +15,22 @@ import SwiftUI
 // to allow parallel test execution
 @Suite(.serialized)
 struct ContentViewTests {
-    
+
     // Workaround type to bypass Sendable check for SwiftUI views
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
         let dependencies: DependencyContainer
         let ruleRegistry: RuleRegistry
-        
+
         init(view: some View, dependencies: DependencyContainer, ruleRegistry: RuleRegistry) {
             self.view = AnyView(view)
             self.dependencies = dependencies
             self.ruleRegistry = ruleRegistry
         }
     }
-    
+
     // MARK: - Test Data Helpers
-    
+
     // Workaround for Swift 6 strict concurrency: Return ViewResult instead of tuple with 'some View'
     @MainActor
     private func createContentView(
@@ -42,9 +42,9 @@ struct ContentViewTests {
         let userDefaults = IsolatedUserDefaults.create(for: testName)
         let onboardingManager = OnboardingManager(userDefaults: userDefaults)
         onboardingManager.hasCompletedOnboarding = hasCompletedOnboarding
-        
+
         let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
-        
+
         let cacheManager = CacheManager.createForTesting()
         let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
@@ -56,16 +56,16 @@ struct ContentViewTests {
             workspaceManager: workspaceManager,
             onboardingManager: onboardingManager
         )
-        
+
         let view = ContentView()
             .environment(\.ruleRegistry, ruleRegistry)
             .environment(\.dependencies, dependencies)
-        
+
         return ViewResult(view: view, dependencies: dependencies, ruleRegistry: ruleRegistry)
     }
-    
+
     // MARK: - Initialization Tests
-    
+
     @Test("ContentView initializes correctly")
     func testInitialization() async throws {
         // Workaround: Use Task instead of MainActor.run to bypass Sendable check
@@ -81,9 +81,9 @@ struct ContentViewTests {
         }
         #expect(true, "ContentView should initialize with Group")
     }
-    
+
     // MARK: - Onboarding Display Tests
-    
+
     @Test("ContentView shows OnboardingView when onboarding not completed")
     func testShowsOnboardingWhenNotCompleted() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
@@ -99,7 +99,7 @@ struct ContentViewTests {
         }
         #expect(hasOnboarding == true, "ContentView should show OnboardingView when onboarding not completed")
     }
-    
+
     @Test("ContentView hides OnboardingView when onboarding completed")
     func testHidesOnboardingWhenCompleted() async throws {
         let result = await Task { @MainActor in
@@ -114,9 +114,9 @@ struct ContentViewTests {
         #expect(hasCompletedOnboarding == true,
                 "OnboardingManager should report completion, driving ContentView to hide OnboardingView")
     }
-    
+
     // MARK: - Workspace Selection Display Tests
-    
+
     @Test("ContentView shows WorkspaceSelectionView when no workspace")
     func testShowsWorkspaceSelectionWhenNoWorkspace() async throws {
         let result = await Task { @MainActor in
@@ -133,9 +133,9 @@ struct ContentViewTests {
         #expect(hasWorkspace == false,
                 "No workspace should be open, driving ContentView to show WorkspaceSelectionView")
     }
-    
+
     // MARK: - Main Interface Display Tests
-    
+
     @Test("ContentView shows main interface when workspace is open")
     func testShowsMainInterfaceWhenWorkspaceOpen() async throws {
         let result = await Task { @MainActor in
@@ -158,7 +158,7 @@ struct ContentViewTests {
         #expect(hasWorkspace == true,
                 "Workspace should be open, driving ContentView to show the main NavigationSplitView interface")
     }
-    
+
     @Test("ContentView shows config recommendation when config file missing")
     func testShowsConfigRecommendationWhenConfigMissing() async throws {
         let result = await Task { @MainActor in
@@ -188,7 +188,7 @@ struct ContentViewTests {
                 + " driving ContentView to show the config recommendation")
         )
     }
-    
+
     @Test("ContentView shows default detail view when workspace open")
     func testShowsDefaultDetailView() async throws {
         let result = await Task { @MainActor in
@@ -214,7 +214,7 @@ struct ContentViewTests {
                 + " to render the NavigationSplitView with RuleBrowserView as default")
         )
     }
-    
+
     // MARK: - Status Bar Tests
 
     @Test("ContentView status bar shows workspace path when workspace is open")

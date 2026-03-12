@@ -10,14 +10,14 @@ import Foundation
 // MARK: - Types
 
 enum MigrationStep: Sendable, Identifiable {
-    case renameRule(from: String, to: String)
+    case renameRule(from: String, newName: String)
     case removeDeprecatedRule(ruleId: String, reason: String)
     case updateParameter(ruleId: String, oldParam: String, newParam: String)
     case manualAction(description: String)
 
     var id: String {
         switch self {
-        case .renameRule(let from, let to): return "rename-\(from)-\(to)"
+        case .renameRule(let from, let newName): return "rename-\(from)-\(newName)"
         case .removeDeprecatedRule(let ruleId, _): return "remove-\(ruleId)"
         case .updateParameter(let ruleId, let old, _): return "param-\(ruleId)-\(old)"
         case .manualAction(let desc): return "manual-\(desc.hashValue)"
@@ -26,8 +26,8 @@ enum MigrationStep: Sendable, Identifiable {
 
     var description: String {
         switch self {
-        case .renameRule(let from, let to):
-            return "Rename '\(from)' to '\(to)'"
+        case .renameRule(let from, let newName):
+            return "Rename '\(from)' to '\(newName)'"
         case .removeDeprecatedRule(let ruleId, let reason):
             return "Remove '\(ruleId)': \(reason)"
         case .updateParameter(let ruleId, let oldParam, let newParam):
@@ -97,7 +97,7 @@ final class MigrationAssistant: MigrationAssistantProtocol {
         // Check renamed rules
         for ruleId in allRuleIds.sorted() {
             if let newId = SwiftLintDeprecations.renamedRules[ruleId], newId != ruleId {
-                steps.append(.renameRule(from: ruleId, to: newId))
+                steps.append(.renameRule(from: ruleId, newName: newId))
             }
         }
 
@@ -131,7 +131,7 @@ final class MigrationAssistant: MigrationAssistantProtocol {
                         }
                     })
                     if !alreadyHandled, let replacement = entry.replacement {
-                        steps.append(.renameRule(from: ruleId, to: replacement))
+                        steps.append(.renameRule(from: ruleId, newName: replacement))
                     }
                 }
             }
@@ -174,17 +174,17 @@ final class MigrationAssistant: MigrationAssistantProtocol {
 
     private func applyStep(_ step: MigrationStep, to config: inout YAMLConfigurationEngine.YAMLConfig) {
         switch step {
-        case .renameRule(let from, let to):
+        case .renameRule(let from, let newName):
             // Rename in rules dict
             if let ruleConfig = config.rules[from] {
                 config.rules.removeValue(forKey: from)
-                config.rules[to] = ruleConfig
+                config.rules[newName] = ruleConfig
             }
             // Rename in list fields
-            replaceInList(&config.disabledRules, old: from, new: to)
-            replaceInList(&config.optInRules, old: from, new: to)
-            replaceInList(&config.analyzerRules, old: from, new: to)
-            replaceInList(&config.onlyRules, old: from, new: to)
+            replaceInList(&config.disabledRules, old: from, new: newName)
+            replaceInList(&config.optInRules, old: from, new: newName)
+            replaceInList(&config.analyzerRules, old: from, new: newName)
+            replaceInList(&config.onlyRules, old: from, new: newName)
 
         case .removeDeprecatedRule(let ruleId, _):
             config.rules.removeValue(forKey: ruleId)
