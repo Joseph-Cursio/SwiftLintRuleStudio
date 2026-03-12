@@ -83,9 +83,9 @@ struct ConfigComparisonServiceTests {
             config2: config2, label2: "Project B"
         )
 
-        #expect(result.inBothDifferent.count == 1)
-        #expect(result.inBothDifferent[0].ruleId == "force_cast")
-        #expect(!result.inBothDifferent[0].differences.isEmpty)
+        let diff = try #require(result.inBothDifferent.first, "Expected one rule with different severity")
+        #expect(diff.ruleId == "force_cast")
+        #expect(!diff.differences.isEmpty)
     }
 
     @Test("Different parameters detected")
@@ -103,8 +103,8 @@ struct ConfigComparisonServiceTests {
             config2: config2, label2: "Project B"
         )
 
-        #expect(result.inBothDifferent.count == 1)
-        #expect(result.inBothDifferent[0].ruleId == "line_length")
+        let diff = try #require(result.inBothDifferent.first, "Expected one rule with different parameters")
+        #expect(diff.ruleId == "line_length")
     }
 
     @Test("Empty vs populated config")

@@ -43,8 +43,8 @@ struct RuleRegistryCacheTests {
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 1)
-        #expect(rules[0].id == "cached_rule")
+        let rule = try #require(rules.first, "Expected one cached rule")
+        #expect(rule.id == "cached_rule")
     }
 
     @Test("RuleRegistry throws error when both SwiftLint and cache fail")

@@ -92,9 +92,9 @@ struct WkspManagerIntegrationStorageTests {
         let workspace1Violations = try await storage.fetchViolations(filter: filter, workspaceId: workspace1.id)
         let workspace2Violations = try await storage.fetchViolations(filter: filter, workspaceId: workspace2.id)
 
-        #expect(workspace1Violations.count == 1)
-        #expect(workspace1Violations[0].ruleID == "rule_1")
-        #expect(workspace2Violations.count == 1)
-        #expect(workspace2Violations[0].ruleID == "rule_2")
+        let ws1Violation = try #require(workspace1Violations.first, "Expected one violation for workspace 1")
+        #expect(ws1Violation.ruleID == "rule_1")
+        let ws2Violation = try #require(workspace2Violations.first, "Expected one violation for workspace 2")
+        #expect(ws2Violation.ruleID == "rule_2")
     }
 }

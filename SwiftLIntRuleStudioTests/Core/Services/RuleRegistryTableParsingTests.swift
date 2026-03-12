@@ -23,8 +23,7 @@ struct RuleRegistryTableParsingTests {
 
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 1)
-        let rule = rules[0]
+        let rule = try #require(rules.first, "Expected exactly one parsed rule")
         #expect(rule.id == "force_cast")
         #expect(rule.category == .lint)
         #expect(rule.isOptIn == false)
@@ -43,8 +42,7 @@ struct RuleRegistryTableParsingTests {
 
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 1)
-        let rule = rules[0]
+        let rule = try #require(rules.first, "Expected exactly one parsed rule")
         #expect(rule.id == "simple_rule")
         #expect(rule.category == .style)
         #expect(rule.isOptIn == false)
@@ -68,7 +66,7 @@ struct RuleRegistryTableParsingTests {
 
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 6)
+        try #require(rules.count == 6, "Expected 6 rules for all category types")
         #expect(rules[0].category == .style)
         #expect(rules[1].category == .lint)
         #expect(rules[2].category == .metrics)
@@ -91,7 +89,7 @@ struct RuleRegistryTableParsingTests {
 
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 2)
+        try #require(rules.count == 2, "Expected 2 rules for case-insensitive mapping")
         #expect(rules[0].category == .style)
         #expect(rules[1].category == .lint)
     }
@@ -111,7 +109,7 @@ struct RuleRegistryTableParsingTests {
 
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 3)
+        try #require(rules.count == 3, "Expected 3 rules for opt-in parsing")
         #expect(rules[0].isOptIn == true)
         #expect(rules[1].isOptIn == false)
         #expect(rules[2].isOptIn == false)
@@ -132,7 +130,7 @@ struct RuleRegistryTableParsingTests {
 
         let rules = try await registry.loadRules()
 
-        #expect(rules.count == 3)
+        try #require(rules.count == 3, "Expected 3 rules parsed")
         #expect(rules[0].id == "rule1")
         #expect(rules[1].id == "rule2")
         #expect(rules[2].id == "rule3")

@@ -243,7 +243,7 @@ struct PRCommentGeneratorTests {
     // MARK: - Sorting Tests
 
     @Test("Rules are sorted alphabetically")
-    func testRulesAreSortedAlphabetically() {
+    func testRulesAreSortedAlphabetically() throws {
         let generator = PRCommentGenerator()
         let diff = YAMLConfigurationEngine.ConfigDiff(
             addedRules: ["zebra_rule", "alpha_rule", "middle_rule"],
@@ -255,18 +255,12 @@ struct PRCommentGeneratorTests {
         let markdown = generator.generateMarkdown(from: diff)
 
         // Check order by finding positions
-        let alphaPos = markdown.range(of: "alpha_rule")?.lowerBound
-        let middlePos = markdown.range(of: "middle_rule")?.lowerBound
-        let zebraPos = markdown.range(of: "zebra_rule")?.lowerBound
+        let alphaPos = try #require(markdown.range(of: "alpha_rule")?.lowerBound, "alpha_rule not found")
+        let middlePos = try #require(markdown.range(of: "middle_rule")?.lowerBound, "middle_rule not found")
+        let zebraPos = try #require(markdown.range(of: "zebra_rule")?.lowerBound, "zebra_rule not found")
 
-        #expect(alphaPos != nil)
-        #expect(middlePos != nil)
-        #expect(zebraPos != nil)
-
-        if let alphaIndex = alphaPos, let middleIndex = middlePos, let zebraIndex = zebraPos {
-            #expect(alphaIndex < middleIndex)
-            #expect(middleIndex < zebraIndex)
-        }
+        #expect(alphaPos < middlePos)
+        #expect(middlePos < zebraPos)
     }
 
     // MARK: - Extension Tests

@@ -60,21 +60,20 @@ struct RuleDetailViewModelParameterTests {
             let rule = Self.createRuleWithParameters()
 
             // Verify the rule has parameters before creating the viewModel
-            #expect(rule.parameters != nil)
-            #expect(rule.parameters?.count == 3)
+            let params = try #require(rule.parameters, "Rule should have parameters")
+            #expect(params.count == 3)
 
             let viewModel = RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
             try viewModel.loadConfiguration()
 
             // Check that the engine loaded the rule config with params
             let engineConfig = yamlEngine.getConfig()
-            let ruleConfig = engineConfig.rules["line_length"]
-            #expect(ruleConfig != nil)
-            #expect(ruleConfig?.parameters != nil)
+            let ruleConfig = try #require(engineConfig.rules["line_length"], "Expected line_length in config")
+            #expect(ruleConfig.parameters != nil)
 
             // Verify viewModel parameter values
-            let params = viewModel.parameterValues
-            #expect(!params.isEmpty, "Expected parameterValues to be populated")
+            let paramValues = viewModel.parameterValues
+            #expect(!paramValues.isEmpty, "Expected parameterValues to be populated")
         }
     }
 
@@ -110,10 +109,10 @@ struct RuleDetailViewModelParameterTests {
             viewModel.updateParameter("warning", value: AnyCodable(80))
         }
 
-        await MainActor.run {
-            let changes = viewModel.pendingChanges
-            #expect(changes != nil)
-            #expect(changes?.parameters?["warning"]?.value as? Int == 80)
+        try await MainActor.run {
+            let changes = try #require(viewModel.pendingChanges, "Expected pending changes after parameter update")
+            let warningParam = try #require(changes.parameters?["warning"], "Expected 'warning' parameter in changes")
+            #expect(warningParam.value as? Int == 80)
         }
     }
 
@@ -142,10 +141,9 @@ struct RuleDetailViewModelParameterTests {
             viewModel.updateParameter("warning", value: AnyCodable(80))
         }
 
-        await MainActor.run {
-            let diff = viewModel.generateDiff()
-            #expect(diff != nil)
-            #expect(diff?.modifiedRules.contains("line_length") == true)
+        try await MainActor.run {
+            let diff = try #require(viewModel.generateDiff(), "Expected diff after parameter change")
+            #expect(diff.modifiedRules.contains("line_length"))
         }
     }
 

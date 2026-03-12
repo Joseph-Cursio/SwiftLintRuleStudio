@@ -53,7 +53,7 @@ struct ConfigVersionHistoryServiceTests {
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
 
-        #expect(backups.count == 3)
+        try #require(backups.count == 3, "Expected 3 backups")
         // Should be sorted newest first
         #expect(backups[0].timestamp > backups[1].timestamp)
         #expect(backups[1].timestamp > backups[2].timestamp)
@@ -85,8 +85,8 @@ struct ConfigVersionHistoryServiceTests {
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
 
-        #expect(backups.count == 1)
-        #expect(backups[0].timestamp == Date(timeIntervalSince1970: 1700000000))
+        let backup = try #require(backups.first, "Expected one backup")
+        #expect(backup.timestamp == Date(timeIntervalSince1970: 1700000000))
     }
 
     @Test("Load backup returns content")
@@ -101,7 +101,8 @@ struct ConfigVersionHistoryServiceTests {
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
-        let loaded = try service.loadBackup(backups[0])
+        let backup = try #require(backups.first, "Expected backup to load")
+        let loaded = try service.loadBackup(backup)
 
         #expect(loaded == content)
     }
@@ -119,7 +120,8 @@ struct ConfigVersionHistoryServiceTests {
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
-        try service.restoreBackup(backups[0], to: configPath)
+        let backup = try #require(backups.first, "Expected backup to restore")
+        try service.restoreBackup(backup, to: configPath)
 
         // Check restored content
         let restored = try String(contentsOf: configPath, encoding: .utf8)
@@ -170,6 +172,7 @@ struct ConfigVersionHistoryServiceTests {
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
+        try #require(backups.count == 2, "Expected 2 backups for diff comparison")
 
         let diff = try service.diffBetween(backups[1], backups[0])
         #expect(diff.hasChanges)
