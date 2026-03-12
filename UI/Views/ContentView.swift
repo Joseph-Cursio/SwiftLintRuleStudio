@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var selection: AppSection? = .rules
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var searchText: String = ""
+    @State private var selectedRuleId: String?
+    @State private var ruleBrowserViewModel: RuleBrowserViewModel?
     @State private var showWorkspacePicker = false
 
     var body: some View {
@@ -48,10 +50,13 @@ struct ContentView: View {
                         Group {
                             switch selection {
                             case .rules:
-                                RuleBrowserView(
-                                    ruleRegistry: dependencies.ruleRegistry,
-                                    externalSearchText: $searchText
-                                )
+                                if let ruleBrowserViewModel {
+                                    RuleBrowserView(
+                                        viewModel: ruleBrowserViewModel,
+                                        externalSearchText: $searchText,
+                                        selectedRuleId: $selectedRuleId
+                                    )
+                                }
                             case .violations:
                                 ViolationInspectorView()
                             case .dashboard:
@@ -131,7 +136,7 @@ struct ContentView: View {
                 .safeAreaInset(edge: .bottom) {
                     HStack(spacing: 12) {
                         if let workspace = dependencies.workspaceManager.currentWorkspace {
-                            Label(workspace.path.path, systemImage: "folder")
+                            Label(workspace.path.path(), systemImage: "folder")
                                 .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
@@ -158,7 +163,12 @@ struct ContentView: View {
                     allowsMultipleSelection: false
                 ) { result in
                     if case .success(let urls) = result, let url = urls.first {
-                        try? dependencies.workspaceManager.openWorkspace(at: url)
+                        do {
+                            try dependencies.workspaceManager.openWorkspace(at: url)
+                        } catch {
+                            errorMessage = error.localizedDescription
+                            showError = true
+                        }
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .openWorkspaceRequested)) { _ in
@@ -166,18 +176,18 @@ struct ContentView: View {
                 }
                 .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
                     guard let provider = providers.first else { return false }
-                    provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                        let url: URL?
-                        if let nsURL = item as? NSURL {
-                            url = nsURL as URL
-                        } else if let data = item as? Data {
-                            url = URL(dataRepresentation: data, relativeTo: nil)
-                        } else {
-                            url = nil
-                        }
-                        guard let dropURL = url else { return }
-                        Task { @MainActor in
-                            try? dependencies.workspaceManager.openWorkspace(at: dropURL)
+                    Task {
+                        guard let item = try? await provider.loadItem(
+                            forTypeIdentifier: UTType.fileURL.identifier
+                        ),
+                              let data = item as? Data,
+                              let dropURL = URL(dataRepresentation: data, relativeTo: nil)
+                        else { return }
+                        do {
+                            try dependencies.workspaceManager.openWorkspace(at: dropURL)
+                        } catch {
+                            errorMessage = error.localizedDescription
+                            showError = true
                         }
                     }
                     return true
@@ -213,6 +223,9 @@ struct ContentView: View {
         .onAppear {
             // Check config file when view appears
             dependencies.workspaceManager.checkConfigFileExists()
+            if ruleBrowserViewModel == nil {
+                ruleBrowserViewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
+            }
             if !didApplyUITestOverrides {
                 didApplyUITestOverrides = true
                 applyUITestOverrides()

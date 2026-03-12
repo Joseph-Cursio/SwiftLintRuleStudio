@@ -6,35 +6,36 @@
 //
 
 import SwiftUI
-#if os(macOS)
-import AppKit
-#endif
 
 struct RuleBrowserView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel: RuleBrowserViewModel
-    @State private var selectedRuleId: String?
+    @Binding var selectedRuleId: String?
     private var externalSearchText: Binding<String>?
 
     init(
         ruleRegistry: RuleRegistry,
-        externalSearchText: Binding<String>? = nil
+        externalSearchText: Binding<String>? = nil,
+        selectedRuleId: Binding<String?> = .constant(nil)
     ) {
         _viewModel = State(initialValue: RuleBrowserViewModel(ruleRegistry: ruleRegistry))
         self.externalSearchText = externalSearchText
+        _selectedRuleId = selectedRuleId
     }
 
     init(
         viewModel: RuleBrowserViewModel,
-        externalSearchText: Binding<String>? = nil
+        externalSearchText: Binding<String>? = nil,
+        selectedRuleId: Binding<String?> = .constant(nil)
     ) {
         _viewModel = State(initialValue: viewModel)
         self.externalSearchText = externalSearchText
+        _selectedRuleId = selectedRuleId
     }
 
-    @State private var listWidth: CGFloat = 450
+    @State private var listWidth: Double = 450
 
     var body: some View {
         HStack(spacing: 0) {
@@ -56,10 +57,7 @@ struct RuleBrowserView: View {
                         .contentShape(Rectangle())
                         .gesture(
                             DragGesture()
-                                .onChanged { value in
-                                    let newWidth = listWidth + value.translation.width
-                                    listWidth = min(max(newWidth, 300), 600)
-                                }
+                                .onChanged(handleDividerDrag)
                         )
                 }
                 .onHover { hovering in
@@ -109,6 +107,11 @@ struct RuleBrowserView: View {
                 self.selectedRuleId = nil
             }
         }
+    }
+
+    private func handleDividerDrag(_ value: DragGesture.Value) {
+        let newWidth = listWidth + value.translation.width
+        listWidth = min(max(newWidth, 300), 600)
     }
 
     private func syncEnabledStatesFromConfig() {
