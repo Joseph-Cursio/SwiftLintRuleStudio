@@ -137,7 +137,7 @@ struct RuleDocumentationParserTests {
         * **Supports autocorrection:** Yes
         """
         let result = RuleDocumentationParser.parse(markdown: markdown)
-        #expect(result.supportsAutocorrection == true)
+        #expect(result.supportsAutocorrection)
     }
 
     @Test("Detects supportsAutocorrection = false when value is No")
@@ -150,7 +150,7 @@ struct RuleDocumentationParserTests {
         * **Supports autocorrection:** No
         """
         let result = RuleDocumentationParser.parse(markdown: markdown)
-        #expect(result.supportsAutocorrection == false)
+        #expect(!result.supportsAutocorrection)
     }
 
     @Test("Extracts minimum Swift compiler version from metadata")

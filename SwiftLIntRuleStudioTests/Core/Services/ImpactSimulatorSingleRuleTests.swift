@@ -34,8 +34,8 @@ struct ImpactSimulatorSingleRuleTests {
 
         #expect(result.ruleId == "test_rule")
         #expect(result.violationCount == 0)
-        #expect(result.isSafe == true)
-        #expect(result.hasViolations == false)
+        #expect(result.isSafe)
+        #expect(!result.hasViolations)
         #expect(result.affectedFiles.isEmpty)
     }
 
@@ -74,8 +74,8 @@ struct ImpactSimulatorSingleRuleTests {
 
         #expect(result.ruleId == "test_rule")
         #expect(result.violationCount == 1)
-        #expect(result.isSafe == false)
-        #expect(result.hasViolations == true)
+        #expect(!result.isSafe)
+        #expect(result.hasViolations)
         #expect(result.affectedFiles.count == 1)
     }
 

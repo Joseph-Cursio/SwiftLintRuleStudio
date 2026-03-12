@@ -34,8 +34,9 @@ struct VersionCompatibilityCheckerTests {
     func testDetectsDeprecatedRules() {
         let config = makeConfig(rules: ["unused_capture_list": RuleConfiguration(enabled: true)])
         let report = checker.checkCompatibility(config: config, swiftLintVersion: "0.40.0")
-        // unused_capture_list deprecated in 0.39.0, not yet removed
-        #expect(!report.deprecatedRules.isEmpty || !report.renamedRules.isEmpty)
+        // unused_capture_list deprecated in 0.39.0, should appear in deprecated or renamed
+        let hasDeprecationIssue = !report.deprecatedRules.isEmpty || !report.renamedRules.isEmpty
+        #expect(hasDeprecationIssue, "Expected unused_capture_list to be flagged as deprecated or renamed")
     }
 
     @Test("No deprecated rules for clean config")

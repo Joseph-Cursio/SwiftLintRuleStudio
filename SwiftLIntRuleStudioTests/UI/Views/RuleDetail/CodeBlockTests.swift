@@ -32,7 +32,7 @@ struct CodeBlockTests {
             return (errorStack, okStack)
         }
 
-        #expect(errorHasHStack == true)
-        #expect(okHasHStack == true)
+        #expect(errorHasHStack)
+        #expect(okHasHStack)
     }
 }

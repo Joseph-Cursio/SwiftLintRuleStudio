@@ -26,15 +26,15 @@ struct FileTrackerTests {
         let tracker = FileTracker(cacheURL: cacheURL)
 
         try tracker.updateTracking(for: fileURL.path)
-        #expect(tracker.hasFileChanged(fileURL.path) == false)
+        #expect(!tracker.hasFileChanged(fileURL.path))
         #expect(tracker.getMetadata(for: fileURL.path) != nil)
 
         // Modify file to change metadata
         try Data("updated".utf8).write(to: fileURL)
-        #expect(tracker.hasFileChanged(fileURL.path) == true)
+        #expect(tracker.hasFileChanged(fileURL.path))
 
         try tracker.updateTracking(for: fileURL.path)
-        #expect(tracker.hasFileChanged(fileURL.path) == false)
+        #expect(!tracker.hasFileChanged(fileURL.path))
     }
 
     @Test("FileTracker reports changed files and clears tracking")
@@ -51,13 +51,13 @@ struct FileTrackerTests {
         try tracker.updateTracking(for: fileURL.path)
 
         let changed = tracker.getChangedFiles(from: [fileURL.path])
-        #expect(changed.isEmpty == true)
+        #expect(changed.isEmpty)
 
         tracker.removeTracking(for: fileURL.path)
         #expect(tracker.getMetadata(for: fileURL.path) == nil)
 
         tracker.clear()
-        #expect(tracker.getAllTrackedPaths().isEmpty == true)
+        #expect(tracker.getAllTrackedPaths().isEmpty)
     }
 
     @Test("FileTracker persists cache and handles missing files")
@@ -78,7 +78,7 @@ struct FileTrackerTests {
         #expect(newTracker.getMetadata(for: fileURL.path) != nil)
 
         try FileManager.default.removeItem(at: fileURL)
-        #expect(newTracker.hasFileChanged(fileURL.path) == true)
+        #expect(newTracker.hasFileChanged(fileURL.path))
 
         #expect(throws: FileTrackerError.self) {
             try newTracker.updateTracking(for: fileURL.path)

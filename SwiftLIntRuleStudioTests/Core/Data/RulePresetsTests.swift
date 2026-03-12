@@ -29,80 +29,69 @@ struct RulePresetsTests {
         #expect(ids.count == allPresets.count)
     }
 
-    @Test("Performance preset has valid rule IDs")
-    func testPerformancePreset() {
-        let preset = RulePresets.performance
+    struct PresetExpectation: CustomTestStringConvertible, Sendable {
+        let presetId: String
+        let expectedName: String
+        let expectedCategory: RulePreset.PresetCategory
+        let expectedRuleIds: [String]
 
-        #expect(preset.id == "performance")
-        #expect(preset.name == "Performance")
-        #expect(preset.category == .performance)
-        #expect(!preset.ruleIds.isEmpty)
-        #expect(preset.ruleIds.contains("reduce_into"))
-        #expect(preset.ruleIds.contains("first_where"))
-        #expect(preset.ruleIds.contains("empty_count"))
+        var testDescription: String { presetId }
+
+        static let all: [PresetExpectation] = [
+            PresetExpectation(
+                presetId: "performance", expectedName: "Performance",
+                expectedCategory: .performance,
+                expectedRuleIds: ["reduce_into", "first_where", "empty_count"]
+            ),
+            PresetExpectation(
+                presetId: "swiftui", expectedName: "SwiftUI",
+                expectedCategory: .swiftUI,
+                expectedRuleIds: ["attributes", "modifier_order"]
+            ),
+            PresetExpectation(
+                presetId: "concurrency_safety", expectedName: "Concurrency Safety",
+                expectedCategory: .concurrency,
+                expectedRuleIds: ["unavailable_from_async"]
+            ),
+            PresetExpectation(
+                presetId: "code_style", expectedName: "Code Style",
+                expectedCategory: .codeStyle,
+                expectedRuleIds: ["opening_brace", "closing_brace", "comma"]
+            ),
+            PresetExpectation(
+                presetId: "documentation", expectedName: "Documentation",
+                expectedCategory: .documentation,
+                expectedRuleIds: ["missing_docs"]
+            )
+        ]
     }
 
-    @Test("SwiftUI preset has valid rule IDs")
-    func testSwiftUIPreset() {
-        let preset = RulePresets.swiftUI
+    @Test("Each preset has correct metadata and expected rule IDs", arguments: PresetExpectation.all)
+    func testPresetMetadataAndRules(_ expectation: PresetExpectation) throws {
+        let preset = try #require(
+            RulePresets.allPresets.first { $0.id == expectation.presetId },
+            "Preset \(expectation.presetId) not found"
+        )
 
-        #expect(preset.id == "swiftui")
-        #expect(preset.name == "SwiftUI")
-        #expect(preset.category == .swiftUI)
+        #expect(preset.name == expectation.expectedName)
+        #expect(preset.category == expectation.expectedCategory)
         #expect(!preset.ruleIds.isEmpty)
-        #expect(preset.ruleIds.contains("attributes"))
-        #expect(preset.ruleIds.contains("modifier_order"))
-    }
-
-    @Test("Concurrency Safety preset has valid rule IDs")
-    func testConcurrencySafetyPreset() {
-        let preset = RulePresets.concurrencySafety
-
-        #expect(preset.id == "concurrency_safety")
-        #expect(preset.name == "Concurrency Safety")
-        #expect(preset.category == .concurrency)
-        #expect(!preset.ruleIds.isEmpty)
-        #expect(preset.ruleIds.contains("unavailable_from_async"))
-    }
-
-    @Test("Code Style preset has valid rule IDs")
-    func testCodeStylePreset() {
-        let preset = RulePresets.codeStyle
-
-        #expect(preset.id == "code_style")
-        #expect(preset.name == "Code Style")
-        #expect(preset.category == .codeStyle)
-        #expect(!preset.ruleIds.isEmpty)
-        #expect(preset.ruleIds.contains("opening_brace"))
-        #expect(preset.ruleIds.contains("closing_brace"))
-        #expect(preset.ruleIds.contains("comma"))
-    }
-
-    @Test("Documentation preset has valid rule IDs")
-    func testDocumentationPreset() {
-        let preset = RulePresets.documentation
-
-        #expect(preset.id == "documentation")
-        #expect(preset.name == "Documentation")
-        #expect(preset.category == .documentation)
-        #expect(!preset.ruleIds.isEmpty)
-        #expect(preset.ruleIds.contains("missing_docs"))
+        for ruleId in expectation.expectedRuleIds {
+            #expect(preset.ruleIds.contains(ruleId), "\(expectation.presetId) preset should contain \(ruleId)")
+        }
     }
 
     // MARK: - Lookup Tests
 
     @Test("Can lookup preset by ID")
-    func testPresetLookupById() {
-        let performance = RulePresets.preset(for: "performance")
-        #expect(performance != nil)
-        #expect(performance?.name == "Performance")
+    func testPresetLookupById() throws {
+        let performance = try #require(RulePresets.preset(for: "performance"))
+        #expect(performance.name == "Performance")
 
-        let swiftui = RulePresets.preset(for: "swiftui")
-        #expect(swiftui != nil)
-        #expect(swiftui?.name == "SwiftUI")
+        let swiftui = try #require(RulePresets.preset(for: "swiftui"))
+        #expect(swiftui.name == "SwiftUI")
 
-        let unknown = RulePresets.preset(for: "nonexistent")
-        #expect(unknown == nil)
+        #expect(RulePresets.preset(for: "nonexistent") == nil)
     }
 
     @Test("Can get presets by category")

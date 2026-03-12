@@ -36,18 +36,11 @@ struct VIViewModelSortingTests {
             viewModel.sortOption = .file
         }
 
-        let (count, filePath0, filePath1, filePath2) = await MainActor.run {
-            (
-                viewModel.filteredViolations.count,
-                viewModel.filteredViolations[0].filePath,
-                viewModel.filteredViolations[1].filePath,
-                viewModel.filteredViolations[2].filePath
-            )
-        }
-        #expect(count == 3)
-        #expect(filePath0 == "FileA.swift")
-        #expect(filePath1 == "FileB.swift")
-        #expect(filePath2 == "FileC.swift")
+        let sorted = await MainActor.run { viewModel.filteredViolations }
+        try #require(sorted.count == 3, "Expected 3 sorted violations")
+        #expect(sorted[0].filePath == "FileA.swift")
+        #expect(sorted[1].filePath == "FileB.swift")
+        #expect(sorted[2].filePath == "FileC.swift")
     }
 
     @Test("ViolationInspectorViewModel sorts by line number")
@@ -83,18 +76,11 @@ struct VIViewModelSortingTests {
             viewModel.sortOption = .line
         }
 
-        let (count, line0, line1, line2) = await MainActor.run {
-            (
-                viewModel.filteredViolations.count,
-                viewModel.filteredViolations[0].line,
-                viewModel.filteredViolations[1].line,
-                viewModel.filteredViolations[2].line
-            )
-        }
-        #expect(count == 3)
-        #expect(line0 == 10)
-        #expect(line1 == 20)
-        #expect(line2 == 30)
+        let sorted = await MainActor.run { viewModel.filteredViolations }
+        try #require(sorted.count == 3, "Expected 3 sorted violations")
+        #expect(sorted[0].line == 10)
+        #expect(sorted[1].line == 20)
+        #expect(sorted[2].line == 30)
     }
 
     @Test("ViolationInspectorViewModel sorts by severity")
@@ -118,11 +104,9 @@ struct VIViewModelSortingTests {
             viewModel.sortOption = .severity
         }
 
-        let (count, severity0) = await MainActor.run {
-            (viewModel.filteredViolations.count, viewModel.filteredViolations[0].severity)
-        }
-        #expect(count == 3)
-        #expect(severity0 == .error)
+        let sorted = await MainActor.run { viewModel.filteredViolations }
+        try #require(sorted.count == 3, "Expected 3 sorted violations")
+        #expect(sorted[0].severity == .error)
     }
 
     @Test("ViolationInspectorViewModel sorts by date")
@@ -149,10 +133,8 @@ struct VIViewModelSortingTests {
             viewModel.sortOption = .date
         }
 
-        let (count, ruleID0) = await MainActor.run {
-            (viewModel.filteredViolations.count, viewModel.filteredViolations[0].ruleID)
-        }
-        #expect(count == 3)
-        #expect(ruleID0 == "rule2")
+        let sorted = await MainActor.run { viewModel.filteredViolations }
+        try #require(sorted.count == 3, "Expected 3 sorted violations")
+        #expect(sorted[0].ruleID == "rule2")
     }
 }

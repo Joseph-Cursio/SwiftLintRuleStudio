@@ -92,7 +92,7 @@ struct RuleBrowserViewModelTests {
         #expect(viewModel.filteredRules.map(\.id) == ["force_cast"])
 
         viewModel.searchText = "loading"
-        #expect(viewModel.filteredRules.isEmpty == true)
+        #expect(viewModel.filteredRules.isEmpty)
 
         viewModel.searchText = ""
         viewModel.selectedStatus = .enabled
@@ -203,7 +203,7 @@ struct RuleBrowserViewModelTests {
         viewModel.selectedStatus = .enabled
 
         viewModel.clearFilters()
-        #expect(viewModel.searchText.isEmpty == true)
+        #expect(viewModel.searchText.isEmpty)
         #expect(viewModel.selectedCategory == nil)
         #expect(viewModel.selectedStatus == .all)
     }
