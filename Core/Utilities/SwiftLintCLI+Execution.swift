@@ -266,7 +266,9 @@ private extension SwiftLintCLI {
     func terminateProcess(_ process: Process) async {
         process.terminate()
         try? await Task.sleep(nanoseconds: 100_000_000)
-        process.terminate()
+        if process.isRunning {
+            kill(process.processIdentifier, SIGKILL)
+        }
     }
 
     func handleProcessError(_ error: Error) -> SwiftLintError {

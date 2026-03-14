@@ -31,7 +31,7 @@ struct ConfigComparisonResult: Sendable {
 
 /// Protocol for config comparison service
 @MainActor
-protocol ConfigComparisonServiceProtocol {
+protocol ConfigComparisonServiceProtocol: Sendable {
     func compare(
         config1: URL,
         label1: String,

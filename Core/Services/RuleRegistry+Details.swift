@@ -7,9 +7,8 @@ extension RuleRegistry {
 
         await withTaskGroup(of: (Int, Rule).self) { group in
             for (index, rule) in rulesToFetchDetails.enumerated() {
-                group.addTask { [weak self] in
-                    guard let self = self else { return (index, rule) }
-                    return await self.fetchDetailedRuleResult(rule: rule, index: index)
+                group.addTask {
+                    await self.fetchDetailedRuleResult(rule: rule, index: index)
                 }
             }
 

@@ -83,7 +83,7 @@ struct WorkspaceSelectionView: View {
                     url = nil
                 }
                 guard let dropURL = url else { return }
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     try? workspaceManager.openWorkspace(at: dropURL)
                 }
             }

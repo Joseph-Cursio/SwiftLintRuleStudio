@@ -47,7 +47,7 @@ enum GitBranchDiffError: LocalizedError, Sendable {
 
 // MARK: - Implementation
 
-final class GitBranchDiffService: GitBranchDiffServiceProtocol, @unchecked Sendable {
+final class GitBranchDiffService: GitBranchDiffServiceProtocol, Sendable {
     private let gitService: GitServiceProtocol
     private let _comparisonService: ConfigComparisonServiceProtocol?
 

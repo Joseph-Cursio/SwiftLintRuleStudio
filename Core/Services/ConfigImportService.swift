@@ -47,7 +47,7 @@ enum ConfigImportError: LocalizedError, Sendable {
 
 // MARK: - Implementation
 
-final class ConfigImportService: ConfigImportServiceProtocol, @unchecked Sendable {
+final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
     private let fetcher: URLConfigFetcherProtocol
 
     init(fetcher: URLConfigFetcherProtocol? = nil) {

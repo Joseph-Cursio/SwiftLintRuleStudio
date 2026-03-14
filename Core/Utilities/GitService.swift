@@ -168,9 +168,9 @@ actor GitService: GitServiceProtocol {
         do {
             try await withThrowingTaskGroup(of: (Data, Data).self) { group in
                 group.addTask { @Sendable in
-                    let out = outputPipe.fileHandleForReading.readDataToEndOfFile()
-                    let err = errorPipe.fileHandleForReading.readDataToEndOfFile()
-                    return (out, err)
+                    async let out = outputPipe.fileHandleForReading.readDataToEndOfFile()
+                    async let err = errorPipe.fileHandleForReading.readDataToEndOfFile()
+                    return await (out, err)
                 }
                 group.addTask { @Sendable [timeoutNs] in
                     try await Task.sleep(nanoseconds: timeoutNs)
