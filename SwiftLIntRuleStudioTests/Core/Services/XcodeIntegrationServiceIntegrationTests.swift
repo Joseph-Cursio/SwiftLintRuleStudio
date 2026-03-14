@@ -55,8 +55,8 @@ struct XcodeIntegrationServiceIntegrationTests {
                     column: nil,
                     in: workspaceModel
                 )
-                // Success depends on Xcode availability, but should not throw for path/project issues
-                #expect(success == true || success == false) // Either is valid
+                // Success depends on Xcode availability — completing without throwing is sufficient
+                _ = success
             } catch let error as XcodeIntegrationError {
                 // File not found is expected if file doesn't exist
                 // But other errors indicate integration issues
@@ -101,7 +101,7 @@ struct XcodeIntegrationServiceIntegrationTests {
                     column: nil,
                     in: workspaceModel
                 )
-                #expect(success == true || success == false)
+                _ = success
             } catch {
                 // Errors are acceptable if Xcode is not available
                 // We're testing the integration, not Xcode availability

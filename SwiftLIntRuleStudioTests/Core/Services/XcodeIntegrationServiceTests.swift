@@ -277,9 +277,8 @@ struct XcodeIntegrationServiceTests {
         try await withService { service, _ in
             // This test checks if Xcode detection works
             // It may return true or false depending on test environment
-            let isInstalled = service.isXcodeInstalled()
             // Just verify the method doesn't crash
-            #expect(isInstalled == true || isInstalled == false)
+            _ = service.isXcodeInstalled()
         }
     }
 
