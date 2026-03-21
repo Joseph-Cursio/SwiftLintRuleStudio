@@ -116,7 +116,7 @@ struct SwiftLintRuleStudioApp: App {
 #endif
 }
 
-struct AppSettingsView: View {
+private struct AppSettingsView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
 
     var body: some View {
@@ -131,7 +131,7 @@ struct AppSettingsView: View {
     }
 }
 
-struct GeneralSettingsView: View {
+private struct GeneralSettingsView: View {
     @AppStorage("autoUpdate") private var autoUpdate = true
     @AppStorage("sendUsageData") private var sendUsageData = false
 
@@ -144,7 +144,7 @@ struct GeneralSettingsView: View {
     }
 }
 
-struct LintSettingsView: View {
+private struct LintSettingsView: View {
     @AppStorage("experimentalRules") private var experimentalRules = false
     @AppStorage("inlineHints") private var inlineHints = true
 

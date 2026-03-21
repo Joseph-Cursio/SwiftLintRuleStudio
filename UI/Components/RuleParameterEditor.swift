@@ -119,7 +119,7 @@ struct RuleParameterEditor: View {
 
 // MARK: - Parameter Row Views
 
-struct IntegerParameterRow: View {
+private struct IntegerParameterRow: View {
     let param: RuleParameter
     @Binding var value: Int
 
@@ -175,7 +175,7 @@ struct IntegerParameterRow: View {
     }
 }
 
-struct BooleanParameterRow: View {
+private struct BooleanParameterRow: View {
     let param: RuleParameter
     @Binding var value: Bool
 
@@ -209,7 +209,7 @@ struct BooleanParameterRow: View {
     }
 }
 
-struct StringParameterRow: View {
+private struct StringParameterRow: View {
     let param: RuleParameter
     @Binding var value: String
 
@@ -245,7 +245,7 @@ struct StringParameterRow: View {
     }
 }
 
-struct ArrayParameterRow: View {
+private struct ArrayParameterRow: View {
     let param: RuleParameter
     @Binding var values: [String]
     @State private var newItem: String = ""
@@ -316,7 +316,7 @@ struct ArrayParameterRow: View {
 
 // MARK: - Help Popover
 
-struct HelpPopover: View {
+private struct HelpPopover: View {
     let text: String
     @State private var isShowing = false
 

@@ -271,7 +271,7 @@ struct ConfigComparisonView: View {
 
 // MARK: - Full YAML Diff View
 
-struct FullYAMLDiffView: View {
+private struct FullYAMLDiffView: View {
     let diff: YAMLConfigurationEngine.ConfigDiff
 
     var body: some View {

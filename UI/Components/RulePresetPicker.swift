@@ -97,7 +97,7 @@ struct RulePresetBrowserView: View {
 }
 
 /// Card view for displaying a single preset
-struct PresetCard: View {
+private struct PresetCard: View {
     let preset: RulePreset
     let isHovered: Bool
 
@@ -176,7 +176,7 @@ struct PresetCard: View {
 }
 
 /// Compact inline preset badge
-struct PresetBadge: View {
+private struct PresetBadge: View {
     let preset: RulePreset
 
     var body: some View {

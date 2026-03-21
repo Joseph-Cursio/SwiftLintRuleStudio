@@ -118,7 +118,7 @@ struct ConfigHealthScoreView: View {
 }
 
 /// Row displaying a single breakdown metric
-struct BreakdownRow: View {
+private struct BreakdownRow: View {
     private let excellentThreshold = 80
     private let goodThreshold = 60
     private let fairThreshold = 40
@@ -202,7 +202,7 @@ struct BreakdownRow: View {
 }
 
 /// Card displaying a single recommendation
-struct RecommendationCard: View {
+private struct RecommendationCard: View {
     let recommendation: HealthRecommendation
     let onApplyPreset: ((String) -> Void)?
 

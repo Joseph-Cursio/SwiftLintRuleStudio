@@ -156,7 +156,7 @@ struct ValidationStatusBadge: View {
 }
 
 /// Field-specific inline error indicator
-struct FieldValidationIndicator: View {
+private struct FieldValidationIndicator: View {
     let field: ValidationResult.ConfigField
     let errors: [ValidationResult.ValidationError]
     let warnings: [ValidationResult.ValidationWarning]

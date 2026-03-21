@@ -231,7 +231,7 @@ struct TemplateMenuButton: View {
 }
 
 /// Simple text view for coding style (used in menus)
-struct CodingStyleText: View {
+private struct CodingStyleText: View {
     let style: ConfigurationTemplate.CodingStyle
 
     var body: some View {

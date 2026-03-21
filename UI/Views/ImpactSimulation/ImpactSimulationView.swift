@@ -151,7 +151,7 @@ struct ImpactSimulationView: View {
     }
 }
 
-struct ViolationRow: View {
+private struct ViolationRow: View {
     let violation: Violation
 
     var body: some View {
