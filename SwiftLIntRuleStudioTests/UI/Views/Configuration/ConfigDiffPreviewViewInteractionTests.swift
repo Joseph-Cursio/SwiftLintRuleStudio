@@ -129,11 +129,13 @@ struct ConfigDiffPreviewViewInteractionTests {
         let result = await createConfigDiffPreviewView()
         let view = result.view
 
-        // Note: Interacting with the picker would require finding and tapping it
-        // This is complex with ViewInspector, so we verify the structure exists
+        // ViewInspector 0.10.3 cannot traverse into toolbar content,
+        // so finding the Picker's Text labels is not possible.
         let hasSummaryText = await MainActor.run {
             (try? view.inspect().find(text: "Summary")) != nil
         }
-        #expect(hasSummaryText == true, "View mode picker should switch views")
+        withKnownIssue("ViewInspector cannot inspect toolbar content") {
+            #expect(hasSummaryText == true, "View mode picker should switch views")
+        }
     }
 }
