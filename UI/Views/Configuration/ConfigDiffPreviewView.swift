@@ -38,67 +38,69 @@ struct ConfigDiffPreviewView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Header
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Preview Configuration Changes")
-                        .font(.headline)
-
-                    Text("Review the changes that will be made to your .swiftlint.yml file")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(NSColor.controlBackgroundColor))
-
+                diffHeader
                 Divider()
-
-                // Content
-                if selectedView == .summary {
-                    summaryView
-                } else {
-                    fullDiffView
-                }
-
+                diffContent
                 Divider()
-
-                // Actions
-                HStack {
-                    Button("Cancel") {
-                        onCancel()
-                    }
-                    .keyboardShortcut(.escape)
-
-                    Spacer()
-
-                    Button("Save Changes") {
-                        onSave()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .keyboardShortcut(.return, modifiers: .command)
-                }
-                .padding()
+                diffActions
             }
             .frame(width: 700, height: 500)
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    Picker("View", selection: $selectedView) {
-                        Text("Summary").tag(DiffViewMode.summary)
-                        Text("Full Diff").tag(DiffViewMode.full)
-                    }
-                    .pickerStyle(.segmented)
+            .toolbar { diffToolbar }
+        }
+    }
 
-                    Button {
-                        copyForPR()
-                    } label: {
-                        Label(
-                            showCopiedFeedback ? "Copied!" : "Copy for PR",
-                            systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc"
-                        )
-                    }
-                    .disabled(showCopiedFeedback)
-                }
+    private var diffHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Preview Configuration Changes")
+                .font(.headline)
+            Text("Review the changes that will be made to your .swiftlint.yml file")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+
+    @ViewBuilder
+    private var diffContent: some View {
+        if selectedView == .summary {
+            summaryView
+        } else {
+            fullDiffView
+        }
+    }
+
+    private var diffActions: some View {
+        HStack {
+            Button("Cancel") { onCancel() }
+                .keyboardShortcut(.escape)
+            Spacer()
+            Button("Save Changes") { onSave() }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return, modifiers: .command)
+        }
+        .padding()
+    }
+
+    @ToolbarContentBuilder
+    private var diffToolbar: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Picker("View", selection: $selectedView) {
+                Text("Summary").tag(DiffViewMode.summary)
+                Text("Full Diff").tag(DiffViewMode.full)
             }
+            .pickerStyle(.segmented)
+
+            Button {
+                copyForPR()
+            } label: {
+                Label(
+                    showCopiedFeedback ? "Copied!" : "Copy for PR",
+                    systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc"
+                )
+            }
+            .disabled(showCopiedFeedback)
         }
     }
 

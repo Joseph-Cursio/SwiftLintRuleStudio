@@ -46,39 +46,67 @@ struct RuleDetailView: View {
     }
 
     var body: some View {
+        scrollContent
+            .navigationTitle(rule.name)
+            .toolbar { toolbarContent }
+            .onAppear { loadWorkspaceConfiguration() }
+            .task { await fetchRuleDetailsAndBuildString() }
+            .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in
+                if let ruleId = notification.userInfo?["ruleId"] as? String,
+                   ruleId == rule.id {
+                    try? viewModel.loadConfiguration()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .saveConfigurationRequested)) { _ in
+                guard viewModel.pendingChanges != nil else { return }
+                saveConfigurationAction()
+            }
+            .id(rule.id)
+            .onChange(of: dependencies.ruleRegistry.rules) { _, newRules in
+                if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
+                    currentRule = updatedRule
+                }
+                rebuildAttributedString()
+            }
+            .onChange(of: colorScheme) { rebuildAttributedString() }
+            .sheet(item: Bindable(viewModel).pendingDiff) { diff in
+                diffPreviewSheet(diff: diff)
+            }
+            .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
+                Button("OK") { }
+            } message: {
+                Text("Rule configuration has been saved to your workspace's .swiftlint.yml file.")
+            }
+            .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
+                Button("OK") { viewModel.saveError = nil }
+            } message: {
+                Text(viewModel.saveError?.localizedDescription ?? "An error occurred while saving the configuration.")
+            }
+            .sheet(item: $impactResult) { result in
+                ImpactSimulationView(
+                    ruleId: rule.id,
+                    ruleName: rule.name,
+                    result: result,
+                    onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
+                )
+            }
+    }
+
+    private var scrollContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Header
                 headerView
-
                 Divider()
-
-                // Configuration
                 configurationView
-
                 Divider()
-
-                // Description
                 descriptionView
-
                 Divider()
-
-                // Why This Matters (Rationale)
                 whyThisMattersView
-
                 Divider()
-
-                // Violations Count
                 violationsCountView
-
                 Divider()
-
-                // Related Rules
                 relatedRulesView
-
                 Divider()
-
-                // Swift Evolution Links
                 swiftEvolutionView
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -86,115 +114,69 @@ struct RuleDetailView: View {
             .padding(.bottom, 24)
             .padding(.horizontal, 20)
         }
-        .navigationTitle(rule.name)
-        .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                if viewModel.pendingChanges != nil {
-                    Button {
-                        viewModel.showPreview()
-                    } label: {
-                        Label("Preview Changes", systemImage: "eye")
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            if viewModel.pendingChanges != nil {
+                Button {
+                    viewModel.showPreview()
+                } label: {
+                    Label("Preview Changes", systemImage: "eye")
+                }
+                .accessibilityIdentifier("RuleDetailPreviewChangesButton")
+
+                Button(action: saveConfigurationAction) {
+                    if viewModel.isSaving {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    } else {
+                        Label("Save", systemImage: "checkmark")
                     }
-                    .accessibilityIdentifier("RuleDetailPreviewChangesButton")
-
-                    Button(action: saveConfigurationAction) {
-                        if viewModel.isSaving {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                        } else {
-                            Label("Save", systemImage: "checkmark")
-                        }
-                    }
-                    .disabled(viewModel.isSaving)
                 }
+                .disabled(viewModel.isSaving)
             }
         }
-        .onAppear {
-            // Update ViewModel with workspace config if available
-            if let workspace = dependencies.workspaceManager.currentWorkspace,
-               let configPath = workspace.configPath {
-                let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
-                viewModel.yamlEngine = yamlEngine
+    }
 
-                // Load current configuration
-                do {
-                    try viewModel.loadConfiguration()
-                } catch {
-                }
+    private func loadWorkspaceConfiguration() {
+        if let workspace = dependencies.workspaceManager.currentWorkspace,
+           let configPath = workspace.configPath {
+            let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+            viewModel.yamlEngine = yamlEngine
+            do {
+                try viewModel.loadConfiguration()
+            } catch {
             }
+        }
+    }
 
-        }
-        .task {
-            // Fetch rule details if documentation is missing
-            if rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true {
-                await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
-                if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
-                    currentRule = updatedRule
-                }
-            }
-            // Build the attributed string on the main thread (NSAttributedString HTML
-            // init requires the main thread - never call it inside a body computation)
-            rebuildAttributedString()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in
-            // Reload configuration if this rule was changed
-            if let ruleId = notification.userInfo?["ruleId"] as? String,
-               ruleId == rule.id {
-                try? viewModel.loadConfiguration()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .saveConfigurationRequested)) { _ in
-            guard viewModel.pendingChanges != nil else { return }
-            saveConfigurationAction()
-        }
-        .id(rule.id) // Force view recreation when rule ID changes
-        .onChange(of: dependencies.ruleRegistry.rules) { _, newRules in
-            // Use newRules directly to avoid re-reading ambient registry state
-            if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
+    private func fetchRuleDetailsAndBuildString() async {
+        if rule.markdownDocumentation == nil || rule.markdownDocumentation?.isEmpty == true {
+            await dependencies.ruleRegistry.fetchRuleDetailsIfNeeded(id: ruleId)
+            if let updatedRule = dependencies.ruleRegistry.getRule(id: ruleId) {
                 currentRule = updatedRule
             }
-            rebuildAttributedString()
         }
-        .onChange(of: colorScheme) {
-            // New value not needed — just rebuild on any scheme change
-            rebuildAttributedString()
-        }
-        .sheet(item: Bindable(viewModel).pendingDiff) { diff in
-            ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
-                Task {
-                    do {
-                        try viewModel.saveConfiguration()
-                        viewModel.pendingDiff = nil
-                        viewModel.showDiffPreview = false
-                        showSaveConfirmation = true
-                    } catch {
-                        showError = true
-                    }
+        rebuildAttributedString()
+    }
+
+    private func diffPreviewSheet(diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
+        ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
+            Task {
+                do {
+                    try viewModel.saveConfiguration()
+                    viewModel.pendingDiff = nil
+                    viewModel.showDiffPreview = false
+                    showSaveConfirmation = true
+                } catch {
+                    showError = true
                 }
-            } onCancel: {
-                viewModel.pendingDiff = nil
-                viewModel.showDiffPreview = false
             }
-        }
-        .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
-            Button("OK") { }
-        } message: {
-            Text("Rule configuration has been saved to your workspace's .swiftlint.yml file.")
-        }
-        .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
-            Button("OK") {
-                viewModel.saveError = nil
-            }
-        } message: {
-            Text(viewModel.saveError?.localizedDescription ?? "An error occurred while saving the configuration.")
-        }
-        .sheet(item: $impactResult) { result in
-            ImpactSimulationView(
-                ruleId: rule.id,
-                ruleName: rule.name,
-                result: result,
-                onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
-            )
+        } onCancel: {
+            viewModel.pendingDiff = nil
+            viewModel.showDiffPreview = false
         }
     }
 

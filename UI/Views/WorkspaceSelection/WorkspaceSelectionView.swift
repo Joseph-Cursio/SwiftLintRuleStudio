@@ -17,78 +17,23 @@ struct WorkspaceSelectionView: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 8) {
-                Image(systemName: "folder.badge.gearshape")
-                    .font(.system(size: 64))
-                    .foregroundStyle(.blue)
-                    .accessibilityHidden(true)
+            headerSection
 
-                Text("Select a Workspace")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-
-                Text("Choose a directory containing your Swift project")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 40)
-
-            // Current Workspace (if any)
             if let current = workspaceManager.currentWorkspace {
                 currentWorkspaceView(current)
             }
 
-            // Recent Workspaces
             if !workspaceManager.recentWorkspaces.isEmpty {
                 recentWorkspacesView
             }
 
-            // Actions
-            VStack(spacing: 12) {
-                Button {
-                    isShowingFilePicker = true
-                } label: {
-                    Label("Open Workspace...", systemImage: "folder")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                if workspaceManager.currentWorkspace != nil {
-                    Button {
-                        workspaceManager.closeWorkspace()
-                    } label: {
-                        Label("Close Workspace", systemImage: "xmark.circle")
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 40)
+            actionButtons
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onReceive(NotificationCenter.default.publisher(for: .openWorkspaceRequested)) { _ in
             isShowingFilePicker = true
         }
-        .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
-            guard let provider = providers.first else { return false }
-            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                let url: URL?
-                if let nsURL = item as? NSURL {
-                    url = nsURL as URL
-                } else if let data = item as? Data {
-                    url = URL(dataRepresentation: data, relativeTo: nil)
-                } else {
-                    url = nil
-                }
-                guard let dropURL = url else { return }
-                Task { @MainActor in
-                    try? workspaceManager.openWorkspace(at: dropURL)
-                }
-            }
-            return true
-        }
+        .onDrop(of: [UTType.fileURL], isTargeted: nil, perform: handleDrop)
         .fileImporter(
             isPresented: $isShowingFilePicker,
             allowedContentTypes: [.folder],
@@ -104,6 +49,67 @@ struct WorkspaceSelectionView: View {
         } message: {
             Text(errorMessage ?? "An unknown error occurred")
         }
+    }
+
+    private var headerSection: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "folder.badge.gearshape")
+                .font(.system(size: 64))
+                .foregroundStyle(.blue)
+                .accessibilityHidden(true)
+
+            Text("Select a Workspace")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+
+            Text("Choose a directory containing your Swift project")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 40)
+    }
+
+    private var actionButtons: some View {
+        VStack(spacing: 12) {
+            Button {
+                isShowingFilePicker = true
+            } label: {
+                Label("Open Workspace...", systemImage: "folder")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+
+            if workspaceManager.currentWorkspace != nil {
+                Button {
+                    workspaceManager.closeWorkspace()
+                } label: {
+                    Label("Close Workspace", systemImage: "xmark.circle")
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding(.horizontal, 40)
+        .padding(.bottom, 40)
+    }
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first else { return false }
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+            let url: URL?
+            if let nsURL = item as? NSURL {
+                url = nsURL as URL
+            } else if let data = item as? Data {
+                url = URL(dataRepresentation: data, relativeTo: nil)
+            } else {
+                url = nil
+            }
+            guard let dropURL = url else { return }
+            Task { @MainActor in
+                try? workspaceManager.openWorkspace(at: dropURL)
+            }
+        }
+        return true
     }
 
     private func currentWorkspaceView(_ workspace: Workspace) -> some View {

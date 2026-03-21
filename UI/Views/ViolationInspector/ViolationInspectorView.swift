@@ -45,171 +45,165 @@ struct ViolationInspectorView: View {
 
     var body: some View {
         HSplitView {
-            // Left panel: Violation List
             violationListView
                 .frame(minWidth: 450, idealWidth: 500, maxWidth: 800)
-
-            // Right panel: Violation Detail or Empty State
-            Group {
-                if let selectedViolationId = viewModel.selectedViolationId,
-                   let violation = viewModel.filteredViolations.first(where: { $0.id == selectedViolationId }) {
-                    ViolationDetailView(
-                        violation: violation,
-                        onSuppress: { reason in
-                            Task {
-                                try? await viewModel.suppressSelectedViolations(reason: reason)
-                            }
-                        },
-                        onResolve: {
-                            Task {
-                                try? await viewModel.resolveSelectedViolations()
-                            }
-                        }
-                    )
-                } else {
-                    emptyDetailView
-                }
-            }
-            .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
-            .layoutPriority(1)
+            detailPanel
         }
         .navigationTitle("Violations")
-        .onAppear {
-            // Update viewModel with actual storage and analyzer from dependencies
-            viewModel.violationStorage = dependencies.violationStorage
-            viewModel.workspaceAnalyzer = dependencies.workspaceAnalyzer
+        .onAppear(perform: handleAppear)
+        .onChange(of: dependencies.workspaceManager.currentWorkspace, handleWorkspaceChange)
+        .onChange(of: dependencies.workspaceManager.configFileMissing, handleConfigMissingChange)
+        .onReceive(NotificationCenter.default.publisher(for: .violationInspectorRefreshRequested)) { _ in
+            Task { try? await viewModel.refreshViolations() }
+        }
+        .toolbar { toolbarContent }
+    }
 
-            // Load violations for current workspace if available
-            if let workspace = dependencies.workspaceManager.currentWorkspace {
-                Task {
-                    do {
-                        try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
-                    } catch {
+    private var detailPanel: some View {
+        Group {
+            if let selectedViolationId = viewModel.selectedViolationId,
+               let violation = viewModel.filteredViolations.first(where: { $0.id == selectedViolationId }) {
+                ViolationDetailView(
+                    violation: violation,
+                    onSuppress: { reason in
+                        Task { try? await viewModel.suppressSelectedViolations(reason: reason) }
+                    },
+                    onResolve: {
+                        Task { try? await viewModel.resolveSelectedViolations() }
                     }
-                }
-            }
-        }
-        .onChange(of: dependencies.workspaceManager.currentWorkspace) { _, newWorkspace in
-            // Reload violations when workspace changes
-            if let workspace = newWorkspace {
-                Task {
-                    do {
-                        try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
-                    } catch {
-                    }
-                }
+                )
             } else {
-                // Clear violations when workspace is closed
-                Task {
-                    viewModel.clearViolations()
-                }
+                emptyDetailView
             }
         }
-        .onChange(of: dependencies.workspaceManager.configFileMissing) { _, isMissing in
-            // Re-analyze when config file is created (missing → not missing transition)
-            guard !isMissing, dependencies.workspaceManager.currentWorkspace != nil else { return }
+        .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+        .layoutPriority(1)
+    }
+
+    private func handleAppear() {
+        viewModel.violationStorage = dependencies.violationStorage
+        viewModel.workspaceAnalyzer = dependencies.workspaceAnalyzer
+        if let workspace = dependencies.workspaceManager.currentWorkspace {
             Task {
                 do {
-                    try await viewModel.refreshViolations()
+                    try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
                 } catch {
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .violationInspectorRefreshRequested)) { _ in
-            Task { try? await viewModel.refreshViolations() }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                Button {
-                    Task {
-                        try? await viewModel.refreshViolations()
-                    }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .accessibilityIdentifier("ViolationInspectorRefreshButton")
+    }
 
-                Menu {
-                    SwiftUI.Section("Filtered") {
-                        Button("Export Filtered as JSON") {
-                            exportViolations(scope: .filtered, format: .json)
-                        }
-                        Button("Export Filtered as CSV") {
-                            exportViolations(scope: .filtered, format: .csv)
-                        }
-                    }
-
-                    SwiftUI.Section("Selected") {
-                        Button("Export Selected as JSON") {
-                            exportViolations(scope: .selected, format: .json)
-                        }
-                        .disabled(viewModel.selectedViolationIds.isEmpty)
-                        Button("Export Selected as CSV") {
-                            exportViolations(scope: .selected, format: .csv)
-                        }
-                        .disabled(viewModel.selectedViolationIds.isEmpty)
-                    }
-                } label: {
-                    Label("Export", systemImage: "square.and.arrow.up")
-                }
-
-                Button {
-                    viewModel.selectNextViolation()
-                } label: {
-                    Label("Next", systemImage: "chevron.right")
-                }
-                .keyboardShortcut(.rightArrow, modifiers: .command)
-                .accessibilityIdentifier("ViolationInspectorNextButton")
-
-                Button {
-                    viewModel.selectPreviousViolation()
-                } label: {
-                    Label("Previous", systemImage: "chevron.left")
-                }
-                .keyboardShortcut(.leftArrow, modifiers: .command)
-                .accessibilityIdentifier("ViolationInspectorPreviousButton")
-
-                Menu {
-                    Button("Select All") {
-                        viewModel.selectAll()
-                    }
-                    .keyboardShortcut("a", modifiers: .command)
-                    Button("Clear Selection") {
-                        viewModel.deselectAll()
-                    }
-                    .keyboardShortcut("a", modifiers: [.command, .shift])
-                } label: {
-                    Label("Selection", systemImage: "checkmark.circle")
-                }
-                .disabled(viewModel.filteredViolations.isEmpty)
-                .accessibilityIdentifier("ViolationInspectorSelectionMenu")
-
-                if !viewModel.selectedViolationIds.isEmpty {
-                    Menu {
-                        Button {
-                            let suppressReason = "Suppressed via Violation Inspector"
-                            Task {
-                                try? await viewModel.suppressSelectedViolations(reason: suppressReason)
-                            }
-                        } label: {
-                            Label("Suppress Selected", systemImage: "eye.slash")
-                        }
-                        .keyboardShortcut("s", modifiers: [.command, .shift])
-
-                        Button {
-                            Task {
-                                try? await viewModel.resolveSelectedViolations()
-                            }
-                        } label: {
-                            Label("Mark as Resolved", systemImage: "checkmark.circle")
-                        }
-                        .keyboardShortcut("r", modifiers: [.command, .shift])
-                    } label: {
-                        Label("Actions", systemImage: "ellipsis.circle")
-                    }
-                    .accessibilityIdentifier("ViolationInspectorActionsMenu")
+    private func handleWorkspaceChange(_ oldWorkspace: Workspace?, _ newWorkspace: Workspace?) {
+        if let workspace = newWorkspace {
+            Task {
+                do {
+                    try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
+                } catch {
                 }
             }
+        } else {
+            Task { viewModel.clearViolations() }
+        }
+    }
+
+    private func handleConfigMissingChange(_ wasMissing: Bool, _ isMissing: Bool) {
+        guard !isMissing, dependencies.workspaceManager.currentWorkspace != nil else { return }
+        Task {
+            do {
+                try await viewModel.refreshViolations()
+            } catch {
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            refreshButton
+            exportMenu
+            navigationButtons
+            selectionMenu
+            actionsMenu
+        }
+    }
+
+    private var refreshButton: some View {
+        Button {
+            Task { try? await viewModel.refreshViolations() }
+        } label: {
+            Label("Refresh", systemImage: "arrow.clockwise")
+        }
+        .accessibilityIdentifier("ViolationInspectorRefreshButton")
+    }
+
+    private var exportMenu: some View {
+        Menu {
+            SwiftUI.Section("Filtered") {
+                Button("Export Filtered as JSON") { exportViolations(scope: .filtered, format: .json) }
+                Button("Export Filtered as CSV") { exportViolations(scope: .filtered, format: .csv) }
+            }
+            SwiftUI.Section("Selected") {
+                Button("Export Selected as JSON") { exportViolations(scope: .selected, format: .json) }
+                    .disabled(viewModel.selectedViolationIds.isEmpty)
+                Button("Export Selected as CSV") { exportViolations(scope: .selected, format: .csv) }
+                    .disabled(viewModel.selectedViolationIds.isEmpty)
+            }
+        } label: {
+            Label("Export", systemImage: "square.and.arrow.up")
+        }
+    }
+
+    private var navigationButtons: some View {
+        Group {
+            Button { viewModel.selectNextViolation() } label: {
+                Label("Next", systemImage: "chevron.right")
+            }
+            .keyboardShortcut(.rightArrow, modifiers: .command)
+            .accessibilityIdentifier("ViolationInspectorNextButton")
+
+            Button { viewModel.selectPreviousViolation() } label: {
+                Label("Previous", systemImage: "chevron.left")
+            }
+            .keyboardShortcut(.leftArrow, modifiers: .command)
+            .accessibilityIdentifier("ViolationInspectorPreviousButton")
+        }
+    }
+
+    private var selectionMenu: some View {
+        Menu {
+            Button("Select All") { viewModel.selectAll() }
+                .keyboardShortcut("a", modifiers: .command)
+            Button("Clear Selection") { viewModel.deselectAll() }
+                .keyboardShortcut("a", modifiers: [.command, .shift])
+        } label: {
+            Label("Selection", systemImage: "checkmark.circle")
+        }
+        .disabled(viewModel.filteredViolations.isEmpty)
+        .accessibilityIdentifier("ViolationInspectorSelectionMenu")
+    }
+
+    @ViewBuilder
+    private var actionsMenu: some View {
+        if !viewModel.selectedViolationIds.isEmpty {
+            Menu {
+                Button {
+                    let suppressReason = "Suppressed via Violation Inspector"
+                    Task { try? await viewModel.suppressSelectedViolations(reason: suppressReason) }
+                } label: {
+                    Label("Suppress Selected", systemImage: "eye.slash")
+                }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+
+                Button {
+                    Task { try? await viewModel.resolveSelectedViolations() }
+                } label: {
+                    Label("Mark as Resolved", systemImage: "checkmark.circle")
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+            } label: {
+                Label("Actions", systemImage: "ellipsis.circle")
+            }
+            .accessibilityIdentifier("ViolationInspectorActionsMenu")
         }
     }
 

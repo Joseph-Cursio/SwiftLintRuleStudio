@@ -39,73 +39,83 @@ struct RuleBrowserView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left panel: Rule List
             RuleBrowserListView(
                 viewModel: viewModel,
                 selectedRuleId: $selectedRuleId
             )
             .frame(width: listWidth)
 
-            // Draggable divider
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 1)
-                .overlay {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(width: 8)
-                        .contentShape(Rectangle())
-                        .gesture(
-                            DragGesture()
-                                .onChanged(handleDividerDrag)
-                        )
-                }
-                .onHover { hovering in
-                    if hovering {
-                        NSCursor.resizeLeftRight.push()
-                    } else {
-                        NSCursor.pop()
-                    }
-                }
+            draggableDivider
 
-            // Right panel: Rule Detail
-            Group {
-                if let selectedRuleId = selectedRuleId,
-                   let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
-                    RuleDetailView(rule: selectedRule)
-                        .id(selectedRuleId)
-                } else {
-                    Color.clear
-                }
-            }
-            .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+            detailPanel
         }
         .searchable(text: Bindable(viewModel).searchText, prompt: "Search rules")
-        .onAppear {
-            if let external = externalSearchText {
-                viewModel.searchText = external.wrappedValue
-            }
-            syncEnabledStatesFromConfig()
-        }
-        .onChange(of: externalSearchText?.wrappedValue ?? "") { _, newValue in
-            if let external = externalSearchText, external.wrappedValue != viewModel.searchText {
-                viewModel.searchText = newValue
-            }
-        }
-        .onChange(of: viewModel.searchText) { _, newValue in
-            if let external = externalSearchText, external.wrappedValue != newValue {
-                external.wrappedValue = newValue
-            }
-        }
+        .onAppear(perform: handleAppear)
+        .onChange(of: externalSearchText?.wrappedValue ?? "", handleExternalSearchChange)
+        .onChange(of: viewModel.searchText, handleInternalSearchChange)
         .navigationTitle("Rules")
         .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { _ in
             syncEnabledStatesFromConfig()
         }
         .onChange(of: viewModel.filteredRules) { _, newRules in
-            // Use newRules directly to avoid re-reading ambient viewModel state
             if let selectedRuleId, !newRules.contains(where: { $0.id == selectedRuleId }) {
                 self.selectedRuleId = nil
             }
+        }
+    }
+
+    private var draggableDivider: some View {
+        Rectangle()
+            .fill(Color.gray.opacity(0.2))
+            .frame(width: 1)
+            .overlay {
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(width: 8)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture()
+                            .onChanged(handleDividerDrag)
+                    )
+            }
+            .onHover { hovering in
+                if hovering {
+                    NSCursor.resizeLeftRight.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
+    }
+
+    private var detailPanel: some View {
+        Group {
+            if let selectedRuleId = selectedRuleId,
+               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
+                RuleDetailView(rule: selectedRule)
+                    .id(selectedRuleId)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func handleAppear() {
+        if let external = externalSearchText {
+            viewModel.searchText = external.wrappedValue
+        }
+        syncEnabledStatesFromConfig()
+    }
+
+    private func handleExternalSearchChange(_: String, _ newValue: String) {
+        if let external = externalSearchText, external.wrappedValue != viewModel.searchText {
+            viewModel.searchText = newValue
+        }
+    }
+
+    private func handleInternalSearchChange(_: String, _ newValue: String) {
+        if let external = externalSearchText, external.wrappedValue != newValue {
+            external.wrappedValue = newValue
         }
     }
 

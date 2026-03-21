@@ -24,7 +24,6 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            // Always show onboarding if not completed for this session
             if !dependencies.onboardingManager.hasCompletedOnboarding {
                 OnboardingView(
                     onboardingManager: dependencies.onboardingManager,
@@ -32,222 +31,246 @@ struct ContentView: View {
                     swiftLintCLI: dependencies.swiftLintCLI
                 )
             } else if dependencies.workspaceManager.currentWorkspace == nil {
-                // Show workspace selection when no workspace is open
                 WorkspaceSelectionView(workspaceManager: dependencies.workspaceManager)
             } else {
-                NavigationSplitView(columnVisibility: $columnVisibility) {
-                    SidebarView(selection: $selection)
-                        .navigationTitle("SwiftLint Rule Studio")
-                        .listStyle(.sidebar)
-                } detail: {
-                    VStack(spacing: 0) {
-                        // Show config recommendation if config file is missing
-                        if dependencies.workspaceManager.configFileMissing {
-                            ConfigRecommendationView(workspaceManager: dependencies.workspaceManager)
-                                .padding()
-                        }
+                mainNavigationView
+            }
+        }
+        .task { await loadRulesOnLaunch() }
+        .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
+            dependencies.workspaceManager.checkConfigFileExists()
+        }
+        .onAppear(perform: handleOnAppear)
+        .alert("Error Loading Rules", isPresented: TestGuard.alertBinding($showError)) {
+            errorAlertActions
+        } message: {
+            Text(errorMessage ?? "Unknown error occurred while loading SwiftLint rules.")
+        }
+    }
 
-                        Group {
-                            switch selection {
-                            case .rules:
-                                if let ruleBrowserViewModel {
-                                    RuleBrowserView(
-                                        viewModel: ruleBrowserViewModel,
-                                        externalSearchText: $searchText,
-                                        selectedRuleId: $selectedRuleId
-                                    )
-                                }
-                            case .violations:
-                                ViolationInspectorView()
-                            case .dashboard:
-                                Text("Dashboard")
-                                    .navigationTitle("Dashboard")
-                            case .safeRules:
-                                SafeRulesDiscoveryView()
-                            case .versionHistory:
-                                ConfigVersionHistoryView(
-                                    service: dependencies.configVersionHistoryService,
-                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                                )
-                            case .compareConfigs:
-                                ConfigComparisonView(
-                                    service: dependencies.configComparisonService,
-                                    currentWorkspace: dependencies.workspaceManager.currentWorkspace
-                                )
-                            case .versionCheck:
-                                VersionCompatibilityView(
-                                    checker: dependencies.versionCompatibilityChecker,
-                                    swiftLintCLI: dependencies.swiftLintCLI,
-                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                                )
-                            case .importConfig:
-                                ConfigImportView(
-                                    importService: dependencies.configImportService,
-                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                                )
-                            case .branchDiff:
-                                GitBranchDiffView(
-                                    service: dependencies.gitBranchDiffService,
-                                    workspacePath: dependencies.workspaceManager.currentWorkspace?.path
-                                )
-                            case .migration:
-                                MigrationAssistantView(
-                                    assistant: dependencies.migrationAssistant,
-                                    swiftLintCLI: dependencies.swiftLintCLI,
-                                    configPath: dependencies.workspaceManager.currentWorkspace?.configPath
-                                )
-                            case .none:
-                                Text("Select a section")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-                .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
-                .toolbar {
-                    // Title shown in the middle of the window titlebar
-                    ToolbarItem(placement: .principal) {
-                        Text("SwiftLint Rule Studio")
-                            .font(.headline)
-                    }
+    private var mainNavigationView: some View {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            SidebarView(selection: $selection)
+                .navigationTitle("SwiftLint Rule Studio")
+                .listStyle(.sidebar)
+        } detail: {
+            detailContent
+        }
+        .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
+        .toolbar { toolbarContent }
+        .safeAreaInset(edge: .bottom) { statusBar }
+        .navigationSubtitle(dependencies.workspaceManager.currentWorkspace?.name ?? "")
+        .fileImporter(
+            isPresented: $showWorkspacePicker,
+            allowedContentTypes: [.folder],
+            allowsMultipleSelection: false,
+            onCompletion: handleFileImport
+        )
+        .onReceive(NotificationCenter.default.publisher(for: .openWorkspaceRequested)) { _ in
+            showWorkspacePicker = true
+        }
+        .onDrop(of: [UTType.fileURL], isTargeted: nil, perform: handleDrop)
+        .toolbarTitleMenu { titleMenuContent }
+    }
 
-                    // Primary actions on the trailing side, vary by section
-                    ToolbarItemGroup(placement: .primaryAction) {
-                        if selection == .rules {
-                            Button {
-                                Task { _ = try? await ruleRegistry.loadRules() }
-                            } label: {
-                                Label("Reload Rules", systemImage: "arrow.clockwise")
-                            }
-                            .help("Reload SwiftLint rules")
-                            .accessibilityIdentifier("ContentViewReloadRulesButton")
-                        } else if selection == .violations {
-                            Button {
-                                NotificationCenter.default.post(name: .violationInspectorRefreshRequested, object: nil)
-                            } label: {
-                                Label("Refresh Violations", systemImage: "arrow.clockwise")
-                            }
-                            .help("Refresh violations for current workspace")
-                            .accessibilityIdentifier("ContentViewRefreshViolationsButton")
-                        }
-                    }
+    private var detailContent: some View {
+        VStack(spacing: 0) {
+            if dependencies.workspaceManager.configFileMissing {
+                ConfigRecommendationView(workspaceManager: dependencies.workspaceManager)
+                    .padding()
+            }
+            sectionDetailView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var sectionDetailView: some View {
+        switch selection {
+        case .rules:
+            if let ruleBrowserViewModel {
+                RuleBrowserView(
+                    viewModel: ruleBrowserViewModel,
+                    externalSearchText: $searchText,
+                    selectedRuleId: $selectedRuleId
+                )
+            }
+        case .violations:
+            ViolationInspectorView()
+        case .dashboard:
+            Text("Dashboard")
+                .navigationTitle("Dashboard")
+        case .safeRules:
+            SafeRulesDiscoveryView()
+        case .versionHistory:
+            ConfigVersionHistoryView(
+                service: dependencies.configVersionHistoryService,
+                configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+            )
+        case .compareConfigs:
+            ConfigComparisonView(
+                service: dependencies.configComparisonService,
+                currentWorkspace: dependencies.workspaceManager.currentWorkspace
+            )
+        case .versionCheck:
+            VersionCompatibilityView(
+                checker: dependencies.versionCompatibilityChecker,
+                swiftLintCLI: dependencies.swiftLintCLI,
+                configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+            )
+        case .importConfig:
+            ConfigImportView(
+                importService: dependencies.configImportService,
+                configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+            )
+        case .branchDiff:
+            GitBranchDiffView(
+                service: dependencies.gitBranchDiffService,
+                workspacePath: dependencies.workspaceManager.currentWorkspace?.path
+            )
+        case .migration:
+            MigrationAssistantView(
+                assistant: dependencies.migrationAssistant,
+                swiftLintCLI: dependencies.swiftLintCLI,
+                configPath: dependencies.workspaceManager.currentWorkspace?.configPath
+            )
+        case .none:
+            Text("Select a section")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            Text("SwiftLint Rule Studio")
+                .font(.headline)
+        }
+        ToolbarItemGroup(placement: .primaryAction) {
+            if selection == .rules {
+                Button {
+                    Task { _ = try? await ruleRegistry.loadRules() }
+                } label: {
+                    Label("Reload Rules", systemImage: "arrow.clockwise")
                 }
-                .safeAreaInset(edge: .bottom) {
-                    HStack(spacing: 12) {
-                        if let workspace = dependencies.workspaceManager.currentWorkspace {
-                            Label(workspace.path.path(), systemImage: "folder")
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                        }
-                        Spacer()
-                        if ruleRegistry.isLoading {
-                            ProgressView()
-                                .controlSize(.small)
-                                .progressViewStyle(.circular)
-                        } else if !ruleRegistry.rules.isEmpty {
-                            Text("\(ruleRegistry.rules.count) rules")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(8)
-                    .background(.bar)
+                .help("Reload SwiftLint rules")
+                .accessibilityIdentifier("ContentViewReloadRulesButton")
+            } else if selection == .violations {
+                Button {
+                    NotificationCenter.default.post(name: .violationInspectorRefreshRequested, object: nil)
+                } label: {
+                    Label("Refresh Violations", systemImage: "arrow.clockwise")
                 }
-                .navigationSubtitle(dependencies.workspaceManager.currentWorkspace?.name ?? "")
-                .fileImporter(
-                    isPresented: $showWorkspacePicker,
-                    allowedContentTypes: [.folder],
-                    allowsMultipleSelection: false
-                ) { result in
-                    if case .success(let urls) = result, let url = urls.first {
-                        do {
-                            try dependencies.workspaceManager.openWorkspace(at: url)
-                        } catch {
-                            errorMessage = error.localizedDescription
-                            showError = true
-                        }
-                    }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .openWorkspaceRequested)) { _ in
-                    showWorkspacePicker = true
-                }
-                .onDrop(of: [UTType.fileURL], isTargeted: nil) { providers in
-                    guard let provider = providers.first else { return false }
-                    Task {
-                        guard let item = try? await provider.loadItem(
-                            forTypeIdentifier: UTType.fileURL.identifier
-                        ),
-                              let data = item as? Data,
-                              let dropURL = URL(dataRepresentation: data, relativeTo: nil)
-                        else { return }
-                        do {
-                            try dependencies.workspaceManager.openWorkspace(at: dropURL)
-                        } catch {
-                            errorMessage = error.localizedDescription
-                            showError = true
-                        }
-                    }
-                    return true
-                }
-                .toolbarTitleMenu {
-                    Button("Rules") { selection = .rules }
-                    Button("Violations") { selection = .violations }
-                    Button("Dashboard") { selection = .dashboard }
-                    Button("Safe Rules") { selection = .safeRules }
-                    Button("Version History") { selection = .versionHistory }
-                    Button("Compare Configs") { selection = .compareConfigs }
-                    Button("Version Check") { selection = .versionCheck }
-                    Button("Import Config") { selection = .importConfig }
-                    Button("Branch Diff") { selection = .branchDiff }
-                    Button("Migration") { selection = .migration }
+                .help("Refresh violations for current workspace")
+                .accessibilityIdentifier("ContentViewRefreshViolationsButton")
+            }
+        }
+    }
+
+    private var statusBar: some View {
+        HStack(spacing: 12) {
+            if let workspace = dependencies.workspaceManager.currentWorkspace {
+                Label(workspace.path.path(), systemImage: "folder")
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer()
+            if ruleRegistry.isLoading {
+                ProgressView()
+                    .controlSize(.small)
+                    .progressViewStyle(.circular)
+            } else if !ruleRegistry.rules.isEmpty {
+                Text("\(ruleRegistry.rules.count) rules")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(8)
+        .background(.bar)
+    }
+
+    @ViewBuilder
+    private var titleMenuContent: some View {
+        Button("Rules") { selection = .rules }
+        Button("Violations") { selection = .violations }
+        Button("Dashboard") { selection = .dashboard }
+        Button("Safe Rules") { selection = .safeRules }
+        Button("Version History") { selection = .versionHistory }
+        Button("Compare Configs") { selection = .compareConfigs }
+        Button("Version Check") { selection = .versionCheck }
+        Button("Import Config") { selection = .importConfig }
+        Button("Branch Diff") { selection = .branchDiff }
+        Button("Migration") { selection = .migration }
+    }
+
+    @ViewBuilder
+    private var errorAlertActions: some View {
+        Button("OK") {
+            errorMessage = nil
+            showError = false
+        }
+        Button("Retry") {
+            Task {
+                do {
+                    _ = try await ruleRegistry.loadRules()
+                } catch {
+                    errorMessage = error.localizedDescription
+                    showError = true
                 }
             }
         }
-        .task {
-            // Load rules on app launch
+    }
+
+    private func loadRulesOnLaunch() async {
+        do {
+            _ = try await ruleRegistry.loadRules()
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+    }
+
+    private func handleOnAppear() {
+        dependencies.workspaceManager.checkConfigFileExists()
+        if ruleBrowserViewModel == nil {
+            ruleBrowserViewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
+        }
+        if !didApplyUITestOverrides {
+            didApplyUITestOverrides = true
+            applyUITestOverrides()
+        }
+    }
+
+    private func handleFileImport(_ result: Result<[URL], Error>) {
+        if case .success(let urls) = result, let url = urls.first {
             do {
-                _ = try await ruleRegistry.loadRules()
+                try dependencies.workspaceManager.openWorkspace(at: url)
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true
             }
         }
-        .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
-            // Check config file when workspace changes
-            dependencies.workspaceManager.checkConfigFileExists()
+    }
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first else { return false }
+        Task {
+            guard let item = try? await provider.loadItem(
+                forTypeIdentifier: UTType.fileURL.identifier
+            ),
+                  let data = item as? Data,
+                  let dropURL = URL(dataRepresentation: data, relativeTo: nil)
+            else { return }
+            do {
+                try dependencies.workspaceManager.openWorkspace(at: dropURL)
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
         }
-        .onAppear {
-            // Check config file when view appears
-            dependencies.workspaceManager.checkConfigFileExists()
-            if ruleBrowserViewModel == nil {
-                ruleBrowserViewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
-            }
-            if !didApplyUITestOverrides {
-                didApplyUITestOverrides = true
-                applyUITestOverrides()
-            }
-        }
-        .alert("Error Loading Rules", isPresented: TestGuard.alertBinding($showError)) {
-            Button("OK") {
-                errorMessage = nil
-                showError = false
-            }
-            Button("Retry") {
-                Task {
-                    do {
-                        _ = try await ruleRegistry.loadRules()
-                    } catch {
-                        errorMessage = error.localizedDescription
-                        showError = true
-                    }
-                }
-            }
-        } message: {
-            Text(errorMessage ?? "Unknown error occurred while loading SwiftLint rules.")
-        }
+        return true
     }
 
 }

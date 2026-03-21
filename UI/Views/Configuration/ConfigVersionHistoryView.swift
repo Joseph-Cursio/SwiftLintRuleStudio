@@ -32,42 +32,53 @@ struct ConfigVersionHistoryView: View {
             }
         }
         .navigationTitle("Version History")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: viewModel.loadBackups) {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                }
-                .accessibilityIdentifier("ConfigHistoryRefreshButton")
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button("Keep Last 5") { viewModel.pruneOld(keepCount: 5) }
-                    Button("Keep Last 10") { viewModel.pruneOld(keepCount: 10) }
-                    Button("Keep Last 20") { viewModel.pruneOld(keepCount: 20) }
-                } label: {
-                    Label("Prune", systemImage: "trash")
-                }
-                .accessibilityIdentifier("ConfigHistoryPruneMenu")
-            }
-        }
-        .onAppear {
-            viewModel.loadBackups()
-        }
+        .toolbar { toolbarContent }
+        .onAppear { viewModel.loadBackups() }
         .alert("Restore Configuration?", isPresented: Bindable(viewModel).showRestoreConfirmation) {
-            Button("Restore", role: .destructive, action: viewModel.restoreVersion)
-            Button("Cancel", role: .cancel) {}
+            restoreAlertActions
         } message: {
-            if let backup = viewModel.backupToRestore {
-                Text(
-                    "This will restore the configuration from \(backup.formattedDate)." +
-                    " A safety backup of the current configuration will be created first."
-                )
-            }
+            restoreAlertMessage
         }
         .alert("Error", isPresented: Bindable(viewModel).showError) {
             Button("OK") { viewModel.error = nil }
         } message: {
             Text(viewModel.error?.localizedDescription ?? "An unknown error occurred.")
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button(action: viewModel.loadBackups) {
+                Label("Refresh", systemImage: "arrow.clockwise")
+            }
+            .accessibilityIdentifier("ConfigHistoryRefreshButton")
+        }
+        ToolbarItem(placement: .primaryAction) {
+            Menu {
+                Button("Keep Last 5") { viewModel.pruneOld(keepCount: 5) }
+                Button("Keep Last 10") { viewModel.pruneOld(keepCount: 10) }
+                Button("Keep Last 20") { viewModel.pruneOld(keepCount: 20) }
+            } label: {
+                Label("Prune", systemImage: "trash")
+            }
+            .accessibilityIdentifier("ConfigHistoryPruneMenu")
+        }
+    }
+
+    @ViewBuilder
+    private var restoreAlertActions: some View {
+        Button("Restore", role: .destructive, action: viewModel.restoreVersion)
+        Button("Cancel", role: .cancel) {}
+    }
+
+    @ViewBuilder
+    private var restoreAlertMessage: some View {
+        if let backup = viewModel.backupToRestore {
+            Text(
+                "This will restore the configuration from \(backup.formattedDate)." +
+                " A safety backup of the current configuration will be created first."
+            )
         }
     }
 

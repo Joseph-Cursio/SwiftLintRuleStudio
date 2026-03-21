@@ -36,44 +36,12 @@ struct SafeRulesDiscoveryView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Header
                 headerView
-
                 Divider()
-
-                if isDiscovering {
-                    discoveringView
-                } else if safeRules.isEmpty && !isDiscovering {
-                    emptyStateView
-                } else {
-                    rulesListView
-                }
+                mainContent
             }
             .navigationTitle("Safe Rules Discovery")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
-
-                if !safeRules.isEmpty {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button {
-                            enableSelectedRules()
-                        } label: {
-                            if isEnabling {
-                                ProgressView()
-                                    .scaleEffect(0.7)
-                            } else {
-                                Text("Enable Selected (\(selectedRules.count))")
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(selectedRules.isEmpty || isEnabling)
-                    }
-                }
-            }
+            .toolbar { discoveryToolbar }
         }
         .frame(width: 800, height: 600)
         .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
@@ -83,6 +51,43 @@ struct SafeRulesDiscoveryView: View {
             }
         } message: {
             Text(errorMessage ?? "An error occurred")
+        }
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        if isDiscovering {
+            discoveringView
+        } else if safeRules.isEmpty {
+            emptyStateView
+        } else {
+            rulesListView
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var discoveryToolbar: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Close") {
+                dismiss()
+            }
+        }
+
+        if !safeRules.isEmpty {
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    enableSelectedRules()
+                } label: {
+                    if isEnabling {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    } else {
+                        Text("Enable Selected (\(selectedRules.count))")
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(selectedRules.isEmpty || isEnabling)
+            }
         }
     }
 }

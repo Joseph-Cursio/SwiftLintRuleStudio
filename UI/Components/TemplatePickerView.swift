@@ -28,97 +28,103 @@ struct TemplatePickerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Text("Choose a Template")
-                    .font(.headline)
-
-                Spacer()
-
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Close")
-                }
-                .buttonStyle(.plain)
-            }
-            .padding()
-            .background(Color(NSColor.controlBackgroundColor))
-
+            pickerHeader
             Divider()
-
-            // Filters
-            HStack(spacing: 16) {
-                Picker("Project", selection: $selectedProjectType) {
-                    ForEach(ConfigurationTemplate.ProjectType.allCases, id: \.self) { type in
-                        Label(type.rawValue, systemImage: type.icon)
-                            .tag(type)
-                    }
-                }
-                .pickerStyle(.menu)
-                .frame(width: 160)
-
-                Picker("Style", selection: $selectedCodingStyle) {
-                    ForEach(ConfigurationTemplate.CodingStyle.allCases, id: \.self) { style in
-                        Text(style.rawValue).tag(style)
-                    }
-                }
-                .pickerStyle(.segmented)
-            }
-            .padding()
-
+            filterBar
             Divider()
-
-            // Template grid
-            ScrollView {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 200, maximum: 300))],
-                    spacing: 12
-                ) {
-                    ForEach(filteredTemplates) { template in
-                        TemplatePickerCard(
-                            template: template,
-                            isHovered: hoveredTemplate?.id == template.id,
-                            onSelect: {
-                                onTemplateSelected(template)
-                                dismiss()
-                            }
-                        )
-                        .onHover { isHovered in
-                            hoveredTemplate = isHovered ? template : nil
-                        }
-                    }
-                }
-                .padding()
-            }
-
+            templateGrid
             if filteredTemplates.isEmpty {
-                Spacer()
-                Text("No templates available for this selection")
-                    .foregroundStyle(.secondary)
-                Spacer()
+                emptyState
             }
-
             Divider()
+            pickerFooter
+        }
+        .frame(width: 500, height: 450)
+    }
 
-            // Footer
-            HStack {
-                Button("Cancel") {
-                    dismiss()
-                }
-                .keyboardShortcut(.escape)
-
-                Spacer()
-
-                Text("\(filteredTemplates.count) templates")
-                    .font(.caption)
+    private var pickerHeader: some View {
+        HStack {
+            Text("Choose a Template")
+                .font(.headline)
+            Spacer()
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel("Close")
+            }
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+
+    private var filterBar: some View {
+        HStack(spacing: 16) {
+            Picker("Project", selection: $selectedProjectType) {
+                ForEach(ConfigurationTemplate.ProjectType.allCases, id: \.self) { type in
+                    Label(type.rawValue, systemImage: type.icon)
+                        .tag(type)
+                }
+            }
+            .pickerStyle(.menu)
+            .frame(width: 160)
+
+            Picker("Style", selection: $selectedCodingStyle) {
+                ForEach(ConfigurationTemplate.CodingStyle.allCases, id: \.self) { style in
+                    Text(style.rawValue).tag(style)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+        .padding()
+    }
+
+    private var templateGrid: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 200, maximum: 300))],
+                spacing: 12
+            ) {
+                ForEach(filteredTemplates) { template in
+                    TemplatePickerCard(
+                        template: template,
+                        isHovered: hoveredTemplate?.id == template.id,
+                        onSelect: {
+                            onTemplateSelected(template)
+                            dismiss()
+                        }
+                    )
+                    .onHover { isHovered in
+                        hoveredTemplate = isHovered ? template : nil
+                    }
+                }
             }
             .padding()
         }
-        .frame(width: 500, height: 450)
+    }
+
+    @ViewBuilder
+    private var emptyState: some View {
+        Spacer()
+        Text("No templates available for this selection")
+            .foregroundStyle(.secondary)
+        Spacer()
+    }
+
+    private var pickerFooter: some View {
+        HStack {
+            Button("Cancel") {
+                dismiss()
+            }
+            .keyboardShortcut(.escape)
+            Spacer()
+            Text("\(filteredTemplates.count) templates")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
     }
 
     private var filteredTemplates: [ConfigurationTemplate] {

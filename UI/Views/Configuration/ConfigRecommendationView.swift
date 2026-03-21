@@ -16,66 +16,9 @@ struct ConfigRecommendationView: View {
     var body: some View {
         if workspaceManager.configFileMissing {
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Image(systemName: "info.circle.fill")
-                        .foregroundStyle(.blue)
-                        .font(.title2)
-                        .accessibilityLabel("Information")
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("SwiftLint Configuration File Missing")
-                            .font(.headline)
-
-                        Text("""
-                        Your workspace doesn't have a `.swiftlint.yml` configuration file.
-                        Creating one will help you:
-                        """)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    ConfigBenefitRow(
-                        icon: "checkmark.circle.fill",
-                        text: "Exclude third-party code from analysis"
-                    )
-                    ConfigBenefitRow(
-                        icon: "checkmark.circle.fill",
-                        text: "Customize rule severity and behavior"
-                    )
-                    ConfigBenefitRow(
-                        icon: "checkmark.circle.fill",
-                        text: "Follow SwiftLint best practices"
-                    )
-                }
-                .padding(.leading, 32)
-
-                HStack {
-                    Button(action: createConfigFile) {
-                        HStack {
-                            if isCreatingConfig {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            } else {
-                                Image(systemName: "plus.circle.fill")
-                                    .accessibilityHidden(true)
-                            }
-                            Text(isCreatingConfig ? "Creating..." : "Create Default Configuration")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isCreatingConfig)
-
-                    Button("Learn More") {
-                        // Open documentation or help
-                        if let url = URL(string: "https://github.com/realm/SwiftLint#configuration") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                }
+                infoHeader
+                benefitsList
+                actionRow
             }
             .padding()
             .background(
@@ -94,6 +37,72 @@ struct ConfigRecommendationView: View {
             } message: {
                 Text(errorMessage ?? "Unknown error occurred while creating the configuration file.")
             }
+        }
+    }
+
+    private var infoHeader: some View {
+        HStack {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.blue)
+                .font(.title2)
+                .accessibilityLabel("Information")
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("SwiftLint Configuration File Missing")
+                    .font(.headline)
+
+                Text("""
+                Your workspace doesn't have a `.swiftlint.yml` configuration file.
+                Creating one will help you:
+                """)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var benefitsList: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ConfigBenefitRow(
+                icon: "checkmark.circle.fill",
+                text: "Exclude third-party code from analysis"
+            )
+            ConfigBenefitRow(
+                icon: "checkmark.circle.fill",
+                text: "Customize rule severity and behavior"
+            )
+            ConfigBenefitRow(
+                icon: "checkmark.circle.fill",
+                text: "Follow SwiftLint best practices"
+            )
+        }
+        .padding(.leading, 32)
+    }
+
+    private var actionRow: some View {
+        HStack {
+            Button(action: createConfigFile) {
+                HStack {
+                    if isCreatingConfig {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "plus.circle.fill")
+                            .accessibilityHidden(true)
+                    }
+                    Text(isCreatingConfig ? "Creating..." : "Create Default Configuration")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isCreatingConfig)
+
+            Button("Learn More") {
+                if let url = URL(string: "https://github.com/realm/SwiftLint#configuration") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            .buttonStyle(.bordered)
         }
     }
 
