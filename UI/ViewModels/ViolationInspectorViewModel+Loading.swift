@@ -25,7 +25,6 @@ extension ViolationInspectorViewModel {
             do {
                 _ = try await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
             } catch {
-                print("❌ Error analyzing workspace: \(error.localizedDescription)")
             }
         }
 
@@ -52,7 +51,6 @@ extension ViolationInspectorViewModel {
         do {
             _ = try await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
         } catch {
-            print("Error analyzing workspace: \(error)")
             throw error
         }
 

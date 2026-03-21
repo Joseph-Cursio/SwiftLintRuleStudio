@@ -351,8 +351,7 @@ struct ConfigHealthPopover: View {
                 )
             ]
         )
-    ) { presetId in
-        print("Apply preset: \(presetId)")
+    ) { _ in
     }
     .frame(width: 500, height: 600)
 }

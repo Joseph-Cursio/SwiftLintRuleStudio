@@ -99,7 +99,7 @@ class RuleRegistry: RuleRegistryProtocol {
                 // @Observable automatically notifies observers on mutation — no manual send needed
             }
         } catch {
-            print("⚠️ Failed to fetch details for rule \(id): \(error.localizedDescription)")
+            // Detail fetch failed; rule retains existing metadata
         }
     }
 

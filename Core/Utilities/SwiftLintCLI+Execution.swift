@@ -28,8 +28,6 @@ extension SwiftLintCLI {
     }
 
     private func processCommandOutput(stdout: Data, stderr: Data) throws -> Data {
-        print("📖 Read \(stdout.count) bytes of output")
-
         // Check for errors in stderr output (SwiftLint writes warnings to stderr even on success)
         if !stderr.isEmpty, let errorMessage = String(data: stderr, encoding: .utf8) {
             if errorMessage.contains("command not found") || errorMessage.contains("swiftlint: command not found") {
@@ -72,7 +70,6 @@ extension SwiftLintCLI {
                 group.addTask { @Sendable in
                     try await Task.sleep(nanoseconds: timeoutNanoseconds)
                     await onTimeout()
-                    print("⏰ Timeout reached")
                     let message = "SwiftLint command timed out after \(timeoutSeconds) seconds."
                     throw SwiftLintError.executionFailed(message: message)
                 }
@@ -117,10 +114,8 @@ private extension SwiftLintCLI {
     func resolveSwiftLintPath() async -> URL? {
         do {
             let path = try await detectSwiftLintPath()
-            print("✅ Using SwiftLint at: \(path.path)")
             return path
         } catch {
-            print("⚠️  SwiftLint not found in standard paths, using shell execution")
             return nil
         }
     }
@@ -188,8 +183,7 @@ private extension SwiftLintCLI {
         let errorPipe = Pipe()
         configureProcess(process, outputPipe: outputPipe, errorPipe: errorPipe)
 
-        let startTime = Date()
-        print("🚀 Starting \(label)")
+        let startTime = Date.now
 
         do {
             try process.run()
@@ -213,8 +207,7 @@ private extension SwiftLintCLI {
     }
 
     func logCompletionTime(startTime: Date) {
-        let elapsed = Date().timeIntervalSince(startTime)
-        print("⏱️  SwiftLint process completed in \(String(format: "%.2f", elapsed)) seconds")
+        _ = Date.now.timeIntervalSince(startTime)
     }
 }
 

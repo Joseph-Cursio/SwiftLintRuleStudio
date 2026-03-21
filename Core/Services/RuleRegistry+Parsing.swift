@@ -8,10 +8,8 @@ extension RuleRegistry {
 
     private func parseRules(from data: Data) async throws -> [Rule] {
         let text = try decodeRuleText(from: data)
-        print("SwiftLint output (first 500 chars):\n\(String(text.prefix(500)))")
 
         let rules = parseRulesTable(from: text)
-        print("Parsed \(rules.count) rules from SwiftLint output")
 
         guard !rules.isEmpty else {
             let message = "No rules found in SwiftLint output. " +
@@ -56,7 +54,6 @@ extension RuleRegistry {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
         guard columns.count >= 5 else {
-            print("Skipping line (not enough columns: \(columns.count)): \(String(trimmed.prefix(80)))")
             return nil
         }
 

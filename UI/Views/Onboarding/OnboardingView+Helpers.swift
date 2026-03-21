@@ -67,8 +67,6 @@ extension OnboardingView {
                 // Show "Complete" button if workspace is selected
                 if workspaceManager.currentWorkspace != nil {
                     Button("Complete") {
-                        let workspacePath = workspaceManager.currentWorkspace?.path.path ?? "nil"
-                        print("Complete button tapped - workspace: \(workspacePath)")
                         onboardingManager.nextStep() // Move to complete step
                     }
                     .buttonStyle(.borderedProminent)

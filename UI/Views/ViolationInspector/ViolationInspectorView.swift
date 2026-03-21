@@ -22,7 +22,6 @@ struct ViolationInspectorView: View {
         } catch {
             // If initialization fails, log the error and create a fallback
             // This prevents crashes and allows the view to still render
-            print("⚠️ Failed to initialize ViolationStorage: \(error)")
             // Try to create a file-based storage as fallback
             if let fallbackStorage = try? ViolationStorage(useInMemory: false) {
                 tempStorage = fallbackStorage
@@ -86,7 +85,6 @@ struct ViolationInspectorView: View {
                     do {
                         try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
                     } catch {
-                        print("Error loading violations: \(error)")
                     }
                 }
             }
@@ -98,7 +96,6 @@ struct ViolationInspectorView: View {
                     do {
                         try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
                     } catch {
-                        print("Error loading violations: \(error)")
                     }
                 }
             } else {
@@ -115,7 +112,6 @@ struct ViolationInspectorView: View {
                 do {
                     try await viewModel.refreshViolations()
                 } catch {
-                    print("Error refreshing violations after config file creation: \(error)")
                 }
             }
         }

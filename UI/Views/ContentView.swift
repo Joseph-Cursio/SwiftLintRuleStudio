@@ -213,7 +213,6 @@ struct ContentView: View {
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true
-                print("Error loading rules: \(error)")
             }
         }
         .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
@@ -268,7 +267,6 @@ private extension ContentView {
                 let workspaceURL = try createUITestWorkspace()
                 try dependencies.workspaceManager.openWorkspace(at: workspaceURL)
             } catch {
-                print("UI test workspace setup failed: \(error)")
             }
         }
     }

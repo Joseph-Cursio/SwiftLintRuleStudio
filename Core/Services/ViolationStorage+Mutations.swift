@@ -36,7 +36,6 @@ extension ViolationStorage {
         try executeSQL("COMMIT", dbHandle: handle)
         transactionCommitted = true
 
-        print("💾 Stored \(insertionResult.insertedCount) violations for workspace: \(workspaceId.uuidString)")
     }
 
     private func beginTransaction(dbHandle: OpaquePointer) throws {
@@ -79,7 +78,6 @@ extension ViolationStorage {
                 insertedCount += 1
             } else {
                 let errorMsg = String(cString: sqlite3_errmsg(dbHandle))
-                print("❌ Error inserting violation \(index): \(errorMsg) (code: \(stepResult))")
                 sqlite3_reset(statement)
                 throw ViolationStorageError.sqlError("Failed to insert violation at index \(index): \(errorMsg)")
             }
@@ -101,25 +99,17 @@ extension ViolationStorage {
         let idString = violation.id.uuidString
         if seenIDs.contains(idString) {
             duplicateIDs.insert(idString)
-            if duplicateIDs.count <= 3 {
-                print("⚠️  Duplicate violation ID found: \(idString) at index \(index)")
-            }
         } else {
             seenIDs.insert(idString)
         }
     }
 
     private func logDeletedViolations(_ deleted: Int) {
-        if deleted > 0 {
-            print("🗑️  Deleted \(deleted) existing violations for workspace before inserting new ones")
-        }
+        // Intentionally empty - violation count tracked internally
     }
 
     private func logDuplicateViolations(_ result: InsertionResult, total: Int) {
-        guard !result.duplicateIDs.isEmpty else { return }
-        let message = "⚠️  Found \(result.duplicateIDs.count) unique duplicate IDs in violation set " +
-            "(total violations: \(total), unique IDs: \(result.uniqueCount))"
-        print(message)
+        // Intentionally empty - duplicate tracking handled by InsertionResult
     }
 
     private func deleteExistingViolations(for workspaceId: UUID, dbHandle: OpaquePointer) throws -> Int {
@@ -282,7 +272,7 @@ extension ViolationStorage {
             throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
         }
 
-        sqlite3_bind_double(statement, 1, Date().timeIntervalSince1970)
+        sqlite3_bind_double(statement, 1, Date.now.timeIntervalSince1970)
 
         // Bind violation IDs using strdup
         var idCStrings: [UnsafeMutablePointer<CChar>?] = []

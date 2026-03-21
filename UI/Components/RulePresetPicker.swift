@@ -211,14 +211,12 @@ struct PresetBadge: View {
 }
 
 #Preview("Preset Picker Menu") {
-    RulePresetPicker { preset in
-        print("Selected preset: \(preset.name)")
+    RulePresetPicker { _ in
     }
 }
 
 #Preview("Preset Browser") {
-    RulePresetBrowserView { preset in
-        print("Selected preset: \(preset.name)")
+    RulePresetBrowserView { _ in
     }
 }
 

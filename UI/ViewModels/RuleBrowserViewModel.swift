@@ -238,7 +238,6 @@ class RuleBrowserViewModel {
 
             bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
         } catch {
-            print("Error generating bulk enable diff: \(error)")
         }
     }
 
@@ -259,7 +258,6 @@ class RuleBrowserViewModel {
 
             bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
         } catch {
-            print("Error generating bulk disable diff: \(error)")
         }
     }
 
@@ -276,7 +274,6 @@ class RuleBrowserViewModel {
 
             bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
         } catch {
-            print("Error generating bulk severity diff: \(error)")
         }
     }
 

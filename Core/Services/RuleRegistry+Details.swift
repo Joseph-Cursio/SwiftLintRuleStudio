@@ -26,7 +26,6 @@ extension RuleRegistry {
             let detailedRule = try await fetchRuleDetailsWithTimeout(rule: rule)
             return (index, detailedRule)
         } catch {
-            print("⚠️ Failed to fetch details for rule \(rule.id): \(error.localizedDescription)")
             return (index, rule)
         }
     }
@@ -154,13 +153,12 @@ extension RuleRegistry {
             let markdown = try await swiftLintCLI.generateDocsForRule(ruleId: ruleId)
             state.markdownDoc = markdown
             guard !markdown.isEmpty else {
-                print("⚠️ generate-docs returned empty markdown for \(ruleId)")
                 return
             }
             let parsedDoc = RuleDocumentationParser.parse(markdown: markdown)
             state.apply(parsedDoc)
         } catch {
-            print("⚠️ generate-docs failed for \(ruleId), falling back to rules command: \(error.localizedDescription)")
+            // generate-docs failed; will fall back to rules command
         }
     }
 

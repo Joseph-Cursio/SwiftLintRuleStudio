@@ -4,15 +4,12 @@ extension SwiftLintCLI {
     func generateDocsForRule(ruleId: String) async throws -> String {
         // Check current SwiftLint version
         let currentVersion = try await getVersion()
-        print("📋 Current SwiftLint version: \(currentVersion)")
 
         if let cachedContent = await readCachedDocs(ruleId: ruleId, currentVersion: currentVersion) {
             return cachedContent
         }
 
         // Version changed or cache missing - generate new docs
-        print("🔄 Generating new documentation (version: \(currentVersion))")
-
         let docsDir = docsDirectory(for: currentVersion)
 
         // Create directory if it doesn't exist
@@ -28,7 +25,6 @@ extension SwiftLintCLI {
 
         // Generate docs - generate docs for ALL rules (not just enabled ones)
         // This ensures opt-in rules like empty_count have their documentation and examples
-        print("⏳ Running generate-docs (this may take a moment for all rules)...")
         _ = try await executeCommandViaShell(command: "swiftlint", arguments: [
             "generate-docs",
             "--path", docsDir.path
@@ -54,7 +50,6 @@ extension SwiftLintCLI {
         // Cache the directory and version for future use
         try? cacheManager.saveDocsDirectory(docsDir)
         try? cacheManager.saveSwiftLintVersion(currentVersion)
-        print("✅ Generated and cached documentation for \(ruleId)")
 
         return finalContent
     }
@@ -77,7 +72,6 @@ extension SwiftLintCLI {
         let docFile = cachedDocsDir.appendingPathComponent("\(ruleId).md")
         guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
         if let content = await readDocFileWithRetries(docFile, attempts: 20, delayNanoseconds: 100_000_000) {
-            print("✅ Using cached documentation for \(ruleId)")
             return content
         }
         return nil
@@ -87,7 +81,6 @@ extension SwiftLintCLI {
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")
         guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
         if let content = await readDocFileWithRetries(docFile, attempts: 20, delayNanoseconds: 100_000_000) {
-            print("✅ Using existing documentation for \(ruleId)")
             try? cacheManager.saveDocsDirectory(docsDir)
             try? cacheManager.saveSwiftLintVersion(currentVersion)
             return content

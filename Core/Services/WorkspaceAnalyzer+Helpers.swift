@@ -62,7 +62,7 @@ extension WorkspaceAnalyzer {
         startedAt: Date,
         configHash: String?
     ) -> AnalysisResult {
-        let completedAt = Date()
+        let completedAt = Date.now
         return AnalysisResult(
             violations: violations,
             filesAnalyzed: filesAnalyzed,
@@ -174,10 +174,6 @@ extension WorkspaceAnalyzer {
                string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return []
             }
-            if let string = String(data: data, encoding: .utf8),
-               !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                print("⚠️  Could not parse SwiftLint JSON output")
-            }
             throw WorkspaceAnalyzerError.invalidOutput("Could not parse SwiftLint JSON output")
         }
 
@@ -211,7 +207,7 @@ extension WorkspaceAnalyzer {
                 column: column,
                 severity: severity,
                 message: message,
-                detectedAt: Date()
+                detectedAt: Date.now
             )
 
             violations.append(violation)

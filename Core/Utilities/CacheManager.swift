@@ -75,7 +75,6 @@ struct CacheManager: CacheManagerProtocol {
 
     nonisolated func saveSwiftLintVersion(_ version: String) throws {
         try version.write(to: versionCacheFile, atomically: true, encoding: .utf8)
-        print("📝 Cached SwiftLint version: \(version)")
     }
 
     // MARK: - Documentation Directory Caching
@@ -94,7 +93,6 @@ struct CacheManager: CacheManagerProtocol {
 
     nonisolated func saveDocsDirectory(_ url: URL) throws {
         try url.path.write(to: docsDirectoryCacheFile, atomically: true, encoding: .utf8)
-        print("📝 Cached docs directory: \(url.path)")
     }
 
     nonisolated func clearDocsCache() throws {

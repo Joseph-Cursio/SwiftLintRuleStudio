@@ -120,7 +120,6 @@ struct RuleDetailView: View {
                 do {
                     try viewModel.loadConfiguration()
                 } catch {
-                    print("Warning: Failed to load configuration: \(error)")
                 }
             }
 

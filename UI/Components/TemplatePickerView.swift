@@ -236,8 +236,7 @@ struct CodingStyleText: View {
 }
 
 #Preview("Template Picker") {
-    TemplatePickerView { template in
-        print("Selected: \(template.name)")
+    TemplatePickerView { _ in
     }
 }
 
@@ -259,8 +258,7 @@ struct CodingStyleText: View {
 }
 
 #Preview("Template Menu Button") {
-    TemplateMenuButton { template in
-        print("Selected: \(template.name)")
+    TemplateMenuButton { _ in
     }
     .padding()
 }

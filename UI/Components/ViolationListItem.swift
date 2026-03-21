@@ -99,7 +99,6 @@ struct ViolationListItem: View {
             )
         } catch {
             // Error handling is done at the service level or can be shown via alert
-            print("Failed to open file in Xcode: \(error)")
         }
     }
 

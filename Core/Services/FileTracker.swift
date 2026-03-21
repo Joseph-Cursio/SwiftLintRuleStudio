@@ -125,8 +125,7 @@ class FileTracker {
             let data = try encoder.encode(trackedFiles)
             try data.write(to: cacheURL)
         } catch {
-            // Silently fail - cache is not critical
-            print("Warning: Failed to save file tracker cache: \(error)")
+            // Cache save is non-critical
         }
     }
 }

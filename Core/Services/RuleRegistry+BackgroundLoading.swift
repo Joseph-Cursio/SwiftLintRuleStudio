@@ -74,7 +74,6 @@ private extension RuleRegistry {
             try? await Task.sleep(nanoseconds: 100_000_000)
         }
 
-        print("✅ Background loading completed for \(rulesData.count) rules")
     }
 
     static func loadBatch(
@@ -121,7 +120,6 @@ private extension RuleRegistry {
             }
             return detailedRule
         } catch {
-            print("⚠️ Background fetch failed for rule \(ruleId): \(error.localizedDescription)")
             return Rule(
                 id: ruleId,
                 name: ruleId,

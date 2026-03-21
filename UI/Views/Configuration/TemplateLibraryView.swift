@@ -347,8 +347,7 @@ struct TemplateDetailView: View {
 }
 
 #Preview("Template Library") {
-    TemplateLibraryView { template in
-        print("Selected: \(template.name)")
+    TemplateLibraryView { _ in
     }
     .frame(width: 900, height: 600)
 }
