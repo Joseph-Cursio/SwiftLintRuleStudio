@@ -11,11 +11,10 @@ import Foundation
 enum RuleDetailVMIntegrationHelpers {
     static func createRuleDetailViewModel(
         rule: Rule,
-        yamlEngine: YAMLConfigurationEngine? = nil,
-        workspaceManager: WorkspaceManager? = nil
+        yamlEngine: YAMLConfigurationEngine? = nil
     ) async -> RuleDetailViewModel {
         return await MainActor.run {
-            RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine, workspaceManager: workspaceManager)
+            RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
         }
     }
 

@@ -11,12 +11,7 @@ import AppKit
 /// Service for opening files in Xcode
 @MainActor
 class XcodeIntegrationService {
-    private let workspaceManager: WorkspaceManager
     private var projectCache: [URL: URL] = [:] // Cache workspace -> project mapping
-
-    init(workspaceManager: WorkspaceManager) {
-        self.workspaceManager = workspaceManager
-    }
 
     nonisolated static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil

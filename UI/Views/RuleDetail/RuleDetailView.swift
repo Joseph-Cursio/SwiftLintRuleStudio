@@ -115,7 +115,6 @@ struct RuleDetailView: View {
                let configPath = workspace.configPath {
                 let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
                 viewModel.yamlEngine = yamlEngine
-                viewModel.workspaceManager = dependencies.workspaceManager
 
                 // Load current configuration
                 do {

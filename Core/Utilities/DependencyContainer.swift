@@ -104,7 +104,7 @@ class DependencyContainer {
 
         // Initialize Xcode integration service
         self.xcodeIntegrationService = xcodeIntegrationService
-            ?? XcodeIntegrationService(workspaceManager: self.workspaceManager)
+            ?? XcodeIntegrationService()
 
         // Initialize Phase 1 YAML Configuration Services
         self.configurationValidator = configurationValidator

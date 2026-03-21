@@ -78,7 +78,7 @@ struct RuleDetailViewStateTests {
             )
         }
         let viewModel = await MainActor.run {
-            RuleDetailViewModel(rule: rule, workspaceManager: workspaceManager)
+            RuleDetailViewModel(rule: rule)
         }
         let container = await MainActor.run {
             DependencyContainer.createForTesting(workspaceManager: workspaceManager)

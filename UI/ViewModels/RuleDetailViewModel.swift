@@ -27,7 +27,6 @@ class RuleDetailViewModel {
 
     let rule: Rule
     var yamlEngine: YAMLConfigurationEngine?
-    var workspaceManager: WorkspaceManager?
 
     // Track original state to detect changes
     private var originalEnabled: Bool
@@ -36,10 +35,9 @@ class RuleDetailViewModel {
 
     // MARK: - Initialization
 
-    init(rule: Rule, yamlEngine: YAMLConfigurationEngine? = nil, workspaceManager: WorkspaceManager? = nil) {
+    init(rule: Rule, yamlEngine: YAMLConfigurationEngine? = nil) {
         self.rule = rule
         self.yamlEngine = yamlEngine
-        self.workspaceManager = workspaceManager
 
         // Initialize from rule's current state
         self.isEnabled = rule.isEnabled

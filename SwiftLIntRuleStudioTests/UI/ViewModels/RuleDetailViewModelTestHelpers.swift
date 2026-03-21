@@ -17,11 +17,10 @@ enum RuleDetailViewModelTestHelpers {
 
     static func createRuleDetailViewModel(
         rule: Rule,
-        yamlEngine: YAMLConfigurationEngine? = nil,
-        workspaceManager: WorkspaceManager? = nil
+        yamlEngine: YAMLConfigurationEngine? = nil
     ) async -> RuleDetailViewModel {
         await MainActor.run {
-            RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine, workspaceManager: workspaceManager)
+            RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
         }
     }
 
