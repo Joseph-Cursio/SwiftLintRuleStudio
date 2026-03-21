@@ -62,6 +62,8 @@ struct HealthScoreBadge: View {
 
 /// Larger health score display with ring chart
 struct HealthScoreRing: View {
+    private let maxScore = 100
+
     let report: ConfigHealthReport
     @State private var animatedProgress: Double = 0
 
@@ -87,7 +89,7 @@ struct HealthScoreRing: View {
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(gradeColor)
 
-                Text("\(report.score)/100")
+                Text("\(report.score)/\(maxScore)")
                     .font(.system(.caption, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -95,7 +97,7 @@ struct HealthScoreRing: View {
         .frame(width: 100, height: 100)
         .onAppear {
             withAnimation(.easeOut(duration: 1.0)) {
-                animatedProgress = Double(report.score) / 100.0
+                animatedProgress = Double(report.score) / Double(maxScore)
             }
         }
     }

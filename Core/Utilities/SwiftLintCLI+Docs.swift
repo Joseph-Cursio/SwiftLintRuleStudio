@@ -1,6 +1,8 @@
 import Foundation
 
 extension SwiftLintCLI {
+    private static let docFileReadAttempts = 20
+
     func generateDocsForRule(ruleId: String) async throws -> String {
         // Check current SwiftLint version
         let currentVersion = try await getVersion()
@@ -41,7 +43,7 @@ extension SwiftLintCLI {
         // Wait for content to be readable (up to 2 more seconds)
         guard let finalContent = await readDocFileWithRetries(
             docFile,
-            attempts: 20,
+            attempts: Self.docFileReadAttempts,
             delayNanoseconds: 100_000_000
         ) else {
             throw SwiftLintError.executionFailed(message: "Could not read documentation file for rule: \(ruleId)")
@@ -71,7 +73,7 @@ extension SwiftLintCLI {
         }
         let docFile = cachedDocsDir.appendingPathComponent("\(ruleId).md")
         guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
-        if let content = await readDocFileWithRetries(docFile, attempts: 20, delayNanoseconds: 100_000_000) {
+        if let content = await readDocFileWithRetries(docFile, attempts: Self.docFileReadAttempts, delayNanoseconds: 100_000_000) {
             return content
         }
         return nil
@@ -80,7 +82,7 @@ extension SwiftLintCLI {
     private func readExistingDocs(ruleId: String, docsDir: URL, currentVersion: String) async -> String? {
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")
         guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
-        if let content = await readDocFileWithRetries(docFile, attempts: 20, delayNanoseconds: 100_000_000) {
+        if let content = await readDocFileWithRetries(docFile, attempts: Self.docFileReadAttempts, delayNanoseconds: 100_000_000) {
             try? cacheManager.saveDocsDirectory(docsDir)
             try? cacheManager.saveSwiftLintVersion(currentVersion)
             return content

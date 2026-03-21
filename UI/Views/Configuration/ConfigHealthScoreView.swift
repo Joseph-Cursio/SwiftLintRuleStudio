@@ -119,6 +119,12 @@ struct ConfigHealthScoreView: View {
 
 /// Row displaying a single breakdown metric
 struct BreakdownRow: View {
+    private let excellentThreshold = 80
+    private let goodThreshold = 60
+    private let fairThreshold = 40
+    private let needsWorkThreshold = 20
+    private let maxScore = 100
+
     let name: String
     let score: Int
     let weight: Int
@@ -171,7 +177,7 @@ struct BreakdownRow: View {
 
                     Rectangle()
                         .fill(scoreColor)
-                        .frame(width: geometry.size.width * CGFloat(score) / 100, height: 6)
+                        .frame(width: geometry.size.width * CGFloat(score) / CGFloat(maxScore), height: 6)
                         .clipShape(.rect(cornerRadius: 3))
                 }
             }
@@ -186,10 +192,10 @@ struct BreakdownRow: View {
 
     private var scoreColor: Color {
         switch score {
-        case 80...100: return .green
-        case 60..<80: return .blue
-        case 40..<60: return .yellow
-        case 20..<40: return .orange
+        case excellentThreshold...maxScore: return .green
+        case goodThreshold..<excellentThreshold: return .blue
+        case fairThreshold..<goodThreshold: return .yellow
+        case needsWorkThreshold..<fairThreshold: return .orange
         default: return .red
         }
     }

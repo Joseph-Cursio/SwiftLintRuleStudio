@@ -140,28 +140,42 @@ extension ViolationStorage {
         }
     }
 
+    private enum ColumnIndex {
+        static let violationId: Int32 = 0
+        static let ruleId: Int32 = 2
+        static let filePath: Int32 = 3
+        static let line: Int32 = 4
+        static let column: Int32 = 5
+        static let severity: Int32 = 6
+        static let message: Int32 = 7
+        static let detectedAt: Int32 = 8
+        static let resolvedAt: Int32 = 9
+        static let suppressed: Int32 = 10
+        static let suppressionReason: Int32 = 11
+    }
+
     private func parseViolation(from statement: OpaquePointer?) -> Violation? {
-        guard let idString = sqlite3_column_text(statement, 0),
+        guard let idString = sqlite3_column_text(statement, ColumnIndex.violationId),
               let id = UUID(uuidString: String(cString: idString)),
-              let ruleID = sqlite3_column_text(statement, 2),
-              let filePath = sqlite3_column_text(statement, 3),
-              let severityString = sqlite3_column_text(statement, 6),
-              let message = sqlite3_column_text(statement, 7) else {
+              let ruleID = sqlite3_column_text(statement, ColumnIndex.ruleId),
+              let filePath = sqlite3_column_text(statement, ColumnIndex.filePath),
+              let severityString = sqlite3_column_text(statement, ColumnIndex.severity),
+              let message = sqlite3_column_text(statement, ColumnIndex.message) else {
             return nil
         }
 
-        let line = Int(sqlite3_column_int(statement, 4))
-        let column = sqlite3_column_type(statement, 5) == SQLITE_NULL
+        let line = Int(sqlite3_column_int(statement, ColumnIndex.line))
+        let column = sqlite3_column_type(statement, ColumnIndex.column) == SQLITE_NULL
             ? nil
-            : Int(sqlite3_column_int(statement, 5))
-        let detectedAt = Date(timeIntervalSince1970: sqlite3_column_double(statement, 8))
-        let resolvedAt = sqlite3_column_type(statement, 9) == SQLITE_NULL
+            : Int(sqlite3_column_int(statement, ColumnIndex.column))
+        let detectedAt = Date(timeIntervalSince1970: sqlite3_column_double(statement, ColumnIndex.detectedAt))
+        let resolvedAt = sqlite3_column_type(statement, ColumnIndex.resolvedAt) == SQLITE_NULL
             ? nil
-            : Date(timeIntervalSince1970: sqlite3_column_double(statement, 9))
-        let suppressed = sqlite3_column_int(statement, 10) != 0
-        let suppressionReason = sqlite3_column_type(statement, 11) == SQLITE_NULL
+            : Date(timeIntervalSince1970: sqlite3_column_double(statement, ColumnIndex.resolvedAt))
+        let suppressed = sqlite3_column_int(statement, ColumnIndex.suppressed) != 0
+        let suppressionReason = sqlite3_column_type(statement, ColumnIndex.suppressionReason) == SQLITE_NULL
             ? nil
-            : String(cString: sqlite3_column_text(statement, 11))
+            : String(cString: sqlite3_column_text(statement, ColumnIndex.suppressionReason))
         let severity = Severity(rawValue: String(cString: severityString)) ?? .warning
 
         return Violation(

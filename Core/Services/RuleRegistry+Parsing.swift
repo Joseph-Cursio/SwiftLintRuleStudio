@@ -1,6 +1,8 @@
 import Foundation
 
 extension RuleRegistry {
+    private static let initialDetailBatchSize = 20
+
     func fetchRulesFromSwiftLint() async throws -> [Rule] {
         let output = try await swiftLintCLI.executeRulesCommand()
         return try await parseRules(from: output)
@@ -23,9 +25,10 @@ extension RuleRegistry {
 
         let updatedRules = await updateRulesWithDetails(rules)
 
-        let remainingRules = Array(rules.suffix(from: min(20, rules.count)))
+        let batchSize = Self.initialDetailBatchSize
+        let remainingRules = Array(rules.suffix(from: min(batchSize, rules.count)))
         if !remainingRules.isEmpty {
-            startBackgroundLoading(for: remainingRules, startingIndex: min(20, rules.count))
+            startBackgroundLoading(for: remainingRules, startingIndex: min(batchSize, rules.count))
         }
 
         return updatedRules
