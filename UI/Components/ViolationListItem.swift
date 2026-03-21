@@ -15,77 +15,83 @@ struct ViolationListItem: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Severity indicator
             Circle()
                 .fill(severityColor)
                 .frame(width: 8, height: 8)
 
             VStack(alignment: .leading, spacing: 4) {
-                // Rule ID and severity
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(violation.ruleID)
-                        .font(.headline)
-                        .lineLimit(1)
-
-                    SeverityBadge(severity: violation.severity)
-
-                    if violation.suppressed {
-                        Label("Suppressed", systemImage: "eye.slash")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                // Message
+                ruleHeaderRow
                 Text(violation.message)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
-
-                // File and line
-                HStack(spacing: 8) {
-                    Label(violation.filePath, systemImage: "doc.text")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-
-                    Text("•")
-                        .foregroundStyle(.secondary)
-
-                    Label("Line \(violation.line)", systemImage: "number")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                fileLocationRow
             }
 
             Spacer()
 
-            // Open in Xcode button (compact)
-            if let onOpenInXcode = onOpenInXcode {
-                Button {
-                    onOpenInXcode()
-                } label: {
-                    Image(systemName: "arrow.right.circle")
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Open in Xcode")
-                }
-                .buttonStyle(.plain)
-                .help("Open in Xcode (⌘O)")
-            }
+            openInXcodeButton
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
-        .contextMenu {
-            if let workspace = dependencies.workspaceManager.currentWorkspace {
-                Button {
-                    Task {
-                        await openInXcode(workspace: workspace)
-                    }
-                } label: {
-                    Label("Open in Xcode", systemImage: "arrow.right.circle")
-                }
-                .keyboardShortcut("o", modifiers: .command)
+        .contextMenu { contextMenuItems }
+    }
+
+    @ViewBuilder
+    private var ruleHeaderRow: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(violation.ruleID)
+                .font(.headline)
+                .lineLimit(1)
+            SeverityBadge(severity: violation.severity)
+            if violation.suppressed {
+                Label("Suppressed", systemImage: "eye.slash")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    private var fileLocationRow: some View {
+        HStack(spacing: 8) {
+            Label(violation.filePath, systemImage: "doc.text")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Text("\u{2022}")
+                .foregroundStyle(.secondary)
+            Label("Line \(violation.line)", systemImage: "number")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private var openInXcodeButton: some View {
+        if let onOpenInXcode = onOpenInXcode {
+            Button {
+                onOpenInXcode()
+            } label: {
+                Image(systemName: "arrow.right.circle")
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Open in Xcode")
+            }
+            .buttonStyle(.plain)
+            .help("Open in Xcode (\u{2318}O)")
+        }
+    }
+
+    @ViewBuilder
+    private var contextMenuItems: some View {
+        if let workspace = dependencies.workspaceManager.currentWorkspace {
+            Button {
+                Task {
+                    await openInXcode(workspace: workspace)
+                }
+            } label: {
+                Label("Open in Xcode", systemImage: "arrow.right.circle")
+            }
+            .keyboardShortcut("o", modifiers: .command)
         }
     }
 

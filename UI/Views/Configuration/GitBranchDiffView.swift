@@ -20,35 +20,40 @@ struct GitBranchDiffView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if viewModel.isNotGitRepo {
-                    notGitRepoSection
-                } else if viewModel.isLoading && viewModel.availableRefs == nil {
-                    ProgressView("Loading git refs...")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                } else {
-                    branchPickerSection
-
-                    if viewModel.isLoading && viewModel.availableRefs != nil {
-                        ProgressView("Comparing configurations...")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                    }
-
-                    if let error = viewModel.error {
-                        errorSection(error)
-                    }
-
-                    if let result = viewModel.comparisonResult {
-                        comparisonResultSection(result)
-                    }
-                }
+                mainContent
             }
             .padding()
         }
         .navigationTitle("Branch Config Diff")
         .onAppear {
             viewModel.loadRefs()
+        }
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        if viewModel.isNotGitRepo {
+            notGitRepoSection
+        } else if viewModel.isLoading && viewModel.availableRefs == nil {
+            ProgressView("Loading git refs...")
+                .frame(maxWidth: .infinity)
+                .padding()
+        } else {
+            branchPickerSection
+
+            if viewModel.isLoading && viewModel.availableRefs != nil {
+                ProgressView("Comparing configurations...")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            }
+
+            if let error = viewModel.error {
+                errorSection(error)
+            }
+
+            if let result = viewModel.comparisonResult {
+                comparisonResultSection(result)
+            }
         }
     }
 

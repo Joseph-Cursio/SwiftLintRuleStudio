@@ -20,61 +20,71 @@ struct BulkOperationToolbar: View {
             Divider()
 
             HStack(spacing: 12) {
-                Text("\(selectedCount) selected")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-
-                Divider()
-                    .frame(height: 20)
-
-                Button("Enable All") {
-                    onEnableAll()
-                }
-                .buttonStyle(.bordered)
-                .disabled(selectedCount == 0)
-                .accessibilityIdentifier("BulkOperationEnableAllButton")
-
-                Button("Disable All") {
-                    onDisableAll()
-                }
-                .buttonStyle(.bordered)
-                .disabled(selectedCount == 0)
-                .accessibilityIdentifier("BulkOperationDisableAllButton")
-
-                Divider()
-                    .frame(height: 20)
-
-                Menu {
-                    ForEach(Severity.allCases) { severity in
-                        Button(severity.displayName) {
-                            onSetSeverity(severity)
-                        }
-                    }
-                } label: {
-                    Label("Set Severity", systemImage: "exclamationmark.triangle")
-                }
-                .disabled(selectedCount == 0)
-
+                selectionLabel
+                Divider().frame(height: 20)
+                enableDisableButtons
+                Divider().frame(height: 20)
+                severityMenu
                 Spacer()
-
-                Button("Preview Changes") {
-                    onPreview()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(selectedCount == 0)
-                .accessibilityIdentifier("BulkOperationPreviewChangesButton")
-
-                Button {
-                    onClearSelection()
-                } label: {
-                    Label("Clear", systemImage: "xmark.circle")
-                }
-                .buttonStyle(.bordered)
+                trailingActions
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
             .background(Color(NSColor.controlBackgroundColor))
         }
+    }
+
+    private var selectionLabel: some View {
+        Text("\(selectedCount) selected")
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder
+    private var enableDisableButtons: some View {
+        Button("Enable All") {
+            onEnableAll()
+        }
+        .buttonStyle(.bordered)
+        .disabled(selectedCount == 0)
+        .accessibilityIdentifier("BulkOperationEnableAllButton")
+
+        Button("Disable All") {
+            onDisableAll()
+        }
+        .buttonStyle(.bordered)
+        .disabled(selectedCount == 0)
+        .accessibilityIdentifier("BulkOperationDisableAllButton")
+    }
+
+    private var severityMenu: some View {
+        Menu {
+            ForEach(Severity.allCases) { severity in
+                Button(severity.displayName) {
+                    onSetSeverity(severity)
+                }
+            }
+        } label: {
+            Label("Set Severity", systemImage: "exclamationmark.triangle")
+        }
+        .disabled(selectedCount == 0)
+    }
+
+    @ViewBuilder
+    private var trailingActions: some View {
+        Button("Preview Changes") {
+            onPreview()
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(selectedCount == 0)
+        .accessibilityIdentifier("BulkOperationPreviewChangesButton")
+
+        Button {
+            onClearSelection()
+        } label: {
+            Label("Clear", systemImage: "xmark.circle")
+        }
+        .buttonStyle(.bordered)
     }
 }

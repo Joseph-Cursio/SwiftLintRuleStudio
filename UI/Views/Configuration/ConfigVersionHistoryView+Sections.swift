@@ -64,49 +64,60 @@ struct ConfigVersionHistoryDiffDetailView: View {
     var body: some View {
         VStack {
             if let diff = viewModel.currentDiff {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        if let first = viewModel.selectedBackup {
-                            Label(first.formattedDate, systemImage: "clock")
-                                .font(.caption)
-                                .foregroundStyle(.blue)
-                        }
-                        Image(systemName: "arrow.right")
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
-                        if let second = viewModel.comparisonBackup {
-                            Label(second.formattedDate, systemImage: "clock")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-
-                    ConfigDiffPreviewView(
-                        diff: diff,
-                        ruleName: "Version Comparison"
-                    ) {
-                        if let backup = viewModel.comparisonBackup {
-                            viewModel.confirmRestore(backup)
-                        }
-                    } onCancel: {
-                        viewModel.clearComparison()
-                    }
-                }
+                diffContent(diff)
             } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "arrow.left.arrow.right")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
-
-                    Text("Select two backups to compare")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                emptyStateContent
             }
         }
+    }
+
+    private func diffContent(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            diffHeaderRow
+                .padding(.horizontal)
+                .padding(.top, 8)
+
+            ConfigDiffPreviewView(
+                diff: diff,
+                ruleName: "Version Comparison"
+            ) {
+                if let backup = viewModel.comparisonBackup {
+                    viewModel.confirmRestore(backup)
+                }
+            } onCancel: {
+                viewModel.clearComparison()
+            }
+        }
+    }
+
+    private var diffHeaderRow: some View {
+        HStack {
+            if let first = viewModel.selectedBackup {
+                Label(first.formattedDate, systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+            }
+            Image(systemName: "arrow.right")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            if let second = viewModel.comparisonBackup {
+                Label(second.formattedDate, systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            }
+        }
+    }
+
+    private var emptyStateContent: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.system(size: 36))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("Select two backups to compare")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
