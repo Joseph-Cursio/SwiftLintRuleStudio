@@ -22,10 +22,7 @@ extension ViolationInspectorViewModel {
         if let workspace = workspace ?? currentWorkspace,
            let analyzer = workspaceAnalyzer {
             subscribeToAnalyzer(analyzer)
-            do {
-                _ = try await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
-            } catch {
-            }
+            _ = try? await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
         }
 
         let fetched = try await violationStorage.fetchViolations(

@@ -96,16 +96,12 @@ struct ViolationListItem: View {
     }
 
     private func openInXcode(workspace: Workspace) {
-        do {
-            _ = try dependencies.xcodeIntegrationService.openFile(
-                at: violation.filePath,
-                line: violation.line,
-                column: violation.column,
-                in: workspace
-            )
-        } catch {
-            // Error handling is done at the service level or can be shown via alert
-        }
+        _ = try? dependencies.xcodeIntegrationService.openFile(
+            at: violation.filePath,
+            line: violation.line,
+            column: violation.column,
+            in: workspace
+        )
     }
 
     private var severityColor: Color {

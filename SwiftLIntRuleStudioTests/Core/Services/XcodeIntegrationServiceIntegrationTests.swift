@@ -94,18 +94,12 @@ struct XcodeIntegrationServiceIntegrationTests {
             #expect(projectURL?.lastPathComponent == "NestedProject.xcodeproj")
 
             // Should be able to attempt opening (may fail if Xcode not available)
-            do {
-                let success = try service.openFile(
-                    at: "Nested/NestedFile.swift",
-                    line: 2,
-                    column: nil,
-                    in: workspaceModel
-                )
-                _ = success
-            } catch {
-                // Errors are acceptable if Xcode is not available
-                // We're testing the integration, not Xcode availability
-            }
+            _ = try? service.openFile(
+                at: "Nested/NestedFile.swift",
+                line: 2,
+                column: nil,
+                in: workspaceModel
+            )
         }
     }
 
@@ -162,28 +156,20 @@ struct XcodeIntegrationServiceIntegrationTests {
 
         try await withServiceAsync { service, _ in
             // Test absolute path
-            do {
-                _ = try service.openFile(
-                    at: testFile.path,
-                    line: 1,
-                    column: nil,
-                    in: workspaceModel
-                )
-            } catch {
-                // Acceptable if Xcode not available
-            }
+            _ = try? service.openFile(
+                at: testFile.path,
+                line: 1,
+                column: nil,
+                in: workspaceModel
+            )
 
             // Test relative path
-            do {
-                _ = try service.openFile(
-                    at: "TestFile.swift",
-                    line: 1,
-                    column: nil,
-                    in: workspaceModel
-                )
-            } catch {
-                // Acceptable if Xcode not available
-            }
+            _ = try? service.openFile(
+                at: "TestFile.swift",
+                line: 1,
+                column: nil,
+                in: workspaceModel
+            )
 
             // Test nested relative path
             let nestedDir = workspace.appendingPathComponent("Sources", isDirectory: true)
@@ -191,16 +177,12 @@ struct XcodeIntegrationServiceIntegrationTests {
             let nestedFile = nestedDir.appendingPathComponent("Nested.swift")
             try "// Nested".write(to: nestedFile, atomically: true, encoding: .utf8)
 
-            do {
-                _ = try service.openFile(
-                    at: "Sources/Nested.swift",
-                    line: 1,
-                    column: nil,
-                    in: workspaceModel
-                )
-            } catch {
-                // Acceptable if Xcode not available
-            }
+            _ = try? service.openFile(
+                at: "Sources/Nested.swift",
+                line: 1,
+                column: nil,
+                in: workspaceModel
+            )
         }
     }
 

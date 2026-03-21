@@ -86,20 +86,16 @@ class RuleRegistry: RuleRegistryProtocol {
             return
         }
 
-        do {
-            let detailedRule = try await fetchRuleDetails(
-                identifier: rule.id, category: rule.category, isOptIn: rule.isOptIn
-            )
+        guard let detailedRule = try? await fetchRuleDetails(
+            identifier: rule.id, category: rule.category, isOptIn: rule.isOptIn
+        ) else { return }
 
-            // Update the rule in the rules array
-            if let index = rules.firstIndex(where: { $0.id == id }) {
-                var updatedRules = rules
-                updatedRules[index] = detailedRule
-                updateRules(updatedRules)
-                // @Observable automatically notifies observers on mutation — no manual send needed
-            }
-        } catch {
-            // Detail fetch failed; rule retains existing metadata
+        // Update the rule in the rules array
+        if let index = rules.firstIndex(where: { $0.id == id }) {
+            var updatedRules = rules
+            updatedRules[index] = detailedRule
+            updateRules(updatedRules)
+            // @Observable automatically notifies observers on mutation — no manual send needed
         }
     }
 

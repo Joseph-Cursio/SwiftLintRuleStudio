@@ -85,10 +85,7 @@ struct ViolationInspectorView: View {
         viewModel.workspaceAnalyzer = dependencies.workspaceAnalyzer
         if let workspace = dependencies.workspaceManager.currentWorkspace {
             Task {
-                do {
-                    try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
-                } catch {
-                }
+                try? await viewModel.loadViolations(for: workspace.id, workspace: workspace)
             }
         }
     }
@@ -96,10 +93,7 @@ struct ViolationInspectorView: View {
     private func handleWorkspaceChange(_ oldWorkspace: Workspace?, _ newWorkspace: Workspace?) {
         if let workspace = newWorkspace {
             Task {
-                do {
-                    try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
-                } catch {
-                }
+                try? await viewModel.loadViolations(for: workspace.id, workspace: workspace)
             }
         } else {
             Task { viewModel.clearViolations() }
@@ -109,10 +103,7 @@ struct ViolationInspectorView: View {
     private func handleConfigMissingChange(_ wasMissing: Bool, _ isMissing: Bool) {
         guard !isMissing, dependencies.workspaceManager.currentWorkspace != nil else { return }
         Task {
-            do {
-                try await viewModel.refreshViolations()
-            } catch {
-            }
+            try? await viewModel.refreshViolations()
         }
     }
 

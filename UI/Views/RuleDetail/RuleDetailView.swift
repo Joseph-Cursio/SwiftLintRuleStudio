@@ -207,10 +207,7 @@ struct RuleDetailView: View {
            let configPath = workspace.configPath {
             let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
             viewModel.yamlEngine = yamlEngine
-            do {
-                try viewModel.loadConfiguration()
-            } catch {
-            }
+            try? viewModel.loadConfiguration()
         }
     }
 

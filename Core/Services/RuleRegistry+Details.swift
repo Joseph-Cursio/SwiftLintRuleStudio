@@ -149,17 +149,13 @@ extension RuleRegistry {
         swiftLintCLI: SwiftLintCLIProtocol,
         state: inout RuleDetailsState
     ) async {
-        do {
-            let markdown = try await swiftLintCLI.generateDocsForRule(ruleId: ruleId)
-            state.markdownDoc = markdown
-            guard !markdown.isEmpty else {
-                return
-            }
-            let parsedDoc = RuleDocumentationParser.parse(markdown: markdown)
-            state.apply(parsedDoc)
-        } catch {
-            // generate-docs failed; will fall back to rules command
+        guard let markdown = try? await swiftLintCLI.generateDocsForRule(ruleId: ruleId) else { return }
+        state.markdownDoc = markdown
+        guard !markdown.isEmpty else {
+            return
         }
+        let parsedDoc = RuleDocumentationParser.parse(markdown: markdown)
+        state.apply(parsedDoc)
     }
 
     private static func populateFromRuleDetails(

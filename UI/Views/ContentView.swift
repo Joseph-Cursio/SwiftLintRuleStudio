@@ -286,10 +286,8 @@ private extension ContentView {
         }
 
         if environment["UI_TEST_WORKSPACE"] == "1" {
-            do {
-                let workspaceURL = try createUITestWorkspace()
-                try dependencies.workspaceManager.openWorkspace(at: workspaceURL)
-            } catch {
+            if let workspaceURL = try? createUITestWorkspace() {
+                try? dependencies.workspaceManager.openWorkspace(at: workspaceURL)
             }
         }
     }

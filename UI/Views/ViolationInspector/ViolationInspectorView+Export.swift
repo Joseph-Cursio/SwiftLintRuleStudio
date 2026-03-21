@@ -15,14 +15,11 @@ extension ViolationInspectorView {
             guard response == .OK, let url = panel.url else { return }
 
             Task {
-                do {
-                    switch format {
-                    case .json:
-                        try exportToJSON(violations: violationsToExport, url: url)
-                    case .csv:
-                        try exportToCSV(violations: violationsToExport, url: url)
-                    }
-                } catch {
+                switch format {
+                case .json:
+                    try? exportToJSON(violations: violationsToExport, url: url)
+                case .csv:
+                    try? exportToCSV(violations: violationsToExport, url: url)
                 }
             }
         }

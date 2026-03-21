@@ -119,13 +119,10 @@ class FileTracker {
     private func saveCache() {
         guard let cacheURL = cacheURL else { return }
 
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let data = try encoder.encode(trackedFiles)
-            try data.write(to: cacheURL)
-        } catch {
-            // Cache save is non-critical
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        if let data = try? encoder.encode(trackedFiles) {
+            try? data.write(to: cacheURL)
         }
     }
 }

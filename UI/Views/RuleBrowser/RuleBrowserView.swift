@@ -129,13 +129,9 @@ struct RuleBrowserView: View {
         let configPath = workspace.configPath
             ?? workspace.path.appendingPathComponent(".swiftlint.yml")
         let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
-        do {
-            try yamlEngine.load()
-            let config = yamlEngine.getConfig()
-            ruleRegistry.syncEnabledStates(with: config)
-        } catch {
-            // No config file or parse error — leave states as-is
-        }
+        guard (try? yamlEngine.load()) != nil else { return }
+        let config = yamlEngine.getConfig()
+        ruleRegistry.syncEnabledStates(with: config)
     }
 }
 

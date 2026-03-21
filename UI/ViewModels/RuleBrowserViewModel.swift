@@ -213,68 +213,59 @@ class RuleBrowserViewModel {
     // MARK: - Bulk Operations
 
     func enableSelectedRules(yamlEngine: YAMLConfigurationEngine) {
-        do {
-            try yamlEngine.load()
-            var config = yamlEngine.getConfig()
+        guard (try? yamlEngine.load()) != nil else { return }
+        var config = yamlEngine.getConfig()
 
-            for ruleId in selectedRuleIds {
-                var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
-                ruleConfig.enabled = true
-                config.rules[ruleId] = ruleConfig
+        for ruleId in selectedRuleIds {
+            var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
+            ruleConfig.enabled = true
+            config.rules[ruleId] = ruleConfig
 
-                // Handle opt-in rules
-                if let rule = ruleRegistry.rules.first(where: { $0.id == ruleId }), rule.isOptIn {
-                    var optInRules = config.optInRules ?? []
-                    if !optInRules.contains(ruleId) {
-                        optInRules.append(ruleId)
-                        config.optInRules = optInRules
-                    }
+            // Handle opt-in rules
+            if let rule = ruleRegistry.rules.first(where: { $0.id == ruleId }), rule.isOptIn {
+                var optInRules = config.optInRules ?? []
+                if !optInRules.contains(ruleId) {
+                    optInRules.append(ruleId)
+                    config.optInRules = optInRules
                 }
-
-                // Remove from disabled_rules if present
-                config.disabledRules?.removeAll { $0 == ruleId }
-                if config.disabledRules?.isEmpty == true { config.disabledRules = nil }
             }
 
-            bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
-        } catch {
+            // Remove from disabled_rules if present
+            config.disabledRules?.removeAll { $0 == ruleId }
+            if config.disabledRules?.isEmpty == true { config.disabledRules = nil }
         }
+
+        bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
     func disableSelectedRules(yamlEngine: YAMLConfigurationEngine) {
-        do {
-            try yamlEngine.load()
-            var config = yamlEngine.getConfig()
+        guard (try? yamlEngine.load()) != nil else { return }
+        var config = yamlEngine.getConfig()
 
-            for ruleId in selectedRuleIds {
-                var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: false)
-                ruleConfig.enabled = false
-                config.rules[ruleId] = ruleConfig
+        for ruleId in selectedRuleIds {
+            var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: false)
+            ruleConfig.enabled = false
+            config.rules[ruleId] = ruleConfig
 
-                // Remove from opt-in rules
-                config.optInRules?.removeAll { $0 == ruleId }
-                if config.optInRules?.isEmpty == true { config.optInRules = nil }
-            }
-
-            bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
-        } catch {
+            // Remove from opt-in rules
+            config.optInRules?.removeAll { $0 == ruleId }
+            if config.optInRules?.isEmpty == true { config.optInRules = nil }
         }
+
+        bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
     func setSeverityForSelected(_ severity: Severity, yamlEngine: YAMLConfigurationEngine) {
-        do {
-            try yamlEngine.load()
-            var config = yamlEngine.getConfig()
+        guard (try? yamlEngine.load()) != nil else { return }
+        var config = yamlEngine.getConfig()
 
-            for ruleId in selectedRuleIds {
-                var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
-                ruleConfig.severity = severity
-                config.rules[ruleId] = ruleConfig
-            }
-
-            bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
-        } catch {
+        for ruleId in selectedRuleIds {
+            var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
+            ruleConfig.severity = severity
+            config.rules[ruleId] = ruleConfig
         }
+
+        bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
     /// Toggle a single rule's enabled/disabled state and show a diff preview.
