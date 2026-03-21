@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Compact badge showing the health score
-struct HealthScoreBadge: View {
+private struct HealthScoreBadge: View {
     let report: ConfigHealthReport
     let showGrade: Bool
 
@@ -114,7 +114,7 @@ struct HealthScoreRing: View {
 }
 
 /// Mini inline health indicator
-struct HealthScoreIndicator: View {
+private struct HealthScoreIndicator: View {
     let grade: HealthGrade
 
     var body: some View {

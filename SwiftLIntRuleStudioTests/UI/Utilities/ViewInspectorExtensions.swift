@@ -141,7 +141,7 @@ extension InspectableView {
 // MARK: - View Type Helpers
 
 // Common view types for easier reference
-enum CommonViewType {
+private enum CommonViewType {
     case list
     case button
     case textField

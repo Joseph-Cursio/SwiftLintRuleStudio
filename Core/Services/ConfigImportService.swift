@@ -31,7 +31,7 @@ protocol ConfigImportServiceProtocol: Sendable {
 
 // MARK: - Errors
 
-enum ConfigImportError: LocalizedError, Sendable {
+private enum ConfigImportError: LocalizedError, Sendable {
     case fetchFailed(String)
     case parseFailed(String)
     case saveFailed(String)

@@ -15,7 +15,7 @@ import AppKit
 /// This view solves the issue where Text(AttributedString) with HTML-rendered
 /// content includes unwanted left margins that cannot be removed through
 /// standard SwiftUI or NSParagraphStyle APIs.
-struct AttributedTextView: NSViewRepresentable {
+private struct AttributedTextView: NSViewRepresentable {
     let attributedString: NSAttributedString
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -105,11 +105,9 @@ struct AttributedTextView: NSViewRepresentable {
 
         return attributedString
     }
-}
 
-// MARK: - Convenience Initializers
+    // MARK: - Convenience Initializers
 
-extension AttributedTextView {
     /// Creates an AttributedTextView from an HTML string.
     ///
     /// IMPORTANT: This initializer calls NSAttributedString with .html document type,

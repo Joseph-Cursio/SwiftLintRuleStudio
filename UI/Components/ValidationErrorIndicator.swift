@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Displays validation errors and warnings inline
-struct ValidationErrorIndicator: View {
+private struct ValidationErrorIndicator: View {
     let errors: [ValidationResult.ValidationError]
     let warnings: [ValidationResult.ValidationWarning]
 
@@ -38,7 +38,7 @@ struct ValidationErrorIndicator: View {
 }
 
 /// Single row for displaying a validation error or warning
-struct ValidationErrorRow: View {
+private struct ValidationErrorRow: View {
     let icon: String
     let iconColor: Color
     let field: String
@@ -103,7 +103,7 @@ struct ValidationErrorRow: View {
 }
 
 /// Compact badge showing validation status
-struct ValidationStatusBadge: View {
+private struct ValidationStatusBadge: View {
     let result: ValidationResult
 
     var body: some View {

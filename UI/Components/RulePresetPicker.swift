@@ -31,7 +31,7 @@ struct RulePresetPicker: View {
 }
 
 /// A full-screen sheet view for browsing and selecting presets with details
-struct RulePresetBrowserView: View {
+private struct RulePresetBrowserView: View {
     let onPresetSelected: (RulePreset) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var selectedCategory: RulePreset.PresetCategory?

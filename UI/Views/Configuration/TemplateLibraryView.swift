@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Main view for browsing the template library
-struct TemplateLibraryView: View {
+private struct TemplateLibraryView: View {
     @State private var selectedProjectType: ConfigurationTemplate.ProjectType?
     @State private var selectedCodingStyle: ConfigurationTemplate.CodingStyle?
     @State private var searchText = ""
@@ -174,7 +174,7 @@ struct TemplateLibraryView: View {
 }
 
 /// Row view for a single template in the list
-struct TemplateListRow: View {
+private struct TemplateListRow: View {
     let template: ConfigurationTemplate
 
     var body: some View {
@@ -236,7 +236,7 @@ struct CodingStyleBadge: View {
 }
 
 /// Detail view for a selected template
-struct TemplateDetailView: View {
+private struct TemplateDetailView: View {
     let template: ConfigurationTemplate
     let onApply: ((ConfigurationTemplate) -> Void)?
 

@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Compact modal picker for selecting a template
-struct TemplatePickerView: View {
+private struct TemplatePickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     let onTemplateSelected: (ConfigurationTemplate) -> Void
@@ -136,7 +136,7 @@ struct TemplatePickerView: View {
 }
 
 /// Card view for a template in the picker
-struct TemplatePickerCard: View {
+private struct TemplatePickerCard: View {
     let template: ConfigurationTemplate
     let isHovered: Bool
     let onSelect: () -> Void
@@ -195,7 +195,7 @@ struct TemplatePickerCard: View {
 }
 
 /// Menu button for quick template selection
-struct TemplateMenuButton: View {
+private struct TemplateMenuButton: View {
     let templateManager: ConfigurationTemplateManager
     let onTemplateSelected: (ConfigurationTemplate) -> Void
 

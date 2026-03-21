@@ -124,7 +124,7 @@ struct ConfigRecommendationView: View {
     }
 }
 
-struct ConfigBenefitRow: View {
+private struct ConfigBenefitRow: View {
     let icon: String
     let text: String
 

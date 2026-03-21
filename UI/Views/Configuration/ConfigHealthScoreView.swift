@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Full health report view with score breakdown and recommendations
-struct ConfigHealthScoreView: View {
+private struct ConfigHealthScoreView: View {
     let report: ConfigHealthReport
     let onApplyPreset: ((String) -> Void)?
 
@@ -270,7 +270,7 @@ private struct RecommendationCard: View {
 }
 
 /// Compact popover version of health score
-struct ConfigHealthPopover: View {
+private struct ConfigHealthPopover: View {
     let report: ConfigHealthReport
     let onApplyPreset: ((String) -> Void)?
 
