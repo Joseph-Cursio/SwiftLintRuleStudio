@@ -49,8 +49,8 @@ struct ConfigVersionHistoryViewModelTests {
         #expect(viewModel.selectedBackup == nil)
         #expect(viewModel.comparisonBackup == nil)
         #expect(viewModel.currentDiff == nil)
-        #expect(iewModel.isLoading == false)
-        #expect(iewModel.showRestoreConfirmation == false)
+        #expect(viewModel.isLoading == false)
+        #expect(viewModel.showRestoreConfirmation == false)
         #expect(viewModel.backupToRestore == nil)
         #expect(viewModel.error == nil)
     }
@@ -76,7 +76,7 @@ struct ConfigVersionHistoryViewModelTests {
         viewModel.loadBackups()
 
         #expect(viewModel.backups.count == 2)
-        #expect(iewModel.isLoading == false)
+        #expect(viewModel.isLoading == false)
         #expect(service.listBackupsCallCount == 1)
     }
 

@@ -74,7 +74,7 @@ struct GitServiceTests {
 
         let service = GitServiceActor()
         let isRepo = try await service.isGitRepository(at: tempDir)
-        #expect(sRepo == false)
+        #expect(isRepo == false)
     }
 
     @Test("Gets current branch")
@@ -84,7 +84,7 @@ struct GitServiceTests {
 
         let service = GitServiceActor()
         let branch = try await service.getCurrentBranch(at: repoDir)
-        #expect(ranch.isEmpty == false)
+        #expect(branch.isEmpty == false)
     }
 
     @Test("Lists branches")
@@ -167,7 +167,7 @@ struct GitServiceTests {
         let diff = try await service.diffFile(
             at: repoDir, fromRef: currentBranch, toRef: "diff-branch", filePath: ".swiftlint.yml"
         )
-        #expect(iff.isEmpty == false)
+        #expect(diff.isEmpty == false)
     }
 
     @Test("Not a repository throws error")

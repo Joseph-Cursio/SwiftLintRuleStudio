@@ -219,7 +219,7 @@ enum UITestAssertions {
         text: String
     ) throws {
         let inspectable = try view.inspect()
-        #expect(nspectable.containsText(text), "View should not contain text: \(text)" == false)
+        #expect(inspectable.containsText(text) == false, "View should not contain text: \(text)")
     }
 
     /// Asserts that a view contains a specific view type

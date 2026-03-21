@@ -18,7 +18,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(sMissing == false)
+        #expect(isMissing == false)
     }
 
     @Test("WorkspaceManager detects missing config file")
@@ -46,7 +46,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(sMissing == false)
+        #expect(isMissing == false)
     }
 
     @Test("WorkspaceManager creates default config file")
@@ -98,7 +98,7 @@ struct WorkspaceManagerConfigTests {
             return manager.configFileMissing
         }
 
-        #expect(sMissing == false)
+        #expect(isMissing == false)
     }
 
     @Test("WorkspaceManager checks config file on workspace change")

@@ -63,7 +63,7 @@ struct ConfigurationValidatorTests {
         config.included = ["Sources", ""]
         let result = validator.validate(config, knownRuleIds: [])
 
-        #expect(esult.isValid == false)
+        #expect(result.isValid == false)
         #expect(result.errors.count == 1)
 
         let pathError = result.errors.first
@@ -81,7 +81,7 @@ struct ConfigurationValidatorTests {
         config.excluded = ["", "Pods"]
         let result = validator.validate(config, knownRuleIds: [])
 
-        #expect(esult.isValid == false)
+        #expect(result.isValid == false)
         #expect(result.errors.count == 1)
 
         let pathError = result.errors.first
@@ -114,7 +114,7 @@ struct ConfigurationValidatorTests {
         let result = validator.validate(config, knownRuleIds: ["force_cast", "line_length"])
 
         #expect(result.isValid) // Warnings don't fail validation
-        #expect(esult.warnings.isEmpty == false)
+        #expect(result.warnings.isEmpty == false)
         #expect(result.warnings.first?.message.contains("Unknown") == true)
     }
 
@@ -126,7 +126,7 @@ struct ConfigurationValidatorTests {
         let result = validator.validate(config, knownRuleIds: ["force_cast"])
 
         #expect(result.isValid)
-        #expect(esult.warnings.isEmpty == false)
+        #expect(result.warnings.isEmpty == false)
     }
 
     @Test("Unknown rule in opt_in_rules generates warning")
@@ -137,7 +137,7 @@ struct ConfigurationValidatorTests {
         let result = validator.validate(config, knownRuleIds: ["force_cast"])
 
         #expect(result.isValid)
-        #expect(esult.warnings.isEmpty == false)
+        #expect(result.warnings.isEmpty == false)
     }
 
     // MARK: - Conflict Detection Tests
@@ -150,7 +150,7 @@ struct ConfigurationValidatorTests {
         config.optInRules = ["force_cast"]
         let result = validator.validate(config, knownRuleIds: ["force_cast"])
 
-        #expect(esult.isValid == false)
+        #expect(result.isValid == false)
         #expect(result.errors.count == 1)
         #expect(result.errors.first?.message.contains("both disabled_rules and opt_in_rules") == true)
     }

@@ -263,7 +263,7 @@ struct RuleBrowserViewTests {
 
         let processed = RuleBrowserView.processContentForDisplayForTesting(tableInput)
         #expect(processed.contains("Body text"))
-        #expect(rocessed.contains("<table>") == false)
+        #expect(processed.contains("<table>") == false)
 
         let html = RuleBrowserView.convertMarkdownToHTMLForTesting(markdown)
         #expect(html.contains("<h1>Title</h1>"))

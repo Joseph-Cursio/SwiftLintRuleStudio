@@ -57,8 +57,8 @@ struct ViolationStorageWorkspaceTests {
         #expect(secondFetched.allSatisfy { $0.ruleID == "rule4" || $0.ruleID == "rule5" })
         #expect(secondFetched.contains { $0.ruleID == "rule4" })
         #expect(secondFetched.contains { $0.ruleID == "rule5" })
-        #expect(econdFetched.contains { $0.ruleID == "rule1" } == false)
-        #expect(econdFetched.contains { $0.ruleID == "rule2" } == false)
-        #expect(econdFetched.contains { $0.ruleID == "rule3" } == false)
+        #expect(secondFetched.contains { $0.ruleID == "rule1" } == false)
+        #expect(secondFetched.contains { $0.ruleID == "rule2" } == false)
+        #expect(secondFetched.contains { $0.ruleID == "rule3" } == false)
     }
 }

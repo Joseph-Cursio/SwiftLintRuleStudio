@@ -50,11 +50,11 @@ struct RuleBrowserViewModelBulkTests {
     func testToggleMultiSelect() async throws {
         await MainActor.run {
             let viewModel = Self.createTestViewModel()
-            #expect(iewModel.isMultiSelectMode == false)
+            #expect(viewModel.isMultiSelectMode == false)
             viewModel.toggleMultiSelect()
             #expect(viewModel.isMultiSelectMode)
             viewModel.toggleMultiSelect()
-            #expect(iewModel.isMultiSelectMode == false)
+            #expect(viewModel.isMultiSelectMode == false)
         }
     }
 
@@ -66,7 +66,7 @@ struct RuleBrowserViewModelBulkTests {
             #expect(viewModel.selectedRuleIds.contains("force_cast"))
 
             viewModel.toggleRuleSelection("force_cast")
-            #expect(iewModel.selectedRuleIds.contains("force_cast") == false)
+            #expect(viewModel.selectedRuleIds.contains("force_cast") == false)
         }
     }
 

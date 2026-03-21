@@ -23,7 +23,7 @@ struct SwiftLintCLIReadTests {
         )
         #expect(String(data: timeoutResult.stdout, encoding: .utf8) == "ok")
         #expect(String(data: timeoutResult.stderr, encoding: .utf8) == "warn")
-        #expect(imeoutResult.didTimeout == false)
+        #expect(timeoutResult.didTimeout == false)
     }
 
     @Test("SwiftLintCLIActor readWithTimeout handles timeout")

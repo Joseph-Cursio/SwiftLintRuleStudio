@@ -70,7 +70,7 @@ struct YAMLConfigEngineSavingDiffTests {
                 $0.lastPathComponent.hasPrefix(configFile.lastPathComponent)
                     && $0.lastPathComponent.hasSuffix(".backup")
             }
-        #expect(ackupFiles.isEmpty, "Backup file should be created" == false)
+        #expect(backupFiles.isEmpty == false, "Backup file should be created")
 
         for backupFile in backupFiles {
             try? FileManager.default.removeItem(at: backupFile)
@@ -95,7 +95,7 @@ struct YAMLConfigEngineSavingDiffTests {
         }
 
         let tempFile = configFile.appendingPathExtension("tmp")
-        #expect(ileManager.default.fileExists(atPath: tempFile.path) == false)
+        #expect(FileManager.default.fileExists(atPath: tempFile.path) == false)
         #expect(FileManager.default.fileExists(atPath: configFile.path))
     }
 
@@ -216,7 +216,7 @@ struct YAMLConfigEngineSavingDiffTests {
             )
         }
 
-        #expect(iffSnapshot.0 == false)
+        #expect(diffSnapshot.0 == false)
         #expect(diffSnapshot.1.isEmpty)
         #expect(diffSnapshot.2.isEmpty)
         #expect(diffSnapshot.3.isEmpty)

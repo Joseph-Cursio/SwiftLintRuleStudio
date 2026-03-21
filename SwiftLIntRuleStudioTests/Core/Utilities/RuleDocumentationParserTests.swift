@@ -34,7 +34,7 @@ struct RuleDocumentationParserTests {
         let result = RuleDocumentationParser.parse(markdown: "")
         #expect(result.name.isEmpty)
         #expect(result.description.isEmpty)
-        #expect(esult.supportsAutocorrection == false)
+        #expect(result.supportsAutocorrection == false)
         #expect(result.triggeringExamples.isEmpty)
         #expect(result.nonTriggeringExamples.isEmpty)
     }
@@ -105,7 +105,7 @@ struct RuleDocumentationParserTests {
         let result = RuleDocumentationParser.parse(markdown: markdown)
         #expect(result.description.count <= 250)
         #expect(result.description.hasSuffix("."))
-        #expect(esult.description.contains("pushes total over limit") == false)
+        #expect(result.description.contains("pushes total over limit") == false)
     }
 
     @Test("Appends ellipsis when no sentence boundary found near 250 characters")
@@ -150,7 +150,7 @@ struct RuleDocumentationParserTests {
         * **Supports autocorrection:** No
         """
         let result = RuleDocumentationParser.parse(markdown: markdown)
-        #expect(esult.supportsAutocorrection == false)
+        #expect(result.supportsAutocorrection == false)
     }
 
     @Test("Extracts minimum Swift compiler version from metadata")

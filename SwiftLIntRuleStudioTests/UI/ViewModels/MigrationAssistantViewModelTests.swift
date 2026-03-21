@@ -42,10 +42,10 @@ struct MigrationAssistantViewModelTests {
         #expect(viewModel.currentVersion == nil)
         #expect(viewModel.migrationPlan == nil)
         #expect(viewModel.previewDiff == nil)
-        #expect(iewModel.isDetecting == false)
-        #expect(iewModel.isMigrating == false)
+        #expect(viewModel.isDetecting == false)
+        #expect(viewModel.isMigrating == false)
         #expect(viewModel.error == nil)
-        #expect(iewModel.migrationComplete == false)
+        #expect(viewModel.migrationComplete == false)
     }
 
     // MARK: - detectMigrations() guard paths
@@ -99,7 +99,7 @@ struct MigrationAssistantViewModelTests {
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(viewModel.error != nil)
-        #expect(iewModel.isDetecting == false)
+        #expect(viewModel.isDetecting == false)
         #expect(spy.detectCallCount == 0)
     }
 
@@ -165,7 +165,7 @@ struct MigrationAssistantViewModelTests {
         viewModel.detectMigrations()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(iewModel.isDetecting == false)
+        #expect(viewModel.isDetecting == false)
     }
 
     // MARK: - previewChanges()
@@ -218,7 +218,7 @@ struct MigrationAssistantViewModelTests {
         viewModel.applyMigration()
 
         #expect(spy.applyCallCount == 0)
-        #expect(iewModel.migrationComplete == false)
+        #expect(viewModel.migrationComplete == false)
     }
 
     @Test("applyMigration calls assistant.applyMigration, saves file, and sets migrationComplete")
@@ -238,7 +238,7 @@ struct MigrationAssistantViewModelTests {
 
         #expect(spy.applyCallCount == 1)
         #expect(viewModel.migrationComplete)
-        #expect(iewModel.isMigrating == false)
+        #expect(viewModel.isMigrating == false)
         #expect(viewModel.error == nil)
     }
 
@@ -255,8 +255,8 @@ struct MigrationAssistantViewModelTests {
         viewModel.applyMigration()
 
         #expect(viewModel.error != nil)
-        #expect(iewModel.migrationComplete == false)
-        #expect(iewModel.isMigrating == false)
+        #expect(viewModel.migrationComplete == false)
+        #expect(viewModel.isMigrating == false)
     }
 }
 

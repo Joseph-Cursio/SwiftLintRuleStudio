@@ -85,7 +85,7 @@ struct ConfigComparisonServiceTests {
 
         let diff = try #require(result.inBothDifferent.first, "Expected one rule with different severity")
         #expect(diff.ruleId == "force_cast")
-        #expect(iff.differences.isEmpty == false)
+        #expect(diff.differences.isEmpty == false)
     }
 
     @Test("Different parameters detected")
@@ -162,8 +162,8 @@ struct ConfigComparisonServiceTests {
             config2: config2, label2: "B"
         )
 
-        #expect(esult.diff.before.isEmpty == false)
-        #expect(esult.diff.after.isEmpty == false)
+        #expect(result.diff.before.isEmpty == false)
+        #expect(result.diff.after.isEmpty == false)
         #expect(result.diff.before.contains("force_cast"))
         #expect(result.diff.after.contains("line_length"))
     }

@@ -48,7 +48,7 @@ struct OnboardingManagerIntegrationTests {
         #expect(hasManager)
         // On first run, onboarding should not be completed
         // With isolated UserDefaults, this test is now completely isolated from other tests
-        #expect(asCompleted == false)
+        #expect(hasCompleted == false)
         #expect(currentStep == .welcome)
     }
 
@@ -81,7 +81,7 @@ struct OnboardingManagerIntegrationTests {
             return (before, after, true)
         }
 
-        #expect(asCompleted1 == false)
+        #expect(hasCompleted1 == false)
         #expect(hasCompleted2)
         #expect(hasManager2)
     }
@@ -201,7 +201,7 @@ struct OnboardingManagerIntegrationTests {
             return (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2)
         }
 
-        #expect(eforeCompleted == false)
+        #expect(beforeCompleted == false)
         #expect(beforeStep == .welcome)
         #expect(afterCompleted)
         #expect(afterStep == .complete)
@@ -249,10 +249,10 @@ struct OnboardingManagerIntegrationTests {
         }
 
         #expect(result.afterComplete)
-        #expect(esult.afterReset == false)
-        #expect(esult.hasCompleted == false)
+        #expect(result.afterReset == false)
+        #expect(result.hasCompleted == false)
         #expect(result.currentStep == .welcome)
-        #expect(esult.hasCompleted2 == false)
+        #expect(result.hasCompleted2 == false)
 
         // Cleanup
         userDefaults.removeObject(forKey: "com.swiftlintrulestudio.hasCompletedOnboarding")

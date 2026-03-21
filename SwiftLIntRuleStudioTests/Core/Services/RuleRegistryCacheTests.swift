@@ -17,7 +17,7 @@ struct RuleRegistryCacheTests {
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
         #expect(registry.rules.isEmpty)
-        #expect(egistry.isLoading == false)
+        #expect(registry.isLoading == false)
     }
 
     @Test("RuleRegistry loads cached rules when SwiftLint fails")

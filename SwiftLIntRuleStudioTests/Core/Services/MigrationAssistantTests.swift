@@ -39,7 +39,7 @@ struct MigrationAssistantTests {
             if case .renameRule(let from, _) = $0, from == "variable_name" { return true }
             return false
         }
-        #expect(enameSteps.isEmpty == false)
+        #expect(renameSteps.isEmpty == false)
     }
 
     @Test("No migrations for clean config")
@@ -149,7 +149,7 @@ struct MigrationAssistantTests {
                 .manualAction(description: "Do something")
             ]
         )
-        #expect(lan.canAutoApply == false)
+        #expect(plan.canAutoApply == false)
     }
 
     @Test("Applies parameter update migration")

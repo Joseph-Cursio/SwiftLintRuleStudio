@@ -144,7 +144,7 @@ struct ViolationStorageBasicTests {
             let notSuppressed = try await storage.fetchViolations(filter: filter2, workspaceId: workspaceId)
             #expect(notSuppressed.count == 1)
             let notSuppressedViolation = try #require(notSuppressed.first)
-            #expect(otSuppressedViolation.suppressed == false)
+            #expect(notSuppressedViolation.suppressed == false)
         }
 
         @Test("ViolationStorageActor handles date range filtering")

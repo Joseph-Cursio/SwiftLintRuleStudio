@@ -134,7 +134,7 @@ struct ConfigImportServiceTests {
             currentConfigPath: nil
         )
 
-        #expect(review.validationErrors.isEmpty == false)
+        #expect(preview.validationErrors.isEmpty == false)
     }
 
     // MARK: - Diff Generation

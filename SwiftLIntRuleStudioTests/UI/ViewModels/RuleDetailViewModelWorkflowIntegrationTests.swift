@@ -34,8 +34,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "new_rule", isOptIn: false)
         let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
             rule: rule,
-            yamlEngine: yamlEngine,
-            workspaceManager: workspaceManager
+            yamlEngine: yamlEngine
         )
 
         try await loadConfig(viewModel)

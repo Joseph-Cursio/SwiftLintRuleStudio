@@ -83,7 +83,7 @@ struct ImpactSimulatorWorkflowTests {
         #expect(safeRuleIds.count == 2)
         #expect(safeRuleIds.contains("safe_rule_1"))
         #expect(safeRuleIds.contains("safe_rule_2"))
-        #expect(afeRuleIds.contains("unsafe_rule") == false)
+        #expect(safeRuleIds.contains("unsafe_rule") == false)
 
         let ruleEnablement = try await enableRules(safeRuleIds, configPath: configPath)
         assertRuleEnablement(ruleEnablement)

@@ -31,7 +31,7 @@ struct RuleTests {
         #expect(rule.id == "force_cast")
         #expect(rule.name == "Force Cast")
         #expect(rule.category == .lint)
-        #expect(ule.isOptIn == false)
+        #expect(rule.isOptIn == false)
         #expect(rule.severity == .error)
     }
 

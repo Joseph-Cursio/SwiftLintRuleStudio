@@ -25,7 +25,7 @@ struct DefaultExclusionsTests {
 
     @Test("directories is not empty")
     func directoriesIsNotEmpty() {
-        #expect(efaultExclusions.directories.isEmpty == false)
+        #expect(DefaultExclusions.directories.isEmpty == false)
     }
 
     // MARK: - pathPatterns

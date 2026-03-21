@@ -57,13 +57,13 @@ struct SwiftLintCLIIntegrationTests {
         let markdown = try await cli.generateDocsForRule(ruleId: "empty_count")
 
         // Verify we got markdown content
-        #expect(arkdown.isEmpty == false)
+        #expect(markdown.isEmpty == false)
         #expect(markdown.contains("empty_count") || markdown.contains("Empty Count"))
 
         // Verify version was cached
         let cachedVersion = try cacheManager.getCachedSwiftLintVersion()
         let unwrappedVersion = try #require(cachedVersion)
-        #expect(nwrappedVersion.isEmpty == false)
+        #expect(unwrappedVersion.isEmpty == false)
 
         // Verify docs directory was cached
         let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
@@ -84,7 +84,7 @@ struct SwiftLintCLIIntegrationTests {
 
         // First call - should generate
         let firstCall = try await cli.generateDocsForRule(ruleId: "empty_count")
-        #expect(irstCall.isEmpty == false)
+        #expect(firstCall.isEmpty == false)
 
         // Get the cached directory
         let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
@@ -97,7 +97,7 @@ struct SwiftLintCLIIntegrationTests {
         // Note: This will still call generate-docs but should find existing files
         // The real caching benefit is that files persist across app restarts
         let secondCall = try await cli.generateDocsForRule(ruleId: "empty_count")
-        #expect(econdCall.isEmpty == false)
+        #expect(secondCall.isEmpty == false)
 
         // Content should be the same (from cache)
         #expect(firstCall == secondCall)
@@ -121,9 +121,9 @@ struct SwiftLintCLIIntegrationTests {
         let rule3 = try await cli.generateDocsForRule(ruleId: "line_length")
 
         // All should have content
-        #expect(ule1.isEmpty == false)
-        #expect(ule2.isEmpty == false)
-        #expect(ule3.isEmpty == false)
+        #expect(rule1.isEmpty == false)
+        #expect(rule2.isEmpty == false)
+        #expect(rule3.isEmpty == false)
 
         // All should be different
         #expect(rule1 != rule2)
@@ -157,7 +157,7 @@ struct SwiftLintCLIIntegrationTests {
         let markdown = try await cli.generateDocsForRule(ruleId: "empty_count")
 
         // Should have content even though it's opt-in
-        #expect(arkdown.isEmpty == false)
+        #expect(markdown.isEmpty == false)
         #expect(markdown.contains("empty_count") || markdown.contains("Empty Count"))
     }
 
@@ -184,7 +184,7 @@ struct SwiftLintCLIIntegrationTests {
         // Version should now be cached
         let cachedVersion = try cacheManager.getCachedSwiftLintVersion()
         let unwrappedVersion = try #require(cachedVersion)
-        #expect(nwrappedVersion.isEmpty == false)
+        #expect(unwrappedVersion.isEmpty == false)
 
         // Version should match actual SwiftLint version
         let actualVersion = try await cli.getVersion()
@@ -236,7 +236,7 @@ struct SwiftLintCLIIntegrationTests {
         let markdown = try await cli.generateDocsForRule(ruleId: "empty_count")
 
         // Should successfully get content even with potential delays
-        #expect(arkdown.isEmpty == false)
+        #expect(markdown.isEmpty == false)
 
         // Verify file exists in cached directory
         let cachedDir = try #require(cacheManager.getCachedDocsDirectory())
@@ -248,7 +248,7 @@ struct SwiftLintCLIIntegrationTests {
         let content = try? String(contentsOf: docFile, encoding: .utf8)
         #expect(content != nil)
         let unwrappedContent = try #require(content)
-        #expect(nwrappedContent.isEmpty == false)
+        #expect(unwrappedContent.isEmpty == false)
     }
 
     @Test("generateDocsForRule generates docs for all rules, not just enabled")
@@ -265,11 +265,11 @@ struct SwiftLintCLIIntegrationTests {
 
         // Generate docs for an opt-in rule (not enabled by default)
         let optInRule = try await cli.generateDocsForRule(ruleId: "empty_count")
-        #expect(ptInRule.isEmpty == false)
+        #expect(optInRule.isEmpty == false)
 
         // Generate docs for a default-enabled rule
         let defaultRule = try await cli.generateDocsForRule(ruleId: "force_cast")
-        #expect(efaultRule.isEmpty == false)
+        #expect(defaultRule.isEmpty == false)
 
         // Both should have documentation
         #expect(optInRule != defaultRule)

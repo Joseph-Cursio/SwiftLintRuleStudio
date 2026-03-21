@@ -102,7 +102,7 @@ struct UITestHelpersCoverageTests {
             (workspace.name, workspace.path.path.isEmpty)
         }
         #expect(workspaceValues.0 == "Workspace")
-        #expect(orkspaceValues.1 == false)
+        #expect(workspaceValues.1 == false)
     }
 
     @Test("UIViewTestHelpers create dependency containers and views")
@@ -140,7 +140,7 @@ struct UITestHelpersCoverageTests {
             (onboardingManager.currentStep, onboardingManager.hasCompletedOnboarding)
         }
         #expect(onboardingValues.0 == .welcome)
-        #expect(nboardingValues.1 == false)
+        #expect(onboardingValues.1 == false)
 
         let workspaceManager = await UIViewTestHelpers.createTestWorkspaceManager(testName: #function)
         let workspaceValues = await MainActor.run {
@@ -176,7 +176,7 @@ struct UITestHelpersCoverageTests {
         let conditionFalse = await UIAsyncTestHelpers.waitForCondition(timeout: 0.05) {
             false
         }
-        #expect(onditionFalse == false)
+        #expect(conditionFalse == false)
 
         let textFound = await Task { @MainActor in
             let view = Text("Async Text")
@@ -188,7 +188,7 @@ struct UITestHelpersCoverageTests {
             let view = Text("Async Text")
             return await UIAsyncTestHelpers.waitForViewType(in: view, ViewType.Text.self, timeout: 0.05)
         }.value
-        #expect(iewTypeFound == false)
+        #expect(viewTypeFound == false)
     }
 
     @Test("ViewInspector extensions support common interactions")
@@ -306,6 +306,6 @@ struct UITestHelpersCoverageTests {
                 return false
             }
         }.value
-        #expect(iewTypeFound == false)
+        #expect(viewTypeFound == false)
     }
 }

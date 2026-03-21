@@ -180,7 +180,7 @@ struct ConfigurationHealthAnalyzerTests {
 
         let report = analyzer.analyze(config: config, knownRules: rules)
 
-        #expect(eport.recommendations.isEmpty == false)
+        #expect(report.recommendations.isEmpty == false)
     }
 
     @Test("Recommendations are sorted by priority")

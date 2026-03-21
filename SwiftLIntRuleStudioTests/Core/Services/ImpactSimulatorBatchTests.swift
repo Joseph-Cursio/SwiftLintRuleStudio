@@ -147,6 +147,6 @@ struct ImpactSimulatorBatchTests {
         }
 
         #expect(results.contains("rule2"))
-        #expect(esults.contains("rule1") == false)
+        #expect(results.contains("rule1") == false)
     }
 }

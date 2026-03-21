@@ -197,7 +197,7 @@ struct RuleDetailViewNewFeaturesTests {
 
         let related = await getRelatedRules(for: rule1, in: container)
         let relatedIds = await MainActor.run { Set(related.map(\.id)) }
-        #expect(elatedIds.contains("rule1") == false)
+        #expect(relatedIds.contains("rule1") == false)
     }
 
     @Test("Returns empty array when no related rules")

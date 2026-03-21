@@ -27,8 +27,7 @@ struct RuleDetailVMWorkspaceIntegrationTests {
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
         let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
             rule: rule,
-            yamlEngine: yamlEngine,
-            workspaceManager: workspaceManager
+            yamlEngine: yamlEngine
         )
 
         try await Task { @MainActor in
@@ -140,8 +139,7 @@ struct RuleDetailVMWorkspaceIntegrationTests {
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: ruleId, isOptIn: false)
         return await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
             rule: rule,
-            yamlEngine: yamlEngine,
-            workspaceManager: workspaceManager
+            yamlEngine: yamlEngine
         )
     }
 

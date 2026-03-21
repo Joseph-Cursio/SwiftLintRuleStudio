@@ -72,7 +72,7 @@ struct SwiftLintCLIEnvironmentTests {
             fileExists: fileExists
         )
 
-        #expect(rguments.contains("--config") == false)
-        #expect(rguments.contains(configURL.path) == false)
+        #expect(arguments.contains("--config") == false)
+        #expect(arguments.contains(configURL.path) == false)
     }
 }

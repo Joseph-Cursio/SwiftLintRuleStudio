@@ -75,7 +75,7 @@ struct GitBranchDiffServiceTests {
         let service = GitBranchDiffService(gitService: GitServiceActor())
         let refs = try await service.listAvailableRefs(at: repoDir)
 
-        #expect(efs.currentBranch.isEmpty == false)
+        #expect(refs.currentBranch.isEmpty == false)
         #expect(refs.branches.contains("feature-a"))
     }
 
