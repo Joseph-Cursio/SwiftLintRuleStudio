@@ -25,7 +25,9 @@ struct SwiftLintCLICachingTests {
     }
 
     // Helper to create mock SwiftLint CLI that simulates version
-    private func createMockCLIWithVersion(_ version: String, cacheManager: CacheManagerProtocol) -> MockSwiftLintCLIActor {
+    private func createMockCLIWithVersion(
+        _ version: String, cacheManager: CacheManagerProtocol
+    ) -> MockSwiftLintCLIActor {
         let mockCLI = MockSwiftLintCLIActor()
         // Override getVersion to return specific version
         // Note: This requires modifying MockSwiftLintCLIActor or using a different approach

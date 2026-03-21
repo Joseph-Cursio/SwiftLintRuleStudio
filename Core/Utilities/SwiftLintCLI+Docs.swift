@@ -73,16 +73,18 @@ extension SwiftLintCLIActor {
         }
         let docFile = cachedDocsDir.appendingPathComponent("\(ruleId).md")
         guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
-        if let content = await readDocFileWithRetries(docFile, attempts: Self.docFileReadAttempts, delayNanoseconds: 100_000_000) {
-            return content
-        }
-        return nil
+        let content = await readDocFileWithRetries(
+            docFile, attempts: Self.docFileReadAttempts, delayNanoseconds: 100_000_000
+        )
+        return content
     }
 
     private func readExistingDocs(ruleId: String, docsDir: URL, currentVersion: String) async -> String? {
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")
         guard FileManager.default.fileExists(atPath: docFile.path) else { return nil }
-        if let content = await readDocFileWithRetries(docFile, attempts: Self.docFileReadAttempts, delayNanoseconds: 100_000_000) {
+        if let content = await readDocFileWithRetries(
+            docFile, attempts: Self.docFileReadAttempts, delayNanoseconds: 100_000_000
+        ) {
             try? cacheManager.saveDocsDirectory(docsDir)
             try? cacheManager.saveSwiftLintVersion(currentVersion)
             return content
