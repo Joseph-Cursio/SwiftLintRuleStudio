@@ -53,7 +53,7 @@ struct ConfigurationTemplateManagerTests {
         let templates = manager.builtInTemplates
 
         for template in templates {
-            #expect(emplate.yamlContent.isEmpty, "Template \(template.name) has empty YAML" == false)
+            #expect(template.yamlContent.isEmpty == false, "Template \(template.name) has empty YAML")
             #expect(
                 template.yamlContent.contains("#") || template.yamlContent.contains(":"),
                 "Template \(template.name) should have valid YAML structure"
@@ -143,11 +143,11 @@ struct ConfigurationTemplateManagerTests {
 
     @Test("ProjectType has icons")
     func testProjectTypeIcons() {
-        #expect(onfigurationTemplate.ProjectType.iOSApp.icon.isEmpty == false)
-        #expect(onfigurationTemplate.ProjectType.macOSApp.icon.isEmpty == false)
-        #expect(onfigurationTemplate.ProjectType.swiftPackage.icon.isEmpty == false)
-        #expect(onfigurationTemplate.ProjectType.tvOSApp.icon.isEmpty == false)
-        #expect(onfigurationTemplate.ProjectType.watchOSApp.icon.isEmpty == false)
+        #expect(ConfigurationTemplate.ProjectType.iOSApp.icon.isEmpty == false)
+        #expect(ConfigurationTemplate.ProjectType.macOSApp.icon.isEmpty == false)
+        #expect(ConfigurationTemplate.ProjectType.swiftPackage.icon.isEmpty == false)
+        #expect(ConfigurationTemplate.ProjectType.tvOSApp.icon.isEmpty == false)
+        #expect(ConfigurationTemplate.ProjectType.watchOSApp.icon.isEmpty == false)
     }
 
     // MARK: - CodingStyle Tests
@@ -161,9 +161,9 @@ struct ConfigurationTemplateManagerTests {
 
     @Test("CodingStyle has descriptions")
     func testCodingStyleDescriptions() {
-        #expect(onfigurationTemplate.CodingStyle.strict.description.isEmpty == false)
-        #expect(onfigurationTemplate.CodingStyle.balanced.description.isEmpty == false)
-        #expect(onfigurationTemplate.CodingStyle.lenient.description.isEmpty == false)
+        #expect(ConfigurationTemplate.CodingStyle.strict.description.isEmpty == false)
+        #expect(ConfigurationTemplate.CodingStyle.balanced.description.isEmpty == false)
+        #expect(ConfigurationTemplate.CodingStyle.lenient.description.isEmpty == false)
     }
 
     // MARK: - TemplateError Tests
