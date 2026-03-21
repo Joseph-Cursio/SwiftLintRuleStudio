@@ -52,7 +52,7 @@ struct SwiftLintRuleStudioApp: App {
     }
 
     @CommandsBuilder
-    var appCommands: some Commands {
+    private var appCommands: some Commands {
         CommandGroup(replacing: .newItem) {
             Button("Open Workspace…") {
                 NotificationCenter.default.post(name: .openWorkspaceRequested, object: nil)

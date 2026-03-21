@@ -21,7 +21,7 @@ class WorkspaceAnalyzer: ObservableObject {
     let swiftLintCLI: SwiftLintCLIProtocol
     let violationStorage: ViolationStorageProtocol
     let fileTracker: FileTracker
-    var currentAnalysisTask: Task<Void, Never>?
+    private var currentAnalysisTask: Task<Void, Never>?
     // Stores a cancel action for the in-flight analyze() call so that
     // cancelAnalysis() can reach it even though analyze() returns a value.
     private var pendingAnalysisCancellation: (@Sendable () -> Void)?
@@ -59,7 +59,7 @@ class WorkspaceAnalyzer: ObservableObject {
         configPath: URL? = nil
     ) async throws -> AnalysisResult {
         cancelAnalysis()
-        let startedAt = Date()
+        let startedAt = Date.now
         beginAnalysis()
 
         // Wrap the body in a Task so cancelAnalysis() can reach it externally.
@@ -108,7 +108,7 @@ class WorkspaceAnalyzer: ObservableObject {
         configPath: URL? = nil,
         onlyChanged: Bool = true
     ) async throws -> AnalysisResult {
-        let startedAt = Date()
+        let startedAt = Date.now
         isAnalyzing = true
 
         let filesToAnalyze = resolveFilesToAnalyze(filePaths, onlyChanged: onlyChanged)

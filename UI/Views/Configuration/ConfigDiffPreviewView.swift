@@ -13,7 +13,7 @@ struct ConfigDiffPreviewView: View {
     let onSave: () -> Void
     let onCancel: () -> Void
 
-    @State var selectedView: DiffViewMode = .summary
+    @State private var selectedView: DiffViewMode = .summary
     @State private var showCopiedFeedback = false
 
     enum DiffViewMode {

@@ -180,7 +180,7 @@ class RuleBrowserViewModel {
     ///   - rule: The rule to check
     ///   - preset: The preset to check against
     /// - Returns: True if the rule is in the preset
-    func ruleIsInPreset(_ rule: Rule, preset: RulePreset) -> Bool {
+    private func ruleIsInPreset(_ rule: Rule, preset: RulePreset) -> Bool {
         preset.ruleIds.contains(rule.id)
     }
 

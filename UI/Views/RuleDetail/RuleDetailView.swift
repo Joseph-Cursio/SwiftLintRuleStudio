@@ -24,7 +24,7 @@ struct RuleDetailView: View {
     // currentRule is only used within this file — private is correct
     @State private var currentRule: Rule
 
-    let ruleId: String
+    private let ruleId: String
 
     // Get the latest rule from registry (may have updated documentation)
     // Made internal for testing
