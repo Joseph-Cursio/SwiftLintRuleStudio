@@ -110,7 +110,7 @@ struct VIViewModelSortingTests {
     }
 
     @Test("ViolationInspectorViewModel sorts by date")
-    func testSortByDate.now async throws {
+    func testSortByDate() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
         let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
             violationStorage: mockStorage

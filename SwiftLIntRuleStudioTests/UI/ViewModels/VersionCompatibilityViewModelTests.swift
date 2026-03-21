@@ -47,7 +47,7 @@ struct VersionCompatibilityViewModelTests {
         )
 
         #expect(viewModel.report == nil)
-        #expect(iewModel.isChecking == false)
+        #expect(viewModel.isChecking == false)
         #expect(viewModel.error == nil)
         #expect(viewModel.currentVersion == nil)
     }
@@ -84,7 +84,7 @@ struct VersionCompatibilityViewModelTests {
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(viewModel.error != nil)
-        #expect(iewModel.isChecking == false)
+        #expect(viewModel.isChecking == false)
         #expect(viewModel.report == nil)
     }
 
@@ -142,7 +142,7 @@ struct VersionCompatibilityViewModelTests {
         viewModel.checkCompatibility()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(iewModel.isChecking == false)
+        #expect(viewModel.isChecking == false)
     }
 
     @Test("checkCompatibility passes parsed config to checker")
