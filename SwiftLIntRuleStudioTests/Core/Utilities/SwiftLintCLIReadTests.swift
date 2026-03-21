@@ -2,7 +2,7 @@
 //  SwiftLintCLIReadTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  ReadWithTimeout and readChunks tests for SwiftLintCLI
+//  ReadWithTimeout and readChunks tests for SwiftLintCLIActor
 //
 
 import Foundation
@@ -10,23 +10,23 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct SwiftLintCLIReadTests {
-    @Test("SwiftLintCLI readWithTimeout returns data on time")
+    @Test("SwiftLintCLIActor readWithTimeout returns data on time")
     func testReadWithTimeoutSuccess() async throws {
         let read: @Sendable () async -> (Data, Data) = {
             (Data("ok".utf8), Data("warn".utf8))
         }
         let onTimeout: @Sendable () async -> Void = { }
-        let timeoutResult = try await SwiftLintCLI.readWithTimeout(
+        let timeoutResult = try await SwiftLintCLIActor.readWithTimeout(
             timeoutSeconds: 1,
             read: read,
             onTimeout: onTimeout
         )
         #expect(String(data: timeoutResult.stdout, encoding: .utf8) == "ok")
         #expect(String(data: timeoutResult.stderr, encoding: .utf8) == "warn")
-        #expect(!timeoutResult.didTimeout)
+        #expect(imeoutResult.didTimeout == false)
     }
 
-    @Test("SwiftLintCLI readWithTimeout handles timeout")
+    @Test("SwiftLintCLIActor readWithTimeout handles timeout")
     func testReadWithTimeoutTimeout() async throws {
         final class HangGate: @unchecked Sendable {
             private var continuation: CheckedContinuation<Void, Never>?
@@ -57,16 +57,16 @@ struct SwiftLintCLIReadTests {
                 gate.open()
             }
         }
-        actor TimeoutTracker {
+        actor TimeoutTrackerActor {
             var didTimeout = false
             func mark() { didTimeout = true }
         }
-        let tracker = TimeoutTracker()
+        let tracker = TimeoutTrackerActor()
         let onTimeout: @Sendable () async -> Void = {
             await tracker.mark()
         }
 
-        let timeoutResult = try await SwiftLintCLI.readWithTimeout(
+        let timeoutResult = try await SwiftLintCLIActor.readWithTimeout(
             timeoutSeconds: 1,
             read: read,
             onTimeout: onTimeout
@@ -78,7 +78,7 @@ struct SwiftLintCLIReadTests {
         #expect(didTimeout)
     }
 
-    @Test("SwiftLintCLI readChunks accumulates data")
+    @Test("SwiftLintCLIActor readChunks accumulates data")
     func testReadChunksAccumulation() async {
         final class ChunkSource: @unchecked Sendable {
             private var chunks: [Data]
@@ -104,7 +104,7 @@ struct SwiftLintCLIReadTests {
             source.next()
         }
         let sleep: @Sendable (UInt64) async -> Void = { _ in }
-        let data = await SwiftLintCLI.readChunks(read: read, sleep: sleep, intervalNs: 1)
+        let data = await SwiftLintCLIActor.readChunks(read: read, sleep: sleep, intervalNs: 1)
         #expect(String(data: data, encoding: .utf8) == "onetwo")
     }
 }

@@ -16,7 +16,7 @@ struct RuleBrowserViewModelBulkTests {
     @MainActor
     private static func createTestViewModel() -> RuleBrowserViewModel {
         let cacheManager = CacheManager()
-        let cli = SwiftLintCLI(cacheManager: cacheManager)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager)
         let registry = RuleRegistry(swiftLintCLI: cli, cacheManager: cacheManager)
 
         // Add test rules
@@ -50,11 +50,11 @@ struct RuleBrowserViewModelBulkTests {
     func testToggleMultiSelect() async throws {
         await MainActor.run {
             let viewModel = Self.createTestViewModel()
-            #expect(!viewModel.isMultiSelectMode)
+            #expect(iewModel.isMultiSelectMode == false)
             viewModel.toggleMultiSelect()
             #expect(viewModel.isMultiSelectMode)
             viewModel.toggleMultiSelect()
-            #expect(!viewModel.isMultiSelectMode)
+            #expect(iewModel.isMultiSelectMode == false)
         }
     }
 
@@ -66,7 +66,7 @@ struct RuleBrowserViewModelBulkTests {
             #expect(viewModel.selectedRuleIds.contains("force_cast"))
 
             viewModel.toggleRuleSelection("force_cast")
-            #expect(!viewModel.selectedRuleIds.contains("force_cast"))
+            #expect(iewModel.selectedRuleIds.contains("force_cast") == false)
         }
     }
 

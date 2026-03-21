@@ -24,7 +24,7 @@ struct ImpactSimulatorIntegrationTests {
     }
 
     // Helper to create ImpactSimulator on MainActor
-    private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLI) async -> ImpactSimulator {
+    private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLIActor) async -> ImpactSimulator {
         return await MainActor.run {
             ImpactSimulator(swiftLintCLI: swiftLintCLI)
         }
@@ -71,7 +71,7 @@ struct ImpactSimulatorIntegrationTests {
         try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await createMockSwiftLintCLI(violations: [])
+        let mockCLI = await createMockSwiftLintCLIActor(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
 
         try await MainActor.run {
@@ -105,7 +105,7 @@ struct ImpactSimulatorIntegrationTests {
         try baseConfig.write(to: configPath, atomically: true, encoding: .utf8)
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await createMockSwiftLintCLI(violations: [])
+        let mockCLI = await createMockSwiftLintCLIActor(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
 
         // Simulate should create temp config with rule enabled
@@ -121,8 +121,8 @@ struct ImpactSimulatorIntegrationTests {
 
     // MARK: - Helper Methods
 
-    private func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
-        let mockCLI = MockSwiftLintCLI()
+    private func createMockSwiftLintCLIActor(violations: [Violation] = []) async -> MockSwiftLintCLIActor {
+        let mockCLI = MockSwiftLintCLIActor()
 
         let jsonArray = violations.map { violation -> [String: Any] in
             [

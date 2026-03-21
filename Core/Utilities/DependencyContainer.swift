@@ -64,7 +64,7 @@ class DependencyContainer {
         userDefaults: UserDefaults? = nil
     ) {
         let cache = cacheManager ?? CacheManager()
-        let cli = swiftLintCLI ?? SwiftLintCLI(cacheManager: cache)
+        let cli = swiftLintCLI ?? SwiftLintCLIActor(cacheManager: cache)
         let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
 
         self.ruleRegistry = registry
@@ -88,7 +88,7 @@ class DependencyContainer {
             self.violationStorage = providedStorage
         } else {
             do {
-                self.violationStorage = try ViolationStorage()
+                self.violationStorage = try ViolationStorageActor()
             } catch {
                 // Fallback: create in-memory storage or handle error
                 fatalError("Failed to initialize violation storage: \(error)")
@@ -123,7 +123,7 @@ class DependencyContainer {
             ?? ConfigComparisonService()
 
         // Initialize Phase 3 YAML Configuration Services
-        let git = gitService ?? GitService()
+        let git = gitService ?? GitServiceActor()
         self.gitService = git
         let fetcher = urlConfigFetcher ?? URLConfigFetcher()
         self.urlConfigFetcher = fetcher

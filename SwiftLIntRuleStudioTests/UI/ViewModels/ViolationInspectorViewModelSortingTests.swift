@@ -110,15 +110,15 @@ struct VIViewModelSortingTests {
     }
 
     @Test("ViolationInspectorViewModel sorts by date")
-    func testSortByDate() async throws {
+    func testSortByDate.now async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
         let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
             violationStorage: mockStorage
         )
 
         let workspaceId = UUID()
-        let oldDate = Date().addingTimeInterval(-86400)
-        let newDate = Date()
+        let oldDate = Date.now.addingTimeInterval(-86400)
+        let newDate = Date.now
 
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", detectedAt: oldDate),

@@ -303,7 +303,7 @@ struct ViolationInspectorViewInteractionTests {
             (try? result.view.inspect().find(text: "No violations match your current filters.")) != nil
         }
         let msg = "ViolationInspectorView should display violations (not empty state) when filteredViolations is set"
-        #expect(!showsEmptyState, "\(msg)")
+        #expect(howsEmptyState, "\(msg)" == false)
     }
 
     // MARK: - Empty State Interaction Tests

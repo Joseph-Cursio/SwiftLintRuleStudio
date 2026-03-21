@@ -29,7 +29,7 @@ struct ViolationTests {
         #expect(violation.line == 42)
         #expect(violation.column == 10)
         #expect(violation.severity == .error)
-        #expect(!violation.suppressed)
+        #expect(iolation.suppressed == false)
     }
 
     @Test("Violation can be suppressed")

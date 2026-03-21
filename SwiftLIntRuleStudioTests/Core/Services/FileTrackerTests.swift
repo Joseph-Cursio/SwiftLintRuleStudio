@@ -26,7 +26,7 @@ struct FileTrackerTests {
         let tracker = FileTracker(cacheURL: cacheURL)
 
         try tracker.updateTracking(for: fileURL.path)
-        #expect(!tracker.hasFileChanged(fileURL.path))
+        #expect(racker.hasFileChanged(fileURL.path) == false)
         #expect(tracker.getMetadata(for: fileURL.path) != nil)
 
         // Modify file to change metadata
@@ -34,7 +34,7 @@ struct FileTrackerTests {
         #expect(tracker.hasFileChanged(fileURL.path))
 
         try tracker.updateTracking(for: fileURL.path)
-        #expect(!tracker.hasFileChanged(fileURL.path))
+        #expect(racker.hasFileChanged(fileURL.path) == false)
     }
 
     @Test("FileTracker reports changed files and clears tracking")

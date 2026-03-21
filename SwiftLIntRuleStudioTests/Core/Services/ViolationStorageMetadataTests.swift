@@ -2,7 +2,7 @@
 //  ViolationStorageMetadataTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Metadata and ID handling tests for ViolationStorage
+//  Metadata and ID handling tests for ViolationStorageActor
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct ViolationStorageMetadataTests {
-    @Test("ViolationStorage preserves violation metadata")
+    @Test("ViolationStorageActor preserves violation metadata")
     func testPreserveViolationMetadata() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()
@@ -23,7 +23,7 @@ struct ViolationStorageMetadataTests {
             column: 10,
             severity: .warning,
             message: "Test message",
-            detectedAt: Date(),
+            detectedAt: Date.now,
             resolvedAt: nil,
             suppressed: false,
             suppressionReason: nil
@@ -60,7 +60,7 @@ struct ViolationStorageMetadataTests {
         #expect(unwrapped.count == 1)
     }
 
-    @Test("ViolationStorage handles duplicate IDs with INSERT OR REPLACE")
+    @Test("ViolationStorageActor handles duplicate IDs with INSERT OR REPLACE")
     func testDuplicateIDsAreReplaced() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()
@@ -97,7 +97,7 @@ struct ViolationStorageMetadataTests {
         #expect(unwrapped.3 == "Second message")
     }
 
-    @Test("ViolationStorage ensures all violations have unique IDs")
+    @Test("ViolationStorageActor ensures all violations have unique IDs")
     func testAllViolationsHaveUniqueIDs() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()

@@ -56,7 +56,7 @@ struct RuleDetailViewMarkdownTests {
         let processed = await MainActor.run {
             RuleDetailView.processContentForDisplayForTesting(markdown)
         }
-        #expect(!processed.contains("# Test Rule"))
+        #expect(rocessed.contains("# Test Rule") == false)
     }
 
     @Test("RuleDetailView markdown helpers process content")
@@ -69,7 +69,7 @@ struct RuleDetailViewMarkdownTests {
         let result = await MainActor.run {
             RuleDetailView.processContentForDisplayForTesting(markdown)
         }
-        #expect(!result.contains("Title"))
+        #expect(esult.contains("Title") == false)
         #expect(result.contains("Regular text"))
     }
 }

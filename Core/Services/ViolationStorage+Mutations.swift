@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 
-extension ViolationStorage {
+extension ViolationStorageActor {
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
         guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen

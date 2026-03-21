@@ -39,7 +39,7 @@ struct ViolationDetailViewInteractionTests {
             column: column,
             severity: severity,
             message: message,
-            detectedAt: Date(),
+            detectedAt: Date.now,
             resolvedAt: resolvedAt,
             suppressed: suppressed
         )
@@ -338,7 +338,7 @@ struct ViolationDetailViewInteractionTests {
 
     @Test("ViolationDetailView resolve button is hidden when resolved")
     func testResolveButtonHiddenWhenResolved() async throws {
-        let violation = makeTestViolation(resolvedAt: Date())
+        let violation = makeTestViolation(resolvedAt: Date.now)
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 

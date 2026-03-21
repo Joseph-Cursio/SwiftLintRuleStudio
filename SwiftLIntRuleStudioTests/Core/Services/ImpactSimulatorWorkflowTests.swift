@@ -14,7 +14,7 @@ import Foundation
 struct ImpactSimulatorWorkflowTests {
 
     // Helper to run ImpactSimulator operations on MainActor
-    private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLI) async -> ImpactSimulator {
+    private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLIActor) async -> ImpactSimulator {
         return await MainActor.run {
             ImpactSimulator(swiftLintCLI: swiftLintCLI)
         }
@@ -31,8 +31,8 @@ struct ImpactSimulatorWorkflowTests {
         return fileURL
     }
 
-    private func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
-        let mockCLI = MockSwiftLintCLI()
+    private func createMockSwiftLintCLIActor(violations: [Violation] = []) async -> MockSwiftLintCLIActor {
+        let mockCLI = MockSwiftLintCLIActor()
 
         let jsonArray = violations.map { violation -> [String: Any] in
             [
@@ -66,7 +66,7 @@ struct ImpactSimulatorWorkflowTests {
 
         let configPath = try writeDisabledRulesConfig(in: tempDir)
         let workspace = Workspace(path: tempDir)
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
 
         await configureMockCLIForSafeRuleDiscovery(mockCLI)
 
@@ -83,7 +83,7 @@ struct ImpactSimulatorWorkflowTests {
         #expect(safeRuleIds.count == 2)
         #expect(safeRuleIds.contains("safe_rule_1"))
         #expect(safeRuleIds.contains("safe_rule_2"))
-        #expect(!safeRuleIds.contains("unsafe_rule"))
+        #expect(afeRuleIds.contains("unsafe_rule") == false)
 
         let ruleEnablement = try await enableRules(safeRuleIds, configPath: configPath)
         assertRuleEnablement(ruleEnablement)
@@ -100,7 +100,7 @@ struct ImpactSimulatorWorkflowTests {
         _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await createMockSwiftLintCLI(violations: [])
+        let mockCLI = await createMockSwiftLintCLIActor(violations: [])
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
 
         // Simulate a rule
@@ -136,7 +136,7 @@ struct ImpactSimulatorWorkflowTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
 
         await mockCLI.setLintCommandHandler { _, _ in
             return try JSONSerialization.data(withJSONObject: [])
@@ -166,15 +166,15 @@ struct ImpactSimulatorWorkflowTests {
         return configPath
     }
 
-    private func configureMockCLIForSafeRuleDiscovery(_ mockCLI: MockSwiftLintCLI) async {
-        actor CallCounter {
+    private func configureMockCLIForSafeRuleDiscovery(_ mockCLI: MockSwiftLintCLIActor) async {
+        actor CallCounterActor {
             var count = 0
             func increment() -> Int {
                 count += 1
                 return count
             }
         }
-        let callCounter = CallCounter()
+        let callCounter = CallCounterActor()
 
         await mockCLI.setLintCommandHandler { @Sendable _, _ in
             let currentCount = await callCounter.increment()
@@ -245,7 +245,7 @@ struct ImpactSimulatorWorkflowTests {
         let ruleId: String
     }
 
-    private actor ProgressCollector {
+    private actor ProgressCollectorActor {
         var updates: [ProgressUpdate] = []
         func add(_ update: ProgressUpdate) {
             updates.append(update)
@@ -257,7 +257,7 @@ struct ImpactSimulatorWorkflowTests {
         workspace: Workspace,
         ruleIds: [String]
     ) async throws -> (Int, [ProgressUpdate]) {
-        let progressCollector = ProgressCollector()
+        let progressCollector = ProgressCollectorActor()
         let batchResult = try await simulator.simulateRules(
             ruleIds: ruleIds,
             workspace: workspace,

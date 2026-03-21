@@ -2,16 +2,16 @@
 //  ViolationStorageTestHelpers.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Helper utilities for ViolationStorage tests
+//  Helper utilities for ViolationStorageActor tests
 //
 
 import Foundation
 @testable import SwiftLIntRuleStudio
 
 enum ViolationStorageTestHelpers {
-    static func createIsolatedStorage() async throws -> ViolationStorage {
+    static func createIsolatedStorage() async throws -> ViolationStorageActor {
         try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
     }
 

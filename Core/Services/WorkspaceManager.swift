@@ -49,7 +49,7 @@ class WorkspaceManager {
             // Move existing workspace to top
             let existing = recentWorkspaces.remove(at: existingIndex)
             var updated = existing
-            updated.lastAnalyzed = Date()
+            updated.lastAnalyzed = Date.now
             recentWorkspaces.insert(updated, at: 0)
             currentWorkspace = updated
         } else {

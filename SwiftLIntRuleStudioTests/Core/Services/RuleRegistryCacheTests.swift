@@ -12,18 +12,18 @@ struct RuleRegistryCacheTests {
     @Test("RuleRegistry initializes with empty rules")
     @MainActor
     func testInitialization() {
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
         #expect(registry.rules.isEmpty)
-        #expect(!registry.isLoading)
+        #expect(egistry.isLoading == false)
     }
 
     @Test("RuleRegistry loads cached rules when SwiftLint fails")
     @MainActor
     func testLoadFromCacheOnFailure() async throws {
-        let mockCLI = MockSwiftLintCLI(shouldFail: true)
+        let mockCLI = MockSwiftLintCLIActor(shouldFail: true)
         let mockCache = MockCacheManager()
 
         let cachedRule = Rule(
@@ -50,7 +50,7 @@ struct RuleRegistryCacheTests {
     @Test("RuleRegistry throws error when both SwiftLint and cache fail")
     @MainActor
     func testThrowsWhenBothFail() async {
-        let mockCLI = MockSwiftLintCLI(shouldFail: true)
+        let mockCLI = MockSwiftLintCLIActor(shouldFail: true)
         let mockCache = MockCacheManager()
         mockCache.shouldFailLoad = true
 
@@ -64,7 +64,7 @@ struct RuleRegistryCacheTests {
     @Test("RuleRegistry can get rule by ID")
     @MainActor
     func testGetRuleById() async throws {
-        let mockCLI = MockSwiftLintCLI(shouldFail: true)
+        let mockCLI = MockSwiftLintCLIActor(shouldFail: true)
         let mockCache = MockCacheManager()
 
         let rule1 = Rule(

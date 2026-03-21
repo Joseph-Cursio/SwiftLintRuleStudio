@@ -2,7 +2,7 @@
 //  GitServiceTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Tests for GitService
+//  Tests for GitServiceActor
 //
 
 import Testing
@@ -60,7 +60,7 @@ struct GitServiceTests {
         let repoDir = try createTempGitRepo()
         defer { cleanup(repoDir) }
 
-        let service = GitService()
+        let service = GitServiceActor()
         let isRepo = try await service.isGitRepository(at: repoDir)
         #expect(isRepo)
     }
@@ -72,9 +72,9 @@ struct GitServiceTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { cleanup(tempDir) }
 
-        let service = GitService()
+        let service = GitServiceActor()
         let isRepo = try await service.isGitRepository(at: tempDir)
-        #expect(!isRepo)
+        #expect(sRepo == false)
     }
 
     @Test("Gets current branch")
@@ -82,9 +82,9 @@ struct GitServiceTests {
         let repoDir = try createTempGitRepo()
         defer { cleanup(repoDir) }
 
-        let service = GitService()
+        let service = GitServiceActor()
         let branch = try await service.getCurrentBranch(at: repoDir)
-        #expect(!branch.isEmpty)
+        #expect(ranch.isEmpty == false)
     }
 
     @Test("Lists branches")
@@ -95,7 +95,7 @@ struct GitServiceTests {
         try shellExec("/usr/bin/git", args: ["checkout", "-b", "feature-test"], at: repoDir)
         try shellExec("/usr/bin/git", args: ["checkout", "-"], at: repoDir)
 
-        let service = GitService()
+        let service = GitServiceActor()
         let branches = try await service.listBranches(at: repoDir)
         #expect(branches.count >= 2)
         #expect(branches.contains("feature-test"))
@@ -108,7 +108,7 @@ struct GitServiceTests {
 
         try shellExec("/usr/bin/git", args: ["tag", "v1.0.0"], at: repoDir)
 
-        let service = GitService()
+        let service = GitServiceActor()
         let tags = try await service.listTags(at: repoDir)
         #expect(tags.contains("v1.0.0"))
     }
@@ -121,7 +121,7 @@ struct GitServiceTests {
         let currentBranch = try shellExec("/usr/bin/git", args: ["rev-parse", "--abbrev-ref", "HEAD"], at: repoDir)
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        let service = GitService()
+        let service = GitServiceActor()
         let content = try await service.showFile(at: repoDir, branch: currentBranch, filePath: ".swiftlint.yml")
         #expect(content.contains("trailing_whitespace"))
     }
@@ -141,7 +141,7 @@ struct GitServiceTests {
         try shellExec("/usr/bin/git", args: ["commit", "-m", "Change config"], at: repoDir)
         try shellExec("/usr/bin/git", args: ["checkout", "-"], at: repoDir)
 
-        let service = GitService()
+        let service = GitServiceActor()
         let content = try await service.showFile(at: repoDir, branch: "other-config", filePath: ".swiftlint.yml")
         #expect(content.contains("line_length"))
     }
@@ -163,11 +163,11 @@ struct GitServiceTests {
         try shellExec("/usr/bin/git", args: ["add", "."], at: repoDir)
         try shellExec("/usr/bin/git", args: ["commit", "-m", "Change config"], at: repoDir)
 
-        let service = GitService()
+        let service = GitServiceActor()
         let diff = try await service.diffFile(
             at: repoDir, fromRef: currentBranch, toRef: "diff-branch", filePath: ".swiftlint.yml"
         )
-        #expect(!diff.isEmpty)
+        #expect(iff.isEmpty == false)
     }
 
     @Test("Not a repository throws error")
@@ -177,7 +177,7 @@ struct GitServiceTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { cleanup(tempDir) }
 
-        let service = GitService()
+        let service = GitServiceActor()
         await #expect(throws: GitServiceError.self) {
             _ = try await service.getCurrentBranch(at: tempDir)
         }

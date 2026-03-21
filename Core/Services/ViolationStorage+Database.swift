@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 
-extension ViolationStorage {
+extension ViolationStorageActor {
     func closeDatabase() {
         if let handle = database {
             sqlite3_close(handle)

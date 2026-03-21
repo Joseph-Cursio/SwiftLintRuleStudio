@@ -1,6 +1,6 @@
 import Foundation
 
-extension SwiftLintCLI {
+extension SwiftLintCLIActor {
     nonisolated static func buildEnvironment(base: [String: String]) -> [String: String] {
         var environment = base
         if let currentPath = environment["PATH"], !currentPath.contains("/opt/homebrew/bin") {

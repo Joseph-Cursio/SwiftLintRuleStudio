@@ -34,7 +34,7 @@ enum WorkspaceManagerIntegrationTestHelpers {
 
     @MainActor
     static func createWorkspaceAnalyzer(
-        swiftLintCLI: MockSwiftLintCLI,
+        swiftLintCLI: MockSwiftLintCLIActor,
         violationStorage: ViolationStorageProtocol,
         fileTracker: sending FileTracker? = nil
     ) -> WorkspaceAnalyzer {

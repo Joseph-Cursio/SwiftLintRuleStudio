@@ -1,5 +1,5 @@
 //
-//  SwiftLintCLI.swift
+//  SwiftLintCLIActor.swift
 //  SwiftLintRuleStudio
 //
 //  Created by joe cursio on 12/24/25.
@@ -23,7 +23,7 @@ protocol SwiftLintCLIProtocol: Sendable {
 }
 
 /// Service for executing SwiftLint CLI commands
-actor SwiftLintCLI: SwiftLintCLIProtocol {
+actor SwiftLintCLIActor: SwiftLintCLIProtocol {
     private var cachedSwiftLintPath: URL?
     let cacheManager: CacheManager
     let commandRunner: SwiftLintCommandRunner?

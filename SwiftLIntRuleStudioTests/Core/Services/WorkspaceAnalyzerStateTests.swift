@@ -12,7 +12,7 @@ import Testing
 struct WorkspaceAnalyzerStateTests {
     @Test("WorkspaceAnalyzer sets isAnalyzing state correctly")
     func testIsAnalyzingState() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
@@ -42,7 +42,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer can cancel analysis")
     func testCancelAnalysis() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
@@ -76,7 +76,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer handles invalid JSON gracefully")
     func testInvalidJSON() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
@@ -95,7 +95,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer handles SwiftLint execution failure")
     func testSwiftLintFailure() async throws {
-        let mockCLI = MockSwiftLintCLI(shouldFail: true)
+        let mockCLI = MockSwiftLintCLIActor(shouldFail: true)
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
@@ -112,7 +112,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer calculates analysis duration")
     func testAnalysisDuration() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
@@ -135,7 +135,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer analyzes specific files incrementally")
     func testAnalyzeSpecificFiles() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
@@ -170,7 +170,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer analyzeChangedFiles skips .build files")
     func testAnalyzeChangedFilesSkipsBuild() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
@@ -195,7 +195,7 @@ struct WorkspaceAnalyzerStateTests {
 
     @Test("WorkspaceAnalyzer computes config hash when config exists")
     func testConfigHash() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
         defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }

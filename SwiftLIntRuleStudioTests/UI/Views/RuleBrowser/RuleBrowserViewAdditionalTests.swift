@@ -56,7 +56,7 @@ struct RuleBrowserViewAdditionalTests {
     private func createRuleBrowserView(rules: [Rule] = []) -> ViewResult {
         let container = DependencyContainer.createForTesting()
         let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         #if DEBUG
         if !rules.isEmpty {
@@ -77,7 +77,7 @@ struct RuleBrowserViewAdditionalTests {
             let rule = makeTestRule()
             let cacheManager = CacheManager.createForTesting()
             let ruleRegistry = RuleRegistry(
-                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                swiftLintCLI: SwiftLintCLIActor(cacheManager: cacheManager),
                 cacheManager: cacheManager
             )
             #if DEBUG
@@ -108,7 +108,7 @@ struct RuleBrowserViewAdditionalTests {
         let result = await Task { @MainActor in
             let cacheManager = CacheManager.createForTesting()
             let ruleRegistry = RuleRegistry(
-                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                swiftLintCLI: SwiftLintCLIActor(cacheManager: cacheManager),
                 cacheManager: cacheManager
             )
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
@@ -132,7 +132,7 @@ struct RuleBrowserViewAdditionalTests {
         let result = await Task { @MainActor in
             let cacheManager = CacheManager.createForTesting()
             let ruleRegistry = RuleRegistry(
-                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                swiftLintCLI: SwiftLintCLIActor(cacheManager: cacheManager),
                 cacheManager: cacheManager
             )
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)

@@ -14,7 +14,7 @@ struct RuleBrowserViewModelSyncTests {
 
     private static func makeRegistry(with rules: [Rule]) -> RuleRegistry {
         let cache = CacheManager.createForTesting()
-        let cli = SwiftLintCLI(cacheManager: cache)
+        let cli = SwiftLintCLIActor(cacheManager: cache)
         let registry = RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
         registry.setRulesForTesting(rules)
         return registry
@@ -81,7 +81,7 @@ struct RuleBrowserViewModelSyncTests {
         // The disabled filter should no longer include this rule
         viewModel.selectedStatus = .disabled
         #expect(
-            !viewModel.filteredRules.contains { $0.id == "missing_docs" },
+            viewModel.filteredRules.contains { $0.id == "missing_docs" } == false,
             "missing_docs should NOT appear in disabled filter after being enabled"
         )
 
@@ -145,9 +145,9 @@ struct RuleBrowserViewModelSyncTests {
         // The enabled filter should no longer include this rule
         viewModel.selectedStatus = .enabled
         #expect(
-            !viewModel.filteredRules.contains {
+            viewModel.filteredRules.contains {
                 $0.id == "trailing_whitespace"
-            },
+            } == false,
             "trailing_whitespace should NOT appear in enabled filter"
         )
     }

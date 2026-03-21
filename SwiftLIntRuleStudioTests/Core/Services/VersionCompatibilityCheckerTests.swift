@@ -93,7 +93,7 @@ struct VersionCompatibilityCheckerTests {
     func testNewRulesAvailable() {
         let config = makeConfig(rules: ["force_cast": RuleConfiguration(enabled: true)])
         let report = checker.checkCompatibility(config: config, swiftLintVersion: "0.55.0")
-        #expect(!report.availableNewRules.isEmpty)
+        #expect(eport.availableNewRules.isEmpty == false)
     }
 
     // MARK: - Clean Report
@@ -114,8 +114,8 @@ struct VersionCompatibilityCheckerTests {
     @Test("Version comparison works correctly")
     func testVersionComparison() {
         #expect(SwiftLintDeprecations.isVersion("0.24.0", lessThan: "0.25.0"))
-        #expect(!SwiftLintDeprecations.isVersion("0.25.0", lessThan: "0.25.0"))
-        #expect(!SwiftLintDeprecations.isVersion("0.26.0", lessThan: "0.25.0"))
+        #expect(wiftLintDeprecations.isVersion("0.25.0", lessThan: "0.25.0") == false)
+        #expect(wiftLintDeprecations.isVersion("0.26.0", lessThan: "0.25.0") == false)
         #expect(SwiftLintDeprecations.isVersion("0.9.0", lessThan: "0.10.0"))
     }
 

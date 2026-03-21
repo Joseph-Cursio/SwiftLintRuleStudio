@@ -2,13 +2,13 @@
 //  SwiftLintCLITestHelpers.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Helper utilities for SwiftLintCLI tests
+//  Helper utilities for SwiftLintCLIActor tests
 //
 
 import Foundation
 @testable import SwiftLIntRuleStudio
 
-actor CommandRecorder {
+actor CommandRecorderActor {
     private(set) var calls: [(String, [String])] = []
 
     func record(_ command: String, _ arguments: [String]) {
@@ -16,7 +16,7 @@ actor CommandRecorder {
     }
 }
 
-actor AsyncMap<Value> {
+actor AsyncMapActor<Value> {
     private var values: [String: Value]
 
     init(values: [String: Value]) {

@@ -18,20 +18,20 @@ struct ViolationInspectorView: View {
         // Create temporary storage for initialization
         // Will be updated in onAppear with actual storage from dependencies
         // Use do-catch to handle initialization errors gracefully
-        let tempStorage: ViolationStorage
+        let tempStorage: ViolationStorageActor
         do {
-            tempStorage = try ViolationStorage(useInMemory: true)
+            tempStorage = try ViolationStorageActor(useInMemory: true)
         } catch {
             // If initialization fails, log the error and create a fallback
             // This prevents crashes and allows the view to still render
             // Try to create a file-based storage as fallback
-            if let fallbackStorage = try? ViolationStorage(useInMemory: false) {
+            if let fallbackStorage = try? ViolationStorageActor(useInMemory: false) {
                 tempStorage = fallbackStorage
             } else {
                 // Last resort: create in-memory storage again (should work after fix)
                 // This will crash if there's a fundamental issue, but that's better than silent failure
                 fatalError(
-                    "Failed to initialize ViolationStorage: \(error). " +
+                    "Failed to initialize ViolationStorageActor: \(error). " +
                         "This indicates a critical database configuration issue."
                 )
             }

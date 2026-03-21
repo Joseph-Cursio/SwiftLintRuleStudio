@@ -2,7 +2,7 @@
 //  ViolationStorageBasicTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Basic fetch and filter tests for ViolationStorage
+//  Basic fetch and filter tests for ViolationStorageActor
 //
 
 import Foundation
@@ -55,12 +55,12 @@ struct StorageFilterCase: Sendable, CustomTestStringConvertible {
     ]
 }
 
-@Suite("ViolationStorage", .tags(.storage))
+@Suite("ViolationStorageActor", .tags(.storage))
 struct ViolationStorageBasicTests {
 
     @Suite("Storing")
     struct Storing {
-        @Test("ViolationStorage stores violations")
+        @Test("ViolationStorageActor stores violations")
         func testStoreViolations() async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()
@@ -80,7 +80,7 @@ struct ViolationStorageBasicTests {
 
     @Suite("Fetching")
     struct Fetching {
-        @Test("ViolationStorage fetches violations by workspace")
+        @Test("ViolationStorageActor fetches violations by workspace")
         func testFetchViolationsByWorkspace() async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspace1 = UUID()
@@ -106,7 +106,7 @@ struct ViolationStorageBasicTests {
 
     @Suite("Filtering", .tags(.filtering))
     struct Filtering {
-        @Test("ViolationStorage filters violations", arguments: StorageFilterCase.all)
+        @Test("ViolationStorageActor filters violations", arguments: StorageFilterCase.all)
         func testFilterViolations(_ filterCase: StorageFilterCase) async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()
@@ -119,7 +119,7 @@ struct ViolationStorageBasicTests {
             #expect(fetched.allSatisfy(filterCase.predicate))
         }
 
-        @Test("ViolationStorage filters violations by suppressed status")
+        @Test("ViolationStorageActor filters violations by suppressed status")
         func testFilterBySuppressed() async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()
@@ -144,16 +144,16 @@ struct ViolationStorageBasicTests {
             let notSuppressed = try await storage.fetchViolations(filter: filter2, workspaceId: workspaceId)
             #expect(notSuppressed.count == 1)
             let notSuppressedViolation = try #require(notSuppressed.first)
-            #expect(!notSuppressedViolation.suppressed)
+            #expect(otSuppressedViolation.suppressed == false)
         }
 
-        @Test("ViolationStorage handles date range filtering")
+        @Test("ViolationStorageActor handles date range filtering")
         func testFilterByDateRange() async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()
 
-            let oldDate = Date().addingTimeInterval(-86400)
-            let newDate = Date()
+            let oldDate = Date.now.addingTimeInterval(-86400)
+            let newDate = Date.now
 
             let oldViolation = Violation(
                 ruleID: "rule1",
@@ -175,8 +175,8 @@ struct ViolationStorageBasicTests {
 
             try await storage.storeViolations([oldViolation, newViolation], for: workspaceId)
 
-            let yesterday = Date().addingTimeInterval(-43200)
-            let filter = ViolationFilter(dateRange: yesterday...Date())
+            let yesterday = Date.now.addingTimeInterval(-43200)
+            let filter = ViolationFilter(dateRange: yesterday...Date.now)
 
             let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
             #expect(fetched.count == 1)
@@ -187,7 +187,7 @@ struct ViolationStorageBasicTests {
 
     @Suite("Edge Cases")
     struct EdgeCases {
-        @Test("ViolationStorage handles empty database")
+        @Test("ViolationStorageActor handles empty database")
         func testEmptyDatabase() async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()

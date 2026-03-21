@@ -2,7 +2,7 @@
 //  ViolationStorageBatchTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Batch insert tests for ViolationStorage
+//  Batch insert tests for ViolationStorageActor
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct ViolationStorageBatchTests {
-    @Test("ViolationStorage handles large batch inserts")
+    @Test("ViolationStorageActor handles large batch inserts")
     func testLargeBatchInsert() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()
@@ -28,7 +28,7 @@ struct ViolationStorageBatchTests {
         #expect(fetched.count == 100)
     }
 
-    @Test("ViolationStorage handles very large batch inserts with transaction")
+    @Test("ViolationStorageActor handles very large batch inserts with transaction")
     func testVeryLargeBatchInsert() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()

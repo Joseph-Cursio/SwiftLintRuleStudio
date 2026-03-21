@@ -29,7 +29,7 @@ struct Violation: Identifiable, Codable, Hashable, Sendable {
         column: Int? = nil,
         severity: Severity,
         message: String,
-        detectedAt: Date = Date(),
+        detectedAt: Date = Date.now,
         resolvedAt: Date? = nil,
         suppressed: Bool = false,
         suppressionReason: String? = nil

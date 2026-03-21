@@ -2,7 +2,7 @@
 //  ViolationStorageSuppressionTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Suppression and resolution tests for ViolationStorage
+//  Suppression and resolution tests for ViolationStorageActor
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct ViolationStorageSuppressionTests {
-    @Test("ViolationStorage suppresses violations")
+    @Test("ViolationStorageActor suppresses violations")
     func testSuppressViolations() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()
@@ -27,7 +27,7 @@ struct ViolationStorageSuppressionTests {
         #expect(violation.suppressionReason == "Not applicable")
     }
 
-    @Test("ViolationStorage resolves violations")
+    @Test("ViolationStorageActor resolves violations")
     func testResolveViolations() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()

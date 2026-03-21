@@ -66,7 +66,7 @@ struct RuleBrowserViewInteractionTests {
 
         // Create a mock rule registry with test rules
         let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
 
         #if DEBUG

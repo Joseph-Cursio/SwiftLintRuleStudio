@@ -100,7 +100,7 @@ struct ViolationDetailViewTests {
 
     @Test("ViolationDetailView shows resolved label when resolved")
     func testShowsResolvedLabel() async throws {
-        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(resolvedAt: Date())
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation(resolvedAt: Date.now)
         let result = await Task { @MainActor in
             ViolationDetailViewTestHelpers.createViolationDetailView(violation: violation)
         }.value
@@ -242,7 +242,7 @@ struct ViolationDetailViewTests {
 
     @Test("ViolationDetailView hides resolve button when resolved")
     func testHidesResolveButton() async throws {
-        let violation = await makeTestViolation(resolvedAt: Date())
+        let violation = await makeTestViolation(resolvedAt: Date.now)
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
 

@@ -77,7 +77,7 @@ struct DependencyContainerTests {
 
     @Test("DependencyContainer uses injected CLI for rule registry construction")
     func testInjectedCLIIsUsed() {
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
         let container = DependencyContainer(swiftLintCLI: mockCLI, violationStorage: MockViolationStorageForViewModel())
         // Registry should have been built with the injected CLI; verify by running
         // a rules command through the registry (no crash = correct wiring)

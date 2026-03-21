@@ -313,7 +313,7 @@ private extension ContentView {
 
 #Preview {
     let cacheManager = CacheManager()
-    let swiftLintCLI = SwiftLintCLI(cacheManager: CacheManager())
+    let swiftLintCLI = SwiftLintCLIActor(cacheManager: CacheManager())
     let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
     let container = DependencyContainer(
         ruleRegistry: ruleRegistry,

@@ -42,10 +42,10 @@ struct ConfigImportViewModelTests {
         #expect(viewModel.urlString.isEmpty)
         #expect(viewModel.preview == nil)
         #expect(viewModel.importMode == .merge)
-        #expect(!viewModel.isFetching)
-        #expect(!viewModel.isImporting)
+        #expect(iewModel.isFetching == false)
+        #expect(iewModel.isImporting == false)
         #expect(viewModel.error == nil)
-        #expect(!viewModel.importComplete)
+        #expect(iewModel.importComplete == false)
     }
 
     // MARK: - fetchPreview()
@@ -88,7 +88,7 @@ struct ConfigImportViewModelTests {
 
         #expect(service.fetchCallCount == 1)
         #expect(viewModel.preview?.sourceURL.absoluteString == "https://example.com/.swiftlint.yml")
-        #expect(!viewModel.isFetching)
+        #expect(iewModel.isFetching == false)
     }
 
     @Test("fetchPreview passes correct URL to service")
@@ -113,7 +113,7 @@ struct ConfigImportViewModelTests {
         viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!viewModel.isFetching)
+        #expect(iewModel.isFetching == false)
     }
 
     @Test("fetchPreview stores error and clears isFetching when service throws")
@@ -127,7 +127,7 @@ struct ConfigImportViewModelTests {
 
         #expect(viewModel.error != nil)
         #expect(viewModel.preview == nil)
-        #expect(!viewModel.isFetching)
+        #expect(iewModel.isFetching == false)
     }
 
     @Test("fetchPreview resets importComplete to false at start")
@@ -139,7 +139,7 @@ struct ConfigImportViewModelTests {
         viewModel.fetchPreview()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!viewModel.importComplete)
+        #expect(iewModel.importComplete == false)
     }
 
     // MARK: - applyImport()
@@ -152,7 +152,7 @@ struct ConfigImportViewModelTests {
         viewModel.applyImport()
 
         #expect(service.applyCallCount == 0)
-        #expect(!viewModel.importComplete)
+        #expect(iewModel.importComplete == false)
     }
 
     @Test("applyImport with nil configPath does not call service")
@@ -200,7 +200,7 @@ struct ConfigImportViewModelTests {
         viewModel.applyImport()
 
         #expect(viewModel.importComplete)
-        #expect(!viewModel.isImporting)
+        #expect(iewModel.isImporting == false)
     }
 
     @Test("applyImport on service error stores error and clears isImporting")
@@ -215,8 +215,8 @@ struct ConfigImportViewModelTests {
         viewModel.applyImport()
 
         #expect(viewModel.error != nil)
-        #expect(!viewModel.importComplete)
-        #expect(!viewModel.isImporting)
+        #expect(iewModel.importComplete == false)
+        #expect(iewModel.isImporting == false)
     }
 }
 

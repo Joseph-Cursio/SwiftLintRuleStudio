@@ -197,7 +197,7 @@ class YAMLConfigurationEngine {
             let fileExists = FileManager.default.fileExists(atPath: configPath.path)
             if fileExists {
                 // Use timestamped backup filename to avoid conflicts in parallel operations
-                let timestamp = Int(Date().timeIntervalSince1970)
+                let timestamp = Int(Date.now.timeIntervalSince1970)
                 let backupFileName = "\(configPath.lastPathComponent).\(timestamp).backup"
                 let backupPath = configPath.deletingLastPathComponent().appendingPathComponent(backupFileName)
                 // Remove existing backup if it exists (shouldn't happen with timestamp, but be safe)

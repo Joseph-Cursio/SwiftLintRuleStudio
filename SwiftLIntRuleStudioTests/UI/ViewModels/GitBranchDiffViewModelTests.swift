@@ -44,8 +44,8 @@ struct GitBranchDiffViewModelTests {
         #expect(viewModel.availableRefs == nil)
         #expect(viewModel.selectedRef == nil)
         #expect(viewModel.comparisonResult == nil)
-        #expect(!viewModel.isLoading)
-        #expect(!viewModel.isNotGitRepo)
+        #expect(iewModel.isLoading == false)
+        #expect(iewModel.isNotGitRepo == false)
         #expect(viewModel.error == nil)
     }
 
@@ -74,8 +74,8 @@ struct GitBranchDiffViewModelTests {
         #expect(service.listRefsCallCount == 1)
         #expect(viewModel.availableRefs?.currentBranch == "main")
         #expect(viewModel.availableRefs?.branches == ["main", "develop"])
-        #expect(!viewModel.isLoading)
-        #expect(!viewModel.isNotGitRepo)
+        #expect(iewModel.isLoading == false)
+        #expect(iewModel.isNotGitRepo == false)
     }
 
     @Test("loadRefs with GitBranchDiffError sets isNotGitRepo (not error property)")
@@ -88,7 +88,7 @@ struct GitBranchDiffViewModelTests {
 
         #expect(viewModel.isNotGitRepo)
         #expect(viewModel.error == nil)
-        #expect(!viewModel.isLoading)
+        #expect(iewModel.isLoading == false)
     }
 
     @Test("loadRefs with configNotFoundOnBranch error also sets isNotGitRepo")
@@ -116,7 +116,7 @@ struct GitBranchDiffViewModelTests {
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(viewModel.error != nil)
-        #expect(!viewModel.isNotGitRepo)
+        #expect(iewModel.isNotGitRepo == false)
     }
 
     @Test("loadRefs clears isLoading after task completes")
@@ -127,7 +127,7 @@ struct GitBranchDiffViewModelTests {
         viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
-        #expect(!viewModel.isLoading)
+        #expect(iewModel.isLoading == false)
     }
 
     // MARK: - compareWithSelected()
@@ -157,7 +157,7 @@ struct GitBranchDiffViewModelTests {
         #expect(service.compareCallCount == 1)
         #expect(service.lastComparedBranch == "develop")
         #expect(viewModel.comparisonResult?.onlyInSecond == ["new_rule"])
-        #expect(!viewModel.isLoading)
+        #expect(iewModel.isLoading == false)
     }
 
     @Test("compareWithSelected passes correct configRelativePath to service")
@@ -189,7 +189,7 @@ struct GitBranchDiffViewModelTests {
 
         #expect(viewModel.error != nil)
         #expect(viewModel.comparisonResult == nil)
-        #expect(!viewModel.isLoading)
+        #expect(iewModel.isLoading == false)
     }
 }
 

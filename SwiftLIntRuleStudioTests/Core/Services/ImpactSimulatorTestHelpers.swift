@@ -37,8 +37,8 @@ enum ImpactSimulatorTestHelpers {
         try? FileManager.default.removeItem(at: url)
     }
 
-    static func createMockSwiftLintCLI(violations: [Violation] = []) async -> MockSwiftLintCLI {
-        let mockCLI = MockSwiftLintCLI()
+    static func createMockSwiftLintCLIActor(violations: [Violation] = []) async -> MockSwiftLintCLIActor {
+        let mockCLI = MockSwiftLintCLIActor()
         let jsonArray = violations.map { violation -> [String: Any] in
             [
                 "file": violation.filePath,

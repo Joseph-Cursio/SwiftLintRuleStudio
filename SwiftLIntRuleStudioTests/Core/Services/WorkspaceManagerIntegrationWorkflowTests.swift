@@ -11,7 +11,7 @@ struct WorkspaceManagerIntegrationWorkflowTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let storage = try await createInMemoryStorage()
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
         await configureMockViolations(mockCLI: mockCLI)
 
         let analyzer = await createAnalyzer(storage: storage, mockCLI: mockCLI)
@@ -113,14 +113,14 @@ struct WorkspaceManagerIntegrationWorkflowTests {
         return tempDir
     }
 
-    private func createInMemoryStorage() async throws -> ViolationStorage {
+    private func createInMemoryStorage() async throws -> ViolationStorageActor {
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
         return storage
     }
 
-    private func configureMockViolations(mockCLI: MockSwiftLintCLI) async {
+    private func configureMockViolations(mockCLI: MockSwiftLintCLIActor) async {
         let mockViolationsJSON = Data("""
         [
           {
@@ -143,8 +143,8 @@ struct WorkspaceManagerIntegrationWorkflowTests {
     }
 
     private func createAnalyzer(
-        storage: ViolationStorage,
-        mockCLI: MockSwiftLintCLI
+        storage: ViolationStorageActor,
+        mockCLI: MockSwiftLintCLIActor
     ) async -> WorkspaceAnalyzer {
         return await MainActor.run {
             WorkspaceAnalyzer(
@@ -156,7 +156,7 @@ struct WorkspaceManagerIntegrationWorkflowTests {
     }
 
     private func createViewModel(
-        storage: ViolationStorage,
+        storage: ViolationStorageActor,
         analyzer: WorkspaceAnalyzer
     ) async -> ViolationInspectorViewModel {
         await MainActor.run {

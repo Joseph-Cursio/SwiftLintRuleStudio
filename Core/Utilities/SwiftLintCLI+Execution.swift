@@ -1,6 +1,6 @@
 import Foundation
 
-extension SwiftLintCLI {
+extension SwiftLintCLIActor {
     /// Execute command - try direct execution first, fall back to shell if needed
     /// Direct execution is faster and avoids shell overhead
     func executeCommandViaShell(command: String, arguments: [String]) async throws -> Data {
@@ -110,7 +110,7 @@ extension SwiftLintCLI {
     }
 }
 
-private extension SwiftLintCLI {
+private extension SwiftLintCLIActor {
     func resolveSwiftLintPath() async -> URL? {
         do {
             let path = try await detectSwiftLintPath()
@@ -211,7 +211,7 @@ private extension SwiftLintCLI {
     }
 }
 
-private extension SwiftLintCLI {
+private extension SwiftLintCLIActor {
     func configureProcess(_ process: Process, outputPipe: Pipe, errorPipe: Pipe) {
         process.standardOutput = outputPipe
         process.standardError = errorPipe

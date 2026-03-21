@@ -73,7 +73,7 @@ struct RuleDetailViewModelParameterTests {
 
             // Verify viewModel parameter values
             let paramValues = viewModel.parameterValues
-            #expect(!paramValues.isEmpty, "Expected parameterValues to be populated")
+            #expect(aramValues.isEmpty, "Expected parameterValues to be populated" == false)
         }
     }
 

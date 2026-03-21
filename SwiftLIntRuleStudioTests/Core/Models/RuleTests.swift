@@ -31,7 +31,7 @@ struct RuleTests {
         #expect(rule.id == "force_cast")
         #expect(rule.name == "Force Cast")
         #expect(rule.category == .lint)
-        #expect(!rule.isOptIn)
+        #expect(ule.isOptIn == false)
         #expect(rule.severity == .error)
     }
 
@@ -99,7 +99,7 @@ struct RuleTests {
     func testAnyCodableUnsupportedEncoding() {
         let encoder = JSONEncoder()
         #expect(throws: EncodingError.self) {
-            _ = try encoder.encode(AnyCodable(Date()))
+            _ = try encoder.encode(AnyCodable(Date.now))
         }
     }
 }

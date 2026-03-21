@@ -72,10 +72,10 @@ struct GitBranchDiffServiceTests {
         defer { cleanup(repoDir) }
         try createBranch(at: repoDir, name: "feature-a", config: "disabled_rules:\n  - line_length\n")
 
-        let service = GitBranchDiffService(gitService: GitService())
+        let service = GitBranchDiffService(gitService: GitServiceActor())
         let refs = try await service.listAvailableRefs(at: repoDir)
 
-        #expect(!refs.currentBranch.isEmpty)
+        #expect(efs.currentBranch.isEmpty == false)
         #expect(refs.branches.contains("feature-a"))
     }
 
@@ -89,7 +89,7 @@ struct GitBranchDiffServiceTests {
         try createBranch(at: repoDir, name: "other-branch", config: branchConfig)
 
         let service = GitBranchDiffService(
-            gitService: GitService(),
+            gitService: GitServiceActor(),
             comparisonService: ConfigComparisonService()
         )
         let result = try await service.compareConfigWithBranch(
@@ -111,7 +111,7 @@ struct GitBranchDiffServiceTests {
         try createBranch(at: repoDir, name: "same-config", config: config)
 
         let service = GitBranchDiffService(
-            gitService: GitService(),
+            gitService: GitServiceActor(),
             comparisonService: ConfigComparisonService()
         )
         let result = try await service.compareConfigWithBranch(
@@ -130,7 +130,7 @@ struct GitBranchDiffServiceTests {
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { cleanup(tempDir) }
 
-        let service = GitBranchDiffService(gitService: GitService())
+        let service = GitBranchDiffService(gitService: GitServiceActor())
         await #expect(throws: GitBranchDiffError.self) {
             _ = try await service.listAvailableRefs(at: tempDir)
         }

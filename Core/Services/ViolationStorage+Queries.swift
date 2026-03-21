@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 
-extension ViolationStorage {
+extension ViolationStorageActor {
     func fetchViolations(
         filter: ViolationFilter,
         workspaceId: UUID?

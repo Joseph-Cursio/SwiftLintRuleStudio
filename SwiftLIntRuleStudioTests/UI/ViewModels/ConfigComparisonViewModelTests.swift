@@ -41,7 +41,7 @@ struct ConfigComparisonViewModelTests {
         #expect(viewModel.leftWorkspacePath == workspace.configPath)
         #expect(viewModel.rightWorkspacePath == nil)
         #expect(viewModel.comparisonResult == nil)
-        #expect(!viewModel.isComparing)
+        #expect(iewModel.isComparing == false)
         #expect(viewModel.error == nil)
     }
 
@@ -118,7 +118,7 @@ struct ConfigComparisonViewModelTests {
 
         viewModel.compare()
 
-        #expect(!viewModel.isComparing)
+        #expect(iewModel.isComparing == false)
     }
 
     @Test("compare() clears isComparing after service error")
@@ -130,7 +130,7 @@ struct ConfigComparisonViewModelTests {
 
         viewModel.compare()
 
-        #expect(!viewModel.isComparing)
+        #expect(iewModel.isComparing == false)
     }
 
     @Test("compare() passes the correct label derived from parent directory name")

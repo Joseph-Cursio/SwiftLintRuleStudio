@@ -26,7 +26,7 @@ protocol ViolationStorageProtocol: Sendable {
 
 /// SQLite-based violation storage
 /// Uses Swift concurrency actor for thread-safe database access
-actor ViolationStorage: ViolationStorageProtocol {
+actor ViolationStorageActor: ViolationStorageProtocol {
 
     // MARK: - Properties
 

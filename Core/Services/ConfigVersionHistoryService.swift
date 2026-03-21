@@ -95,7 +95,7 @@ final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
 
         // Create a safety backup of current config before restoring
         if fileManager.fileExists(atPath: configPath.path) {
-            let timestamp = Int(Date().timeIntervalSince1970)
+            let timestamp = Int(Date.now.timeIntervalSince1970)
             let safetyBackupName = "\(configPath.lastPathComponent).\(timestamp).backup"
             let safetyBackupPath = configPath.deletingLastPathComponent()
                 .appendingPathComponent(safetyBackupName)

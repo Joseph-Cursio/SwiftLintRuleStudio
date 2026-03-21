@@ -18,7 +18,7 @@ private struct DependencyContainerKey: EnvironmentKey {
 private struct RuleRegistryKey: EnvironmentKey {
     @MainActor static var defaultValue: RuleRegistry = {
         let cache = CacheManager()
-        let cli = SwiftLintCLI(cacheManager: cache)
+        let cli = SwiftLintCLIActor(cacheManager: cache)
         return RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
     }()
 }

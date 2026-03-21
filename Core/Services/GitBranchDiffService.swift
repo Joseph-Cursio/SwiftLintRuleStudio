@@ -55,7 +55,7 @@ final class GitBranchDiffService: GitBranchDiffServiceProtocol, Sendable {
         gitService: GitServiceProtocol? = nil,
         comparisonService: ConfigComparisonServiceProtocol? = nil
     ) {
-        self.gitService = gitService ?? GitService()
+        self.gitService = gitService ?? GitServiceActor()
         // comparisonService requires @MainActor init, so we store it lazily
         self._comparisonService = comparisonService
     }

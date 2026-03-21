@@ -210,8 +210,8 @@ struct ViolationInspectorNewFeaturesTests {
                 column: 5,
                 severity: .error,
                 message: "Test message",
-                detectedAt: Date(),
-                resolvedAt: Date(),
+                detectedAt: Date.now,
+                resolvedAt: Date.now,
                 suppressed: true,
                 suppressionReason: "Test reason"
             )

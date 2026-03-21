@@ -12,7 +12,7 @@ import Testing
 struct WorkspaceAnalyzerAnalysisTests {
     @Test("WorkspaceAnalyzer analyzes workspace and returns violations")
     func testAnalyzeWorkspace() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
@@ -59,7 +59,7 @@ struct WorkspaceAnalyzerAnalysisTests {
 
     @Test("WorkspaceAnalyzer handles empty violation list")
     func testAnalyzeEmptyViolations() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
@@ -83,7 +83,7 @@ struct WorkspaceAnalyzerAnalysisTests {
 
     @Test("WorkspaceAnalyzer parses multiple violations correctly")
     func testParseMultipleViolations() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
@@ -129,7 +129,7 @@ struct WorkspaceAnalyzerAnalysisTests {
 
     @Test("WorkspaceAnalyzer converts file paths to relative paths")
     func testRelativePathConversion() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
@@ -165,7 +165,7 @@ struct WorkspaceAnalyzerAnalysisTests {
 
     @Test("WorkspaceAnalyzer handles missing column in violation")
     func testMissingColumn() async throws {
-        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLI()
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
         let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
 
         let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()

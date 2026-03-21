@@ -2,7 +2,7 @@
 //  ViolationStorageCountTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Count tests for ViolationStorage
+//  Count tests for ViolationStorageActor
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct ViolationStorageCountTests {
-    @Test("ViolationStorage gets violation count")
+    @Test("ViolationStorageActor gets violation count")
     func testGetViolationCount() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()

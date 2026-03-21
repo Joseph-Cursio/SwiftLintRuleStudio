@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 
-extension ViolationStorage {
+extension ViolationStorageActor {
     static func resolveDatabasePath(databasePath: URL?, useInMemory: Bool) throws -> URL {
         if useInMemory {
             return URL(fileURLWithPath: ":memory:")

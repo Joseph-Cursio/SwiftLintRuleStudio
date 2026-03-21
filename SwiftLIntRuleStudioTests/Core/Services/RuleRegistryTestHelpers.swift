@@ -40,7 +40,7 @@ final class HangGate: @unchecked Sendable {
     }
 }
 
-actor MockSwiftLintCLI: SwiftLintCLIProtocol {
+actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
     private let shouldFail: Bool
     private let mockRulesData: Data?
     private var mockLintOutput: Data = Data()
@@ -178,7 +178,7 @@ actor MockSwiftLintCLI: SwiftLintCLIProtocol {
     }
 }
 
-actor RuleDetailsSwiftLintCLI: SwiftLintCLIProtocol {
+actor RuleDetailsSwiftLintCLIActor: SwiftLintCLIProtocol {
     let docs: String
     let detail: String
 

@@ -1,5 +1,5 @@
 //
-//  GitService.swift
+//  GitServiceActor.swift
 //  SwiftLintRuleStudio
 //
 //  Git command execution service for branch diff and version control operations
@@ -45,7 +45,7 @@ enum GitServiceError: LocalizedError, Sendable {
 
 // MARK: - Implementation
 
-actor GitService: GitServiceProtocol {
+actor GitServiceActor: GitServiceProtocol {
     private let gitPath = URL(fileURLWithPath: "/usr/bin/git")
     private let timeoutSeconds: UInt64 = 30
 

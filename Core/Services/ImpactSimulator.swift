@@ -70,7 +70,7 @@ class ImpactSimulator {
         baseConfigPath: URL?,
         isOptIn: Bool = false
     ) async throws -> RuleImpactResult {
-        let startTime = Date()
+        let startTime = Date.now
 
         // Create temporary config with rule enabled
         let tempConfigPath = try createTemporaryConfig(
@@ -101,7 +101,7 @@ class ImpactSimulator {
         // Extract affected files
         let affectedFiles = Set(ruleViolations.map { $0.filePath })
 
-        let duration = Date().timeIntervalSince(startTime)
+        let duration = Date.now.timeIntervalSince(startTime)
 
         return RuleImpactResult(
             ruleId: ruleId,
@@ -128,7 +128,7 @@ class ImpactSimulator {
         optInRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> BatchSimulationResult {
-        let startTime = Date()
+        let startTime = Date.now
         var results: [RuleImpactResult] = []
 
         for (index, ruleId) in ruleIds.enumerated() {
@@ -157,12 +157,12 @@ class ImpactSimulator {
             }
         }
 
-        let duration = Date().timeIntervalSince(startTime)
+        let duration = Date.now.timeIntervalSince(startTime)
 
         return BatchSimulationResult(
             results: results,
             totalDuration: duration,
-            completedAt: Date()
+            completedAt: Date.now
         )
     }
 
@@ -321,7 +321,7 @@ class ImpactSimulator {
                 column: column,
                 severity: severity,
                 message: reason,
-                detectedAt: Date()
+                detectedAt: Date.now
             )
 
             violations.append(violation)

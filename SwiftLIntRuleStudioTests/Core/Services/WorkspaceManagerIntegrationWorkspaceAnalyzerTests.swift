@@ -17,9 +17,9 @@ struct WkspManagerIntegrationAnalyzerTests {
         )
 
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
 
         let mockViolationsJSON = Data("""
         [

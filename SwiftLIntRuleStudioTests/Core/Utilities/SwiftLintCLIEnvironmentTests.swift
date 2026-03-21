@@ -2,7 +2,7 @@
 //  SwiftLintCLIEnvironmentTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Environment and argument builder tests for SwiftLintCLI
+//  Environment and argument builder tests for SwiftLintCLIActor
 //
 
 import Foundation
@@ -10,22 +10,22 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct SwiftLintCLIEnvironmentTests {
-    @Test("SwiftLintCLI buildEnvironment adds Homebrew paths")
+    @Test("SwiftLintCLIActor buildEnvironment adds Homebrew paths")
     func testBuildEnvironmentAddsPaths() {
         let base = ["PATH": "/usr/bin:/bin"]
-        let env = SwiftLintCLI.buildEnvironment(base: base)
+        let env = SwiftLintCLIActor.buildEnvironment(base: base)
         #expect(env["PATH"]?.hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true)
     }
 
-    @Test("SwiftLintCLI buildEnvironment sets default PATH")
+    @Test("SwiftLintCLIActor buildEnvironment sets default PATH")
     func testBuildEnvironmentSetsDefault() {
-        let env = SwiftLintCLI.buildEnvironment(base: [:])
+        let env = SwiftLintCLIActor.buildEnvironment(base: [:])
         #expect(env["PATH"] == "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin")
     }
 
-    @Test("SwiftLintCLI builds shell command with escaping")
+    @Test("SwiftLintCLIActor builds shell command with escaping")
     func testBuildShellCommandEscaping() {
-        let command = SwiftLintCLI.buildShellCommand(
+        let command = SwiftLintCLIActor.buildShellCommand(
             command: "swiftlint",
             arguments: ["rules", "my rule", "path/with space"]
         )
@@ -34,7 +34,7 @@ struct SwiftLintCLIEnvironmentTests {
         #expect(command.contains("'path/with space'"))
     }
 
-    @Test("SwiftLintCLI buildLintArguments includes config when present")
+    @Test("SwiftLintCLIActor buildLintArguments includes config when present")
     func testBuildLintArgumentsIncludesConfig() async throws {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintCLITests", isDirectory: true)
@@ -47,7 +47,7 @@ struct SwiftLintCLIEnvironmentTests {
             FileManager.default.fileExists(atPath: path)
         }
 
-        let arguments = await SwiftLintCLI.buildLintArguments(
+        let arguments = await SwiftLintCLIActor.buildLintArguments(
             configPath: configURL,
             workspacePath: tempDir,
             fileExists: fileExists
@@ -57,7 +57,7 @@ struct SwiftLintCLIEnvironmentTests {
         #expect(arguments.contains(configURL.path))
     }
 
-    @Test("SwiftLintCLI buildLintArguments skips config when missing")
+    @Test("SwiftLintCLIActor buildLintArguments skips config when missing")
     func testBuildLintArgumentsSkipsConfig() async {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintCLITests", isDirectory: true)
@@ -66,13 +66,13 @@ struct SwiftLintCLIEnvironmentTests {
         let configURL = tempDir.appendingPathComponent(".swiftlint.yml")
         let fileExists: SwiftLintFileExists = { _ in false }
 
-        let arguments = await SwiftLintCLI.buildLintArguments(
+        let arguments = await SwiftLintCLIActor.buildLintArguments(
             configPath: configURL,
             workspacePath: tempDir,
             fileExists: fileExists
         )
 
-        #expect(!arguments.contains("--config"))
-        #expect(!arguments.contains(configURL.path))
+        #expect(rguments.contains("--config") == false)
+        #expect(rguments.contains(configURL.path) == false)
     }
 }

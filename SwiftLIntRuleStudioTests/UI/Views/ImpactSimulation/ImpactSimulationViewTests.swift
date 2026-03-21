@@ -52,7 +52,7 @@ struct ImpactSimulationViewTests {
         #expect(hasRuleId)
         #expect(hasSafeText)
         #expect(hasSummary)
-        #expect(!hasNoViolationsText)
+        #expect(asNoViolationsText == false)
     }
 
     @Test("ImpactSimulationView displays rule with violations correctly")
@@ -186,7 +186,7 @@ struct ImpactSimulationViewTests {
             (safeResult.isSafe, safeResult.hasViolations)
         }
         #expect(safeIsSafe)
-        #expect(!safeHasViolations)
+        #expect(afeHasViolations == false)
 
         let unsafeResult = RuleImpactResult(
             ruleId: "unsafe_rule",
@@ -200,7 +200,7 @@ struct ImpactSimulationViewTests {
         let (unsafeIsSafe, unsafeHasViolations) = await MainActor.run {
             (unsafeResult.isSafe, unsafeResult.hasViolations)
         }
-        #expect(!unsafeIsSafe)
+        #expect(nsafeIsSafe == false)
         #expect(unsafeHasViolations)
     }
 }

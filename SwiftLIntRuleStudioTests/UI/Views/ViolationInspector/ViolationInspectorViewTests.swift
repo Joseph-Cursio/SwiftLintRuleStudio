@@ -230,7 +230,7 @@ struct ViolationInspectorViewTests {
                 message: "Test violation message"
             )
             let container = DependencyContainer.createForTesting()
-            let storage = try ViolationStorage(useInMemory: true)
+            let storage = try ViolationStorageActor(useInMemory: true)
             let viewModel = ViolationInspectorViewModel(violationStorage: storage)
 
             viewModel.violations = [violation]

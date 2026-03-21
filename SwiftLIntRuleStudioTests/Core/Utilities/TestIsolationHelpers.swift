@@ -66,7 +66,7 @@ extension DependencyContainer {
         // Create OnboardingManager with isolated UserDefaults if not provided
         let testOnboardingManager = onboardingManager ?? OnboardingManager(userDefaults: testUserDefaults)
 
-        let testViolationStorage = violationStorage ?? (try? ViolationStorage(useInMemory: true))
+        let testViolationStorage = violationStorage ?? (try? ViolationStorageActor(useInMemory: true))
 
         return DependencyContainer(
             ruleRegistry: ruleRegistry,

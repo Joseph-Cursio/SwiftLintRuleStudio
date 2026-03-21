@@ -63,7 +63,7 @@ struct RuleBrowserViewTests {
 
         // Create a mock rule registry with test rules
         let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         #if DEBUG
         if !rules.isEmpty {
@@ -162,7 +162,7 @@ struct RuleBrowserViewTests {
         let result = await Task { @MainActor in
             let cacheManager = CacheManager.createForTesting()
             let ruleRegistry = RuleRegistry(
-                swiftLintCLI: SwiftLintCLI(cacheManager: cacheManager),
+                swiftLintCLI: SwiftLintCLIActor(cacheManager: cacheManager),
                 cacheManager: cacheManager
             )
             let viewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
@@ -263,7 +263,7 @@ struct RuleBrowserViewTests {
 
         let processed = RuleBrowserView.processContentForDisplayForTesting(tableInput)
         #expect(processed.contains("Body text"))
-        #expect(!processed.contains("<table>"))
+        #expect(rocessed.contains("<table>") == false)
 
         let html = RuleBrowserView.convertMarkdownToHTMLForTesting(markdown)
         #expect(html.contains("<h1>Title</h1>"))

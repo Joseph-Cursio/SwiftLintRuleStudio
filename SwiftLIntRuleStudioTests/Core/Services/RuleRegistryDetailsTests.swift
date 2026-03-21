@@ -23,7 +23,7 @@ struct RuleRegistryDetailsTests {
 
         Configuration:
         """
-        let cli = RuleDetailsSwiftLintCLI(docs: "", detail: detail)
+        let cli = RuleDetailsSwiftLintCLIActor(docs: "", detail: detail)
         let rule = try await RuleRegistry.fetchRuleDetailsHelper(
             identifier: "example_rule",
             category: .style,
@@ -59,7 +59,7 @@ struct RuleRegistryDetailsTests {
         ```
         """
         let detail = "Example Rule (example_rule): Example description"
-        let cli = RuleDetailsSwiftLintCLI(docs: docs, detail: detail)
+        let cli = RuleDetailsSwiftLintCLIActor(docs: docs, detail: detail)
         let rule = try await RuleRegistry.fetchRuleDetailsHelper(
             identifier: "example_rule",
             category: .style,

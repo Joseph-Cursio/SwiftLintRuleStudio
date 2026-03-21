@@ -1,6 +1,6 @@
 import Foundation
 
-extension SwiftLintCLI {
+extension SwiftLintCLIActor {
     private static let docFileReadAttempts = 20
 
     func generateDocsForRule(ruleId: String) async throws -> String {

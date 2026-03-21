@@ -22,7 +22,7 @@ struct ImpactSimulatorSingleRuleTests {
         )
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: [])
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: [])
 
         let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.simulateRule(
@@ -35,7 +35,7 @@ struct ImpactSimulatorSingleRuleTests {
         #expect(result.ruleId == "test_rule")
         #expect(result.violationCount == 0)
         #expect(result.isSafe)
-        #expect(!result.hasViolations)
+        #expect(esult.hasViolations == false)
         #expect(result.affectedFiles.isEmpty)
     }
 
@@ -62,7 +62,7 @@ struct ImpactSimulatorSingleRuleTests {
         ]
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: violations)
 
         let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.simulateRule(
@@ -74,7 +74,7 @@ struct ImpactSimulatorSingleRuleTests {
 
         #expect(result.ruleId == "test_rule")
         #expect(result.violationCount == 1)
-        #expect(!result.isSafe)
+        #expect(esult.isSafe == false)
         #expect(result.hasViolations)
         #expect(result.affectedFiles.count == 1)
     }
@@ -96,7 +96,7 @@ struct ImpactSimulatorSingleRuleTests {
         ]
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: violations)
 
         let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.simulateRule(

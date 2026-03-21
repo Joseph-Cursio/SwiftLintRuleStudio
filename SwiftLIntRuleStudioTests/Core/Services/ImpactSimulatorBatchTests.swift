@@ -37,7 +37,7 @@ struct ImpactSimulatorBatchTests {
         ]
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: violations)
 
         let batchResult = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.simulateRules(
@@ -66,7 +66,7 @@ struct ImpactSimulatorBatchTests {
         )
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: [])
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: [])
 
         let progressValues = try await ImpactSimulatorTestHelpers.withImpactSimulator(
             swiftLintCLI: mockCLI
@@ -105,7 +105,7 @@ struct ImpactSimulatorBatchTests {
         )
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: [])
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: [])
 
         let results = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.findSafeRules(
@@ -136,7 +136,7 @@ struct ImpactSimulatorBatchTests {
         ]
 
         let workspace = Workspace(path: tempDir)
-        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLI(violations: violations)
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: violations)
 
         let results = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.findSafeRules(
@@ -147,6 +147,6 @@ struct ImpactSimulatorBatchTests {
         }
 
         #expect(results.contains("rule2"))
-        #expect(!results.contains("rule1"))
+        #expect(esults.contains("rule1") == false)
     }
 }

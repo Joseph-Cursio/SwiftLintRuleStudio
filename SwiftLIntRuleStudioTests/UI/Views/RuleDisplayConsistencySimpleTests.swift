@@ -55,7 +55,7 @@ struct RuleDisplayConsistencySimpleTests {
         let rule = await makeTestRule(id: "test_rule", name: "Test Rule", isEnabled: false)
         // Extract value to avoid Swift 6 false positive
         let isEnabled = await MainActor.run { rule.isEnabled }
-        #expect(!isEnabled)
+        #expect(sEnabled == false)
     }
 
     // MARK: - RuleDetailView Initialization Tests

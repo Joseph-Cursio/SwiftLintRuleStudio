@@ -2,14 +2,14 @@
 //  ViolationStorageSQLTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  SQL error tests for ViolationStorage
+//  SQL error tests for ViolationStorageActor
 //
 
 import Testing
 @testable import SwiftLIntRuleStudio
 
 struct ViolationStorageSQLTests {
-    @Test("ViolationStorage executeSQL throws when database is closed")
+    @Test("ViolationStorageActor executeSQL throws when database is closed")
     func testExecuteSQLDatabaseClosed() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         await storage.closeDatabase()
@@ -19,7 +19,7 @@ struct ViolationStorageSQLTests {
         }
     }
 
-    @Test("ViolationStorage executeSQL throws on invalid SQL")
+    @Test("ViolationStorageActor executeSQL throws on invalid SQL")
     func testExecuteSQLInvalidSQL() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
 
@@ -28,7 +28,7 @@ struct ViolationStorageSQLTests {
         }
     }
 
-    @Test("ViolationStorage executeSQL throws on step error")
+    @Test("ViolationStorageActor executeSQL throws on step error")
     func testExecuteSQLStepError() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
 

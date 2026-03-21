@@ -37,7 +37,7 @@ struct ViolationListItemTests {
             column: column,
             severity: severity,
             message: message,
-            detectedAt: Date(),
+            detectedAt: Date.now,
             resolvedAt: resolvedAt,
             suppressed: suppressed
         )

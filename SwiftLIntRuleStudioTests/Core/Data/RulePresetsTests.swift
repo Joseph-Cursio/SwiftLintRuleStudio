@@ -75,7 +75,7 @@ struct RulePresetsTests {
 
         #expect(preset.name == expectation.expectedName)
         #expect(preset.category == expectation.expectedCategory)
-        #expect(!preset.ruleIds.isEmpty)
+        #expect(reset.ruleIds.isEmpty == false)
         for ruleId in expectation.expectedRuleIds {
             #expect(preset.ruleIds.contains(ruleId), "\(expectation.presetId) preset should contain \(ruleId)")
         }
@@ -108,7 +108,7 @@ struct RulePresetsTests {
     @Test("Can get rule IDs for preset")
     func testRuleIdsForPreset() {
         let performanceRules = RulePresets.ruleIds(for: "performance")
-        #expect(!performanceRules.isEmpty)
+        #expect(erformanceRules.isEmpty == false)
         #expect(performanceRules.contains("reduce_into"))
 
         let unknownRules = RulePresets.ruleIds(for: "nonexistent")
@@ -128,11 +128,11 @@ struct RulePresetsTests {
 
     @Test("All preset categories have icons")
     func testPresetCategoryIcons() {
-        #expect(!RulePreset.PresetCategory.performance.icon.isEmpty)
-        #expect(!RulePreset.PresetCategory.swiftUI.icon.isEmpty)
-        #expect(!RulePreset.PresetCategory.concurrency.icon.isEmpty)
-        #expect(!RulePreset.PresetCategory.codeStyle.icon.isEmpty)
-        #expect(!RulePreset.PresetCategory.documentation.icon.isEmpty)
+        #expect(ulePreset.PresetCategory.performance.icon.isEmpty == false)
+        #expect(ulePreset.PresetCategory.swiftUI.icon.isEmpty == false)
+        #expect(ulePreset.PresetCategory.concurrency.icon.isEmpty == false)
+        #expect(ulePreset.PresetCategory.codeStyle.icon.isEmpty == false)
+        #expect(ulePreset.PresetCategory.documentation.icon.isEmpty == false)
     }
 
     // MARK: - Codable Tests
@@ -159,21 +159,21 @@ struct RulePresetsTests {
     @Test("All presets have non-empty descriptions")
     func testPresetsHaveDescriptions() {
         for preset in RulePresets.allPresets {
-            #expect(!preset.description.isEmpty, "Preset \(preset.id) has empty description")
+            #expect(reset.description.isEmpty, "Preset \(preset.id) has empty description" == false)
         }
     }
 
     @Test("All presets have valid SF Symbol icons")
     func testPresetsHaveValidIcons() {
         for preset in RulePresets.allPresets {
-            #expect(!preset.icon.isEmpty, "Preset \(preset.id) has empty icon")
+            #expect(reset.icon.isEmpty, "Preset \(preset.id) has empty icon" == false)
         }
     }
 
     @Test("All presets have at least one rule")
     func testPresetsHaveRules() {
         for preset in RulePresets.allPresets {
-            #expect(!preset.ruleIds.isEmpty, "Preset \(preset.id) has no rules")
+            #expect(reset.ruleIds.isEmpty, "Preset \(preset.id) has no rules" == false)
         }
     }
 

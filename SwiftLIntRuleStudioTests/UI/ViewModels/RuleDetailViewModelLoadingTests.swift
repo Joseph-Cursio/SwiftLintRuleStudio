@@ -76,7 +76,7 @@ struct RuleDetailViewModelLoadingTests {
         }
 
         let isEnabled = await MainActor.run { viewModel.isEnabled }
-        #expect(!isEnabled)
+        #expect(sEnabled == false)
     }
 
     @Test("RuleDetailViewModel honors only_rules when loading config")
@@ -131,7 +131,7 @@ struct RuleDetailViewModelLoadingTests {
             (viewModel.isEnabled, viewModel.severity, rule.defaultSeverity)
         }
 
-        #expect(!isEnabled)
+        #expect(sEnabled == false)
         #expect(severity == defaultSeverity)
     }
 

@@ -2,7 +2,7 @@
 //  ViolationStorageWorkspaceTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Workspace-related tests for ViolationStorage
+//  Workspace-related tests for ViolationStorageActor
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct ViolationStorageWorkspaceTests {
-    @Test("ViolationStorage deletes violations for workspace")
+    @Test("ViolationStorageActor deletes violations for workspace")
     func testDeleteViolations() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspace1 = UUID()
@@ -31,7 +31,7 @@ struct ViolationStorageWorkspaceTests {
         #expect(fetched2.count == 1)
     }
 
-    @Test("ViolationStorage deletes old violations before storing new ones")
+    @Test("ViolationStorageActor deletes old violations before storing new ones")
     func testStoreViolationsDeletesOldOnes() async throws {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()
@@ -57,8 +57,8 @@ struct ViolationStorageWorkspaceTests {
         #expect(secondFetched.allSatisfy { $0.ruleID == "rule4" || $0.ruleID == "rule5" })
         #expect(secondFetched.contains { $0.ruleID == "rule4" })
         #expect(secondFetched.contains { $0.ruleID == "rule5" })
-        #expect(!secondFetched.contains { $0.ruleID == "rule1" })
-        #expect(!secondFetched.contains { $0.ruleID == "rule2" })
-        #expect(!secondFetched.contains { $0.ruleID == "rule3" })
+        #expect(econdFetched.contains { $0.ruleID == "rule1" } == false)
+        #expect(econdFetched.contains { $0.ruleID == "rule2" } == false)
+        #expect(econdFetched.contains { $0.ruleID == "rule3" } == false)
     }
 }

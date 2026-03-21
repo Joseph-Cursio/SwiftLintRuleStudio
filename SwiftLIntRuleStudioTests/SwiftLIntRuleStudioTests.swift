@@ -13,7 +13,7 @@ import Testing
 extension Tag {
     /// Tests that exercise filtering/search logic
     @Tag static var filtering: Self
-    /// Tests that exercise ViolationStorage (SQLite persistence)
+    /// Tests that exercise ViolationStorageActor (SQLite persistence)
     @Tag static var storage: Self
     /// Tests that exercise ImpactSimulator rule simulation
     @Tag static var simulation: Self

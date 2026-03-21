@@ -2,7 +2,7 @@
 //  SwiftLintCLILintCommandTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Lint command tests for SwiftLintCLI
+//  Lint command tests for SwiftLintCLIActor
 //
 
 import Foundation
@@ -10,9 +10,9 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct SwiftLintCLILintCommandTests {
-    @Test("SwiftLintCLI executeLintCommand builds arguments")
+    @Test("SwiftLintCLIActor executeLintCommand builds arguments")
     func testExecuteLintCommandArguments() async throws {
-        let recorder = CommandRecorder()
+        let recorder = CommandRecorderActor()
         let runner: SwiftLintCommandRunner = { command, arguments in
             await recorder.record(command, arguments)
             return (Data("[]".utf8), Data())
@@ -27,7 +27,7 @@ struct SwiftLintCLILintCommandTests {
         try Data("rules: {}".utf8).write(to: configURL)
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         _ = try await cli.executeLintCommand(configPath: configURL, workspacePath: tempDir)
 
         let calls = await recorder.calls
@@ -39,9 +39,9 @@ struct SwiftLintCLILintCommandTests {
         #expect(calls.first?.1.last == tempDir.path)
     }
 
-    @Test("SwiftLintCLI executeLintCommand skips missing config")
+    @Test("SwiftLintCLIActor executeLintCommand skips missing config")
     func testExecuteLintCommandSkipsMissingConfig() async throws {
-        let recorder = CommandRecorder()
+        let recorder = CommandRecorderActor()
         let runner: SwiftLintCommandRunner = { command, arguments in
             await recorder.record(command, arguments)
             return (Data("[]".utf8), Data())
@@ -54,7 +54,7 @@ struct SwiftLintCLILintCommandTests {
 
         let missingConfigURL = tempDir.appendingPathComponent(".swiftlint.yml")
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         _ = try await cli.executeLintCommand(configPath: missingConfigURL, workspacePath: tempDir)
 
         let calls = await recorder.calls

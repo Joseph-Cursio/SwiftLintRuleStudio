@@ -46,7 +46,7 @@ struct ContentViewTests {
         let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
 
         let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let dependencies = DependencyContainer.createForTesting(
             userDefaults: userDefaults,

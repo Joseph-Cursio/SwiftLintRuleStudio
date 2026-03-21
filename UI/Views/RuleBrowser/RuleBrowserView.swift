@@ -141,7 +141,7 @@ extension RuleBrowserView {
     /// These methods do not use the registry or viewModel, so any registry suffices.
     @MainActor private static func makeTestingInstance() -> RuleBrowserView {
         let cacheManager = CacheManager()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let registry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         return RuleBrowserView(ruleRegistry: registry)
     }
@@ -170,7 +170,7 @@ extension RuleBrowserView {
 
 #Preview {
     let cacheManager = CacheManager()
-    let swiftLintCLI = SwiftLintCLI(cacheManager: CacheManager())
+    let swiftLintCLI = SwiftLintCLIActor(cacheManager: CacheManager())
     let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
     let container = DependencyContainer(
         ruleRegistry: ruleRegistry,

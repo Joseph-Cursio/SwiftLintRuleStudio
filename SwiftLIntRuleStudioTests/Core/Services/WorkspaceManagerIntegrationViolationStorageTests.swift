@@ -5,13 +5,13 @@ import Testing
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
 struct WkspManagerIntegrationStorageTests {
-    @Test("WorkspaceManager works with ViolationStorage")
-    func testWorkspaceManagerWithViolationStorage() async throws {
+    @Test("WorkspaceManager works with ViolationStorageActor")
+    func testWorkspaceManagerWithViolationStorageActor() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
 
         let workspace = try await WorkspaceManagerIntegrationTestHelpers.withWorkspaceManager { manager in
@@ -47,7 +47,7 @@ struct WkspManagerIntegrationStorageTests {
         #expect(fetched.contains { $0.ruleID == "test_rule_2" })
     }
 
-    @Test("ViolationStorage isolates violations by workspace")
+    @Test("ViolationStorageActor isolates violations by workspace")
     func testViolationStorageIsolatesByWorkspace() async throws {
         let tempDir1 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         let tempDir2 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
@@ -57,7 +57,7 @@ struct WkspManagerIntegrationStorageTests {
         }
 
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
 
         let workspace1 = try await WorkspaceManagerIntegrationTestHelpers.withWorkspaceManager { manager in

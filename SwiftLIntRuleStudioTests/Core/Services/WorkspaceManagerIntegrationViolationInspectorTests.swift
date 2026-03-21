@@ -11,7 +11,7 @@ struct WkspManagerIntegrationVITests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
         let viewModel = await MainActor.run {
             ViolationInspectorViewModel(violationStorage: storage)
@@ -52,9 +52,9 @@ struct WkspManagerIntegrationVITests {
         )
 
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
 
         let mockViolationsJSON = Data("""
         [
@@ -104,7 +104,7 @@ struct WkspManagerIntegrationVITests {
         }
 
         let storage = try await Task.detached {
-            try await ViolationStorage(useInMemory: true)
+            try await ViolationStorageActor(useInMemory: true)
         }.value
         let viewModel = await MainActor.run {
             ViolationInspectorViewModel(violationStorage: storage)

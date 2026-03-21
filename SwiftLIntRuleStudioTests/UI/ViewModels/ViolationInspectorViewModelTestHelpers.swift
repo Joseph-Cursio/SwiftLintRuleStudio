@@ -22,7 +22,7 @@ enum ViolationInspectorViewModelTestHelpers {
         line: Int = 10,
         severity: Severity = .warning,
         message: String = "Test violation",
-        detectedAt: Date = Date(),
+        detectedAt: Date = Date.now,
         suppressed: Bool = false
     ) -> Violation {
         Violation(
@@ -47,7 +47,7 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
 
     init(mockStorage: MockViolationStorageForViewModel) {
         self.mockStorage = mockStorage
-        let mockCLI = MockSwiftLintCLI()
+        let mockCLI = MockSwiftLintCLIActor()
         super.init(swiftLintCLI: mockCLI, violationStorage: mockStorage)
     }
 
@@ -67,8 +67,8 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
             violations: mockViolations,
             filesAnalyzed: Set(mockViolations.map { $0.filePath }).count,
             duration: 0.1,
-            startedAt: Date(),
-            completedAt: Date()
+            startedAt: Date.now,
+            completedAt: Date.now
         )
     }
 }
@@ -134,7 +134,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
                 severity: violation.severity,
                 message: violation.message,
                 detectedAt: violation.detectedAt,
-                resolvedAt: Date(),
+                resolvedAt: Date.now,
                 suppressed: violation.suppressed,
                 suppressionReason: violation.suppressionReason
             )

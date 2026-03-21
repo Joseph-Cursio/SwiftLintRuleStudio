@@ -17,7 +17,7 @@ struct RuleRegistryTableParsingTests {
             "| force_cast | no | no | yes | lint | no | no | |"
         ])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -26,7 +26,7 @@ struct RuleRegistryTableParsingTests {
         let rule = try #require(rules.first, "Expected exactly one parsed rule")
         #expect(rule.id == "force_cast")
         #expect(rule.category == .lint)
-        #expect(!rule.isOptIn)
+        #expect(ule.isOptIn == false)
     }
 
     @Test("RuleRegistry parses table format with minimal fields")
@@ -36,7 +36,7 @@ struct RuleRegistryTableParsingTests {
             "| simple_rule | no | no | yes | style | no | no | |"
         ])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -45,7 +45,7 @@ struct RuleRegistryTableParsingTests {
         let rule = try #require(rules.first, "Expected exactly one parsed rule")
         #expect(rule.id == "simple_rule")
         #expect(rule.category == .style)
-        #expect(!rule.isOptIn)
+        #expect(ule.isOptIn == false)
     }
 
     @Test("RuleRegistry maps all category types correctly")
@@ -60,7 +60,7 @@ struct RuleRegistryTableParsingTests {
             "| unknown_rule | no | no | yes | unknown_category | no | no | |"
         ])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -83,7 +83,7 @@ struct RuleRegistryTableParsingTests {
             "| mixed_case_rule | no | no | yes | LiNt | no | no | |"
         ])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -103,7 +103,7 @@ struct RuleRegistryTableParsingTests {
             "| missing_opt_in | no | no | yes | style | no | no | |"
         ])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -111,8 +111,8 @@ struct RuleRegistryTableParsingTests {
 
         try #require(rules.count == 3, "Expected 3 rules for opt-in parsing")
         #expect(rules[0].isOptIn)
-        #expect(!rules[1].isOptIn)
-        #expect(!rules[2].isOptIn)
+        #expect(ules[1].isOptIn == false)
+        #expect(ules[2].isOptIn == false)
     }
 
     @Test("RuleRegistry parses multiple rules")
@@ -124,7 +124,7 @@ struct RuleRegistryTableParsingTests {
             "| rule3 | no | no | yes | metrics | no | no | |"
         ])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: tableData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -141,7 +141,7 @@ struct RuleRegistryTableParsingTests {
     func testParseEmptyTable() async {
         let emptyTable = makeRulesTableData(rows: [])
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: emptyTable)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: emptyTable)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 
@@ -155,7 +155,7 @@ struct RuleRegistryTableParsingTests {
     func testParseInvalidTable() async {
         let invalidData = Data("not valid table format".utf8)
 
-        let mockCLI = MockSwiftLintCLI(mockRulesData: invalidData)
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: invalidData)
         let mockCache = MockCacheManager()
         let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
 

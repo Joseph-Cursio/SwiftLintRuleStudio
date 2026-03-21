@@ -2,7 +2,7 @@
 //  SwiftLintCLIErrorAndVersionTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Error and version tests for SwiftLintCLI
+//  Error and version tests for SwiftLintCLIActor
 //
 
 import Foundation
@@ -22,26 +22,26 @@ struct SwiftLintCLIErrorAndVersionTests {
         #expect(executionError.errorDescription?.contains("Test error") == true)
     }
 
-    @Test("SwiftLintCLI getVersion uses command runner output")
+    @Test("SwiftLintCLIActor getVersion uses command runner output")
     func testGetVersionUsesRunner() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in
             (Data("1.2.3\n".utf8), Data())
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let version = try await cli.getVersion()
         #expect(version == "1.2.3")
     }
 
-    @Test("SwiftLintCLI getVersion throws on invalid output")
+    @Test("SwiftLintCLIActor getVersion throws on invalid output")
     func testGetVersionInvalidOutput() async {
         let runner: SwiftLintCommandRunner = { _, _ in
             (Data([0xFF, 0xFE]), Data())
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
 
         do {
             _ = try await cli.getVersion()

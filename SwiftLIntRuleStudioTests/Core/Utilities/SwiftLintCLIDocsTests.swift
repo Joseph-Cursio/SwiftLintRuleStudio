@@ -2,7 +2,7 @@
 //  SwiftLintCLIDocsTests.swift
 //  SwiftLIntRuleStudioTests
 //
-//  Docs generation tests for SwiftLintCLI
+//  Docs generation tests for SwiftLintCLIActor
 //
 
 import Foundation
@@ -10,7 +10,7 @@ import Testing
 @testable import SwiftLIntRuleStudio
 
 struct SwiftLintCLIDocsTests {
-    @Test("SwiftLintCLI generateDocsForRule uses cached docs")
+    @Test("SwiftLintCLIActor generateDocsForRule uses cached docs")
     func testGenerateDocsUsesCache() async throws {
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
         let docsDir = FileManager.default.temporaryDirectory
@@ -32,12 +32,12 @@ struct SwiftLintCLIDocsTests {
             return (Data(), Data())
         }
 
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Cached docs")
     }
 
-    @Test("SwiftLintCLI generateDocsForRule reads existing docs directory")
+    @Test("SwiftLintCLIActor generateDocsForRule reads existing docs directory")
     func testGenerateDocsUsesExistingDocs() async throws {
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
         let ruleId = "existing_rule"
@@ -60,12 +60,12 @@ struct SwiftLintCLIDocsTests {
             return (Data(), Data())
         }
 
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Existing docs")
     }
 
-    @Test("SwiftLintCLI generateDocsForRule creates docs after generate-docs")
+    @Test("SwiftLintCLIActor generateDocsForRule creates docs after generate-docs")
     func testGenerateDocsCreatesDocs() async throws {
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
         let ruleId = "generated_rule"
@@ -86,7 +86,7 @@ struct SwiftLintCLIDocsTests {
             return (Data(), Data())
         }
 
-        let cli = await SwiftLintCLI(cacheManager: cacheManager, commandRunner: runner)
+        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Generated docs")
     }

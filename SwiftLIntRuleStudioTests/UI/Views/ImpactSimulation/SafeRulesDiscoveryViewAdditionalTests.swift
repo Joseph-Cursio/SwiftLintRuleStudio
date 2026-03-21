@@ -108,7 +108,7 @@ struct SafeRulesDiscoveryViewAdditionalTests {
         let batchResult = BatchSimulationResult(
             results: results,
             totalDuration: 3.0,
-            completedAt: Date()
+            completedAt: Date.now
         )
 
         // Extract values to avoid Swift 6 false positives
@@ -134,7 +134,7 @@ struct SafeRulesDiscoveryViewAdditionalTests {
         let batchResult = BatchSimulationResult(
             results: [],
             totalDuration: 0.0,
-            completedAt: Date()
+            completedAt: Date.now
         )
 
         // Extract values to avoid Swift 6 false positives

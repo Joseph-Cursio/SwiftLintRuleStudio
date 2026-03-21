@@ -15,7 +15,7 @@ struct ConfigVersionHistoryViewModelTests {
     // MARK: - Helpers
 
     private func makeBackup(
-        timestamp: Date = Date(),
+        timestamp: Date = Date.now,
         fileSize: Int64 = 512
     ) -> ConfigBackup {
         let path = URL(fileURLWithPath: "/tmp/.swiftlint.yml.\(Int(timestamp.timeIntervalSince1970)).backup")
@@ -49,8 +49,8 @@ struct ConfigVersionHistoryViewModelTests {
         #expect(viewModel.selectedBackup == nil)
         #expect(viewModel.comparisonBackup == nil)
         #expect(viewModel.currentDiff == nil)
-        #expect(!viewModel.isLoading)
-        #expect(!viewModel.showRestoreConfirmation)
+        #expect(iewModel.isLoading == false)
+        #expect(iewModel.showRestoreConfirmation == false)
         #expect(viewModel.backupToRestore == nil)
         #expect(viewModel.error == nil)
     }
@@ -76,7 +76,7 @@ struct ConfigVersionHistoryViewModelTests {
         viewModel.loadBackups()
 
         #expect(viewModel.backups.count == 2)
-        #expect(!viewModel.isLoading)
+        #expect(iewModel.isLoading == false)
         #expect(service.listBackupsCallCount == 1)
     }
 

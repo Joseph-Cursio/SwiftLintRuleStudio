@@ -22,7 +22,7 @@ struct SwiftLintRuleStudioApp: App {
 
     init() {
         let cacheManager = CacheManager()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let container = DependencyContainer(
             ruleRegistry: ruleRegistry, swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)

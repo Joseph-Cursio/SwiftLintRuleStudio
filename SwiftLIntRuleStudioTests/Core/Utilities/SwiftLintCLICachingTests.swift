@@ -2,7 +2,7 @@
 //  SwiftLintCLICachingTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  Integration tests for SwiftLintCLI documentation caching
+//  Integration tests for SwiftLintCLIActor documentation caching
 //
 
 import Foundation
@@ -25,10 +25,10 @@ struct SwiftLintCLICachingTests {
     }
 
     // Helper to create mock SwiftLint CLI that simulates version
-    private func createMockCLIWithVersion(_ version: String, cacheManager: CacheManagerProtocol) -> MockSwiftLintCLI {
-        let mockCLI = MockSwiftLintCLI()
+    private func createMockCLIWithVersion(_ version: String, cacheManager: CacheManagerProtocol) -> MockSwiftLintCLIActor {
+        let mockCLI = MockSwiftLintCLIActor()
         // Override getVersion to return specific version
-        // Note: This requires modifying MockSwiftLintCLI or using a different approach
+        // Note: This requires modifying MockSwiftLintCLIActor or using a different approach
         return mockCLI
     }
 
@@ -117,7 +117,7 @@ struct SwiftLintCLICachingTests {
         try cacheManager.clearDocsCache()
 
         // Directory should be removed
-        #expect(!FileManager.default.fileExists(atPath: testDir.path))
+        #expect(ileManager.default.fileExists(atPath: testDir.path) == false)
         #expect(cacheManager.getCachedDocsDirectory() == nil)
     }
 }

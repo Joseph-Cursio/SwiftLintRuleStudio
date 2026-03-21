@@ -24,12 +24,12 @@ enum WorkspaceAnalyzerTestHelpers {
         }.value
     }
 
-    static func createMockSwiftLintCLI() -> MockSwiftLintCLI {
-        MockSwiftLintCLI()
+    static func createMockSwiftLintCLIActor() -> MockSwiftLintCLIActor {
+        MockSwiftLintCLIActor()
     }
 
     static func setupMockCLI(
-        _ mockCLI: MockSwiftLintCLI,
+        _ mockCLI: MockSwiftLintCLIActor,
         output: Data,
         shouldFail: Bool = false,
         shouldHang: Bool = false

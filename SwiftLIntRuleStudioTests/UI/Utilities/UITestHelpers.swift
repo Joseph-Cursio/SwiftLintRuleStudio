@@ -87,7 +87,7 @@ enum UITestDataFactory {
         column: Int? = 5,
         severity: Severity = .error,
         message: String = "Test violation message",
-        detectedAt: Date = Date(),
+        detectedAt: Date = Date.now,
         resolvedAt: Date? = nil,
         suppressed: Bool = false,
         suppressionReason: String? = nil
@@ -174,7 +174,7 @@ enum UIViewTestHelpers {
     ) -> AnyView {
         let container = dependencyContainer ?? DependencyContainer.createForTesting()
         let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
 
         return AnyView(content
@@ -219,7 +219,7 @@ enum UITestAssertions {
         text: String
     ) throws {
         let inspectable = try view.inspect()
-        #expect(!inspectable.containsText(text), "View should not contain text: \(text)")
+        #expect(nspectable.containsText(text), "View should not contain text: \(text)" == false)
     }
 
     /// Asserts that a view contains a specific view type
@@ -256,8 +256,8 @@ enum UIAsyncTestHelpers {
         interval: TimeInterval = 0.05,
         condition: @escaping () -> Bool
     ) async -> Bool {
-        let startTime = Date()
-        while Date().timeIntervalSince(startTime) < timeout {
+        let startTime = Date.now
+        while Date.now.timeIntervalSince(startTime) < timeout {
             if condition() {
                 return true
             }
@@ -272,8 +272,8 @@ enum UIAsyncTestHelpers {
         interval: TimeInterval = 0.05,
         condition: @escaping () async -> Bool
     ) async -> Bool {
-        let startTime = Date()
-        while Date().timeIntervalSince(startTime) < timeout {
+        let startTime = Date.now
+        while Date.now.timeIntervalSince(startTime) < timeout {
             if await condition() {
                 return true
             }
@@ -289,8 +289,8 @@ enum UIAsyncTestHelpers {
         interval: TimeInterval = 0.05,
         condition: @escaping () -> Bool
     ) async -> Bool {
-        let startTime = Date()
-        while Date().timeIntervalSince(startTime) < timeout {
+        let startTime = Date.now
+        while Date.now.timeIntervalSince(startTime) < timeout {
             if condition() {
                 return true
             }

@@ -88,7 +88,7 @@ struct OnboardingView: View {
 #Preview {
     let onboardingManager = OnboardingManager()
     let workspaceManager = WorkspaceManager()
-    let swiftLintCLI: SwiftLintCLIProtocol = SwiftLintCLI(cacheManager: CacheManager())
+    let swiftLintCLI: SwiftLintCLIProtocol = SwiftLintCLIActor(cacheManager: CacheManager())
 
     return OnboardingView(
         onboardingManager: onboardingManager,

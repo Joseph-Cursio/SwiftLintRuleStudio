@@ -40,7 +40,7 @@ struct OnboardingViewInteractionTests {
 
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
             let cacheManager = CacheManager.createForTesting()
-            let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+            let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
 
             let view = OnboardingView(
                 onboardingManager: onboardingManager,

@@ -34,7 +34,7 @@ struct SidebarViewTests {
     @MainActor
     private func createSidebarView(hasWorkspace: Bool = false) -> ViewResult {
         let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLI(cacheManager: cacheManager)
+        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let dependencies = DependencyContainer.createForTesting(
             ruleRegistry: ruleRegistry,
