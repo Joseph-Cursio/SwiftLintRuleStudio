@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ConfigComparisonView: View {
+    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+
     @State private var viewModel: ConfigComparisonViewModel
 
     init(service: ConfigComparisonServiceProtocol, currentWorkspace: Workspace?) {
@@ -251,7 +253,7 @@ struct ConfigComparisonView: View {
     private var emptyStateView: some View {
         VStack(spacing: 16) {
             Image(systemName: "arrow.left.arrow.right")
-                .font(.system(size: 48))
+                .font(.system(size: iconSizeMedium))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 

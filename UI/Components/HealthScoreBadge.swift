@@ -62,6 +62,8 @@ private struct HealthScoreBadge: View {
 
 /// Larger health score display with ring chart
 struct HealthScoreRing: View {
+    @ScaledMetric(relativeTo: .title) private var gradeFontSize: CGFloat = 32
+
     private let maxScore = 100
 
     let report: ConfigHealthReport
@@ -86,7 +88,7 @@ struct HealthScoreRing: View {
             // Center content
             VStack(spacing: 4) {
                 Text(report.grade.rawValue)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: gradeFontSize, weight: .bold, design: .rounded))
                     .foregroundStyle(gradeColor)
 
                 Text("\(report.score)/\(maxScore)")

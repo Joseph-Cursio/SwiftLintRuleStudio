@@ -9,6 +9,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ViolationInspectorView: View {
+    @ScaledMetric(relativeTo: .title) var iconSizeMedium: CGFloat = 48
+
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @State var viewModel: ViolationInspectorViewModel
 

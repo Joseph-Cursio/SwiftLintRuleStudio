@@ -19,13 +19,13 @@ extension OnboardingView {
     var welcomeStep: some View {
         VStack(spacing: 24) {
             Image(systemName: "sparkles.rectangle.stack")
-                .font(.system(size: 80))
+                .font(.system(size: iconSizeLarge))
                 .foregroundStyle(.blue)
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
                 .accessibilityHidden(true)
 
             Text("Welcome to SwiftLint Rule Studio")
-                .font(.system(size: 32, weight: .bold))
+                .font(.system(size: headingFontSize, weight: .bold))
                 .accessibilityIdentifier("OnboardingWelcomeTitle")
 
             Text("A powerful tool for managing and configuring SwiftLint rules in your Swift projects.")
@@ -60,12 +60,12 @@ extension OnboardingView {
     var swiftLintCheckStep: some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.seal")
-                .font(.system(size: 64))
+                .font(.system(size: iconSizeStandard))
                 .foregroundStyle(swiftLintStatus == .installed(URL(fileURLWithPath: ""), "") ? .green : .orange)
                 .accessibilityHidden(true)
 
             Text("SwiftLint Installation")
-                .font(.system(size: 28, weight: .bold))
+                .font(.system(size: subheadingFontSize, weight: .bold))
 
             Group {
                 switch swiftLintStatus {
@@ -81,7 +81,7 @@ extension OnboardingView {
                 case .installed(let path, let version):
                     VStack(spacing: 16) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 48))
+                            .font(.system(size: iconSizeMedium))
                             .foregroundStyle(.green)
                             .accessibilityHidden(true)
 
@@ -101,7 +101,7 @@ extension OnboardingView {
                 case .notInstalled:
                     VStack(spacing: 20) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 48))
+                            .font(.system(size: iconSizeMedium))
                             .foregroundStyle(.orange)
                             .accessibilityHidden(true)
 
@@ -161,12 +161,12 @@ extension OnboardingView {
     var workspaceSelectionStep: some View {
         VStack(spacing: 16) {
             Image(systemName: "folder.badge.gearshape")
-                .font(.system(size: 64))
+                .font(.system(size: iconSizeStandard))
                 .foregroundStyle(.blue)
                 .accessibilityHidden(true)
 
             Text("Select Your Workspace")
-                .font(.system(size: 28, weight: .bold))
+                .font(.system(size: subheadingFontSize, weight: .bold))
 
             Text("Choose a directory containing your Swift project to get started.")
                 .font(.body)
@@ -190,13 +190,13 @@ extension OnboardingView {
     var completeStep: some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
+                .font(.system(size: iconSizeLarge))
                 .foregroundStyle(.green)
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
                 .accessibilityHidden(true)
 
             Text("You're All Set!")
-                .font(.system(size: 32, weight: .bold))
+                .font(.system(size: headingFontSize, weight: .bold))
 
             Text("""
             SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace.

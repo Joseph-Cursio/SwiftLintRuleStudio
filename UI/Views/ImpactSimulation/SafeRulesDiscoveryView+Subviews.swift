@@ -53,7 +53,7 @@ extension SafeRulesDiscoveryView {
     var emptyStateView: some View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 64))
+                .font(.system(size: iconSizeLarge))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 

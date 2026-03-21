@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct WorkspaceSelectionView: View {
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSizeLarge: CGFloat = 64
+
     var workspaceManager: WorkspaceManager
     @State private var isShowingFilePicker = false
     @State private var errorMessage: String?
@@ -54,7 +56,7 @@ struct WorkspaceSelectionView: View {
     private var headerSection: some View {
         VStack(spacing: 8) {
             Image(systemName: "folder.badge.gearshape")
-                .font(.system(size: 64))
+                .font(.system(size: iconSizeLarge))
                 .foregroundStyle(.blue)
                 .accessibilityHidden(true)
 

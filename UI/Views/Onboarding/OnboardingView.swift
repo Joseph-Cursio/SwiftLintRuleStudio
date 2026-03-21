@@ -12,6 +12,12 @@ struct OnboardingView: View {
     var workspaceManager: WorkspaceManager
     let swiftLintCLI: SwiftLintCLIProtocol
 
+    @ScaledMetric(relativeTo: .largeTitle) var iconSizeLarge: CGFloat = 80
+    @ScaledMetric(relativeTo: .title) var iconSizeMedium: CGFloat = 48
+    @ScaledMetric(relativeTo: .largeTitle) var iconSizeStandard: CGFloat = 64
+    @ScaledMetric(relativeTo: .title) var headingFontSize: CGFloat = 32
+    @ScaledMetric(relativeTo: .title2) var subheadingFontSize: CGFloat = 28
+
     @State var swiftLintStatus: SwiftLintStatus = .checking
     @State var swiftLintPath: URL?
     @State var swiftLintVersion: String?

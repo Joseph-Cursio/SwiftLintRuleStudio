@@ -13,6 +13,8 @@ struct ImpactSimulationView: View {
     let result: RuleImpactResult
     let onEnable: (() -> Void)?
 
+    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -62,7 +64,7 @@ struct ImpactSimulationView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: result.isSafe ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .font(.system(size: 48))
+                    .font(.system(size: iconSizeMedium))
                     .foregroundStyle(result.isSafe ? .green : .orange)
                     .accessibilityLabel(result.isSafe ? "Safe rule" : "Rule has violations")
 

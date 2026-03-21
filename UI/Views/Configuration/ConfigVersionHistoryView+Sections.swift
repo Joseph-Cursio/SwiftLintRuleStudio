@@ -59,6 +59,8 @@ struct ConfigVersionHistoryBackupListView: View {
 }
 
 struct ConfigVersionHistoryDiffDetailView: View {
+    @ScaledMetric(relativeTo: .title) private var iconSizeSmall: CGFloat = 36
+
     let viewModel: ConfigVersionHistoryViewModel
 
     var body: some View {
@@ -111,7 +113,7 @@ struct ConfigVersionHistoryDiffDetailView: View {
     private var emptyStateContent: some View {
         VStack(spacing: 12) {
             Image(systemName: "arrow.left.arrow.right")
-                .font(.system(size: 36))
+                .font(.system(size: iconSizeSmall))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             Text("Select two backups to compare")

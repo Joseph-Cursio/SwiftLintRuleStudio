@@ -11,6 +11,8 @@ struct SafeRulesDiscoveryView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.dismiss) var dismiss
 
+    @ScaledMetric(relativeTo: .largeTitle) var iconSizeLarge: CGFloat = 64
+
     @State var isDiscovering = false
     @State var discoveryProgress: DiscoveryProgress?
     @State var safeRules: [RuleImpactResult] = []

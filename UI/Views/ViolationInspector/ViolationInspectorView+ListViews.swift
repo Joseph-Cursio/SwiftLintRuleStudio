@@ -226,7 +226,7 @@ extension ViolationInspectorView {
     var emptyStateView: some View {
         VStack(spacing: 16) {
             Image(systemName: "checkmark.circle")
-                .font(.system(size: 48))
+                .font(.system(size: iconSizeMedium))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
@@ -253,7 +253,7 @@ extension ViolationInspectorView {
     var emptyDetailView: some View {
         VStack(spacing: 16) {
             Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: 48))
+                .font(.system(size: iconSizeMedium))
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
