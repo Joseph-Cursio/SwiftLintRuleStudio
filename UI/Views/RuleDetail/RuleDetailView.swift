@@ -229,7 +229,7 @@ struct RuleDetailView: View {
     /// main thread only. Calling it inside a SwiftUI body can hit non-main threads during
     /// layout passes and causes "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION".
     @MainActor
-    func rebuildAttributedString() {
+    private func rebuildAttributedString() {
         guard let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty else {
             cachedAttributedString = nil
             return

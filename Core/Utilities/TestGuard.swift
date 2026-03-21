@@ -10,7 +10,7 @@ enum TestGuard {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
     }
 
-    static var shouldSuppressAlerts: Bool {
+    private static var shouldSuppressAlerts: Bool {
         isRunningTests || isUITesting
     }
 

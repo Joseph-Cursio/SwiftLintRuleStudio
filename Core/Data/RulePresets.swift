@@ -92,7 +92,7 @@ enum RulePresets {
     )
 
     /// Concurrency safety rules for Swift's async/await and actors
-    static let concurrencySafety = RulePreset(
+    private static let concurrencySafety = RulePreset(
         id: "concurrency_safety",
         name: "Concurrency Safety",
         description: "Rules to ensure safe async/await usage and actor isolation",
