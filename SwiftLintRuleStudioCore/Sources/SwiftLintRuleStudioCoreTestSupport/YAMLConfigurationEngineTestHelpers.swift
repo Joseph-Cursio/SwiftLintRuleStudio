@@ -4,12 +4,10 @@ import Foundation
 public enum YAMLConfigurationEngineTestHelpers {
     public static func withEngine<T: Sendable>(
         configPath: URL,
-        operation: @MainActor (YAMLConfigurationEngine) throws -> T
-    ) async throws -> T {
-        try await MainActor.run {
-            let engine = YAMLConfigurationEngine(configPath: configPath)
-            return try operation(engine)
-        }
+        operation: (YAMLConfigurationEngine) throws -> T
+    ) throws -> T {
+        let engine = YAMLConfigurationEngine(configPath: configPath)
+        return try operation(engine)
     }
 
     public static func createTempConfigFile(content: String) throws -> URL {

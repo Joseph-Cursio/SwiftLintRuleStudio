@@ -73,7 +73,6 @@ public struct ConfigurationTemplate: Identifiable, Codable, Sendable, Equatable,
 }
 
 /// Protocol for configuration template management
-@MainActor
 public protocol ConfigurationTemplateManagerProtocol {
     /// All built-in templates
     var builtInTemplates: [ConfigurationTemplate] { get }
@@ -107,7 +106,6 @@ public protocol ConfigurationTemplateManagerProtocol {
 }
 
 /// Service for managing configuration templates
-@MainActor
 public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol {
     private let fileManager = FileManager.default
     private let userTemplatesDirectory: URL

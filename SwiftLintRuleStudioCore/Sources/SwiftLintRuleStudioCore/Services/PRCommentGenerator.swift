@@ -9,7 +9,6 @@ import Foundation
 import AppKit
 
 /// Protocol for generating PR comments from configuration diffs
-@MainActor
 public protocol PRCommentGeneratorProtocol {
     /// Generate markdown from a configuration diff
     func generateMarkdown(from diff: YAMLConfigurationEngine.ConfigDiff) -> String
@@ -61,7 +60,6 @@ public struct PRCommentOptions: Sendable {
 }
 
 /// Service for generating markdown PR comments from configuration changes
-@MainActor
 public class PRCommentGenerator: PRCommentGeneratorProtocol {
     private let swiftLintDocsBaseURL = "https://realm.github.io/SwiftLint"
 

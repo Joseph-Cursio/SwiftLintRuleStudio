@@ -10,7 +10,6 @@ import Yams
 
 /// Service for safely editing SwiftLint YAML configuration files
 /// with comment preservation and validation
-@MainActor
 public class YAMLConfigurationEngine {
 
     // MARK: - Types

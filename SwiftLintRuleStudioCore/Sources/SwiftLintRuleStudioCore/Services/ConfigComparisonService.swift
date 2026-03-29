@@ -58,7 +58,6 @@ public struct ConfigComparisonResult: Sendable {
 }
 
 /// Protocol for config comparison service
-@MainActor
 public protocol ConfigComparisonServiceProtocol: Sendable {
     func compare(
         config1: URL,
@@ -69,7 +68,6 @@ public protocol ConfigComparisonServiceProtocol: Sendable {
 }
 
 /// Service for comparing SwiftLint configurations from different workspaces
-@MainActor
 public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
 
     public func compare(

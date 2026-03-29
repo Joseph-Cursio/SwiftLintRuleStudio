@@ -55,7 +55,6 @@ public struct BatchSimulationResult: Sendable {
 }
 
 /// Service for simulating the impact of enabling rules
-@MainActor
 public class ImpactSimulator {
 
     // MARK: - Properties

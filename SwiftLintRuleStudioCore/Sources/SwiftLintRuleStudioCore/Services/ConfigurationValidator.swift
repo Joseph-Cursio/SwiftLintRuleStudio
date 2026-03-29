@@ -86,7 +86,6 @@ public struct ValidationResult: Sendable {
 }
 
 /// Protocol for configuration validation
-@MainActor
 public protocol ConfigurationValidatorProtocol {
     /// Validate a configuration and return detailed results
     func validate(_ config: YAMLConfigurationEngine.YAMLConfig) -> ValidationResult
@@ -99,7 +98,6 @@ public protocol ConfigurationValidatorProtocol {
 }
 
 /// Service for validating SwiftLint configurations in real-time
-@MainActor
 public class ConfigurationValidator: ConfigurationValidatorProtocol {
     private let ruleRegistry: RuleRegistry?
 

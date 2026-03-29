@@ -71,10 +71,8 @@ public final class GitBranchDiffService: GitBranchDiffServiceProtocol, Sendable 
     }
 
     private var resolvedComparisonService: ConfigComparisonServiceProtocol {
-        get async {
-            if let svc = _comparisonService { return svc }
-            return await MainActor.run { ConfigComparisonService() }
-        }
+        if let svc = _comparisonService { return svc }
+        return ConfigComparisonService()
     }
 
     public func listAvailableRefs(at repoPath: URL) async throws -> GitRefs {
@@ -114,14 +112,12 @@ public final class GitBranchDiffService: GitBranchDiffServiceProtocol, Sendable 
 
         let currentConfigPath = repoPath.appendingPathComponent(configRelativePath)
 
-        let svc = await resolvedComparisonService
-        return try await MainActor.run {
-            try svc.compare(
-                config1: currentConfigPath,
-                label1: "Current",
-                config2: branchConfigFile,
-                label2: branch
-            )
-        }
+        let svc = resolvedComparisonService
+        return try svc.compare(
+            config1: currentConfigPath,
+            label1: "Current",
+            config2: branchConfigFile,
+            label2: branch
+        )
     }
 }

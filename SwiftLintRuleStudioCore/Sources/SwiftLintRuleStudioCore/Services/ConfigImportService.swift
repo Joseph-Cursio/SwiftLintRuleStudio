@@ -84,16 +84,12 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         var validationErrors: [String] = []
 
         do {
-            parsedConfig = try await MainActor.run {
-                let engine = YAMLConfigurationEngine(configPath: tempFile)
-                try engine.load()
-                return engine.getConfig()
-            }
+            let engine = YAMLConfigurationEngine(configPath: tempFile)
+            try engine.load()
+            parsedConfig = engine.getConfig()
         } catch {
             // Empty or comment-only YAML: return empty config with validation warning
-            parsedConfig = await MainActor.run {
-                YAMLConfigurationEngine.YAMLConfig()
-            }
+            parsedConfig = YAMLConfigurationEngine.YAMLConfig()
             validationErrors.append("Configuration appears empty - no rules defined.")
         }
 
@@ -102,11 +98,9 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
 
         if let currentPath = currentConfigPath,
            FileManager.default.fileExists(atPath: currentPath.path) {
-            diff = try await MainActor.run {
-                let currentEngine = YAMLConfigurationEngine(configPath: currentPath)
-                try currentEngine.load()
-                return currentEngine.generateDiff(proposedConfig: parsedConfig)
-            }
+            let currentEngine = YAMLConfigurationEngine(configPath: currentPath)
+            try currentEngine.load()
+            diff = currentEngine.generateDiff(proposedConfig: parsedConfig)
         }
 
         // Basic validation (only if no errors already added)
@@ -127,7 +121,6 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         )
     }
 
-    @MainActor
     public func applyImport(preview: ConfigImportPreview, mode: ImportMode, to configPath: URL) throws {
         let engine = YAMLConfigurationEngine(configPath: configPath)
 

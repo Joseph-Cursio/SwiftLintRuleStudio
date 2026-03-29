@@ -154,7 +154,6 @@ public struct HealthRecommendation: Identifiable, Sendable {
 }
 
 /// Protocol for analyzing configuration health
-@MainActor
 public protocol ConfigurationHealthAnalyzerProtocol {
     /// Analyze a configuration and return a health report
     func analyze(
@@ -164,7 +163,6 @@ public protocol ConfigurationHealthAnalyzerProtocol {
 }
 
 /// Service for analyzing SwiftLint configuration health
-@MainActor
 public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
     private let recommendedOptInRules: Set<String> = [
         "explicit_init",

@@ -34,7 +34,6 @@ public struct ConfigBackup: Identifiable, Sendable {
 }
 
 /// Protocol for version history service
-@MainActor
 public protocol ConfigVersionHistoryServiceProtocol {
     func listBackups(for configPath: URL) -> [ConfigBackup]
     func loadBackup(_ backup: ConfigBackup) throws -> String
@@ -47,7 +46,6 @@ public protocol ConfigVersionHistoryServiceProtocol {
 }
 
 /// Service for browsing and restoring configuration version history
-@MainActor
 public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
 
     public func listBackups(for configPath: URL) -> [ConfigBackup] {

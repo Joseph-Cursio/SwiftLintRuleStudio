@@ -11,12 +11,10 @@ import Foundation
 public enum ImpactSimulatorTestHelpers {
     public static func withImpactSimulator<T: Sendable>(
         swiftLintCLI: SwiftLintCLIProtocol,
-        operation: @MainActor @escaping (ImpactSimulator) async throws -> T
+        operation: @escaping (ImpactSimulator) async throws -> T
     ) async throws -> T {
-        return try await Task { @MainActor in
-            let simulator = ImpactSimulator(swiftLintCLI: swiftLintCLI)
-            return try await operation(simulator)
-        }.value
+        let simulator = ImpactSimulator(swiftLintCLI: swiftLintCLI)
+        return try await operation(simulator)
     }
 
     public static func createTempWorkspaceDirectory() throws -> URL {
