@@ -52,7 +52,7 @@ public enum URLConfigFetcherError: LocalizedError, Sendable {
 
 // MARK: - Implementation
 
-public final class URLConfigFetcher: URLConfigFetcherProtocol, @unchecked Sendable {
+public final class URLConfigFetcher: URLConfigFetcherProtocol, Sendable {
     private let session: URLSession
 
     public init(session: URLSession? = nil) {
