@@ -1,5 +1,7 @@
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 enum ViolationInspectorViewModelTestHelpers {
     static func createViolationInspectorViewModel(

@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftLintRuleStudioCore
 
 /// View model for the Rule Browser, managing search and filter state
 @MainActor

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ConfigRecommendationView: View {
     var workspaceManager: WorkspaceManager

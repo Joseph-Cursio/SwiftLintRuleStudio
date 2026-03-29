@@ -1,0 +1,140 @@
+//
+//  DependencyContainer.swift
+//  SwiftLintRuleStudio
+//
+//  Created by joe cursio on 12/24/25.
+//
+
+import Foundation
+import Observation
+
+/// Dependency injection container
+@MainActor
+@Observable
+public class DependencyContainer {
+    public let ruleRegistry: RuleRegistry
+    public let swiftLintCLI: SwiftLintCLIProtocol
+    public let cacheManager: CacheManagerProtocol
+    public let violationStorage: ViolationStorageProtocol
+    public let workspaceAnalyzer: WorkspaceAnalyzer
+    public let workspaceManager: WorkspaceManager
+    public let onboardingManager: OnboardingManager
+    public let impactSimulator: ImpactSimulator
+    public let xcodeIntegrationService: XcodeIntegrationService
+
+    // Phase 1 YAML Configuration Services
+    public let configurationValidator: ConfigurationValidatorProtocol
+    public let configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol
+    public let configurationTemplateManager: ConfigurationTemplateManagerProtocol
+    public let prCommentGenerator: PRCommentGeneratorProtocol
+
+    // Phase 2 YAML Configuration Services
+    public let configVersionHistoryService: ConfigVersionHistoryServiceProtocol
+    public let configComparisonService: ConfigComparisonServiceProtocol
+
+    // Phase 3 YAML Configuration Services
+    public let gitService: GitServiceProtocol
+    public let urlConfigFetcher: URLConfigFetcherProtocol
+    public let versionCompatibilityChecker: VersionCompatibilityCheckerProtocol
+    public let configImportService: ConfigImportServiceProtocol
+    public let gitBranchDiffService: GitBranchDiffServiceProtocol
+    public let migrationAssistant: MigrationAssistantProtocol
+
+    public init(
+        ruleRegistry: RuleRegistry? = nil,
+        swiftLintCLI: SwiftLintCLIProtocol? = nil,
+        cacheManager: CacheManagerProtocol? = nil,
+        violationStorage: ViolationStorageProtocol? = nil,
+        workspaceManager: WorkspaceManager? = nil,
+        onboardingManager: OnboardingManager? = nil,
+        impactSimulator: ImpactSimulator? = nil,
+        xcodeIntegrationService: XcodeIntegrationService? = nil,
+        configurationValidator: ConfigurationValidatorProtocol? = nil,
+        configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol? = nil,
+        configurationTemplateManager: ConfigurationTemplateManagerProtocol? = nil,
+        prCommentGenerator: PRCommentGeneratorProtocol? = nil,
+        configVersionHistoryService: ConfigVersionHistoryServiceProtocol? = nil,
+        configComparisonService: ConfigComparisonServiceProtocol? = nil,
+        gitService: GitServiceProtocol? = nil,
+        urlConfigFetcher: URLConfigFetcherProtocol? = nil,
+        versionCompatibilityChecker: VersionCompatibilityCheckerProtocol? = nil,
+        configImportService: ConfigImportServiceProtocol? = nil,
+        gitBranchDiffService: GitBranchDiffServiceProtocol? = nil,
+        migrationAssistant: MigrationAssistantProtocol? = nil,
+        userDefaults: UserDefaults? = nil
+    ) {
+        let cache = cacheManager ?? CacheManager()
+        let cli = swiftLintCLI ?? SwiftLintCLIActor(cacheManager: cache)
+        let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
+
+        self.ruleRegistry = registry
+        self.swiftLintCLI = cli
+        self.cacheManager = cache
+
+        // Use provided UserDefaults or default to .standard
+        let defaults = userDefaults ?? .standard
+
+        // Initialize workspace manager
+        self.workspaceManager = workspaceManager ?? WorkspaceManager(userDefaults: defaults)
+
+        // Initialize onboarding manager
+        self.onboardingManager = onboardingManager ?? OnboardingManager(userDefaults: defaults)
+
+        // Initialize impact simulator
+        self.impactSimulator = impactSimulator ?? ImpactSimulator(swiftLintCLI: cli)
+
+        // Initialize violation storage
+        if let providedStorage = violationStorage {
+            self.violationStorage = providedStorage
+        } else {
+            do {
+                self.violationStorage = try ViolationStorageActor()
+            } catch {
+                // Fallback: create in-memory storage or handle error
+                fatalError("Failed to initialize violation storage: \(error)")
+            }
+        }
+
+        // Initialize workspace analyzer with file tracker
+        self.workspaceAnalyzer = WorkspaceAnalyzer(
+            swiftLintCLI: cli,
+            violationStorage: self.violationStorage,
+            fileTracker: nil // Will create default file tracker
+        )
+
+        // Initialize Xcode integration service
+        self.xcodeIntegrationService = xcodeIntegrationService
+            ?? XcodeIntegrationService()
+
+        // Initialize Phase 1 YAML Configuration Services
+        self.configurationValidator = configurationValidator
+            ?? ConfigurationValidator(ruleRegistry: registry)
+        self.configurationHealthAnalyzer = configurationHealthAnalyzer
+            ?? ConfigurationHealthAnalyzer()
+        self.configurationTemplateManager = configurationTemplateManager
+            ?? ConfigurationTemplateManager()
+        self.prCommentGenerator = prCommentGenerator
+            ?? PRCommentGenerator()
+
+        // Initialize Phase 2 YAML Configuration Services
+        self.configVersionHistoryService = configVersionHistoryService
+            ?? ConfigVersionHistoryService()
+        self.configComparisonService = configComparisonService
+            ?? ConfigComparisonService()
+
+        // Initialize Phase 3 YAML Configuration Services
+        let git = gitService ?? GitServiceActor()
+        self.gitService = git
+        let fetcher = urlConfigFetcher ?? URLConfigFetcher()
+        self.urlConfigFetcher = fetcher
+        self.versionCompatibilityChecker = versionCompatibilityChecker
+            ?? VersionCompatibilityChecker()
+        self.configImportService = configImportService
+            ?? ConfigImportService(fetcher: fetcher)
+        self.gitBranchDiffService = gitBranchDiffService
+            ?? GitBranchDiffService(gitService: git, comparisonService: self.configComparisonService)
+        self.migrationAssistant = migrationAssistant
+            ?? MigrationAssistant()
+
+    }
+}

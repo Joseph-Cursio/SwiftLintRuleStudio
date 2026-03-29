@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct RuleDetailView: View {
     @State var viewModel: RuleDetailViewModel

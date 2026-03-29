@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 private struct RuleDiscoveryContext {
     let optInRuleIds: Set<String>

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct RuleBrowserSearchAndFilters: View {
     @Binding var searchText: String

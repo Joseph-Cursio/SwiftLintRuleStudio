@@ -1,14 +1,16 @@
 //
 //  RuleDetailViewModelIntegrationErrorTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Error handling integration tests
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailVMIntegrationErrorTests {
     @Test("RuleDetailViewModel handles invalid workspace gracefully")
     func testRuleDetailViewModelHandlesInvalidWorkspace() async throws {

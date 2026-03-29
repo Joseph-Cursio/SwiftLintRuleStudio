@@ -8,7 +8,8 @@
 import Testing
 import SwiftUI
 import ViewInspector
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite("RuleBrowserEmptyState")
 @MainActor

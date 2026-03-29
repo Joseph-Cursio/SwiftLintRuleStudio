@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct RuleBrowserView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry

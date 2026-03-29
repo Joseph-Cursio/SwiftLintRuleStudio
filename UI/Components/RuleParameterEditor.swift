@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct RuleParameterEditor: View {
     let parameters: [RuleParameter]

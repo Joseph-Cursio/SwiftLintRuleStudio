@@ -8,7 +8,9 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // Tests to identify display inconsistencies between RuleListItem and RuleDetailView
 //
@@ -17,6 +19,7 @@ import SwiftUI
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct RuleDisplayConsistencyTests {
 
     // MARK: - Test Data Helpers

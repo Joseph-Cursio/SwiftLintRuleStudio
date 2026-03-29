@@ -8,7 +8,8 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 private func makeTestViolation(
     id: UUID = UUID(),
@@ -45,6 +46,7 @@ private func createViolationDetailView(
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct ViolationDetailViewTests {
     // MARK: - Header Tests
 

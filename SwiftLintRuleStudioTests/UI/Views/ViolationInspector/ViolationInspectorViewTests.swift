@@ -8,12 +8,15 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // Tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct ViolationInspectorViewTests {
 
     // MARK: - Test Data Helpers
@@ -39,6 +42,7 @@ struct ViolationInspectorViewTests {
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views
+    @MainActor
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
 
@@ -301,6 +305,7 @@ struct ViolationInspectorViewTests {
     @Test("ViolationInspectorView integrates with DependencyContainer")
     func testIntegratesWithDependencyContainer() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
+        @MainActor
         struct ViewResult: @unchecked Sendable {
             let view: AnyView
             let container: DependencyContainer

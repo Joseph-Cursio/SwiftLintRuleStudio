@@ -9,9 +9,12 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct RuleDetailViewNewFeaturesTests {
 
     // MARK: - Test Data Helpers

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftLintRuleStudioCore
 
 enum ViolationGroupingOption: String, CaseIterable {
     case none = "None"

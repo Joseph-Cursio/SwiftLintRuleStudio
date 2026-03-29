@@ -1,15 +1,17 @@
 //
 //  RuleDetailViewMarkdownTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Markdown processing tests for RuleDetailView
 //
 
 import SwiftUI
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct RuleDetailViewMarkdownTests {
     @Test("RuleDetailView processes markdown content for display")
     func testRuleDetailViewMarkdownProcessing() async throws {

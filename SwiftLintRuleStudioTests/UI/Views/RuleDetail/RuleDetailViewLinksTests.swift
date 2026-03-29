@@ -1,6 +1,6 @@
 //
 //  RuleDetailViewLinksTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Swift Evolution link tests for RuleDetailView
 //
@@ -8,9 +8,11 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct RuleDetailViewLinksTests {
     @Test("RuleDetailView shows Swift Evolution links")
     func testSwiftEvolutionLinks() async throws {

@@ -3,7 +3,7 @@ import PackageDescription
 
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
-    .defaultIsolation(.mainActor),
+    .defaultIsolation(MainActor.self),
     .enableUpcomingFeature("MemberImportVisibility"),
 ]
 

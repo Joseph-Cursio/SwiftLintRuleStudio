@@ -1,13 +1,15 @@
 //
 //  URLConfigFetcherTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for URLConfigFetcher
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
 @MainActor

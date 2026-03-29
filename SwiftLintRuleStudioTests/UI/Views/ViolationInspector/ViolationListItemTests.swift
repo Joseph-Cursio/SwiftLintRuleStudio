@@ -8,12 +8,15 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // Tests for ViolationListItem component
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct ViolationListItemTests {
 
     // MARK: - Test Data Helpers
@@ -43,6 +46,7 @@ struct ViolationListItemTests {
         )
     }
 
+    @MainActor
     private struct TestHostView: View {
         let violation: Violation
         let container: DependencyContainer
@@ -53,6 +57,7 @@ struct ViolationListItemTests {
         }
     }
 
+    @MainActor
     private struct ViewResult: @unchecked Sendable {
         let view: TestHostView
     }

@@ -8,6 +8,7 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
+import SwiftLintRuleStudioCore
 #endif
 
 struct RuleBrowserListView: View {

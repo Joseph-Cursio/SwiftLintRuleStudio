@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 /// Compact modal picker for selecting a template
 private struct TemplatePickerView: View {

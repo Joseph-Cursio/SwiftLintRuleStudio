@@ -1,13 +1,15 @@
 //
 //  RuleDetailViewModelInitializationTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Initialization tests for RuleDetailViewModel
 //
 
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelInitializationTests {
     @Test("RuleDetailViewModel initializes with rule state")
     func testInitialization() async throws {

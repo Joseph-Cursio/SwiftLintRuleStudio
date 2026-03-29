@@ -1,7 +1,10 @@
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct VIViewModelBulkOpsTests {
     @Test("ViolationInspectorViewModel suppresses selected violations")
     func testSuppressSelectedViolations() async throws {

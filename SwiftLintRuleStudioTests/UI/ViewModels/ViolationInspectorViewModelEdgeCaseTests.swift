@@ -1,7 +1,10 @@
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct VIViewModelEdgeCaseTests {
     @Test("ViolationInspectorViewModel handles empty violation list")
     func testEmptyViolationList() async throws {

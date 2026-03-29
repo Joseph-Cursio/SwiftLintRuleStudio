@@ -1,6 +1,6 @@
 //
-//  SwiftLIntRuleStudioUITests.swift
-//  SwiftLIntRuleStudioUITests
+//  SwiftLintRuleStudioUITests.swift
+//  SwiftLintRuleStudioUITests
 //
 //  Created by joe cursio on 12/24/25.
 //
@@ -8,15 +8,15 @@
 import XCTest
 
 @MainActor
-final class SwiftLIntRuleStudioUITests: XCTestCase {
+final class SwiftLintRuleStudioUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        MainActor.assumeIsolated { SwiftLIntRuleStudioUITests.terminateApp() }
+        MainActor.assumeIsolated { SwiftLintRuleStudioUITests.terminateApp() }
     }
 
     override func tearDownWithError() throws {
-        MainActor.assumeIsolated { SwiftLIntRuleStudioUITests.terminateApp() }
+        MainActor.assumeIsolated { SwiftLintRuleStudioUITests.terminateApp() }
     }
 
     @MainActor private static func terminateApp() {
@@ -193,7 +193,7 @@ final class SwiftLIntRuleStudioUITests: XCTestCase {
 
 // MARK: - Workflow Tests (Workflows 2–11)
 
-extension SwiftLIntRuleStudioUITests {
+extension SwiftLintRuleStudioUITests {
 
     // MARK: - Workflow 2: Rule Browser Search and Filter
 
@@ -287,4 +287,4 @@ extension SwiftLIntRuleStudioUITests {
 }
 
 // MARK: - Workflow 5–11: Additional Workflow Tests
-// (Continued in SwiftLIntRuleStudioUITestsWorkflows.swift)
+// (Continued in SwiftLintRuleStudioUITestsWorkflows.swift)

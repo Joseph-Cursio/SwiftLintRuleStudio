@@ -9,17 +9,21 @@ import Testing
 import ViewInspector
 import SwiftUI
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // Tests for SidebarView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct SidebarViewTests {
 
     // MARK: - Test Data Helpers
 
     // Workaround type to bypass Sendable check for SwiftUI views
+    @MainActor
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
         let dependencies: DependencyContainer

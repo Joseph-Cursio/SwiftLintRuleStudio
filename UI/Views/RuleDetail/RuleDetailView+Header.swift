@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 extension RuleDetailView {
     /// Determines if the short description should be shown (only if it's unique and not in markdown)

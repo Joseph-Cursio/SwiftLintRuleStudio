@@ -9,6 +9,7 @@ import SwiftUI
 #if os(macOS)
 import AppKit
 import UserNotifications
+import SwiftLintRuleStudioCore
 #endif
 
 @main

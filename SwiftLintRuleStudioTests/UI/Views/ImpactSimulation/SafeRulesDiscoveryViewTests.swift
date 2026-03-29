@@ -1,6 +1,6 @@
 //
 //  SafeRulesDiscoveryViewTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for SafeRulesDiscoveryView
 //
@@ -8,7 +8,9 @@
 import Testing
 import SwiftUI
 import ViewInspector
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // swiftlint:disable function_body_length
 
@@ -16,9 +18,11 @@ import ViewInspector
 // to allow parallel test execution
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
+@MainActor
 struct SafeRulesDiscoveryViewTests {
 
     // Workaround type to bypass Sendable check for SwiftUI views
+    @MainActor
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
         let container: DependencyContainer
@@ -358,6 +362,7 @@ final class MockImpactSimulator: ImpactSimulator {
     }
 }
 
+@MainActor
 struct StubSwiftLintCLI: SwiftLintCLIProtocol {
     func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
     func executeRulesCommand() throws -> Data { Data() }

@@ -1,13 +1,16 @@
 //
 //  RuleDetailViewModelLoadingTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Configuration loading tests for RuleDetailViewModel
 //
 
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelLoadingTests {
     @Test("RuleDetailViewModel loads configuration from workspace")
     func testLoadConfiguration() async throws {

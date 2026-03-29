@@ -1,9 +1,12 @@
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
+@MainActor
 struct WkspManagerIntegrationStorageTests {
     @Test("WorkspaceManager works with ViolationStorageActor")
     func testWorkspaceManagerWithViolationStorageActor() async throws {

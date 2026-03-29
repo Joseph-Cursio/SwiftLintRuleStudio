@@ -1,13 +1,14 @@
 //
 //  MigrationAssistantViewModelTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for MigrationAssistantViewModel state management and service delegation
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @MainActor
 struct MigrationAssistantViewModelTests {
@@ -262,6 +263,7 @@ struct MigrationAssistantViewModelTests {
 
 // MARK: - Spies
 
+@MainActor
 private final class SpyMigrationAssistant: MigrationAssistantProtocol, @unchecked Sendable {
     private let planToReturn: MigrationPlan
 

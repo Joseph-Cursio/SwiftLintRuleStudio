@@ -7,7 +7,8 @@
 
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 // MARK: - ViewInspector Extensions
 

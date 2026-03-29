@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ConfigVersionHistoryView: View {
     @State private var viewModel: ConfigVersionHistoryViewModel

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct OnboardingView: View {
     var onboardingManager: OnboardingManager

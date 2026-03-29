@@ -1,13 +1,14 @@
 //
 //  ConfigImportViewModelTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for ConfigImportViewModel state management and service delegation
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @MainActor
 struct ConfigImportViewModelTests {

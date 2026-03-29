@@ -1,13 +1,14 @@
 //
 //  VersionCompatibilityViewModelTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for VersionCompatibilityViewModel state management and service delegation
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @MainActor
 struct VersionCompatibilityViewModelTests {
@@ -229,6 +230,7 @@ struct VersionCompatibilityViewModelTests {
 
 // MARK: - Spies
 
+@MainActor
 private final class SpyCompatibilityChecker: VersionCompatibilityCheckerProtocol, @unchecked Sendable {
     private let reportToReturn: CompatibilityReport
 

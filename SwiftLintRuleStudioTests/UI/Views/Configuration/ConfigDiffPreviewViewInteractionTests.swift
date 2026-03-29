@@ -9,12 +9,14 @@ import Testing
 import ViewInspector
 import SwiftUI
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 // Interaction tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct ConfigDiffPreviewViewInteractionTests {
 
     // MARK: - Test Data Helpers
@@ -55,6 +57,7 @@ struct ConfigDiffPreviewViewInteractionTests {
         }
     }
 
+    @MainActor
     private struct ViewResult: @unchecked Sendable {
         let view: ConfigDiffPreviewView
         let tracker: CallbackTracker

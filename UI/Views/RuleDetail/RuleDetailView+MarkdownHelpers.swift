@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 extension RuleDetailView {
     private func convertDocumentationToPlainText(markdown: String) -> String {

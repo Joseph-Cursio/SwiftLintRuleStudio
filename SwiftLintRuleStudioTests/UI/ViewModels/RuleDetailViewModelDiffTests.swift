@@ -1,13 +1,16 @@
 //
 //  RuleDetailViewModelDiffTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Diff generation tests for RuleDetailViewModel
 //
 
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelDiffTests {
     @Test("RuleDetailViewModel generates diff for new rule")
     func testGenerateDiffNewRule() async throws {

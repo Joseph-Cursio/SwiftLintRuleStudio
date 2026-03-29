@@ -8,6 +8,7 @@
 
 import SwiftUI
 import AppKit
+import SwiftLintRuleStudioCore
 
 /// A SwiftUI view that displays NSAttributedString content using NSTextView,
 /// providing proper control over text margins and insets.

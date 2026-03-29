@@ -1,13 +1,15 @@
 //
 //  RuleBrowserViewModelSyncTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests that Rule.isEnabled syncs with YAML config after changes
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @MainActor
 struct RuleBrowserViewModelSyncTests {

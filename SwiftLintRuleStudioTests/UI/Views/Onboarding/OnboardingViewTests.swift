@@ -8,16 +8,20 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // Tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
+@MainActor
 struct OnboardingViewTests {
 
     // MARK: - Test Data Helpers
 
+    @MainActor
     private struct OnboardingViewResult: @unchecked Sendable {
         let view: AnyView
         let onboardingManager: OnboardingManager

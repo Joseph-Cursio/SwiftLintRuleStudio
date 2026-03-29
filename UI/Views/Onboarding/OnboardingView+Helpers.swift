@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 extension OnboardingView {
     // MARK: - Helper Views

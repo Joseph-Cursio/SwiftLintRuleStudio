@@ -1,14 +1,17 @@
 //
 //  RuleBrowserViewModelBulkTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for bulk rule operations in RuleBrowserViewModel
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleBrowserViewModelBulkTests {
 
     // MARK: - Helpers

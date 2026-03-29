@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 /// Main view for browsing the template library
 private struct TemplateLibraryView: View {

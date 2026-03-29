@@ -8,10 +8,12 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
+@MainActor
 struct ViolationInspectorNewFeaturesTests {
 
     // MARK: - Test Data Helpers

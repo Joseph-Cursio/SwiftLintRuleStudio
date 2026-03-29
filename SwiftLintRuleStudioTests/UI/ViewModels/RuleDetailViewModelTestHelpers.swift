@@ -1,12 +1,14 @@
 //
 //  RuleDetailViewModelTestHelpers.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Helper utilities for RuleDetailViewModel tests
 //
 
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 enum RuleDetailViewModelTestHelpers {
     static func createYAMLConfigurationEngine(configPath: URL) async -> YAMLConfigurationEngine {

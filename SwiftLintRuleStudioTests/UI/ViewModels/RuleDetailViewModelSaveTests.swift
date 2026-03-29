@@ -1,14 +1,17 @@
 //
 //  RuleDetailViewModelSaveTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Save tests for RuleDetailViewModel
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelSaveTests {
     @Test("RuleDetailViewModel saves enabled rule to config")
     func testSaveConfigurationEnableRule() async throws {

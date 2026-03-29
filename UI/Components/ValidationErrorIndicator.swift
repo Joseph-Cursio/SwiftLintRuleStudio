@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 /// Displays validation errors and warnings inline
 private struct ValidationErrorIndicator: View {

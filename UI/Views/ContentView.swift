@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 import UniformTypeIdentifiers
 
 struct ContentView: View {

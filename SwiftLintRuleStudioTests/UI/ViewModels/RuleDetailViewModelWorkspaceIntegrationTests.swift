@@ -1,14 +1,17 @@
 //
 //  RuleDetailViewModelWorkspaceIntegrationTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  WorkspaceManager integration tests
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailVMWorkspaceIntegrationTests {
     @Test("RuleDetailViewModel works with WorkspaceManager")
     func testRuleDetailViewModelWithWorkspaceManager() async throws {
@@ -186,6 +189,7 @@ struct RuleDetailVMWorkspaceIntegrationTests {
     }
 }
 
+@MainActor
 private struct TestError: Error, CustomStringConvertible {
     let message: String
     init(_ message: String) { self.message = message }

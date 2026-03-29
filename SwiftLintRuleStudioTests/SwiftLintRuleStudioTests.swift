@@ -1,12 +1,13 @@
 //
-//  SwiftLIntRuleStudioTests.swift
+//  SwiftLintRuleStudioTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  Created by joe cursio on 12/24/25.
 //
 
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 // MARK: - Shared Tags
 // Use these tags to filter tests in Xcode Test Plans and the test navigator.
@@ -26,7 +27,8 @@ extension Tag {
 }
 
 // Main test suite - individual test files are organized by module
-struct SwiftLIntRuleStudioTests {
+@MainActor
+struct SwiftLintRuleStudioTests {
 
     @Test("Test suite is properly configured")
     func testSuiteConfiguration() {

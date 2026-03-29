@@ -1,14 +1,17 @@
 //
 //  RuleDetailViewModelYAMLIntegrationTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Integration tests with YAMLConfigurationEngine
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelYAMLIntegrationTests {
     @Test("RuleDetailViewModel loads and saves configuration through YAMLConfigurationEngine")
     func testRuleDetailViewModelWithYAMLConfigurationEngine() async throws {

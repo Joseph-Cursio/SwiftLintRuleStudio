@@ -1,13 +1,13 @@
 //
-//  SwiftLIntRuleStudioUITestsLaunchTests.swift
-//  SwiftLIntRuleStudioUITests
+//  SwiftLintRuleStudioUITestsLaunchTests.swift
+//  SwiftLintRuleStudioUITests
 //
 //  Created by joe cursio on 12/24/25.
 //
 
 import XCTest
 
-final class SwiftLIntRuleStudioUITestsLaunchTests: XCTestCase {
+final class SwiftLintRuleStudioUITestsLaunchTests: XCTestCase {
 
     override static var runsForEachTargetApplicationUIConfiguration: Bool {
         true

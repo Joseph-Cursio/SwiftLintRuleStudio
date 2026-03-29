@@ -9,13 +9,16 @@ import Testing
 import ViewInspector
 import SwiftUI
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // Interaction tests for ViolationDetailView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
+@MainActor
 struct ViolationDetailViewInteractionTests {
 
     // MARK: - Test Data Helpers
@@ -46,6 +49,7 @@ struct ViolationDetailViewInteractionTests {
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views
+    @MainActor
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
 
@@ -106,6 +110,7 @@ struct ViolationDetailViewInteractionTests {
         _ = makeTestViolation(suppressed: false)
 
         try await MainActor.run {
+            @MainActor
             struct DialogHost: View {
                 @State var reason: String = ""
                 let onSuppress: (String) -> Void
@@ -204,6 +209,7 @@ struct ViolationDetailViewInteractionTests {
         let tracker = await MainActor.run { CallbackTracker() }
 
         try await MainActor.run {
+            @MainActor
             struct DialogHost: View {
                 @State var reason: String = "Custom suppression reason"
                 let onSuppress: (String) -> Void

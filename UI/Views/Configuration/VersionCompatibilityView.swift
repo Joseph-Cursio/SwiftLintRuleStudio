@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct VersionCompatibilityView: View {
     @State var viewModel: VersionCompatibilityViewModel

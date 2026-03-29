@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ConfigDiffPreviewView: View {
     let diff: YAMLConfigurationEngine.ConfigDiff

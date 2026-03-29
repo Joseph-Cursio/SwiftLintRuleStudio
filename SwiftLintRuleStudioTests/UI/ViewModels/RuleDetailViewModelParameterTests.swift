@@ -1,14 +1,17 @@
 //
 //  RuleDetailViewModelParameterTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Tests for parameter editing in RuleDetailViewModel
 //
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelParameterTests {
 
     // MARK: - Helper

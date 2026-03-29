@@ -1,14 +1,17 @@
 //
 //  RuleDetailViewModelWorkflowIntegrationTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Full workflow integration tests
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailVMWorkflowIntegrationTests {
     @Test("Complete workflow: open workspace -> configure rule -> save -> verify")
     func testCompleteRuleConfigurationWorkflow() async throws {
@@ -209,6 +212,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
         #expect(pending == nil)
     }
 
+    @MainActor
     private struct RuleConfigSnapshot {
         let hasNewRule: Bool
         let newRuleEnabled: Bool?

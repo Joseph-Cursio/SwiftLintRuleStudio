@@ -1,6 +1,6 @@
 //
 //  RuleDetailViewStateTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  State-based rendering tests for RuleDetailView
 //
@@ -8,9 +8,12 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct RuleDetailViewStateTests {
     @Test("RuleDetailView shows pending changes message")
     func testPendingChangesMessage() async throws {

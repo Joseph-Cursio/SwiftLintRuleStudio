@@ -8,9 +8,11 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct CodeBlockTests {
     @Test("CodeBlock renders code text")
     func testCodeBlockText() async throws {

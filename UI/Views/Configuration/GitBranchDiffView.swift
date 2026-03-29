@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct GitBranchDiffView: View {
     @State private var viewModel: GitBranchDiffViewModel

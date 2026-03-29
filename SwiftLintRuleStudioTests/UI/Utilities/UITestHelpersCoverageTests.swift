@@ -8,10 +8,13 @@
 import Testing
 import SwiftUI
 import ViewInspector
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
 // swiftlint:disable:next type_body_length
+@MainActor
 struct UITestHelpersCoverageTests {
 
     @Test("UITestDataFactory creates rules and violations")
@@ -194,6 +197,7 @@ struct UITestHelpersCoverageTests {
     @Test("ViewInspector extensions support common interactions")
     // swiftlint:disable:next function_body_length
     func testViewInspectorExtensions() async throws {
+        @MainActor
         struct ButtonView: View {
             var body: some View {
                 VStack {
@@ -203,6 +207,7 @@ struct UITestHelpersCoverageTests {
             }
         }
 
+        @MainActor
         struct TextFieldView: View {
             @State private var name = ""
             var body: some View {
@@ -210,6 +215,7 @@ struct UITestHelpersCoverageTests {
             }
         }
 
+        @MainActor
         struct PickerView: View {
             @State private var selection = "A"
             var body: some View {
@@ -223,6 +229,7 @@ struct UITestHelpersCoverageTests {
             }
         }
 
+        @MainActor
         struct NavigationLinkView: View {
             @State private var selection: String?
             var body: some View {

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ConfigComparisonView: View {
     @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48

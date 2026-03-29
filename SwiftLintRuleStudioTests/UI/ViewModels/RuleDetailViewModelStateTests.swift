@@ -1,13 +1,16 @@
 //
 //  RuleDetailViewModelStateTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  State update tests for RuleDetailViewModel
 //
 
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailViewModelStateTests {
     @Test("RuleDetailViewModel tracks pending changes when enabled state changes")
     func testUpdateEnabledTracksChanges() async throws {

@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 #Preview {
     let rule = Rule(

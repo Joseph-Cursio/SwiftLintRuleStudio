@@ -1,6 +1,6 @@
 //
 //  RuleDetailViewSectionTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Section rendering tests for RuleDetailView
 //
@@ -8,9 +8,11 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct RuleDetailViewSectionTests {
     @Test("RuleDetailView renders basic sections and empty states")
     func testRuleDetailViewSections() async throws {

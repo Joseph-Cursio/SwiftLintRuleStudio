@@ -8,9 +8,12 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct RuleBrowserViewAdditionalTests {
 
     // MARK: - Test Data Helpers
@@ -42,6 +45,7 @@ struct RuleBrowserViewAdditionalTests {
         )
     }
 
+    @MainActor
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
         let container: DependencyContainer

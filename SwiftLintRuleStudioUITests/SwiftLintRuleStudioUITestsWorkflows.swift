@@ -1,15 +1,15 @@
 //
-//  SwiftLIntRuleStudioUITestsWorkflows.swift
-//  SwiftLIntRuleStudioUITests
+//  SwiftLintRuleStudioUITestsWorkflows.swift
+//  SwiftLintRuleStudioUITests
 //
-//  Additional workflow UI tests (split from SwiftLIntRuleStudioUITests)
+//  Additional workflow UI tests (split from SwiftLintRuleStudioUITests)
 //
 
 import XCTest
 
 // MARK: - Workflow 5–11: Additional Workflow Tests
 
-extension SwiftLIntRuleStudioUITests {
+extension SwiftLintRuleStudioUITests {
 
     // MARK: - Workflow 5: Enable/Disable Rule with Diff Preview
 
@@ -237,7 +237,7 @@ extension SwiftLIntRuleStudioUITests {
 
 // MARK: - Workflow 12–13: Toolbar Tests
 
-extension SwiftLIntRuleStudioUITests {
+extension SwiftLintRuleStudioUITests {
 
     // MARK: - Workflow 12: Context-aware Toolbar Section Switching
 

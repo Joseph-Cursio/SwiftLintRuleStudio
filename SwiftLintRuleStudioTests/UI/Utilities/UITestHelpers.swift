@@ -8,7 +8,9 @@
 import SwiftUI
 import Testing
 import ViewInspector
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 // UserDefaults is passed across actor boundaries in tests; @retroactive silences the
 // "retroactive conformance" warning while keeping the required Sendable conformance.

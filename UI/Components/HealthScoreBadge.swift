@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 /// Compact badge showing the health score
 private struct HealthScoreBadge: View {

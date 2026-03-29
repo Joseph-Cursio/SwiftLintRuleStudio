@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct SidebarView: View {
     @Binding var selection: AppSection?

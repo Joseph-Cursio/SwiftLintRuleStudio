@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ViolationDetailHeaderView: View {
     let violation: Violation

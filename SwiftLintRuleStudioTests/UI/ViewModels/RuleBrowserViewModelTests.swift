@@ -7,7 +7,9 @@
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @MainActor
 struct RuleBrowserViewModelTests {
@@ -28,6 +30,7 @@ struct RuleBrowserViewModelTests {
         return registry
     }
 
+    @MainActor
     private struct RuleSeed {
         let id: String
         let name: String

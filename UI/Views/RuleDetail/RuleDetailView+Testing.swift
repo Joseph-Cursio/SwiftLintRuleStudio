@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 #if DEBUG
 extension RuleDetailView {

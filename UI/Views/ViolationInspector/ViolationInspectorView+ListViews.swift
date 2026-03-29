@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 extension ViolationInspectorView {
     var violationListView: some View {

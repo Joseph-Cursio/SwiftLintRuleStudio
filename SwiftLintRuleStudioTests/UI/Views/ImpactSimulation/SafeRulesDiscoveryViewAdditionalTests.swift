@@ -1,6 +1,6 @@
 //
 //  SafeRulesDiscoveryViewAdditionalTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Additional tests for SafeRulesDiscoveryView (split from SafeRulesDiscoveryViewTests)
 //
@@ -8,9 +8,11 @@
 import Testing
 import SwiftUI
 import ViewInspector
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct SafeRulesDiscoveryViewAdditionalTests {
 
     @Test("SafeRuleRow toggle fires for button and row tap")

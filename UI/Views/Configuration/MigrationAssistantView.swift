@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct MigrationAssistantView: View {
     @State private var viewModel: MigrationAssistantViewModel

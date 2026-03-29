@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct SuppressViolationDialog: View {
     @Binding var reason: String

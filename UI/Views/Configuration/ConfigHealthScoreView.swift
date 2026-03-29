@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 /// Full health report view with score breakdown and recommendations
 private struct ConfigHealthScoreView: View {

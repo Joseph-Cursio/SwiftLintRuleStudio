@@ -1,14 +1,17 @@
 //
 //  SwiftLintCLIReadTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  ReadWithTimeout and readChunks tests for SwiftLintCLIActor
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct SwiftLintCLIReadTests {
     @Test("SwiftLintCLIActor readWithTimeout returns data on time")
     func testReadWithTimeoutSuccess() async throws {

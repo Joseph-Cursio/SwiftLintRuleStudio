@@ -1,6 +1,6 @@
 //
 //  DependencyContainerTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Smoke tests verifying that DependencyContainer wires all services correctly.
 //  These tests guard against regressions where a new service is added to the
@@ -9,7 +9,9 @@
 
 import Testing
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @MainActor
 struct DependencyContainerTests {

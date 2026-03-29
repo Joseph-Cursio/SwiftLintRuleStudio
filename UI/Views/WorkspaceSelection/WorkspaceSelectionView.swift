@@ -8,6 +8,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
+import SwiftLintRuleStudioCore
 
 struct WorkspaceSelectionView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var iconSizeLarge: CGFloat = 64

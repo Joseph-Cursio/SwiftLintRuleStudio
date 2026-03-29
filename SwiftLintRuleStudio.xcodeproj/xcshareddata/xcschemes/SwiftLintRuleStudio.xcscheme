@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "703886462EFC3A3400F2A033"
-               BuildableName = "SwiftLIntRuleStudio.app"
-               BlueprintName = "SwiftLIntRuleStudio"
-               ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+               BuildableName = "SwiftLintRuleStudio.app"
+               BlueprintName = "SwiftLintRuleStudio"
+               ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,9 +29,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "703886552EFC3A3500F2A033"
-               BuildableName = "SwiftLIntRuleStudioTests.xctest"
-               BlueprintName = "SwiftLIntRuleStudioTests"
-               ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+               BuildableName = "SwiftLintRuleStudioTests.xctest"
+               BlueprintName = "SwiftLintRuleStudioTests"
+               ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -43,9 +43,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7038865F2EFC3A3500F2A033"
-               BuildableName = "SwiftLIntRuleStudioUITests.xctest"
-               BlueprintName = "SwiftLIntRuleStudioUITests"
-               ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+               BuildableName = "SwiftLintRuleStudioUITests.xctest"
+               BlueprintName = "SwiftLintRuleStudioUITests"
+               ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -61,9 +61,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "703886462EFC3A3400F2A033"
-            BuildableName = "SwiftLIntRuleStudio.app"
-            BlueprintName = "SwiftLIntRuleStudio"
-            ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+            BuildableName = "SwiftLintRuleStudio.app"
+            BlueprintName = "SwiftLintRuleStudio"
+            ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -72,9 +72,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "703886552EFC3A3500F2A033"
-               BuildableName = "SwiftLIntRuleStudioTests.xctest"
-               BlueprintName = "SwiftLIntRuleStudioTests"
-               ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+               BuildableName = "SwiftLintRuleStudioTests.xctest"
+               BlueprintName = "SwiftLintRuleStudioTests"
+               ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -82,9 +82,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7038865F2EFC3A3500F2A033"
-               BuildableName = "SwiftLIntRuleStudioUITests.xctest"
-               BlueprintName = "SwiftLIntRuleStudioUITests"
-               ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+               BuildableName = "SwiftLintRuleStudioUITests.xctest"
+               BlueprintName = "SwiftLintRuleStudioUITests"
+               ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -104,9 +104,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "703886462EFC3A3400F2A033"
-            BuildableName = "SwiftLIntRuleStudio.app"
-            BlueprintName = "SwiftLIntRuleStudio"
-            ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+            BuildableName = "SwiftLintRuleStudio.app"
+            BlueprintName = "SwiftLintRuleStudio"
+            ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -121,9 +121,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "703886462EFC3A3400F2A033"
-            BuildableName = "SwiftLIntRuleStudio.app"
-            BlueprintName = "SwiftLIntRuleStudio"
-            ReferencedContainer = "container:SwiftLIntRuleStudio.xcodeproj">
+            BuildableName = "SwiftLintRuleStudio.app"
+            BlueprintName = "SwiftLintRuleStudio"
+            ReferencedContainer = "container:SwiftLintRuleStudio.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

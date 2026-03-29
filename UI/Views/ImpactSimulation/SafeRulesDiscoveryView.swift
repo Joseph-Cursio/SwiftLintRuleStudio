@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct SafeRulesDiscoveryView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer

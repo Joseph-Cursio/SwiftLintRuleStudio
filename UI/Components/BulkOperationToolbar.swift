@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct BulkOperationToolbar: View {
     let selectedCount: Int

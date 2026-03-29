@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ConfigImportView: View {
     @State private var viewModel: ConfigImportViewModel

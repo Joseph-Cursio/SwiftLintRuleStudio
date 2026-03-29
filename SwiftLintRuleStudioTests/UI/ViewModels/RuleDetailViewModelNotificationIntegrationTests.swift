@@ -1,14 +1,17 @@
 //
 //  RuleDetailViewModelNotificationIntegrationTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Notification integration tests
 //
 
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
+@MainActor
 struct RuleDetailVMNotificationIntegrationTests {
     @Test("RuleDetailViewModel posts notification when configuration is saved")
     func testRuleDetailViewModelPostsNotification() async throws {

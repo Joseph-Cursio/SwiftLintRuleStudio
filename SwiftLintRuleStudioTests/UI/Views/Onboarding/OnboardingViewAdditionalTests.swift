@@ -1,6 +1,6 @@
 //
 //  OnboardingViewAdditionalTests.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Additional tests for OnboardingView (split from OnboardingViewTests)
 //
@@ -8,9 +8,12 @@
 import Testing
 import ViewInspector
 import SwiftUI
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite(.serialized)
+@MainActor
 struct OnboardingViewAdditionalTests {
 
     // MARK: - Test Data Helpers

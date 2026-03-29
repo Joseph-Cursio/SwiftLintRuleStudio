@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 struct ConfigVersionHistoryEmptyStateView: View {
     var body: some View {

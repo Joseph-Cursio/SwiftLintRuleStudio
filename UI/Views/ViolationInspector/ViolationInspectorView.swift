@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+import SwiftLintRuleStudioCore
 
 struct ViolationInspectorView: View {
     @ScaledMetric(relativeTo: .title) var iconSizeMedium: CGFloat = 48

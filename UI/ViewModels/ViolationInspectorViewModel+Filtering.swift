@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftLintRuleStudioCore
 
 extension ViolationInspectorViewModel {
     func clearFilters() {

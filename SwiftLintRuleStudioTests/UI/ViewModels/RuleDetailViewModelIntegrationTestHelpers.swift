@@ -1,12 +1,14 @@
 //
 //  RuleDetailViewModelIntegrationTestHelpers.swift
-//  SwiftLIntRuleStudioTests
+//  SwiftLintRuleStudioTests
 //
 //  Helper utilities for RuleDetailViewModel integration tests
 //
 
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 enum RuleDetailVMIntegrationHelpers {
     static func createRuleDetailViewModel(

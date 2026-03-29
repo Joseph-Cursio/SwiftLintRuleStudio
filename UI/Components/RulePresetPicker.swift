@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftLintRuleStudioCore
 
 /// A menu-based picker for selecting and applying rule presets
 struct RulePresetPicker: View {

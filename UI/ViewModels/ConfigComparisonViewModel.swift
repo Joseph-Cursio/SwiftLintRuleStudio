@@ -9,6 +9,7 @@ import Foundation
 import Observation
 import AppKit
 import UniformTypeIdentifiers
+import SwiftLintRuleStudioCore
 
 @MainActor
 @Observable

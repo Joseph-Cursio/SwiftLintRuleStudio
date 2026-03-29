@@ -1,5 +1,7 @@
 import Foundation
-@testable import SwiftLIntRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 enum WorkspaceManagerIntegrationTestHelpers {
     static func withContainer<T: Sendable>(
