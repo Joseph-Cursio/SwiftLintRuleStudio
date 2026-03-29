@@ -34,7 +34,7 @@ extension ViolationInspectorViewModel {
         updateFilteredViolations()
 #if os(macOS)
         NSApp.dockTile.badgeLabel = fetched.isEmpty ? nil : "\(fetched.count)"
-        postAnalysisCompleteNotification(count: fetched.count)
+        await postAnalysisCompleteNotification(count: fetched.count)
 #endif
     }
 
@@ -88,7 +88,7 @@ private extension ViolationInspectorViewModel {
     }
 
 #if os(macOS)
-    func postAnalysisCompleteNotification(count: Int) {
+    func postAnalysisCompleteNotification(count: Int) async {
         let content = UNMutableNotificationContent()
         content.title = "Analysis Complete"
         content.body = count == 0
@@ -97,9 +97,7 @@ private extension ViolationInspectorViewModel {
         content.sound = .default
         let request = UNNotificationRequest(
             identifier: UUID().uuidString, content: content, trigger: nil)
-        Task {
-            try? await UNUserNotificationCenter.current().add(request)
-        }
+        try? await UNUserNotificationCenter.current().add(request)
     }
 #endif
 }
