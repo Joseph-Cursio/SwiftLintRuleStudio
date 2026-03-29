@@ -70,7 +70,7 @@ extension ViolationInspectorViewModel {
 private extension ViolationInspectorViewModel {
     func subscribeToAnalyzer(_ analyzer: WorkspaceAnalyzer) {
         analyzer.$isAnalyzing
-            .receive(on: DispatchQueue.main)
+            .receive(on: RunLoop.main)
             .sink { [weak self] analyzing in
                 self?.isAnalyzing = analyzing
             }
