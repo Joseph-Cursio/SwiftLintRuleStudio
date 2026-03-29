@@ -8,7 +8,7 @@ excluded:
 - .swiftpm
 - xcuserdata
 - .xcode
-- SwiftLIntRuleStudio.xcodeproj
+- SwiftLintRuleStudio.xcodeproj
 opt_in_rules:
 - empty_count
 - empty_string

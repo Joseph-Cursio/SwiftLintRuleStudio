@@ -6,7 +6,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 xcodebuild \
-  -scheme SwiftLIntRuleStudio \
+  -scheme SwiftLintRuleStudio \
   -configuration Debug \
   -destination "platform=macOS" \
   test \

@@ -182,7 +182,7 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
             backing: .buffered,
             defer: false
         )
-        window.title = "SwiftLIntRuleStudio"
+        window.title = "SwiftLintRuleStudio"
         window.contentView = hostingView
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)

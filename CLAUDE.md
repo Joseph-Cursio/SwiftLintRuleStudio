@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Build the project (via Xcode command line tools)
-xcodebuild -scheme SwiftLIntRuleStudio -configuration Debug build
+xcodebuild -scheme SwiftLintRuleStudio -configuration Debug build
 
 # Run all tests
-xcodebuild test -scheme SwiftLIntRuleStudio -destination 'platform=macOS'
+xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS'
 
 # Run tests via CI script
 ./scripts/ci_test.sh
@@ -21,7 +21,7 @@ swiftlint
 swiftlint --fix
 
 # Open in Xcode
-open SwiftLIntRuleStudio.xcodeproj
+open SwiftLintRuleStudio.xcodeproj
 ```
 
 Note: This is an Xcode project (not Swift Package Manager). Build and test through Xcode or xcodebuild.
@@ -52,8 +52,8 @@ SwiftLintRuleStudio/
 │   └── Views/                    # SwiftUI views
 ├── Data/                         # Data layer (configurations)
 ├── Assets.xcassets/              # App icons and assets
-├── SwiftLIntRuleStudioTests/     # Unit tests
-└── SwiftLIntRuleStudioUITests/   # UI tests
+├── SwiftLintRuleStudioTests/     # Unit tests
+└── SwiftLintRuleStudioUITests/   # UI tests
 ```
 
 ### Core Services
@@ -132,7 +132,7 @@ Services use protocols for testability:
 ## Testing
 
 - **Framework:** Swift Testing (migrated from XCTest)
-- **Test Location:** `SwiftLIntRuleStudioTests/` and `SwiftLIntRuleStudioUITests/`
+- **Test Location:** `SwiftLintRuleStudioTests/` and `SwiftLintRuleStudioUITests/`
 - **Coverage:** 500+ tests, organized by Core/ and UI/
 - **Isolation:** Tests use isolated UserDefaults, file system, and workspace instances
 

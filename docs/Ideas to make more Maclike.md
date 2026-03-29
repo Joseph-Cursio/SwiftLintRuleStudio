@@ -189,8 +189,8 @@ Allow users to "Open With → SwiftLint Rule Studio" from Finder.
 
 ## Verification
 
-- **Build**: `xcodebuild -scheme SwiftLIntRuleStudio -configuration Debug build`
-- **Tests**: `xcodebuild test -scheme SwiftLIntRuleStudio -destination 'platform=macOS'`
+- **Build**: `xcodebuild -scheme SwiftLintRuleStudio -configuration Debug build`
+- **Tests**: `xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS'`
 - **Manual checks**:
   - Close main window → app stays alive (1.3)
   - Right-click rule row → context menu appears (1.1)

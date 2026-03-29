@@ -1,0 +1,22 @@
+disabled_rules:
+  - "Hardcoded Strings"
+
+rules:
+  "Multiple Types Per File":
+    excluded_paths:
+      - "SwiftLintRuleStudioTests/"
+      - "SwiftLintRuleStudioUITests/"
+  "Print Statement":
+    excluded_paths:
+      - "SwiftLintRuleStudioTests/"
+      - "SwiftLintRuleStudioUITests/"
+  "Law of Demeter":
+    severity: info
+    excluded_paths:
+      - "**/*View.swift"
+  "Inconsistent Styling":
+    severity: info
+  "Magic Number":
+    severity: info
+  "Missing Preview":
+    severity: info

@@ -8,9 +8,9 @@
 			"args": [
 				"test",
 				"-project",
-				"SwiftLIntRuleStudio.xcodeproj",
+				"SwiftLintRuleStudio.xcodeproj",
 				"-scheme",
-				"SwiftLIntRuleStudio",
+				"SwiftLintRuleStudio",
 				"-destination",
 				"platform=iOS Simulator,name=iPhone 14"
 			],
@@ -24,9 +24,9 @@
 			"args": [
 				"test",
 				"-project",
-				"SwiftLIntRuleStudio.xcodeproj",
+				"SwiftLintRuleStudio.xcodeproj",
 				"-scheme",
-				"SwiftLIntRuleStudio",
+				"SwiftLintRuleStudio",
 				"-destination",
 				"platform=iOS Simulator,name=iPhone 14"
 			],
@@ -40,9 +40,9 @@
 			"args": [
 				"test",
 				"-project",
-				"SwiftLIntRuleStudio.xcodeproj",
+				"SwiftLintRuleStudio.xcodeproj",
 				"-scheme",
-				"SwiftLIntRuleStudio",
+				"SwiftLintRuleStudio",
 				"-destination",
 				"platform=macOS"
 			],

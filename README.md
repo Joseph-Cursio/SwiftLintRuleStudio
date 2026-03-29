@@ -49,13 +49,13 @@ SwiftLint Rule Studio calls the SwiftLint CLI under the hood. It works with any 
 ```bash
 git clone https://github.com/yourusername/SwiftLintRuleStudio.git
 cd SwiftLintRuleStudio
-open SwiftLIntRuleStudio.xcodeproj
+open SwiftLintRuleStudio.xcodeproj
 ```
 
 Build and run with **⌘R** in Xcode, or from the command line:
 
 ```bash
-xcodebuild -scheme SwiftLIntRuleStudio -configuration Release build
+xcodebuild -scheme SwiftLintRuleStudio -configuration Release build
 ```
 
 ---
@@ -63,7 +63,7 @@ xcodebuild -scheme SwiftLIntRuleStudio -configuration Release build
 ## Running Tests
 
 ```bash
-xcodebuild test -scheme SwiftLIntRuleStudio -destination 'platform=macOS'
+xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS'
 ```
 
 The test suite uses the [Swift Testing](https://developer.apple.com/xcode/swift-testing/) framework (500+ tests).
