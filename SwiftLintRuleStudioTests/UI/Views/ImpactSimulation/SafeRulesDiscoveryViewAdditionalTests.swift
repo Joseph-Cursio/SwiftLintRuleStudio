@@ -11,7 +11,6 @@ import ViewInspector
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 @MainActor
 struct SafeRulesDiscoveryViewAdditionalTests {
 

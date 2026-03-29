@@ -12,7 +12,6 @@ import ViewInspector
 import SwiftLintRuleStudioCoreTestSupport
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 // swiftlint:disable:next type_body_length
 @MainActor
 struct UITestHelpersCoverageTests {

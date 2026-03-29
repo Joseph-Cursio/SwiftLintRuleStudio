@@ -16,7 +16,6 @@ import SwiftLintRuleStudioCoreTestSupport
 // Interaction tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
-@Suite(.serialized)
 @MainActor
 struct ViolationInspectorViewInteractionTests {
 

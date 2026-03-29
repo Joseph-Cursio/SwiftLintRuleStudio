@@ -15,7 +15,6 @@ import SwiftLintRuleStudioCoreTestSupport
 // Tests for ContentView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
-@Suite(.serialized)
 @MainActor
 struct ContentViewTests {
 

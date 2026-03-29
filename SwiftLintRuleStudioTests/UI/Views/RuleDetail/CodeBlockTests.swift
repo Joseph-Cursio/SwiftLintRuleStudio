@@ -11,7 +11,6 @@ import SwiftUI
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 @MainActor
 struct CodeBlockTests {
     @Test("CodeBlock renders code text")

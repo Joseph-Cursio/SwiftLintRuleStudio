@@ -12,7 +12,6 @@ import SwiftUI
 import SwiftLintRuleStudioCoreTestSupport
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 @MainActor
 struct RuleDetailViewStateTests {
     @Test("RuleDetailView shows pending changes message")

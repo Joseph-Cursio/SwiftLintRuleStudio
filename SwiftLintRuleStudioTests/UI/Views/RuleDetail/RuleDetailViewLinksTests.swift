@@ -11,7 +11,6 @@ import SwiftUI
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 @MainActor
 struct RuleDetailViewLinksTests {
     @Test("RuleDetailView shows Swift Evolution links")

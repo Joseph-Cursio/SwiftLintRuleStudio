@@ -10,7 +10,6 @@ import Testing
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 @MainActor
 struct RuleDetailViewMarkdownTests {
     @Test("RuleDetailView processes markdown content for display")

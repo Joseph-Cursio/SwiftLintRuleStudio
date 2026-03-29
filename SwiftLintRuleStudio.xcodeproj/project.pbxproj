@@ -49,11 +49,6 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		7038864A2EFC3A3400F2A034 /* Core */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Core;
-			sourceTree = "<group>";
-		};
 		7038864B2EFC3A3400F2A035 /* UI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = UI;
@@ -112,7 +107,6 @@
 			children = (
 				70C716752F43A97500B0D793 /* docs */,
 				703886492EFC3A3400F2A033 /* App */,
-				7038864A2EFC3A3400F2A034 /* Core */,
 				7038864B2EFC3A3400F2A035 /* UI */,
 				7038864D2EFC3A3400F2A037 /* Assets.xcassets */,
 				703886592EFC3A3500F2A033 /* SwiftLintRuleStudioTests */,
@@ -159,7 +153,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				703886492EFC3A3400F2A033 /* App */,
-				7038864A2EFC3A3400F2A034 /* Core */,
 				7038864B2EFC3A3400F2A035 /* UI */,
 			);
 			name = SwiftLintRuleStudio;

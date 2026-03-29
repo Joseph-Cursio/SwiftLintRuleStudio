@@ -11,7 +11,6 @@ import SwiftUI
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 // swiftlint:disable:next type_body_length
 @MainActor
 struct ViolationInspectorNewFeaturesTests {

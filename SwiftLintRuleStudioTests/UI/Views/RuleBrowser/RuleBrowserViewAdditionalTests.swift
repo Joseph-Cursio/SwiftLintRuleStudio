@@ -12,7 +12,6 @@ import SwiftUI
 import SwiftLintRuleStudioCoreTestSupport
 @testable import SwiftLintRuleStudio
 
-@Suite(.serialized)
 @MainActor
 struct RuleBrowserViewAdditionalTests {
 
