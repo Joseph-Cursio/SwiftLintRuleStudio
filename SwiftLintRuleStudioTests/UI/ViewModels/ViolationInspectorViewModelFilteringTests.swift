@@ -1,54 +1,11 @@
 import Foundation
 import Testing
-@testable import SwiftLIntRuleStudio
-
-struct VMFilterCase: Sendable, CustomTestStringConvertible {
-    let name: String
-    let violations: [Violation]
-    let configure: @MainActor @Sendable (ViolationInspectorViewModel) -> Void
-    let expectedCount: Int
-    let predicate: @Sendable (Violation) -> Bool
-
-    var testDescription: String { name }
-
-    static let all: [VMFilterCase] = [
-        VMFilterCase(
-            name: "by rule ID",
-            violations: [
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3")
-            ],
-            configure: { viewModel in viewModel.selectedRuleIDs = ["rule1", "rule3"] },
-            expectedCount: 2,
-            predicate: { $0.ruleID == "rule1" || $0.ruleID == "rule3" }
-        ),
-        VMFilterCase(
-            name: "by severity",
-            violations: [
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .error),
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .warning),
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .error)
-            ],
-            configure: { viewModel in viewModel.selectedSeverities = [.error] },
-            expectedCount: 2,
-            predicate: { $0.severity == .error }
-        ),
-        VMFilterCase(
-            name: "by file path",
-            violations: [
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", filePath: "File1.swift"),
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", filePath: "File2.swift"),
-                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", filePath: "File1.swift")
-            ],
-            configure: { viewModel in viewModel.selectedFiles = ["File1.swift"] },
-            expectedCount: 2,
-            predicate: { $0.filePath == "File1.swift" }
-        )
-    ]
-}
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
+@testable import SwiftLintRuleStudio
 
 @Suite("ViolationInspectorViewModel Filtering", .tags(.viewModel))
+@MainActor
 struct VIViewModelFilteringTests {
     @Test("ViolationInspectorViewModel filters by search text")
     func testFilterBySearchText() async throws {
@@ -81,26 +38,90 @@ struct VIViewModelFilteringTests {
         #expect(first.ruleID == "force_cast")
     }
 
-    @Test("ViolationInspectorViewModel filters violations", .tags(.filtering), arguments: VMFilterCase.all)
-    func testFilterViolations(_ filterCase: VMFilterCase) async throws {
+    // Individual filter tests (expanded from parameterized test to avoid
+    // @Test(arguments:) macro conflict with MainActor-isolated static properties)
+
+    @Test("ViolationInspectorViewModel filters violations by rule ID", .tags(.filtering))
+    func testFilterByRuleID() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
         let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
             violationStorage: mockStorage
         )
         let workspaceId = UUID()
 
-        try await mockStorage.storeViolations(filterCase.violations, for: workspaceId)
+        let violations = [
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3")
+        ]
+
+        try await mockStorage.storeViolations(violations, for: workspaceId)
         try await Task { @MainActor in
             try await viewModel.loadViolations(for: workspaceId)
-            filterCase.configure(viewModel)
+            viewModel.selectedRuleIDs = ["rule1", "rule3"]
         }.value
 
         let (filteredCount, allMatch) = await MainActor.run {
-            let count = viewModel.filteredViolations.count
-            let allMatch = viewModel.filteredViolations.allSatisfy(filterCase.predicate)
-            return (count, allMatch)
+            (viewModel.filteredViolations.count,
+             viewModel.filteredViolations.allSatisfy { $0.ruleID == "rule1" || $0.ruleID == "rule3" })
         }
-        #expect(filteredCount == filterCase.expectedCount)
+        #expect(filteredCount == 2)
+        #expect(allMatch)
+    }
+
+    @Test("ViolationInspectorViewModel filters violations by severity", .tags(.filtering))
+    func testFilterBySeverity() async throws {
+        let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
+        let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
+            violationStorage: mockStorage
+        )
+        let workspaceId = UUID()
+
+        let violations = [
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .error),
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .warning),
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .error)
+        ]
+
+        try await mockStorage.storeViolations(violations, for: workspaceId)
+        try await Task { @MainActor in
+            try await viewModel.loadViolations(for: workspaceId)
+            viewModel.selectedSeverities = [.error]
+        }.value
+
+        let (filteredCount, allMatch) = await MainActor.run {
+            (viewModel.filteredViolations.count,
+             viewModel.filteredViolations.allSatisfy { $0.severity == .error })
+        }
+        #expect(filteredCount == 2)
+        #expect(allMatch)
+    }
+
+    @Test("ViolationInspectorViewModel filters violations by file path", .tags(.filtering))
+    func testFilterByFilePath() async throws {
+        let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
+        let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
+            violationStorage: mockStorage
+        )
+        let workspaceId = UUID()
+
+        let violations = [
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", filePath: "File1.swift"),
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", filePath: "File2.swift"),
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", filePath: "File1.swift")
+        ]
+
+        try await mockStorage.storeViolations(violations, for: workspaceId)
+        try await Task { @MainActor in
+            try await viewModel.loadViolations(for: workspaceId)
+            viewModel.selectedFiles = ["File1.swift"]
+        }.value
+
+        let (filteredCount, allMatch) = await MainActor.run {
+            (viewModel.filteredViolations.count,
+             viewModel.filteredViolations.allSatisfy { $0.filePath == "File1.swift" })
+        }
+        #expect(filteredCount == 2)
         #expect(allMatch)
     }
 

@@ -4,3 +4,8 @@ DerivedData/
 SwiftLintRuleStudio.xcodeproj/project.xcworkspace/xcuserdata/
 SwiftLintRuleStudio.xcodeproj/xcuserdata/
 *.xcresult
+SwiftLintRuleStudioCore/.build/
+SwiftLintRuleStudioCore/.swiftpm/
+.swiftlint.yml.*.backup
+Core.bak/
+add_public.py
