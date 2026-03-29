@@ -54,12 +54,12 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
 
     // Actor methods must be async per protocol, but don't need await internally (already isolated)
     public func detectSwiftLintPath() async throws -> URL {
-        // Check cache first (fast path) - synchronous check is fine for cached paths
+        // Check cache first (fast path)
         if let cached = cachedSwiftLintPath, await fileExists(cached.path) {
             return cached
-        } else if cachedSwiftLintPath != nil {
-            cachedSwiftLintPath = nil
         }
+        // Clear stale cache after await returns
+        cachedSwiftLintPath = nil
 
         // Try common locations - synchronous checks should be instant for local paths
         // These are standard system paths, not network mounts, so they should be fast
