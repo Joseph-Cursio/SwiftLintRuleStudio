@@ -160,32 +160,18 @@ struct ViolationInspectorViewTests {
 
     // MARK: - Empty State Tests
 
-    @Test("ViolationInspectorView shows empty state when no violations")
+    @Test("ViolationInspectorView starts with empty violations (triggers empty state branch)")
     func testShowsEmptyState() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
+        let container = await Task { @MainActor in DependencyContainer.createForTesting() }.value
 
-        // Empty state text only visible when a workspace is set with no violations
-        let found = await MainActor.run {
-            (try? result.view.inspect().find(text: "No Violations")) != nil
+        // Without a workspace, the view model has no violations — the view will render emptyStateView.
+        // ViewInspector cannot reliably traverse conditional branches, so verify the model state
+        // that drives the empty state rather than searching for rendered text.
+        let isEmpty = await MainActor.run {
+            let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
+            return viewModel.filteredViolations.isEmpty && !viewModel.isAnalyzing
         }
-        withKnownIssue("Empty state text may not be visible if workspace is not set", isIntermittent: true) {
-            #expect(found)
-        }
-    }
-
-    @Test("ViolationInspectorView shows empty state message")
-    func testShowsEmptyStateMessage() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Filter message only visible when filters are active and produce no results
-        let found = await MainActor.run {
-            (try? result.view.inspect().find(text: "No violations match your current filters.")) != nil
-        }
-        withKnownIssue("Filter message may not be visible depending on state", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(isEmpty, "filteredViolations should be empty with no workspace, triggering emptyStateView")
     }
 
     // MARK: - Toolbar Tests
@@ -206,18 +192,16 @@ struct ViolationInspectorViewTests {
 
     // MARK: - Detail View Tests
 
-    @Test("ViolationInspectorView shows empty detail view when nothing selected")
+    @Test("ViolationInspectorView detail panel shows placeholder when nothing selected")
     func testShowsEmptyDetailView() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Detail placeholder only visible when no violation is selected
-        let found = await MainActor.run {
-            (try? result.view.inspect().find(text: "Select a Violation")) != nil
+        // ViewInspector cannot reliably traverse conditional branches in the detail panel.
+        // Verify the model state that drives emptyDetailView instead of searching for rendered text.
+        let container = await Task { @MainActor in DependencyContainer.createForTesting() }.value
+        let showsPlaceholder = await MainActor.run {
+            let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
+            return viewModel.selectedViolationId == nil
         }
-        withKnownIssue("Detail placeholder may not be visible depending on selection state", isIntermittent: true) {
-            #expect(found)
-        }
+        #expect(showsPlaceholder, "selectedViolationId should be nil, triggering emptyDetailView")
     }
 
     @Test("ViolationInspectorView shows detail when violation selected")

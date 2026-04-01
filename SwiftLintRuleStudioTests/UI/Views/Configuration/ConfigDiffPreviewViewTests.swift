@@ -294,21 +294,4 @@ struct ConfigDiffPreviewViewTests {
         #expect(tracker.saveCalled == true, "Save callback should be invoked")
     }
 
-    // MARK: - View Mode Picker Tests
-
-    @Test("ConfigDiffPreviewView displays view mode picker")
-    func testDisplaysViewModePicker() async throws {
-        let (view, _) = await createConfigDiffPreviewView()
-
-        // ViewInspector 0.10.3 cannot traverse into toolbar content,
-        // so finding the Picker's Text labels is not possible.
-        let (hasSummary, hasFullDiff) = await MainActor.run {
-            let summaryText = try? view.inspect().find(text: "Summary")
-            let fullDiffText = try? view.inspect().find(text: "Full Diff")
-            return (summaryText != nil, fullDiffText != nil)
-        }
-        withKnownIssue("ViewInspector cannot inspect toolbar content") {
-            #expect(hasSummary == true || hasFullDiff == true, "ConfigDiffPreviewView should display view mode picker")
-        }
-    }
 }

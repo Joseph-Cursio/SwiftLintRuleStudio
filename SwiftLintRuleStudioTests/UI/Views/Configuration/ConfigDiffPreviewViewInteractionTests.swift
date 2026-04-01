@@ -124,20 +124,4 @@ struct ConfigDiffPreviewViewInteractionTests {
         #expect(saveCalled == true, "Save Changes button should call onSave")
     }
 
-    // MARK: - View Mode Picker Tests
-
-    @Test("ConfigDiffPreviewView view mode picker switches views")
-    func testViewModePickerSwitchesViews() async throws {
-        let result = await createConfigDiffPreviewView()
-        let view = result.view
-
-        // ViewInspector 0.10.3 cannot traverse into toolbar content,
-        // so finding the Picker's Text labels is not possible.
-        let hasSummaryText = await MainActor.run {
-            (try? view.inspect().find(text: "Summary")) != nil
-        }
-        withKnownIssue("ViewInspector cannot inspect toolbar content") {
-            #expect(hasSummaryText == true, "View mode picker should switch views")
-        }
-    }
 }
