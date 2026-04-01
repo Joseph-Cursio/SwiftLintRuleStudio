@@ -8,8 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build the project (via Xcode command line tools)
 xcodebuild -scheme SwiftLintRuleStudio -configuration Debug build
 
-# Run all tests
-xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS'
+# Run all tests (three targets, run in this order)
+swift test --package-path SwiftLintRuleStudioCore
+xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS' -only-testing:SwiftLintRuleStudioTests
+xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS' -only-testing:SwiftLintRuleStudioUITests
 
 # Run tests via CI script
 ./scripts/ci_test.sh
@@ -24,7 +26,7 @@ swiftlint --fix
 open SwiftLintRuleStudio.xcodeproj
 ```
 
-Note: This is an Xcode project (not Swift Package Manager). Build and test through Xcode or xcodebuild.
+Note: The Core layer is a local Swift package (`SwiftLintRuleStudioCore/`). Its tests run via `swift test`. The app-level unit tests and UI tests run via xcodebuild.
 
 ## Project Overview
 
