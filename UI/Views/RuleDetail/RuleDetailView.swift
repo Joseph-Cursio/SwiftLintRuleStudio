@@ -153,7 +153,7 @@ struct RuleDetailView: View {
             return
         }
         let processedContent = processContentForDisplay(content: markdownDoc)
-        let htmlContent = convertMarkdownToHTML(content: processedContent)
+        let htmlContent = convertMarkdownToHTML(content: processedContent, colorScheme: colorScheme)
         let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
         guard let htmlData = fullHTML.data(using: .utf8),
               let nsAttr = try? NSAttributedString(

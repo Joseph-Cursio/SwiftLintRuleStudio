@@ -62,6 +62,7 @@ extension RuleDetailView {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
         var skipTable = false
+        var skipRationale = false
 
         for (index, line) in lines.enumerated() {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -73,9 +74,8 @@ extension RuleDetailView {
 
             // Skip metadata section (we show this info in badges/configuration)
             if trimmed.contains("* **") || trimmed.hasPrefix("* **") {
-                // Check if this is the default configuration line
-                if trimmed.contains("default configuration:") || trimmed.contains("Default configuration:") {
-                    // Skip the HTML table that follows
+                if trimmed.contains("default configuration:")
+                    || trimmed.contains("Default configuration:") {
                     skipTable = true
                 }
                 continue
@@ -84,7 +84,6 @@ extension RuleDetailView {
             // Skip HTML table if we're in the metadata section
             if skipTable {
                 if trimmed.hasPrefix("<table>") || trimmed.contains("<table>") {
-                    // Skip until we find </table>
                     continue
                 } else if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
                     skipTable = false
@@ -98,13 +97,32 @@ extension RuleDetailView {
                 }
             }
 
+            // Skip rationale/why section (shown separately in "Why This Matters")
+            if trimmed.hasPrefix("##") {
+                let heading = trimmed.lowercased()
+                if heading.contains("rationale") || heading.contains("why") {
+                    skipRationale = true
+                    continue
+                } else if skipRationale {
+                    skipRationale = false
+                }
+            }
+            if skipRationale {
+                continue
+            }
+
+            // Add a blank line before "Non Triggering Examples" for visual separation
+            if trimmed.hasPrefix("## Non") || trimmed.hasPrefix("## Non Triggering") {
+                processedLines.append("")
+            }
+
             processedLines.append(line)
         }
 
         return processedLines.joined(separator: "\n")
     }
 
-    func convertMarkdownToHTML(content: String) -> String {
+    func convertMarkdownToHTML(content: String, colorScheme: ColorScheme? = nil) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
         var inCodeBlock = false
@@ -114,7 +132,8 @@ extension RuleDetailView {
             let converted = convertMarkdownLine(
                 line: line,
                 inCodeBlock: &inCodeBlock,
-                codeBlockLanguage: &codeBlockLanguage
+                codeBlockLanguage: &codeBlockLanguage,
+                colorScheme: colorScheme
             )
             processedLines.append(contentsOf: converted)
         }
@@ -153,12 +172,15 @@ extension RuleDetailView {
     private func convertMarkdownLine(
         line: String,
         inCodeBlock: inout Bool,
-        codeBlockLanguage: inout String
+        codeBlockLanguage: inout String,
+        colorScheme: ColorScheme? = nil
     ) -> [String] {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
 
         // Check if line already contains HTML tags - preserve it as-is
         let hasHTMLTags = trimmed.contains("<") && trimmed.contains(">")
+
+        let monoFont = "'SF Mono', Monaco, 'Courier New', monospace"
 
         if line.hasPrefix("```") {
             if inCodeBlock {
@@ -170,7 +192,10 @@ extension RuleDetailView {
             let language = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
             codeBlockLanguage = language.isEmpty ? "" : " class=\"language-\(language)\""
             inCodeBlock = true
-            return ["<pre><code\(codeBlockLanguage)>"]
+            let fontStyle = "font-family: \(monoFont); font-size: 13px;"
+            let openTag = "<pre style=\"\(fontStyle)\">" +
+                "<code\(codeBlockLanguage) style=\"\(fontStyle)\">"
+            return [openTag]
         }
 
         if inCodeBlock {
@@ -178,7 +203,7 @@ extension RuleDetailView {
                 .replacingOccurrences(of: "&", with: "&amp;")
                 .replacingOccurrences(of: "<", with: "&lt;")
                 .replacingOccurrences(of: ">", with: "&gt;")
-            return [escaped]
+            return [highlightSwiftSyntax(in: escaped, colorScheme: colorScheme)]
         }
 
         if hasHTMLTags {
@@ -210,10 +235,12 @@ extension RuleDetailView {
     private func inlineMarkdownHTML(from line: String) -> String {
         var processedLine = line
 
-        // Convert inline code (handle backticks)
+        // Convert inline code (handle backticks) — use inline style because
+        // NSAttributedString's HTML parser ignores <style> block selectors
+        let inlineCodeStyle = "font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 13px;"
         processedLine = processedLine.replacingOccurrences(
             of: #"`([^`]+)`"#,
-            with: "<code>$1</code>",
+            with: "<code style=\"\(inlineCodeStyle)\">$1</code>",
             options: .regularExpression
         )
 
@@ -258,21 +285,21 @@ extension RuleDetailView {
             padding: 0;
         }
         h1 {
-            font-size: 20px;
+            font-size: 14px;
             font-weight: 600;
             margin-top: 0;
             margin-bottom: 16px;
             color: __TEXT_COLOR__;
         }
         h2 {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
             margin-top: 24px;
             margin-bottom: 12px;
             color: __TEXT_COLOR__;
         }
         h3 {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 600;
             margin-top: 20px;
             margin-bottom: 10px;

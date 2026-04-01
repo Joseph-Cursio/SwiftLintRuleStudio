@@ -12,7 +12,7 @@ import Testing
 
 @MainActor
 struct RuleDetailViewMarkdownTests {
-    @Test("RuleDetailView processes markdown content for display")
+    @Test("RuleDetailView strips rationale section from display content")
     func testRuleDetailViewMarkdownProcessing() async throws {
         let markdown = """
         # Test Rule
@@ -20,11 +20,19 @@ struct RuleDetailViewMarkdownTests {
         ## Why This Matters
 
         Use **bold** and `code`.
+
+        ## Examples
+
+        Some examples here.
         """
         let processed = await MainActor.run {
             RuleDetailView.processContentForDisplayForTesting(markdown)
         }
-        #expect(processed.contains("Why This Matters"))
+        // Rationale is shown separately in "Why This Matters" view
+        #expect(!processed.contains("Why This Matters"))
+        #expect(!processed.contains("Use **bold**"))
+        // Non-rationale sections should remain
+        #expect(processed.contains("Examples"))
     }
 
     @Test("RuleDetailView converts markdown to HTML")
@@ -34,7 +42,7 @@ struct RuleDetailViewMarkdownTests {
             RuleDetailView.convertMarkdownToHTMLForTesting(markdown)
         }
         #expect(html.contains("<strong>bold</strong>"))
-        #expect(html.contains("<code>code</code>"))
+        #expect(html.contains(">code</code>"))
     }
 
     @Test("RuleDetailView wraps HTML with dark mode styles")
