@@ -162,13 +162,45 @@ extension RuleDetailView {
         }
     }
 
+    func styledRationale(_ text: String) -> AttributedString {
+        var result = AttributedString()
+        let monoFont = NSFont.monospacedSystemFont(
+            ofSize: NSFont.systemFontSize, weight: .regular
+        )
+        var remainder = text[...]
+
+        while let tickStart = remainder.range(of: "`") {
+            // Append text before the backtick
+            let before = String(remainder[..<tickStart.lowerBound])
+            result.append(AttributedString(before))
+
+            let afterTick = remainder[tickStart.upperBound...]
+            if let tickEnd = afterTick.range(of: "`") {
+                // Found closing backtick — style as code
+                let codeText = String(afterTick[..<tickEnd.lowerBound])
+                var codeAttr = AttributedString(codeText)
+                codeAttr.font = Font(monoFont)
+                result.append(codeAttr)
+                remainder = afterTick[tickEnd.upperBound...]
+            } else {
+                // No closing backtick — treat as literal
+                result.append(AttributedString("`"))
+                remainder = afterTick
+            }
+        }
+
+        // Append any remaining text
+        result.append(AttributedString(String(remainder)))
+        return result
+    }
+
     var whyThisMattersView: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Why This Matters")
                 .font(.headline)
 
             if let rationale = extractRationale(from: rule.markdownDocumentation ?? "") {
-                Text(rationale)
+                Text(styledRationale(rationale))
                     .font(.body)
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)

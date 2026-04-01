@@ -18,29 +18,37 @@ extension RuleDetailView {
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
 
-            if let action = rationaleSectionAction(for: trimmed, inRationaleSection: inRationaleSection) {
+            if let action = rationaleSectionAction(
+                for: trimmed,
+                inRationaleSection: inRationaleSection
+            ) {
                 switch action {
                 case .start:
                     inRationaleSection = true
                     continue
                 case .stop:
-                    break
+                    inRationaleSection = false
+                    continue
                 }
             }
 
             if inRationaleSection {
-                if shouldSkipRationaleLine(trimmed, hasContent: !rationaleLines.isEmpty) {
+                if shouldSkipRationaleLine(trimmed) {
                     continue
                 }
+                // Preserve blank lines between paragraphs
                 if trimmed.isEmpty {
-                    break
+                    rationaleLines.append("")
+                } else {
+                    rationaleLines.append(trimmed)
                 }
-                rationaleLines.append(trimmed)
             }
         }
 
         if !rationaleLines.isEmpty {
-            return rationaleLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            return rationaleLines
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         return nil
@@ -60,11 +68,8 @@ extension RuleDetailView {
         return inRationaleSection ? .stop : nil
     }
 
-    private func shouldSkipRationaleLine(_ trimmed: String, hasContent: Bool) -> Bool {
-        if trimmed.hasPrefix("```") {
-            return true
-        }
-        return !hasContent && trimmed.isEmpty
+    private func shouldSkipRationaleLine(_ trimmed: String) -> Bool {
+        trimmed.hasPrefix("```")
     }
 
     func extractSwiftEvolutionLinks(from markdown: String) -> [URL] {
