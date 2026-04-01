@@ -77,14 +77,11 @@ struct VIViewModelFilteringTests {
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
-        try await Task { @MainActor in
-            try await viewModel.loadViolations(for: workspaceId)
-            viewModel.searchText = "force"
-        }.value
+        try await viewModel.loadViolations(for: workspaceId)
+        viewModel.searchText = "force"
 
-        let filteredCount = await MainActor.run { viewModel.filteredViolations.count }
-        #expect(filteredCount == 1)
-        let first = try #require(await MainActor.run { viewModel.filteredViolations.first })
+        #expect(viewModel.filteredViolations.count == 1)
+        let first = try #require(viewModel.filteredViolations.first)
         #expect(first.ruleID == "force_cast")
     }
 
@@ -98,17 +95,11 @@ struct VIViewModelFilteringTests {
         let workspaceId = UUID()
 
         try await mockStorage.storeViolations(filterCase.violations, for: workspaceId)
-        try await Task { @MainActor in
-            try await viewModel.loadViolations(for: workspaceId)
-            filterCase.applyFilter(to: viewModel)
-        }.value
+        try await viewModel.loadViolations(for: workspaceId)
+        filterCase.applyFilter(to: viewModel)
 
-        let (filteredCount, allMatch) = await MainActor.run {
-            (viewModel.filteredViolations.count,
-             filterCase.allMatch(viewModel.filteredViolations))
-        }
-        #expect(filteredCount == 2)
-        #expect(allMatch)
+        #expect(viewModel.filteredViolations.count == 2)
+        #expect(filterCase.allMatch(viewModel.filteredViolations))
     }
 
     @Test("ViolationInspectorViewModel filters suppressed violations")
@@ -124,14 +115,10 @@ struct VIViewModelFilteringTests {
 
         try await mockStorage.storeViolations([violation1, violation2], for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
+        viewModel.showSuppressedOnly = true
 
-        await MainActor.run {
-            viewModel.showSuppressedOnly = true
-        }
-
-        let filteredCount = await MainActor.run { viewModel.filteredViolations.count }
-        #expect(filteredCount == 1)
-        let first = try #require(await MainActor.run { viewModel.filteredViolations.first })
+        #expect(viewModel.filteredViolations.count == 1)
+        let first = try #require(viewModel.filteredViolations.first)
         #expect(first.suppressed)
     }
 
@@ -148,25 +135,14 @@ struct VIViewModelFilteringTests {
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
 
-        await MainActor.run {
-            viewModel.searchText = "test"
-            viewModel.selectedRuleIDs = ["rule1"]
-            viewModel.selectedSeverities = [.error]
-        }
+        viewModel.searchText = "test"
+        viewModel.selectedRuleIDs = ["rule1"]
+        viewModel.selectedSeverities = [.error]
 
-        await MainActor.run {
-            viewModel.clearFilters()
-        }
+        viewModel.clearFilters()
 
-        let cleared = await MainActor.run {
-            (
-                searchTextEmpty: viewModel.searchText.isEmpty,
-                ruleIDsEmpty: viewModel.selectedRuleIDs.isEmpty,
-                severitiesEmpty: viewModel.selectedSeverities.isEmpty
-            )
-        }
-        #expect(cleared.searchTextEmpty)
-        #expect(cleared.ruleIDsEmpty)
-        #expect(cleared.severitiesEmpty)
+        #expect(viewModel.searchText.isEmpty)
+        #expect(viewModel.selectedRuleIDs.isEmpty)
+        #expect(viewModel.selectedSeverities.isEmpty)
     }
 }

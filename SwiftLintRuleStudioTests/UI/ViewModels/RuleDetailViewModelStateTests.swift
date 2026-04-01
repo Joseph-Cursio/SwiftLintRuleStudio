@@ -24,20 +24,11 @@ struct RuleDetailViewModelStateTests {
             yamlEngine: yamlEngine
         )
 
-        try await MainActor.run {
-            try viewModel.loadConfiguration()
-        }
+        try viewModel.loadConfiguration()
+        viewModel.updateEnabled(false)
 
-        await MainActor.run {
-            viewModel.updateEnabled(false)
-        }
-
-        let (hasPendingChanges, enabled) = await MainActor.run {
-            (viewModel.pendingChanges != nil, viewModel.pendingChanges?.enabled)
-        }
-
-        #expect(hasPendingChanges)
-        #expect(enabled == false)
+        #expect(viewModel.pendingChanges != nil)
+        #expect(viewModel.pendingChanges?.enabled == false)
     }
 
     @Test("RuleDetailViewModel tracks pending changes when severity changes")
@@ -58,20 +49,11 @@ struct RuleDetailViewModelStateTests {
             yamlEngine: yamlEngine
         )
 
-        try await MainActor.run {
-            try viewModel.loadConfiguration()
-        }
+        try viewModel.loadConfiguration()
+        viewModel.updateSeverity(.error)
 
-        await MainActor.run {
-            viewModel.updateSeverity(.error)
-        }
-
-        let (hasPendingChanges, severity) = await MainActor.run {
-            (viewModel.pendingChanges != nil, viewModel.pendingChanges?.severity)
-        }
-
-        #expect(hasPendingChanges)
-        #expect(severity == .error)
+        #expect(viewModel.pendingChanges != nil)
+        #expect(viewModel.pendingChanges?.severity == .error)
     }
 
     @Test("RuleDetailViewModel cancelChanges reloads original state")
@@ -92,22 +74,13 @@ struct RuleDetailViewModelStateTests {
             yamlEngine: yamlEngine
         )
 
-        try await MainActor.run {
-            try viewModel.loadConfiguration()
-            viewModel.updateEnabled(false)
-        }
+        try viewModel.loadConfiguration()
+        viewModel.updateEnabled(false)
+        viewModel.cancelChanges()
 
-        await MainActor.run {
-            viewModel.cancelChanges()
-        }
-
-        let (isEnabled, severity, pendingChanges) = await MainActor.run {
-            (viewModel.isEnabled, viewModel.severity, viewModel.pendingChanges)
-        }
-
-        #expect(isEnabled)
-        #expect(severity == .error)
-        #expect(pendingChanges == nil)
+        #expect(viewModel.isEnabled)
+        #expect(viewModel.severity == .error)
+        #expect(viewModel.pendingChanges == nil)
     }
 
     @Test("RuleDetailViewModel showPreview sets flag")
@@ -122,17 +95,11 @@ struct RuleDetailViewModelStateTests {
             yamlEngine: yamlEngine
         )
 
-        await MainActor.run {
-            viewModel.updateEnabled(true)
-            viewModel.showPreview()
-        }
+        viewModel.updateEnabled(true)
+        viewModel.showPreview()
 
-        let (showDiffPreview, pendingChanges) = await MainActor.run {
-            (viewModel.showDiffPreview, viewModel.pendingChanges)
-        }
-
-        #expect(showDiffPreview)
-        #expect(pendingChanges != nil)
+        #expect(viewModel.showDiffPreview)
+        #expect(viewModel.pendingChanges != nil)
     }
 
     @Test("RuleDetailViewModel clears pending changes when reverted")
@@ -153,20 +120,11 @@ struct RuleDetailViewModelStateTests {
             yamlEngine: yamlEngine
         )
 
-        try await MainActor.run {
-            try viewModel.loadConfiguration()
-        }
+        try viewModel.loadConfiguration()
+        viewModel.updateEnabled(false)
+        #expect(viewModel.pendingChanges != nil)
 
-        await MainActor.run {
-            viewModel.updateEnabled(false)
-        }
-        let hasPendingAfterChange = await MainActor.run { viewModel.pendingChanges != nil }
-        #expect(hasPendingAfterChange)
-
-        await MainActor.run {
-            viewModel.updateEnabled(true)
-        }
-        let hasPendingAfterRevert = await MainActor.run { viewModel.pendingChanges == nil }
-        #expect(hasPendingAfterRevert)
+        viewModel.updateEnabled(true)
+        #expect(viewModel.pendingChanges == nil)
     }
 }
