@@ -69,93 +69,23 @@ struct ViolationInspectorViewTests {
         return ViewResult(view: view)
     }
 
-    // MARK: - Initialization Tests
+    // MARK: - View Structure Tests
 
-    @Test("ViolationInspectorView initializes correctly")
-    func testInitialization() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
+    @Test("ViolationInspectorView renders core structural elements")
+    func testCoreStructure() async throws {
         let result = await Task { @MainActor in createViolationInspectorView() }.value
 
-        // Verify the view can be created
-        let hasNavigationSplitView = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
+        let (hasHStack, hasTextField, hasVStack) = try await MainActor.run {
+            let inspector = try result.view.inspect()
+            return (
+                (try? inspector.find(ViewType.HStack.self)) != nil,
+                (try? inspector.find(ViewType.TextField.self)) != nil,
+                (try? inspector.find(ViewType.VStack.self)) != nil
+            )
         }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should initialize with NavigationSplitView")
-    }
-
-    @Test("ViolationInspectorView sets navigation title")
-    func testSetsNavigationTitle() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Navigation title is set via .navigationTitle modifier
-        // We can verify the view structure exists
-        let hasNavigationSplitView = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should have navigation title")
-    }
-
-    // MARK: - Search Tests
-
-    @Test("ViolationInspectorView displays search field")
-    func testDisplaysSearchField() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Find the search TextField
-        let hasSearchField = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.TextField.self)
-            return true
-        }
-        #expect(hasSearchField == true, "ViolationInspectorView should display search field")
-    }
-
-    @Test("ViolationInspectorView search field has placeholder")
-    func testSearchFieldPlaceholder() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Find the search TextField and check for placeholder
-        let hasSearchField = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.TextField.self)
-            return true
-        }
-        #expect(hasSearchField == true, "Search field should exist")
-    }
-
-    // MARK: - Statistics Tests
-
-    @Test("ViolationInspectorView displays statistics section")
-    func testDisplaysStatistics() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Find statistics badges
-        // Note: Statistics are computed from viewModel, so we verify structure exists
-        let hasVStack = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.VStack.self)
-            return true
-        }
-        #expect(hasVStack == true, "ViolationInspectorView should have statistics section")
-    }
-
-    // MARK: - Filter Tests
-
-    @Test("ViolationInspectorView displays filter controls")
-    func testDisplaysFilterControls() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Find filter menus (Rule, Severity, Sort)
-        // These are Menu views in the filter section
-        let hasHStack = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(hasHStack == true, "ViolationInspectorView should have filter controls")
+        #expect(hasHStack, "Should contain HStack layout for filters/statistics")
+        #expect(hasTextField, "Should contain search TextField")
+        #expect(hasVStack, "Should contain VStack for list content")
     }
 
     // MARK: - Empty State Tests
@@ -172,22 +102,6 @@ struct ViolationInspectorViewTests {
             return viewModel.filteredViolations.isEmpty && !viewModel.isAnalyzing
         }
         #expect(isEmpty, "filteredViolations should be empty with no workspace, triggering emptyStateView")
-    }
-
-    // MARK: - Toolbar Tests
-
-    @Test("ViolationInspectorView shows refresh button in toolbar")
-    func testShowsRefreshButton() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Toolbar items are added via .toolbar modifier
-        // We verify the view structure exists
-        let hasNavigationSplitView = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should have toolbar with refresh button")
     }
 
     // MARK: - Detail View Tests
@@ -283,64 +197,6 @@ struct ViolationInspectorViewTests {
         #expect(found, "View should show 'Analyzing Workspace' when isAnalyzing is true")
     }
 
-    // MARK: - Integration Tests
-
-    @Test("ViolationInspectorView integrates with DependencyContainer")
-    func testIntegratesWithDependencyContainer() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        @MainActor
-        struct ViewResult: @unchecked Sendable {
-            let view: AnyView
-            let container: DependencyContainer
-
-            init(view: some View, container: DependencyContainer) {
-                self.view = AnyView(view)
-                self.container = container
-            }
-        }
-
-        let result = await Task { @MainActor in
-            let container = DependencyContainer.createForTesting()
-            let view = ViolationInspectorView()
-                .environment(\.dependencies, container)
-            return ViewResult(view: view, container: container)
-        }.value
-
-        // Verify the view can be created with DependencyContainer
-        let hasNavigationSplitView = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should integrate with DependencyContainer")
-    }
-
-    // MARK: - View Structure Tests
-
-    @Test("ViolationInspectorView has correct view hierarchy")
-    func testViewHierarchy() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // Verify main structure: NavigationSplitView
-        let hasNavigationSplitView = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should have NavigationSplitView as root")
-    }
-
-    @Test("ViolationInspectorView has primary-detail layout")
-    func testPrimaryDetailLayout() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationInspectorView() }.value
-
-        // NavigationSplitView provides master-detail layout
-        let hasNavigationSplitView = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(hasNavigationSplitView == true, "ViolationInspectorView should have primary-detail layout")
-    }
 }
 
 // MARK: - ViewInspector Extensions
