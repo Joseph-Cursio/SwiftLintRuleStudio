@@ -11,6 +11,55 @@ import Testing
 import SwiftLintRuleStudioCoreTestSupport
 @testable import SwiftLintRuleStudio
 
+// Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
+enum StorageFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
+    case byRuleID, bySeverity, byFilePath
+
+    var testDescription: String {
+        switch self {
+        case .byRuleID: "rule ID"
+        case .bySeverity: "severity"
+        case .byFilePath: "file path"
+        }
+    }
+
+    var violations: [Violation] {
+        switch self {
+        case .byRuleID: [
+            Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
+            Violation(ruleID: "rule2", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
+            Violation(ruleID: "rule3", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
+        ]
+        case .bySeverity: [
+            Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .error, message: "Error"),
+            Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Warning"),
+            Violation(ruleID: "rule3", filePath: "Test.swift", line: 3, severity: .error, message: "Error"),
+        ]
+        case .byFilePath: [
+            Violation(ruleID: "rule1", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
+            Violation(ruleID: "rule2", filePath: "File2.swift", line: 1, severity: .warning, message: "Test"),
+            Violation(ruleID: "rule3", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
+        ]
+        }
+    }
+
+    var filter: ViolationFilter {
+        switch self {
+        case .byRuleID: ViolationFilter(ruleIDs: ["rule1", "rule3"])
+        case .bySeverity: ViolationFilter(severities: [.error])
+        case .byFilePath: ViolationFilter(filePaths: ["File1.swift"])
+        }
+    }
+
+    func allMatch(_ fetched: [Violation]) -> Bool {
+        switch self {
+        case .byRuleID: fetched.allSatisfy { $0.ruleID == "rule1" || $0.ruleID == "rule3" }
+        case .bySeverity: fetched.allSatisfy { $0.severity == .error }
+        case .byFilePath: fetched.allSatisfy { $0.filePath == "File1.swift" }
+        }
+    }
+}
+
 @MainActor
 @Suite("ViolationStorageActor", .tags(.storage))
 struct ViolationStorageBasicTests {
@@ -70,67 +119,16 @@ struct ViolationStorageBasicTests {
     @MainActor
     @Suite("Filtering", .tags(.filtering))
     struct Filtering {
-        // Individual filter tests (expanded from parameterized test to avoid
-        // @Test(arguments:) macro conflict with MainActor-isolated initializers)
-
-        @Test("ViolationStorageActor filters violations by rule ID")
-        func testFilterByRuleID() async throws {
+        @Test("ViolationStorageActor filters violations", arguments: StorageFilterCase.allCases)
+        func testFilter(_ filterCase: StorageFilterCase) async throws {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()
 
-            let violations = [
-                Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule2", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule3", filePath: "Test.swift", line: 1, severity: .warning, message: "Test")
-            ]
-
-            try await storage.storeViolations(violations, for: workspaceId)
-
-            let filter = ViolationFilter(ruleIDs: ["rule1", "rule3"])
-            let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
+            try await storage.storeViolations(filterCase.violations, for: workspaceId)
+            let fetched = try await storage.fetchViolations(filter: filterCase.filter, workspaceId: workspaceId)
 
             #expect(fetched.count == 2)
-            #expect(fetched.allSatisfy { $0.ruleID == "rule1" || $0.ruleID == "rule3" })
-        }
-
-        @Test("ViolationStorageActor filters violations by severity")
-        func testFilterBySeverity() async throws {
-            let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
-            let workspaceId = UUID()
-
-            let violations = [
-                Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .error, message: "Error"),
-                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Warning"),
-                Violation(ruleID: "rule3", filePath: "Test.swift", line: 3, severity: .error, message: "Error")
-            ]
-
-            try await storage.storeViolations(violations, for: workspaceId)
-
-            let filter = ViolationFilter(severities: [.error])
-            let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
-
-            #expect(fetched.count == 2)
-            #expect(fetched.allSatisfy { $0.severity == .error })
-        }
-
-        @Test("ViolationStorageActor filters violations by file path")
-        func testFilterByFilePath() async throws {
-            let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
-            let workspaceId = UUID()
-
-            let violations = [
-                Violation(ruleID: "rule1", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule2", filePath: "File2.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule3", filePath: "File1.swift", line: 1, severity: .warning, message: "Test")
-            ]
-
-            try await storage.storeViolations(violations, for: workspaceId)
-
-            let filter = ViolationFilter(filePaths: ["File1.swift"])
-            let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)
-
-            #expect(fetched.count == 2)
-            #expect(fetched.allSatisfy { $0.filePath == "File1.swift" })
+            #expect(filterCase.allMatch(fetched))
         }
 
         @Test("ViolationStorageActor filters violations by suppressed status")

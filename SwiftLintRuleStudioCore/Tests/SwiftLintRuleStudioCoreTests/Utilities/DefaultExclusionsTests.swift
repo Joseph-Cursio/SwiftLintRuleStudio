@@ -10,6 +10,27 @@ import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 
+// Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
+enum MergeIdentityCase: CaseIterable, Sendable, CustomTestStringConvertible {
+    case nilInput, emptyArray, allDefaults
+
+    var testDescription: String {
+        switch self {
+        case .nilInput: "nil"
+        case .emptyArray: "empty array"
+        case .allDefaults: "all defaults"
+        }
+    }
+
+    var input: [String]? {
+        switch self {
+        case .nilInput: nil
+        case .emptyArray: []
+        case .allDefaults: DefaultExclusions.directories
+        }
+    }
+}
+
 @MainActor
 struct DefaultExclusionsTests {
 
@@ -46,15 +67,9 @@ struct DefaultExclusionsTests {
 
     // MARK: - mergedWith(existing:)
 
-    @Test("mergedWith nil returns full defaults")
-    func mergedWithNil() {
-        let result = DefaultExclusions.mergedWith(existing: nil)
-        #expect(result == DefaultExclusions.directories)
-    }
-
-    @Test("mergedWith empty array returns full defaults")
-    func mergedWithEmpty() {
-        let result = DefaultExclusions.mergedWith(existing: [])
+    @Test("mergedWith returns full defaults", arguments: MergeIdentityCase.allCases)
+    func mergedWithReturnsDefaults(_ mergeCase: MergeIdentityCase) {
+        let result = DefaultExclusions.mergedWith(existing: mergeCase.input)
         #expect(result == DefaultExclusions.directories)
     }
 
@@ -76,12 +91,6 @@ struct DefaultExclusionsTests {
         // no duplicates — .build should appear exactly once
         let buildCount = result.filter { $0 == ".build" }.count
         #expect(buildCount == 1, ".build should not be duplicated")
-    }
-
-    @Test("mergedWith all defaults returns same list unchanged")
-    func mergedWithAllDefaults() {
-        let result = DefaultExclusions.mergedWith(existing: DefaultExclusions.directories)
-        #expect(result == DefaultExclusions.directories)
     }
 
     @Test("mergedWith preserves user ordering")
