@@ -70,7 +70,7 @@ struct CacheManagerTests {
         // Load rules
         let loadedRules = try cacheManager.loadCachedRules()
 
-        #expect(loadedRules.count == 2)
+        try #require(loadedRules.count == 2)
         #expect(loadedRules[0].id == "rule1")
         #expect(loadedRules[1].id == "rule2")
     }

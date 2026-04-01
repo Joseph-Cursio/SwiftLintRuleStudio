@@ -184,7 +184,7 @@ struct RuleDocumentationParserTests {
     // MARK: - Example Extraction
 
     @Test("Extracts triggering examples from H2 Triggering Examples section")
-    func testExtractsTriggeringExamples() {
+    func testExtractsTriggeringExamples() throws {
         let markdown = """
         # Force Cast
 
@@ -201,13 +201,13 @@ struct RuleDocumentationParserTests {
         ```
         """
         let result = RuleDocumentationParser.parse(markdown: markdown)
-        #expect(result.triggeringExamples.count == 2)
+        try #require(result.triggeringExamples.count == 2)
         #expect(result.triggeringExamples[0].contains("as! Bar"))
         #expect(result.triggeringExamples[1].contains("as! Qux"))
     }
 
     @Test("Extracts non-triggering examples from H2 Non Triggering Examples section")
-    func testExtractsNonTriggeringExamples() {
+    func testExtractsNonTriggeringExamples() throws {
         let markdown = """
         # Force Cast
 
@@ -220,7 +220,7 @@ struct RuleDocumentationParserTests {
         ```
         """
         let result = RuleDocumentationParser.parse(markdown: markdown)
-        #expect(result.nonTriggeringExamples.count == 1)
+        try #require(result.nonTriggeringExamples.count == 1)
         #expect(result.nonTriggeringExamples[0].contains("as? Bar"))
     }
 

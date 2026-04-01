@@ -89,7 +89,7 @@ struct RuleTests {
         let data = try encoder.encode(values)
 
         let decoded = try JSONDecoder().decode([AnyCodable].self, from: data)
-        #expect(decoded.count == values.count)
+        try #require(decoded.count == values.count)
         #expect(String(describing: decoded[0].value) == "42")
         #expect(String(describing: decoded[1].value) == "text")
         #expect(String(describing: decoded[2].value) == "true")

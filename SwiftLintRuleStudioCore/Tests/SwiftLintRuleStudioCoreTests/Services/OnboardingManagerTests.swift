@@ -102,6 +102,7 @@ struct OnboardingManagerTests {
             return steps
         }
 
+        try #require(steps.count == 5)
         #expect(steps[0] == .welcome)
         #expect(steps[1] == .swiftLintCheck)
         #expect(steps[2] == .workspaceSelection)
@@ -136,6 +137,7 @@ struct OnboardingManagerTests {
             return steps
         }
 
+        try #require(steps.count == 4)
         #expect(steps[0] == .workspaceSelection)
         #expect(steps[1] == .swiftLintCheck)
         #expect(steps[2] == .welcome)
@@ -160,6 +162,7 @@ struct OnboardingManagerTests {
             return steps
         }
 
+        try #require(steps.count == 3)
         #expect(steps[0] == .welcome)
         #expect(steps[1] == .workspaceSelection)
         #expect(steps[2] == .swiftLintCheck)

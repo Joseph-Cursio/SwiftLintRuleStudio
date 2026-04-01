@@ -59,11 +59,12 @@ struct DefaultExclusionsTests {
     }
 
     @Test("mergedWith custom entries preserves them and appends missing defaults")
-    func mergedWithCustomEntries() {
+    func mergedWithCustomEntries() throws {
         let existing = ["custom_dir", ".build"]
         let result = DefaultExclusions.mergedWith(existing: existing)
 
         // existing entries come first, in order
+        try #require(result.count >= 2)
         #expect(result[0] == "custom_dir")
         #expect(result[1] == ".build")
 
@@ -84,11 +85,12 @@ struct DefaultExclusionsTests {
     }
 
     @Test("mergedWith preserves user ordering")
-    func mergedWithPreservesOrder() {
+    func mergedWithPreservesOrder() throws {
         let existing = ["Pods", "DerivedData", "my_vendor"]
         let result = DefaultExclusions.mergedWith(existing: existing)
 
         // User entries stay at their positions
+        try #require(result.count >= 3)
         #expect(result[0] == "Pods")
         #expect(result[1] == "DerivedData")
         #expect(result[2] == "my_vendor")
