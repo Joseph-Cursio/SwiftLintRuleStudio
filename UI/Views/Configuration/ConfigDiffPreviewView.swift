@@ -15,6 +15,13 @@ struct ConfigDiffPreviewView: View {
     let onCancel: () -> Void
 
     var isInline: Bool = false
+    var beforeLabel: String = "Before"
+    var afterLabel: String = "After"
+    var beforeColor: Color = .red
+    var afterColor: Color = .green
+    var addedLabel: String = "Rules to be Added"
+    var removedLabel: String = "Rules to be Removed"
+    var modifiedLabel: String = "Rules to be Modified"
 
     @State private var selectedView: DiffViewMode = .summary
     @State private var showCopiedFeedback = false
@@ -30,13 +37,25 @@ struct ConfigDiffPreviewView: View {
         onSave: @escaping () -> Void,
         onCancel: @escaping () -> Void,
         selectedView: DiffViewMode = .summary,
-        isInline: Bool = false
+        isInline: Bool = false,
+        beforeLabel: String = "Before",
+        afterLabel: String = "After",
+        addedLabel: String = "Rules to be Added",
+        removedLabel: String = "Rules to be Removed",
+        modifiedLabel: String = "Rules to be Modified"
     ) {
         self.diff = diff
         self.ruleName = ruleName
         self.onSave = onSave
         self.onCancel = onCancel
         self.isInline = isInline
+        self.beforeLabel = beforeLabel
+        self.afterLabel = afterLabel
+        self.beforeColor = .red
+        self.afterColor = .green
+        self.addedLabel = addedLabel
+        self.removedLabel = removedLabel
+        self.modifiedLabel = modifiedLabel
         self._selectedView = State(initialValue: selectedView)
     }
 
@@ -163,7 +182,7 @@ struct ConfigDiffPreviewView: View {
 
                     if !diff.addedRules.isEmpty {
                         changeSection(
-                            title: "Rules to be Added",
+                            title: addedLabel,
                             rules: diff.addedRules,
                             color: .green,
                             icon: "plus.circle.fill"
@@ -172,7 +191,7 @@ struct ConfigDiffPreviewView: View {
 
                     if !diff.removedRules.isEmpty {
                         changeSection(
-                            title: "Rules to be Removed",
+                            title: removedLabel,
                             rules: diff.removedRules,
                             color: .red,
                             icon: "minus.circle.fill"
@@ -181,7 +200,7 @@ struct ConfigDiffPreviewView: View {
 
                     if !diff.modifiedRules.isEmpty {
                         changeSection(
-                            title: "Rules to be Modified",
+                            title: modifiedLabel,
                             rules: diff.modifiedRules,
                             color: .orange,
                             icon: "pencil.circle.fill"
@@ -229,11 +248,10 @@ struct ConfigDiffPreviewView: View {
     private var fullDiffView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Before
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Before")
+                    Text(beforeLabel)
                         .font(.headline)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(beforeColor)
 
                     Text(diff.before.isEmpty ? "(empty configuration)" : diff.before)
                         .font(.system(.body, design: .monospaced))
@@ -245,11 +263,10 @@ struct ConfigDiffPreviewView: View {
 
                 Divider()
 
-                // After
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("After")
+                    Text(afterLabel)
                         .font(.headline)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(afterColor)
 
                     Text(diff.after.isEmpty ? "(empty configuration)" : diff.after)
                         .font(.system(.body, design: .monospaced))

@@ -93,7 +93,12 @@ struct ConfigVersionHistoryDiffDetailView: View {
                 onCancel: {
                     viewModel.clearComparison()
                 },
-                isInline: true
+                isInline: true,
+                beforeLabel: "Selection 1 — \(viewModel.selectedBackup?.formattedDate ?? "Unknown")",
+                afterLabel: "Selection 2 — \(viewModel.comparisonBackup?.formattedDate ?? "Unknown")",
+                addedLabel: "Only in Selection 2",
+                removedLabel: "Only in Selection 1",
+                modifiedLabel: "Different between selections"
             )
         }
     }
