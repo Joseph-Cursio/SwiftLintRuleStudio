@@ -14,6 +14,8 @@ struct ConfigDiffPreviewView: View {
     let onSave: () -> Void
     let onCancel: () -> Void
 
+    var isInline: Bool = false
+
     @State private var selectedView: DiffViewMode = .summary
     @State private var showCopiedFeedback = false
 
@@ -27,16 +29,26 @@ struct ConfigDiffPreviewView: View {
         ruleName: String,
         onSave: @escaping () -> Void,
         onCancel: @escaping () -> Void,
-        selectedView: DiffViewMode = .summary
+        selectedView: DiffViewMode = .summary,
+        isInline: Bool = false
     ) {
         self.diff = diff
         self.ruleName = ruleName
         self.onSave = onSave
         self.onCancel = onCancel
+        self.isInline = isInline
         self._selectedView = State(initialValue: selectedView)
     }
 
     var body: some View {
+        if isInline {
+            inlineBody
+        } else {
+            modalBody
+        }
+    }
+
+    private var modalBody: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 diffHeader
@@ -48,6 +60,42 @@ struct ConfigDiffPreviewView: View {
             .frame(width: 700, height: 500)
             .toolbar { diffToolbar }
         }
+    }
+
+    private var inlineBody: some View {
+        VStack(spacing: 0) {
+            inlineToolbar
+            Divider()
+            diffContent
+            Divider()
+            diffActions
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var inlineToolbar: some View {
+        HStack {
+            Picker("View", selection: $selectedView) {
+                Text("Summary").tag(DiffViewMode.summary)
+                Text("Full Diff").tag(DiffViewMode.full)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 200)
+
+            Spacer()
+
+            Button {
+                copyForPR()
+            } label: {
+                Label(
+                    showCopiedFeedback ? "Copied!" : "Copy for PR",
+                    systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc"
+                )
+            }
+            .disabled(showCopiedFeedback)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
     }
 
     private var diffHeader: some View {

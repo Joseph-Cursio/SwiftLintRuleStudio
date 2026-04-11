@@ -75,21 +75,26 @@ struct ConfigVersionHistoryDiffDetailView: View {
     }
 
     private func diffContent(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 0) {
             diffHeaderRow
                 .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.vertical, 8)
+
+            Divider()
 
             ConfigDiffPreviewView(
                 diff: diff,
-                ruleName: "Version Comparison"
-            ) {
-                if let backup = viewModel.comparisonBackup {
-                    viewModel.confirmRestore(backup)
-                }
-            } onCancel: {
-                viewModel.clearComparison()
-            }
+                ruleName: "Version Comparison",
+                onSave: {
+                    if let backup = viewModel.comparisonBackup {
+                        viewModel.confirmRestore(backup)
+                    }
+                },
+                onCancel: {
+                    viewModel.clearComparison()
+                },
+                isInline: true
+            )
         }
     }
 
