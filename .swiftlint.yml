@@ -2,6 +2,7 @@ disabled_rules:
 - todo
 excluded:
 - .build
+- SwiftLintRuleStudioCore/.build
 - Pods
 - .git
 - DerivedData
