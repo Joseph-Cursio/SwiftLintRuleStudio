@@ -153,25 +153,25 @@ extension SwiftLintRuleStudioUITests {
                        "BulkOperationEnableAllButton should disappear after exit")
     }
 
-    // MARK: - Workflow 9: Discover Safe Rules
+    // MARK: - Workflow 9: Rule Audit
 
     @MainActor
-    func testDiscoverSafeRules() throws {
+    func testRuleAudit() throws {
         guard let (app, window) = launchAppWithSidebar() else {
             XCTFail("No main window"); return
         }
 
-        let safeRulesLink = findElement(in: window, identifier: "SidebarSafeRulesLink")
-        XCTAssertTrue(safeRulesLink.waitForExistence(timeout: 5))
-        safeRulesLink.tap()
+        let ruleAuditLink = findElement(in: window, identifier: "SidebarRuleAuditLink")
+        XCTAssertTrue(ruleAuditLink.waitForExistence(timeout: 5))
+        ruleAuditLink.tap()
 
-        let discoverButton = findElement(in: window, identifier: "SafeRulesDiscoverButton")
-        XCTAssertTrue(discoverButton.waitForExistence(timeout: 5),
-                      "SafeRulesDiscoverButton should be visible")
-        XCTAssertTrue(discoverButton.isEnabled,
-                      "SafeRulesDiscoverButton should be enabled")
+        let auditButton = findElement(in: window, identifier: "RunAuditButton")
+        XCTAssertTrue(auditButton.waitForExistence(timeout: 5),
+                      "RunAuditButton should be visible")
+        XCTAssertTrue(auditButton.isEnabled,
+                      "RunAuditButton should be enabled")
 
-        discoverButton.tap()
+        auditButton.tap()
 
         let progressIndicator = app.progressIndicators.firstMatch
         _ = progressIndicator.waitForExistence(timeout: 5)

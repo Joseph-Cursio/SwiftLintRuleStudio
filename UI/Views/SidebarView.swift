@@ -53,7 +53,8 @@ struct SidebarView: View {
                 .badge(max(ruleRegistry.rules.count, 0))
                 .tag(AppSection.rules)
                 .accessibilityIdentifier("SidebarRulesLink")
-            Label("Violations", systemImage: "exclamationmark.triangle").tag(AppSection.violations)
+            Label("Enabled Rule Violations", systemImage: "exclamationmark.triangle")
+                .tag(AppSection.violations)
                 .accessibilityIdentifier("SidebarViolationsLink")
         }
     }
@@ -61,8 +62,8 @@ struct SidebarView: View {
     private var analysisSection: some View {
         SwiftUI.Section("Analysis") {
             Label("Dashboard", systemImage: "chart.bar").tag(AppSection.dashboard)
-            Label("Safe Rules", systemImage: "checkmark.circle.badge.questionmark").tag(AppSection.safeRules)
-                .accessibilityIdentifier("SidebarSafeRulesLink")
+            Label("Disabled Rule Audit", systemImage: "checklist").tag(AppSection.ruleAudit)
+                .accessibilityIdentifier("SidebarRuleAuditLink")
             Label("Version Check", systemImage: "checkmark.shield").tag(AppSection.versionCheck)
                 .accessibilityIdentifier("SidebarVersionCheckLink")
         }

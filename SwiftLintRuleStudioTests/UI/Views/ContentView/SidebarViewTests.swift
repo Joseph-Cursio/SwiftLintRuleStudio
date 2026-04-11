@@ -172,10 +172,10 @@ struct SidebarViewTests {
         // Find Violations link
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasViolationsText = try await MainActor.run {
-            _ = try view.inspect().find(text: "Violations")
+            _ = try view.inspect().find(text: "Enabled Rule Violations")
             return true
         }
-        #expect(hasViolationsText == true, "SidebarView should display Violations navigation link")
+        #expect(hasViolationsText == true, "SidebarView should display Enabled Rule Violations link")
     }
 
     @Test("SidebarView displays Dashboard navigation link")
@@ -193,19 +193,19 @@ struct SidebarViewTests {
         #expect(hasDashboardText == true, "SidebarView should display Dashboard navigation link")
     }
 
-    @Test("SidebarView displays Safe Rules navigation link")
-    func testDisplaysSafeRulesLink() async throws {
+    @Test("SidebarView displays Disabled Rule Audit navigation link")
+    func testDisplaysRuleAuditLink() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
         let result = await Task { @MainActor in createSidebarView() }.value
         let view = result.view
 
-        // Find Safe Rules link
+        // Find Rule Audit link
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
-        let hasSafeRulesText = try await MainActor.run {
-            _ = try view.inspect().find(text: "Safe Rules")
+        let hasRuleAuditText = try await MainActor.run {
+            _ = try view.inspect().find(text: "Disabled Rule Audit")
             return true
         }
-        #expect(hasSafeRulesText == true, "SidebarView should display Safe Rules navigation link")
+        #expect(hasRuleAuditText == true, "SidebarView should display Disabled Rule Audit link")
     }
 
     // MARK: - Navigation Link Icons Tests

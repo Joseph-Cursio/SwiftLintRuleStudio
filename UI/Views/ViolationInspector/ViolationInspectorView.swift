@@ -52,7 +52,7 @@ struct ViolationInspectorView: View {
                 .frame(minWidth: 450, idealWidth: 500, maxWidth: 800)
             detailPanel
         }
-        .navigationTitle("Violations")
+        .navigationTitle("Enabled Rule Violations")
         .onAppear(perform: handleAppear)
         .onChange(of: dependencies.workspaceManager.currentWorkspace, handleWorkspaceChange)
         .onChange(of: dependencies.workspaceManager.configFileMissing, handleConfigMissingChange)
@@ -231,5 +231,87 @@ struct StatisticBadge: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+struct ViolationSummaryCard: View {
+    let title: String
+    let count: Int
+    let subtitle: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(color)
+                .tracking(0.5)
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(count)")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundStyle(color)
+
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .frame(width: 150, height: 70, alignment: .leading)
+        .background(color.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(color.opacity(0.2), lineWidth: 0.5)
+        )
+    }
+}
+
+struct ViolationGroupHeader: View {
+    let title: String
+    let count: Int
+    let maxCount: Int
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .lineLimit(1)
+
+            Text("\(count)")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(NSColor.separatorColor))
+                        .frame(height: 6)
+
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(barColor)
+                        .frame(width: barWidth(in: geometry.size.width), height: 6)
+                }
+                .frame(height: geometry.size.height)
+            }
+            .frame(width: 80, height: 14)
+        }
+    }
+
+    private var barColor: Color {
+        let ratio = maxCount > 0 ? Double(count) / Double(maxCount) : 0
+        if ratio > 0.7 { return .red }
+        if ratio > 0.3 { return .orange }
+        return .yellow
+    }
+
+    private func barWidth(in totalWidth: CGFloat) -> CGFloat {
+        guard maxCount > 0 else { return 0 }
+        let proportion = CGFloat(count) / CGFloat(maxCount)
+        return max(proportion * totalWidth, 3)
     }
 }

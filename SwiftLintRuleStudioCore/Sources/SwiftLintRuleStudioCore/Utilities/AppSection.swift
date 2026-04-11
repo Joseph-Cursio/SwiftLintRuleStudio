@@ -9,7 +9,7 @@ public enum AppSection: Hashable, Sendable {
     case rules
     case violations
     case dashboard
-    case safeRules
+    case ruleAudit
     case versionHistory
     case compareConfigs
     case versionCheck

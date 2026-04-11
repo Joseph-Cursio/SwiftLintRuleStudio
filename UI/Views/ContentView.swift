@@ -101,8 +101,8 @@ struct ContentView: View {
         case .dashboard:
             Text("Dashboard")
                 .navigationTitle("Dashboard")
-        case .safeRules:
-            SafeRulesDiscoveryView()
+        case .ruleAudit:
+            RuleAuditView()
         case .versionHistory:
             ConfigVersionHistoryView(
                 service: dependencies.configVersionHistoryService,
@@ -195,9 +195,9 @@ struct ContentView: View {
     @ViewBuilder
     private var titleMenuContent: some View {
         Button("Rules") { selection = .rules }
-        Button("Violations") { selection = .violations }
+        Button("Enabled Rule Violations") { selection = .violations }
         Button("Dashboard") { selection = .dashboard }
-        Button("Safe Rules") { selection = .safeRules }
+        Button("Disabled Rule Audit") { selection = .ruleAudit }
         Button("Version History") { selection = .versionHistory }
         Button("Compare Configs") { selection = .compareConfigs }
         Button("Version Check") { selection = .versionCheck }

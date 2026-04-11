@@ -26,6 +26,10 @@ extension ViolationInspectorViewModel {
         filteredViolations.filter { $0.severity == .warning }.count
     }
 
+    var suppressedCount: Int {
+        filteredViolations.filter { $0.suppressed }.count
+    }
+
     var uniqueRules: [String] {
         Array(Set(violations.map { $0.ruleID })).sorted()
     }

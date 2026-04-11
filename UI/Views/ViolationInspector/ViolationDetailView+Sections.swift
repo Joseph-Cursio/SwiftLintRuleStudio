@@ -10,6 +10,7 @@ import SwiftLintRuleStudioCore
 
 struct ViolationDetailHeaderView: View {
     let violation: Violation
+    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -24,6 +25,15 @@ struct ViolationDetailHeaderView: View {
 
                 if violation.resolvedAt != nil {
                     Label("Resolved", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.green)
+                }
+
+                Spacer()
+
+                if let rule = ruleRegistry.rules.first(where: { $0.id == violation.ruleID }),
+                   rule.supportsAutocorrection {
+                    Label("Auto-fixable", systemImage: "wrench.and.screwdriver.fill")
                         .font(.subheadline)
                         .foregroundStyle(.green)
                 }

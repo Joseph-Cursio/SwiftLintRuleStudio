@@ -1,8 +1,8 @@
 //
-//  SafeRulesDiscoveryViewTests.swift
+//  RuleAuditViewTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  Tests for SafeRulesDiscoveryView
+//  Tests for RuleAuditView
 //
 
 import Testing
@@ -14,11 +14,8 @@ import SwiftLintRuleStudioCoreTestSupport
 
 // swiftlint:disable function_body_length
 
-// SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
-// to allow parallel test execution
-// swiftlint:disable:next type_body_length
-@MainActor
-struct SafeRulesDiscoveryViewTests {
+@MainActor // swiftlint:disable:next type_body_length
+struct RuleAuditViewTests {
 
     // Workaround type to bypass Sendable check for SwiftUI views
     @MainActor
@@ -34,15 +31,15 @@ struct SafeRulesDiscoveryViewTests {
 
     // Workaround for Swift 6 strict concurrency: Return ViewResult instead of tuple with 'some View'
     @MainActor
-    private func createSafeRulesDiscoveryView() -> ViewResult {
+    private func createRuleAuditView() -> ViewResult {
         let container = DependencyContainer.createForTesting()
-        let view = SafeRulesDiscoveryView()
+        let view = RuleAuditView()
             .environment(\.dependencies, container)
         return ViewResult(view: view, container: container)
     }
 
     @MainActor
-    private func createSafeRulesDiscoveryView(
+    private func createRuleAuditView(
         rules: [Rule],
         safeRuleIds: [String],
         results: [String: RuleImpactResult],
@@ -71,16 +68,15 @@ struct SafeRulesDiscoveryViewTests {
             impactSimulator: mockImpactSimulator
         )
 
-        let view = SafeRulesDiscoveryView()
+        let view = RuleAuditView()
             .environment(\.dependencies, container)
 
         return ViewResult(view: view, container: container)
     }
 
-    @Test("SafeRulesDiscoveryView initializes correctly")
+    @Test("RuleAuditView initializes correctly")
     func testInitialization() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createSafeRulesDiscoveryView() }.value
+        let result = await Task { @MainActor in createRuleAuditView() }.value
         _ = result.view
         _ = result.container
 
@@ -88,32 +84,30 @@ struct SafeRulesDiscoveryViewTests {
         #expect(Bool(true))
     }
 
-    @Test("SafeRulesDiscoveryView shows empty state")
+    @Test("RuleAuditView shows empty state")
     func testEmptyStateView() async throws {
-        let result = await Task { @MainActor in createSafeRulesDiscoveryView() }.value
+        let result = await Task { @MainActor in createRuleAuditView() }.value
         let view = result.view
 
-        let (hasHeader, hasEmptyTitle, hasEmptySubtitle) = try await MainActor.run {
+        let (hasEmptyTitle, hasEmptySubtitle) = try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
             let inspector = try view.inspect()
-            let hasHeader = (try? inspector.find(text: "Discover Safe Rules")) != nil
-            let hasEmptyTitle = (try? inspector.find(text: "No Safe Rules Discovered")) != nil
-            let emptySubtitle = "Click 'Discover Safe Rules' to analyze disabled rules in your workspace"
+            let hasEmptyTitle = (try? inspector.find(text: "No Audit Results")) != nil
+            let emptySubtitle = "Click 'Run Audit' to test disabled rules against your workspace"
             let hasEmptySubtitle = (try? inspector.find(text: emptySubtitle)) != nil
-            return (hasHeader, hasEmptyTitle, hasEmptySubtitle)
+            return (hasEmptyTitle, hasEmptySubtitle)
         }
 
-        #expect(hasHeader)
         #expect(hasEmptyTitle)
         #expect(hasEmptySubtitle)
     }
 
-    @Test("SafeRulesDiscoveryView discovers safe rules and enables them")
-    func testDiscoverAndEnableSafeRules() async throws {
+    @Test("RuleAuditView can be configured with workspace and rules")
+    func testWithWorkspaceAndRules() async throws {
         let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SafeRulesDiscoveryViewTests", isDirectory: true)
+            .appendingPathComponent("RuleAuditViewTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
@@ -186,7 +180,7 @@ struct SafeRulesDiscoveryViewTests {
         ]
 
         let result = try await MainActor.run {
-            try createSafeRulesDiscoveryView(
+            try createRuleAuditView(
                 rules: rules,
                 safeRuleIds: ["safe_rule_1", "safe_rule_2"],
                 results: results,
@@ -199,37 +193,66 @@ struct SafeRulesDiscoveryViewTests {
         let ruleCount = await MainActor.run { container.ruleRegistry.rules.count }
         #expect(hasWorkspace)
         #expect(ruleCount == 2)
-        // ViewInspector cannot inject @Observable @Environment values, so the
-        // "Discover Safe Rules" button always appears disabled (it reads currentWorkspace
-        // from the environment, which ViewInspector can't populate for @Observable types).
-        // The workspace and rule setup is verified above; tapping the button is not testable
-        // through ViewInspector until it supports @Observable environment injection.
     }
 
-    @Test("SafeRulesDiscoveryView shows results list and summary")
+    @Test("RuleAuditView shows summary cards and status bar with pre-populated entries")
     @MainActor
-    func testShowsResultsList() async throws {
-        let safeRules = [
-            RuleImpactResult(
-                ruleId: "safe_rule_1",
-                violationCount: 0,
-                violations: [],
-                affectedFiles: [],
-                simulationDuration: 0.1
+    func testShowsSummaryAndStatusBar() async throws {
+        let entries = [
+            RuleAuditEntry(
+                rule: Rule(
+                    id: "safe_rule",
+                    name: "Safe Rule",
+                    description: "A safe rule",
+                    category: .lint,
+                    isOptIn: false,
+                    supportsAutocorrection: true
+                ),
+                impactResult: RuleImpactResult(
+                    ruleId: "safe_rule",
+                    violationCount: 0,
+                    violations: [],
+                    affectedFiles: [],
+                    simulationDuration: 0.1
+                ),
+                isCurrentlyEnabled: false
             ),
-            RuleImpactResult(
-                ruleId: "safe_rule_2",
-                violationCount: 0,
-                violations: [],
-                affectedFiles: [],
-                simulationDuration: 0.1
+            RuleAuditEntry(
+                rule: Rule(
+                    id: "low_rule",
+                    name: "Low Rule",
+                    description: "A low effort rule",
+                    category: .style,
+                    isOptIn: false,
+                    supportsAutocorrection: false
+                ),
+                impactResult: RuleImpactResult(
+                    ruleId: "low_rule",
+                    violationCount: 3,
+                    violations: [],
+                    affectedFiles: ["file1.swift"],
+                    simulationDuration: 0.2
+                ),
+                isCurrentlyEnabled: false
+            ),
+            RuleAuditEntry(
+                rule: Rule(
+                    id: "enabled_rule",
+                    name: "Enabled Rule",
+                    description: "Already enabled",
+                    category: .metrics,
+                    isOptIn: false
+                ),
+                impactResult: nil,
+                isCurrentlyEnabled: true
             )
         ]
 
         let container = DependencyContainer.createForTesting()
-        let view = SafeRulesDiscoveryView(
-            safeRules: safeRules,
-            selectedRules: ["safe_rule_1", "safe_rule_2"]
+        let view = RuleAuditView(
+            auditEntries: entries,
+            totalSwiftFiles: 42,
+            auditDuration: 4.2
         )
         .environment(\.dependencies, container)
 
@@ -239,37 +262,48 @@ struct SafeRulesDiscoveryViewTests {
         }
         defer { Task { @MainActor in ViewHosting.expel() } }
 
-        let hasSummary = await UIAsyncTestHelpers.waitForText(
+        // Check for summary card text
+        let hasSafeCard = await UIAsyncTestHelpers.waitForText(
             in: view,
-            text: "Found 2 safe rules",
+            text: "SAFE TO ENABLE",
             timeout: 3.0
         )
-        let hasSelectAll = await UIAsyncTestHelpers.waitForText(
+        let hasLowCard = await UIAsyncTestHelpers.waitForText(
             in: view,
-            text: "Select All",
-            timeout: 3.0
-        )
-        let hasDeselectAll = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "Deselect All",
-            timeout: 3.0
-        )
-        let hasRule1 = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "safe_rule_1",
-            timeout: 3.0
-        )
-        let hasRule2 = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "safe_rule_2",
+            text: "LOW EFFORT",
             timeout: 3.0
         )
 
-        #expect(hasSummary)
-        #expect(hasSelectAll)
-        #expect(hasDeselectAll)
-        #expect(hasRule1)
-        #expect(hasRule2)
+        // Check for rule names
+        let hasSafeRule = await UIAsyncTestHelpers.waitForText(
+            in: view,
+            text: "safe_rule",
+            timeout: 3.0
+        )
+        let hasLowRule = await UIAsyncTestHelpers.waitForText(
+            in: view,
+            text: "low_rule",
+            timeout: 3.0
+        )
+        let hasEnabledRule = await UIAsyncTestHelpers.waitForText(
+            in: view,
+            text: "enabled_rule",
+            timeout: 3.0
+        )
+
+        // Check status bar content
+        let hasStatusBar = await UIAsyncTestHelpers.waitForText(
+            in: view,
+            text: "3 rules tested against 42 Swift files",
+            timeout: 3.0
+        )
+
+        #expect(hasSafeCard)
+        #expect(hasLowCard)
+        #expect(hasSafeRule)
+        #expect(hasLowRule)
+        #expect(hasEnabledRule)
+        #expect(hasStatusBar)
     }
 
 }
@@ -319,6 +353,33 @@ final class MockImpactSimulator: ImpactSimulator {
             violations: [],
             affectedFiles: [],
             simulationDuration: 0
+        )
+    }
+
+    override func simulateRules(
+        ruleIds: [String],
+        workspace: Workspace,
+        baseConfigPath: URL?,
+        optInRuleIds: Set<String> = [],
+        progressHandler: ((Int, Int, String) -> Void)? = nil
+    ) async throws -> BatchSimulationResult {
+        await Task.yield()
+        var ruleResults: [RuleImpactResult] = []
+        for (index, ruleId) in ruleIds.enumerated() {
+            progressHandler?(index + 1, ruleIds.count, ruleId)
+            let result = results[ruleId] ?? RuleImpactResult(
+                ruleId: ruleId,
+                violationCount: 0,
+                violations: [],
+                affectedFiles: [],
+                simulationDuration: 0.1
+            )
+            ruleResults.append(result)
+        }
+        return BatchSimulationResult(
+            results: ruleResults,
+            totalDuration: 1.0,
+            completedAt: Date.now
         )
     }
 }

@@ -9,8 +9,8 @@ extension ViolationInspectorView {
 
             Divider()
 
-            // Statistics
-            statisticsView
+            // Summary Cards
+            violationSummaryCards
 
             Divider()
 
@@ -53,6 +53,11 @@ extension ViolationInspectorView {
                 } else {
                     groupedViolationListView
                 }
+            }
+
+            if !viewModel.filteredViolations.isEmpty {
+                Divider()
+                violationStatusBar
             }
         }
     }
@@ -178,28 +183,64 @@ extension ViolationInspectorView {
         .padding(.vertical, 8)
     }
 
-    var statisticsView: some View {
-        HStack(spacing: 20) {
-            StatisticBadge(
-                label: "Total",
-                value: "\(viewModel.violationCount)",
-                color: .primary
-            )
+    var violationSummaryCards: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ViolationSummaryCard(
+                    title: "TOTAL",
+                    count: viewModel.violationCount,
+                    subtitle: "violations",
+                    color: .primary
+                )
 
-            StatisticBadge(
-                label: "Errors",
-                value: "\(viewModel.errorCount)",
-                color: .red
-            )
+                ViolationSummaryCard(
+                    title: "ERRORS",
+                    count: viewModel.errorCount,
+                    subtitle: "must fix",
+                    color: .red
+                )
 
-            StatisticBadge(
-                label: "Warnings",
-                value: "\(viewModel.warningCount)",
-                color: .orange
-            )
+                ViolationSummaryCard(
+                    title: "WARNINGS",
+                    count: viewModel.warningCount,
+                    subtitle: "should fix",
+                    color: .orange
+                )
+
+                ViolationSummaryCard(
+                    title: "SUPPRESSED",
+                    count: viewModel.suppressedCount,
+                    subtitle: "hidden",
+                    color: .secondary
+                )
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
         }
+    }
+
+    var violationStatusBar: some View {
+        HStack(spacing: 16) {
+            Text("\(viewModel.violationCount) violations across \(viewModel.uniqueFiles.count) files")
+                .foregroundStyle(.secondary)
+
+            if viewModel.violationCount != viewModel.violations.count {
+                Divider().frame(height: 12)
+                Text("Showing \(viewModel.violationCount) of \(viewModel.violations.count) (filtered)")
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if !viewModel.selectedViolationIds.isEmpty {
+                Text("\(viewModel.selectedViolationIds.count) selected")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption)
         .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.controlBackgroundColor))
     }
 
     var analyzingView: some View {
@@ -272,15 +313,21 @@ extension ViolationInspectorView {
     var groupedViolationListView: some View {
         List(selection: Bindable(viewModel).selectedViolationIds) {
             let grouped = groupViolations(viewModel.filteredViolations, by: viewModel.groupingOption)
+            let maxGroupCount = grouped.values.map(\.count).max() ?? 1
 
             ForEach(orderedGroupKeys(for: grouped, option: viewModel.groupingOption), id: \.self) { groupKey in
+                let groupCount = grouped[groupKey]?.count ?? 0
                 SwiftUI.Section {
                     ForEach(grouped[groupKey] ?? [], id: \.id) { violation in
                         ViolationListItem(violation: violation)
                             .tag(violation.id)
                     }
                 } header: {
-                    Text(groupKey).font(.headline)
+                    ViolationGroupHeader(
+                        title: groupKey,
+                        count: groupCount,
+                        maxCount: maxGroupCount
+                    )
                 }
             }
         }

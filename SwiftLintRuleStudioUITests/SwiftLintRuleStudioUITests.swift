@@ -185,9 +185,9 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
         XCTAssertTrue(violationsRow.waitForExistence(timeout: 5))
         violationsRow.tap()
 
-        let safeRulesRow = findElement(in: window, identifier: "SidebarSafeRulesLink")
-        XCTAssertTrue(safeRulesRow.waitForExistence(timeout: 5))
-        safeRulesRow.tap()
+        let ruleAuditRow = findElement(in: window, identifier: "SidebarRuleAuditLink")
+        XCTAssertTrue(ruleAuditRow.waitForExistence(timeout: 5))
+        ruleAuditRow.tap()
     }
 }
 
