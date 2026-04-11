@@ -260,7 +260,7 @@ struct ViolationSummaryCard: View {
             }
         }
         .padding(12)
-        .frame(width: 150, height: 70, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 60, alignment: .leading)
         .background(color.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(

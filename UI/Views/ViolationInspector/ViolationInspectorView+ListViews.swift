@@ -184,39 +184,37 @@ extension ViolationInspectorView {
     }
 
     var violationSummaryCards: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ViolationSummaryCard(
-                    title: "TOTAL",
-                    count: viewModel.violationCount,
-                    subtitle: "violations",
-                    color: .primary
-                )
+        HStack(spacing: 8) {
+            ViolationSummaryCard(
+                title: "TOTAL",
+                count: viewModel.violationCount,
+                subtitle: "violations",
+                color: .primary
+            )
 
-                ViolationSummaryCard(
-                    title: "ERRORS",
-                    count: viewModel.errorCount,
-                    subtitle: "must fix",
-                    color: .red
-                )
+            ViolationSummaryCard(
+                title: "ERRORS",
+                count: viewModel.errorCount,
+                subtitle: "must fix",
+                color: .red
+            )
 
-                ViolationSummaryCard(
-                    title: "WARNINGS",
-                    count: viewModel.warningCount,
-                    subtitle: "should fix",
-                    color: .orange
-                )
+            ViolationSummaryCard(
+                title: "WARNINGS",
+                count: viewModel.warningCount,
+                subtitle: "should fix",
+                color: .orange
+            )
 
-                ViolationSummaryCard(
-                    title: "SUPPRESSED",
-                    count: viewModel.suppressedCount,
-                    subtitle: "hidden",
-                    color: .secondary
-                )
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            ViolationSummaryCard(
+                title: "SUPPRESSED",
+                count: viewModel.suppressedCount,
+                subtitle: "hidden",
+                color: .secondary
+            )
         }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
     }
 
     var violationStatusBar: some View {
