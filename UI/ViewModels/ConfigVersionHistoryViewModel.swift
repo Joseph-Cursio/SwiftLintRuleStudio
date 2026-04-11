@@ -99,8 +99,21 @@ class ConfigVersionHistoryViewModel {
         guard let first = selectedBackup,
               let second = comparisonBackup else { return }
 
+        // Always order chronologically: earlier = before, later = after
+        let earlier: ConfigBackup
+        let later: ConfigBackup
+        if first.timestamp <= second.timestamp {
+            earlier = first
+            later = second
+        } else {
+            earlier = second
+            later = first
+        }
+        selectedBackup = earlier
+        comparisonBackup = later
+
         do {
-            currentDiff = try service.diffBetween(first, second)
+            currentDiff = try service.diffBetween(earlier, later)
         } catch {
             self.error = error
         }

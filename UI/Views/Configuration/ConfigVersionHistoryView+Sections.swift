@@ -94,11 +94,8 @@ struct ConfigVersionHistoryDiffDetailView: View {
                     viewModel.clearComparison()
                 },
                 isInline: true,
-                beforeLabel: "Selection 1 — \(viewModel.selectedBackup?.formattedDate ?? "Unknown")",
-                afterLabel: "Selection 2 — \(viewModel.comparisonBackup?.formattedDate ?? "Unknown")",
-                addedLabel: "Only in Selection 2",
-                removedLabel: "Only in Selection 1",
-                modifiedLabel: "Different between selections"
+                beforeLabel: "Before — \(viewModel.selectedBackup?.formattedDate ?? "Unknown")",
+                afterLabel: "After — \(viewModel.comparisonBackup?.formattedDate ?? "Unknown")"
             )
         }
     }
