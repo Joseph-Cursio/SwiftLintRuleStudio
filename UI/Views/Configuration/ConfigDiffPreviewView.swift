@@ -246,38 +246,12 @@ struct ConfigDiffPreviewView: View {
     }
 
     private var fullDiffView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(beforeLabel)
-                        .font(.headline)
-                        .foregroundStyle(beforeColor)
-
-                    Text(diff.before.isEmpty ? "(empty configuration)" : diff.before)
-                        .font(.system(.body, design: .monospaced))
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(NSColor.textBackgroundColor))
-                        .clipShape(.rect(cornerRadius: 8))
-                }
-
-                Divider()
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(afterLabel)
-                        .font(.headline)
-                        .foregroundStyle(afterColor)
-
-                    Text(diff.after.isEmpty ? "(empty configuration)" : diff.after)
-                        .font(.system(.body, design: .monospaced))
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(NSColor.textBackgroundColor))
-                        .clipShape(.rect(cornerRadius: 8))
-                }
-            }
-            .padding()
-        }
+        UnifiedDiffContentView(
+            before: diff.before,
+            after: diff.after,
+            beforeLabel: beforeLabel,
+            afterLabel: afterLabel
+        )
     }
 
     private func copyForPR() {

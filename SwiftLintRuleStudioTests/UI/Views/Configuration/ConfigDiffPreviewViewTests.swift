@@ -212,22 +212,22 @@ struct ConfigDiffPreviewViewTests {
             addedRules: [],
             removedRules: [],
             modifiedRules: [],
-            before: "",
-            after: ""
+            before: "rules:\n  force_cast: error",
+            after: "rules:\n  force_cast: warning"
         )
         let (view, _) = await createConfigDiffPreviewView(diff: diff, initialView: .full)
 
-        let hasEmptyConfig = try await MainActor.run {
+        let hasLegend = try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
             let inspector = try view.inspect()
-            _ = try inspector.find(text: "Before")
-            _ = try inspector.find(text: "After")
-            return (try? inspector.find(text: "(empty configuration)")) != nil
+            let hasBefore = (try? inspector.find(text: "Before")) != nil
+            let hasAfter = (try? inspector.find(text: "After")) != nil
+            return hasBefore && hasAfter
         }
 
-        #expect(hasEmptyConfig == true, "Full diff should show empty configuration text")
+        #expect(hasLegend == true, "Full diff should show Before/After legend labels")
     }
 
     // MARK: - Action Buttons Tests
