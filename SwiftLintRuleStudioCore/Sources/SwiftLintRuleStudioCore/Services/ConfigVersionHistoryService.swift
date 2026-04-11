@@ -35,13 +35,18 @@ public struct ConfigBackup: Identifiable, Sendable {
 
 /// Protocol for version history service
 public protocol ConfigVersionHistoryServiceProtocol {
+    /// List available backups for a configuration file
     func listBackups(for configPath: URL) -> [ConfigBackup]
+    /// Load the content of a backup file
     func loadBackup(_ backup: ConfigBackup) throws -> String
+    /// Restore a backup to the specified configuration path
     func restoreBackup(_ backup: ConfigBackup, to configPath: URL) throws
+    /// Compute the diff between two configuration backups
     func diffBetween(
         _ first: ConfigBackup,
         _ second: ConfigBackup
     ) throws -> YAMLConfigurationEngine.ConfigDiff
+    /// Remove old backups, keeping only the specified count
     func pruneOldBackups(for configPath: URL, keepCount: Int) throws
 }
 

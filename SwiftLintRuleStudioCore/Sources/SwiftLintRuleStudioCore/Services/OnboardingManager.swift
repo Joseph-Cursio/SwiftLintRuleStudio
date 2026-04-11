@@ -12,7 +12,9 @@ import Observation
 @MainActor
 @Observable
 public class OnboardingManager {
+    /// Whether the onboarding flow has been completed this session
     public var hasCompletedOnboarding: Bool
+    /// The current step in the onboarding flow
     public var currentStep: OnboardingStep
 
     private let userDefaults: UserDefaults
@@ -51,6 +53,7 @@ public class OnboardingManager {
         }
     }
 
+    /// Initialize the onboarding manager with the specified user defaults
     public init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
         // Onboarding always shows - never mark as permanently completed

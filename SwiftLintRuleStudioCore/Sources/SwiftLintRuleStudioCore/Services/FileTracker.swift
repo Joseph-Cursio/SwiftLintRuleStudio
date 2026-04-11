@@ -35,6 +35,7 @@ public class FileTracker {
 
     // MARK: - Initialization
 
+    /// Initialize a file tracker with an optional cache URL for persistence
     public init(cacheURL: URL? = nil) {
         self.cacheURL = cacheURL
         loadCache()

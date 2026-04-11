@@ -2,6 +2,7 @@ import Foundation
 import Yams
 
 extension YAMLConfigurationEngine {
+    /// Convert a YAML node into a Swift dictionary
     public func nodeToDictionary(_ node: Node) throws -> [String: Any] {
         guard case .mapping(let mapping) = node else {
             throw YAMLConfigError.parseError("Expected mapping node")
@@ -68,6 +69,7 @@ extension YAMLConfigurationEngine {
         tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float")
     }
 
+    /// Parse a dictionary into a SwiftLintConfiguration struct
     public func parseDictionaryToConfig(_ dict: [String: Any]) throws -> SwiftLintConfiguration {
         var config = SwiftLintConfiguration()
 

@@ -8,7 +8,9 @@
 import Foundation
 @testable import SwiftLintRuleStudioCore
 
+/// Test helpers for workspace analyzer tests
 public enum WorkspaceAnalyzerTestHelpers {
+    /// Create a temporary workspace analyzer and run an operation against it
     public static func withWorkspaceAnalyzer<T: Sendable>(
         swiftLintCLI: SwiftLintCLIProtocol,
         violationStorage: ViolationStorageProtocol,
@@ -24,10 +26,12 @@ public enum WorkspaceAnalyzerTestHelpers {
         }.value
     }
 
+    /// Create a mock SwiftLint CLI actor with default configuration
     public static func createMockSwiftLintCLIActor() -> MockSwiftLintCLIActor {
         MockSwiftLintCLIActor()
     }
 
+    /// Configure a mock CLI actor with output and behavior options
     public static func setupMockCLI(
         _ mockCLI: MockSwiftLintCLIActor,
         output: Data,
@@ -38,10 +42,12 @@ public enum WorkspaceAnalyzerTestHelpers {
         await mockCLI.setShouldHang(shouldHang)
     }
 
+    /// Create a mock violation storage for testing
     public static func createMockViolationStorage() -> MockViolationStorage {
         MockViolationStorage()
     }
 
+    /// Create a temporary workspace directory for testing
     public static func createTempWorkspace() async throws -> Workspace {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
@@ -53,6 +59,7 @@ public enum WorkspaceAnalyzerTestHelpers {
         }
     }
 
+    /// Poll until the analyzer reaches the expected analyzing state or timeout
     public static func waitForAnalyzingState(
         _ analyzer: WorkspaceAnalyzer,
         expected: Bool,
@@ -67,6 +74,7 @@ public enum WorkspaceAnalyzerTestHelpers {
         return false
     }
 
+    /// Remove a temporary workspace directory
     public static func cleanupTempWorkspace(_ workspace: Workspace) {
         try? FileManager.default.removeItem(at: workspace.path)
     }

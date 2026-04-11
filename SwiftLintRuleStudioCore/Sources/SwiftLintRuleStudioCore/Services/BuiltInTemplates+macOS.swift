@@ -7,11 +7,12 @@
 
 import Foundation
 
-extension BuiltInTemplates {
+public extension BuiltInTemplates {
 
     // MARK: - macOS App Templates
 
-    public static let macOSStrict = ConfigurationTemplate(
+    /// Strict macOS app configuration with maximum code quality rules
+    static let macOSStrict = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000004"),
         name: "macOS App - Strict",
         description: "Maximum code quality for macOS applications",
@@ -64,7 +65,8 @@ extension BuiltInTemplates {
         isBuiltIn: true
     )
 
-    public static let macOSBalanced = ConfigurationTemplate(
+    /// Balanced macOS app configuration
+    static let macOSBalanced = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000005"),
         name: "macOS App - Balanced",
         description: "Good balance for macOS applications",
@@ -93,7 +95,8 @@ extension BuiltInTemplates {
         isBuiltIn: true
     )
 
-    public static let macOSLenient = ConfigurationTemplate(
+    /// Lenient macOS app configuration focused on critical issues
+    static let macOSLenient = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000006"),
         name: "macOS App - Lenient",
         description: "Minimal rules for macOS applications",

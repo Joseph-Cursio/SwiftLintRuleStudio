@@ -159,7 +159,7 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     // Thread-safe registry keyed by token
-    private nonisolated(unsafe) static var _registry: [String: (Data, Int)] = [:]
+    nonisolated(unsafe) private static var _registry: [String: (Data, Int)] = [:]
 
     override static func canInit(with request: URLRequest) -> Bool { true }
     override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }

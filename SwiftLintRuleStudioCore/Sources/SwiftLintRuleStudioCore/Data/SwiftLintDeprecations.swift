@@ -39,10 +39,12 @@ public struct RemovalEntry: Sendable {
     }
 }
 
+/// Static database of SwiftLint rule deprecations, renames, and removals
 public enum SwiftLintDeprecations {
 
     // MARK: - Renamed Rules (old identifier -> new identifier)
 
+    /// Map of old rule identifiers to their renamed replacements
     public static let renamedRules: [String: String] = [
         // 0.25.0
         "variable_name": "identifier_name",
@@ -70,6 +72,7 @@ public enum SwiftLintDeprecations {
 
     // MARK: - Deprecated Rules (still work but will be removed)
 
+    /// Map of deprecated rule identifiers to their deprecation details
     public static let deprecatedRules: [String: DeprecationEntry] = [
         "variable_name": DeprecationEntry(
             deprecatedInVersion: "0.25.0",
@@ -120,6 +123,7 @@ public enum SwiftLintDeprecations {
 
     // MARK: - Removed Rules (no longer recognized by SwiftLint)
 
+    /// Map of removed rule identifiers to their removal details
     public static let removedRules: [String: RemovalEntry] = [
         "variable_name": RemovalEntry(
             removedInVersion: "0.35.0",
@@ -150,6 +154,7 @@ public enum SwiftLintDeprecations {
 
     // MARK: - Version Rule Additions (version -> new rules added)
 
+    /// Map of SwiftLint versions to rules introduced in that version
     public static let versionRuleAdditions: [String: [String]] = [
         "0.25.0": ["identifier_name", "file_name_no_space"],
         "0.27.0": ["multiline_arguments", "multiline_parameters"],

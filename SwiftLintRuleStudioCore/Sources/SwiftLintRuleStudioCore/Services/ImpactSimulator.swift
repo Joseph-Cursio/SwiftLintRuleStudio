@@ -9,14 +9,20 @@ import Foundation
 
 /// Result of simulating a rule's impact
 public struct RuleImpactResult: Sendable, Identifiable {
-    public nonisolated let ruleId: String
-    public nonisolated var id: String { ruleId }
-    public nonisolated let violationCount: Int
-    public nonisolated let violations: [Violation]
-    public nonisolated let affectedFiles: Set<String>
-    public nonisolated let simulationDuration: TimeInterval
+    nonisolated public let ruleId: String
+    nonisolated public var id: String { ruleId }
+    nonisolated public let violationCount: Int
+    nonisolated public let violations: [Violation]
+    nonisolated public let affectedFiles: Set<String>
+    nonisolated public let simulationDuration: TimeInterval
 
-    public init(ruleId: String, violationCount: Int, violations: [Violation], affectedFiles: Set<String>, simulationDuration: TimeInterval) {
+    public init(
+        ruleId: String,
+        violationCount: Int,
+        violations: [Violation],
+        affectedFiles: Set<String>,
+        simulationDuration: TimeInterval
+    ) {
         self.ruleId = ruleId
         self.violationCount = violationCount
         self.violations = violations
@@ -24,20 +30,20 @@ public struct RuleImpactResult: Sendable, Identifiable {
         self.simulationDuration = simulationDuration
     }
 
-    public nonisolated var hasViolations: Bool {
+    nonisolated public var hasViolations: Bool {
         violationCount > 0
     }
 
-    public nonisolated var isSafe: Bool {
+    nonisolated public var isSafe: Bool {
         violationCount == 0
     }
 }
 
 /// Result of batch simulation
 public struct BatchSimulationResult: Sendable {
-    public nonisolated let results: [RuleImpactResult]
-    public nonisolated let totalDuration: TimeInterval
-    public nonisolated let completedAt: Date
+    nonisolated public let results: [RuleImpactResult]
+    nonisolated public let totalDuration: TimeInterval
+    nonisolated public let completedAt: Date
 
     public init(results: [RuleImpactResult], totalDuration: TimeInterval, completedAt: Date) {
         self.results = results
@@ -45,11 +51,11 @@ public struct BatchSimulationResult: Sendable {
         self.completedAt = completedAt
     }
 
-    public nonisolated var safeRules: [RuleImpactResult] {
+    nonisolated public var safeRules: [RuleImpactResult] {
         results.filter { $0.isSafe }
     }
 
-    public nonisolated var rulesWithViolations: [RuleImpactResult] {
+    nonisolated public var rulesWithViolations: [RuleImpactResult] {
         results.filter { $0.hasViolations }
     }
 }
@@ -64,6 +70,7 @@ public class ImpactSimulator {
 
     // MARK: - Initialization
 
+    /// Creates a simulator backed by the given SwiftLint CLI and file manager
     public init(swiftLintCLI: SwiftLintCLIProtocol, fileManager: FileManager = .default) {
         self.swiftLintCLI = swiftLintCLI
         self.fileManager = fileManager

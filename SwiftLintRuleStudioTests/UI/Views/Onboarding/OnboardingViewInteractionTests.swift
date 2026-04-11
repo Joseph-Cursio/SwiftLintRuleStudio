@@ -16,19 +16,18 @@ import SwiftLintRuleStudioCoreTestSupport
 // Interaction tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
-// swiftlint:disable:next type_body_length
 @MainActor
 struct OnboardingViewInteractionTests {
 
     // MARK: - Test Data Helpers
 
-    private struct OnboardingViewResult: @unchecked Sendable {
+    struct OnboardingViewResult: @unchecked Sendable {
         let view: AnyView
         let onboardingManager: OnboardingManager
         let workspaceManager: WorkspaceManager
     }
 
-    private func createOnboardingView(
+    func createOnboardingView(
         testName: String,
         step: OnboardingManager.OnboardingStep = .welcome
     ) async -> OnboardingViewResult {
@@ -59,14 +58,14 @@ struct OnboardingViewInteractionTests {
     }
 
     @MainActor
-    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+    func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
         try view.inspect().find(ViewType.Button.self) { button in
             let text = try? button.labelView().find(ViewType.Text.self).string()
             return text == label
         }
     }
 
-    private func waitForStep(
+    func waitForStep(
         _ expected: OnboardingManager.OnboardingStep,
         onboardingManager: OnboardingManager,
         timeoutSeconds: TimeInterval = 1.0
@@ -78,7 +77,7 @@ struct OnboardingViewInteractionTests {
         }
     }
 
-    private func waitForCompletion(
+    func waitForCompletion(
         onboardingManager: OnboardingManager,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
@@ -90,7 +89,7 @@ struct OnboardingViewInteractionTests {
     }
 
     @MainActor
-    private func waitForText(
+    func waitForText(
         in view: AnyView,
         text: String,
         timeoutSeconds: TimeInterval = 1.0
@@ -197,193 +196,6 @@ struct OnboardingViewInteractionTests {
                 "Should advance to complete step when workspace is selected")
     }
 
-    // MARK: - Step Navigation Tests
-
-    @Test("OnboardingView navigates through all steps")
-    func testNavigatesThroughAllSteps() async throws {
-        let result = await createOnboardingView(testName: #function, step: .welcome)
-        let onboardingManager = result.onboardingManager
-
-        // Start at welcome
-        let initialStep = await MainActor.run {
-            onboardingManager.currentStep
-        }
-        #expect(initialStep == .welcome, "Should start at welcome step")
-
-        // Navigate to SwiftLint check
-        try await MainActor.run {
-            let nextButton1 = try findButton(in: result.view, label: "Next")
-            try nextButton1.tap()
-        }
-        let didAdvance = await waitForStep(.swiftLintCheck, onboardingManager: onboardingManager)
-        #expect(didAdvance == true, "Should navigate to SwiftLint check step")
-
-        // Navigate to workspace selection
-        // Note: Next button may be disabled while checking SwiftLint
-        // We'll use the onboarding manager directly for this test
-        await MainActor.run {
-            onboardingManager.nextStep()
-        }
-        let didAdvanceToWorkspace = await waitForStep(
-            .workspaceSelection,
-            onboardingManager: onboardingManager
-        )
-        #expect(didAdvanceToWorkspace == true, "Should navigate to workspace selection step")
-
-        // Navigate to complete
-        await MainActor.run {
-            onboardingManager.nextStep()
-        }
-        let step3 = await MainActor.run {
-            onboardingManager.currentStep
-        }
-        #expect(step3 == .complete, "Should navigate to complete step")
-    }
-
-    @Test("OnboardingView can navigate backwards through steps")
-    func testNavigatesBackwardsThroughSteps() async throws {
-        let result = await createOnboardingView(testName: #function, step: .workspaceSelection)
-        let onboardingManager = result.onboardingManager
-
-        // Start at workspace selection
-        let initialStep = await MainActor.run {
-            onboardingManager.currentStep
-        }
-        #expect(initialStep == .workspaceSelection, "Should start at workspace selection step")
-
-        // Navigate back to SwiftLint check
-        try await MainActor.run {
-            let backButton1 = try findButton(in: result.view, label: "Back")
-            try backButton1.tap()
-        }
-        let didReturnToCheck = await waitForStep(.swiftLintCheck, onboardingManager: onboardingManager)
-        #expect(didReturnToCheck == true, "Should navigate back to SwiftLint check step")
-
-        // Navigate back to welcome
-        try await MainActor.run {
-            let backButton2 = try findButton(in: result.view, label: "Back")
-            try backButton2.tap()
-        }
-        let didReturnToWelcome = await waitForStep(.welcome, onboardingManager: onboardingManager)
-        #expect(didReturnToWelcome == true, "Should navigate back to welcome step")
-    }
-
-    // MARK: - SwiftLint Check Interaction Tests
-
-    @Test("OnboardingView Check Again button retriggers SwiftLint check")
-    func testCheckAgainButtonRetriggersCheck() async throws {
-        let result = await createOnboardingView(testName: #function, step: .swiftLintCheck)
-
-        let didFindCheckAgain = await waitForText(in: result.view, text: "Check Again", timeoutSeconds: 0.6)
-
-        // Find Check Again button (may not be visible if SwiftLint is installed)
-        let hasCheckAgainButton = try? await MainActor.run {
-            guard didFindCheckAgain else { return false }
-            let checkAgainText = try? result.view.inspect().find(text: "Check Again")
-            if let checkAgainText = checkAgainText {
-                let checkAgainButton = try checkAgainText.parent().find(ViewType.Button.self)
-                try checkAgainButton.tap()
-                return true
-            }
-            return false
-        }
-        if hasCheckAgainButton == true {
-            #expect(true, "Check Again button should retrigger SwiftLint check")
-        } else {
-            #expect(true, "Check Again button not shown when SwiftLint is installed")
-        }
-    }
-
-    // MARK: - Button State Tests
-
-    @Test("OnboardingView Next button is disabled while checking SwiftLint")
-    func testNextButtonDisabledWhileChecking() async throws {
-        let result = await createOnboardingView(testName: #function, step: .swiftLintCheck)
-        let onboardingManager = result.onboardingManager
-
-        // Next button should be disabled while checking
-        // Note: This is handled by the view's disabled modifier
-        // We verify the view structure exists
-        _ = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.VStack.self)
-            return true
-        }
-        _ = onboardingManager // Suppress unused warning
-        #expect(true, "Next button should be disabled while checking SwiftLint")
-    }
-
-    @Test("OnboardingView Complete button is disabled when no workspace selected")
-    func testCompleteButtonDisabledWhenNoWorkspace() async throws {
-        let result = await createOnboardingView(testName: #function, step: .workspaceSelection)
-
-        // Complete button should be disabled when no workspace is selected
-        // Instead, "Select a Workspace" button should be shown
-        let hasSelectWorkspace = try? await MainActor.run {
-            _ = try result.view.inspect().find(text: "Select a Workspace")
-            return true
-        }
-        #expect(hasSelectWorkspace == true, "Should show disabled Select a Workspace button when no workspace selected")
-    }
-
-    // MARK: - Progress Indicator Tests
-
-    @Test("OnboardingView progress indicator updates with current step")
-    func testProgressIndicatorUpdates() async throws {
-        let result = await createOnboardingView(testName: #function, step: .welcome)
-        let onboardingManager = result.onboardingManager
-
-        // Progress indicator should show current step
-        _ = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.HStack.self)
-            return true
-        }
-        #expect(true, "Progress indicator should update with current step")
-
-        // Move to next step
-        await MainActor.run {
-            onboardingManager.nextStep()
-        }
-
-        // Progress indicator should reflect new step
-        let currentStep = await MainActor.run {
-            onboardingManager.currentStep
-        }
-        #expect(currentStep == .swiftLintCheck, "Progress indicator should reflect step change")
-    }
-
-    // MARK: - Auto-advance Tests
-
-    @Test("OnboardingView auto-advances when workspace is selected")
-    func testAutoAdvancesWhenWorkspaceSelected() async throws {
-        let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
-        defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
-
-        let result = await createOnboardingView(testName: #function, step: .workspaceSelection)
-        let onboardingManager = result.onboardingManager
-        let workspaceManager = result.workspaceManager
-
-        // Verify we start at workspace selection step
-        let initialStep = await MainActor.run {
-            onboardingManager.currentStep
-        }
-        #expect(initialStep == .workspaceSelection, "Should start at workspace selection step")
-
-        // Select workspace
-        try await MainActor.run {
-            try workspaceManager.openWorkspace(at: tempDir)
-        }
-
-        let didAdvance = await waitForStep(
-            .complete,
-            onboardingManager: onboardingManager,
-            timeoutSeconds: 1.5
-        )
-        let hasWorkspace = await MainActor.run {
-            workspaceManager.currentWorkspace != nil
-        }
-        #expect(didAdvance || hasWorkspace == true,
-                "Should auto-advance to complete step when workspace is selected")
-    }
 }
 
 // MARK: - ViewInspector Extensions

@@ -12,34 +12,56 @@ import Observation
 @MainActor
 @Observable
 public class DependencyContainer {
+    /// Central manager for SwiftLint rules metadata
     public let ruleRegistry: RuleRegistry
+    /// CLI wrapper for executing SwiftLint commands
     public let swiftLintCLI: SwiftLintCLIProtocol
+    /// Cache manager for persisting rules and version data
     public let cacheManager: CacheManagerProtocol
+    /// Actor-based SQLite storage for violations
     public let violationStorage: ViolationStorageProtocol
+    /// Background analysis engine that runs SwiftLint
     public let workspaceAnalyzer: WorkspaceAnalyzer
+    /// Service for workspace selection and recent workspace history
     public let workspaceManager: WorkspaceManager
+    /// Manages first-run onboarding flow
     public let onboardingManager: OnboardingManager
+    /// Simulates rule impact and discovers zero-violation rules
     public let impactSimulator: ImpactSimulator
+    /// Opens violations in Xcode via URL schemes
     public let xcodeIntegrationService: XcodeIntegrationService
 
     // Phase 1 YAML Configuration Services
+    /// Validates SwiftLint configuration files
     public let configurationValidator: ConfigurationValidatorProtocol
+    /// Analyzes configuration health and provides recommendations
     public let configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol
+    /// Manages built-in and custom configuration templates
     public let configurationTemplateManager: ConfigurationTemplateManagerProtocol
+    /// Generates PR comments for configuration changes
     public let prCommentGenerator: PRCommentGeneratorProtocol
 
     // Phase 2 YAML Configuration Services
+    /// Browses and restores configuration version history
     public let configVersionHistoryService: ConfigVersionHistoryServiceProtocol
+    /// Compares two configurations side by side
     public let configComparisonService: ConfigComparisonServiceProtocol
 
     // Phase 3 YAML Configuration Services
+    /// Git operations service
     public let gitService: GitServiceProtocol
+    /// Fetches configurations from URLs
     public let urlConfigFetcher: URLConfigFetcherProtocol
+    /// Checks SwiftLint version compatibility
     public let versionCompatibilityChecker: VersionCompatibilityCheckerProtocol
+    /// Imports configurations from external sources
     public let configImportService: ConfigImportServiceProtocol
+    /// Computes diffs between git branches
     public let gitBranchDiffService: GitBranchDiffServiceProtocol
+    /// Assists with SwiftLint version migrations
     public let migrationAssistant: MigrationAssistantProtocol
 
+    /// Initialize the dependency container with optional overrides for each service
     public init(
         ruleRegistry: RuleRegistry? = nil,
         swiftLintCLI: SwiftLintCLIProtocol? = nil,

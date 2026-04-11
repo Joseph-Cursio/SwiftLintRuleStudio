@@ -9,6 +9,7 @@ import Foundation
 
 /// Parser for SwiftLint rule documentation markdown files
 public struct RuleDocumentationParser {
+    /// Parse a SwiftLint rule documentation markdown string into structured data
     public static func parse(markdown: String) -> ParsedRuleDocumentation {
         let lines = markdown.components(separatedBy: .newlines)
         let (name, foundTitle) = parseTitle(from: lines)
@@ -218,16 +219,26 @@ public struct RuleDocumentationParser {
     }
 }
 
+/// Parsed result of a SwiftLint rule documentation markdown file
 public struct ParsedRuleDocumentation {
+    /// The rule display name
     public let name: String
+    /// A brief description of the rule
     public let description: String
+    /// Whether the rule supports autocorrection
     public let supportsAutocorrection: Bool
+    /// The minimum Swift version required for this rule
     public let minimumSwiftVersion: String?
+    /// The default severity for this rule
     public let defaultSeverity: Severity?
+    /// Code examples that trigger this rule
     public let triggeringExamples: [String]
+    /// Code examples that do not trigger this rule
     public let nonTriggeringExamples: [String]
+    /// The full markdown documentation content
     public let fullMarkdown: String
 
+    /// Initialize parsed rule documentation with all fields
     public init(
         name: String,
         description: String,

@@ -22,6 +22,7 @@ public enum BuiltInTemplates {
 
     // MARK: - iOS App Templates
 
+    /// Strict iOS app configuration template with maximum code quality rules
     public static let iOSStrict = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000001"),
         name: "iOS App - Strict",
@@ -110,6 +111,7 @@ public enum BuiltInTemplates {
         isBuiltIn: true
     )
 
+    /// Balanced iOS app configuration template with moderate rule enforcement
     public static let iOSBalanced = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000002"),
         name: "iOS App - Balanced",
@@ -160,6 +162,7 @@ public enum BuiltInTemplates {
         isBuiltIn: true
     )
 
+    /// Lenient iOS app configuration template with minimal rule enforcement
     public static let iOSLenient = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000003"),
         name: "iOS App - Lenient",
@@ -193,6 +196,7 @@ public enum BuiltInTemplates {
 
     // MARK: - All Templates
 
+    /// All available built-in configuration templates
     public static var all: [ConfigurationTemplate] {
         [
             iOSStrict, iOSBalanced, iOSLenient,

@@ -3,6 +3,7 @@ import Foundation
 extension RuleRegistry {
     private static let initialDetailBatchSize = 20
 
+    /// Fetch and parse rules from the SwiftLint CLI
     public func fetchRulesFromSwiftLint() async throws -> [Rule] {
         let output = try await swiftLintCLI.executeRulesCommand()
         return try await parseRules(from: output)

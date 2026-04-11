@@ -40,7 +40,7 @@ public struct CacheManager: CacheManagerProtocol {
         try? FileManager.default.createDirectory(at: self.cacheDirectory, withIntermediateDirectories: true)
     }
 
-    public nonisolated func loadCachedRules() throws -> [Rule] {
+    nonisolated public func loadCachedRules() throws -> [Rule] {
         guard FileManager.default.fileExists(atPath: rulesCacheFile.path) else {
             return []
         }
@@ -50,14 +50,14 @@ public struct CacheManager: CacheManagerProtocol {
         return try decoder.decode([Rule].self, from: data)
     }
 
-    public nonisolated func saveCachedRules(_ rules: [Rule]) throws {
+    nonisolated public func saveCachedRules(_ rules: [Rule]) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(rules)
         try data.write(to: rulesCacheFile)
     }
 
-    public nonisolated func clearCache() throws {
+    nonisolated public func clearCache() throws {
         // Only try to remove if file exists
         if FileManager.default.fileExists(atPath: rulesCacheFile.path) {
             try FileManager.default.removeItem(at: rulesCacheFile)
@@ -66,20 +66,20 @@ public struct CacheManager: CacheManagerProtocol {
 
     // MARK: - SwiftLint Version Caching
 
-    public nonisolated func getCachedSwiftLintVersion() throws -> String? {
+    nonisolated public func getCachedSwiftLintVersion() throws -> String? {
         guard FileManager.default.fileExists(atPath: versionCacheFile.path) else {
             return nil
         }
         return try String(contentsOf: versionCacheFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    public nonisolated func saveSwiftLintVersion(_ version: String) throws {
+    nonisolated public func saveSwiftLintVersion(_ version: String) throws {
         try version.write(to: versionCacheFile, atomically: true, encoding: .utf8)
     }
 
     // MARK: - Documentation Directory Caching
 
-    public nonisolated func getCachedDocsDirectory() -> URL? {
+    nonisolated public func getCachedDocsDirectory() -> URL? {
         let cachedPath = try? String(contentsOf: docsDirectoryCacheFile, encoding: .utf8)
         let pathString = cachedPath?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard FileManager.default.fileExists(atPath: docsDirectoryCacheFile.path),
@@ -91,11 +91,11 @@ public struct CacheManager: CacheManagerProtocol {
         return URL(fileURLWithPath: pathString)
     }
 
-    public nonisolated func saveDocsDirectory(_ url: URL) throws {
+    nonisolated public func saveDocsDirectory(_ url: URL) throws {
         try url.path.write(to: docsDirectoryCacheFile, atomically: true, encoding: .utf8)
     }
 
-    public nonisolated func clearDocsCache() throws {
+    nonisolated public func clearDocsCache() throws {
         // Remove cached docs directory if it exists
         if let docsDir = getCachedDocsDirectory() {
             try? FileManager.default.removeItem(at: docsDir)

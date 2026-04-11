@@ -7,27 +7,32 @@
 
 import Foundation
 
-extension WorkspaceManager {
+public extension WorkspaceManager {
     /// Check if SwiftLint config file exists for current workspace
-    public func checkConfigFileExists() {
+    func checkConfigFileExists() {
         guard let workspace = currentWorkspace else {
             configFileMissing = false
             return
         }
 
-        let configPath = workspace.configPath ?? workspace.path.appendingPathComponent(".swiftlint.yml")
-        configFileMissing = !FileManager.default.fileExists(atPath: configPath.path)
+        let configPath = workspace.configPath
+            ?? workspace.path.appendingPathComponent(".swiftlint.yml")
+        configFileMissing = !FileManager.default.fileExists(
+            atPath: configPath.path
+        )
     }
 
     /// Create a default SwiftLint configuration file for the current workspace
     /// - Returns: URL of the created config file, or nil if creation failed
     @discardableResult
-    public func createDefaultConfigFile() throws -> URL? {
+    func createDefaultConfigFile() throws -> URL? {
         guard let workspace = currentWorkspace else {
             throw WorkspaceError.invalidPath
         }
 
-        let configPath = workspace.path.appendingPathComponent(".swiftlint.yml")
+        let configPath = workspace.path.appendingPathComponent(
+            ".swiftlint.yml"
+        )
 
         if FileManager.default.fileExists(atPath: configPath.path) {
             return configPath
@@ -116,10 +121,15 @@ private extension WorkspaceManager {
     """
 
     func writeDefaultConfig(to configPath: URL) throws {
-        try Self.defaultConfigTemplate.write(to: configPath, atomically: true, encoding: .utf8)
+        try Self.defaultConfigTemplate.write(
+            to: configPath, atomically: true, encoding: .utf8
+        )
     }
 
-    func updateWorkspaceConfigPath(_ configPath: URL, workspace: Workspace) {
+    func updateWorkspaceConfigPath(
+        _ configPath: URL,
+        workspace: Workspace
+    ) {
         var updatedWorkspace = workspace
         updatedWorkspace.configPath = configPath
         currentWorkspace = updatedWorkspace

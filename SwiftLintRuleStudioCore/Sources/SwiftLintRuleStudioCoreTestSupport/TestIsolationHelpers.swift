@@ -9,8 +9,7 @@ import Foundation
 import Testing
 @testable import SwiftLintRuleStudioCore
 
-// Provides isolated UserDefaults for each test
-// Uses Swift Testing's test name to create unique suite names
+/// Provides isolated UserDefaults instances for each test to prevent cross-test contamination
 public struct IsolatedUserDefaults {
     /// Creates a unique UserDefaults suite for the current test
     /// Uses the test function name to ensure uniqueness
@@ -46,9 +45,9 @@ public struct IsolatedUserDefaults {
 }
 
 // Helper to create DependencyContainer with isolated UserDefaults
-extension DependencyContainer {
+public extension DependencyContainer {
     /// Creates a DependencyContainer with isolated UserDefaults for testing
-    public static func createForTesting(
+    static func createForTesting(
         userDefaults: UserDefaults? = nil,
         ruleRegistry: RuleRegistry? = nil,
         swiftLintCLI: SwiftLintCLIProtocol? = nil,
@@ -82,29 +81,29 @@ extension DependencyContainer {
 }
 
 // Extension to OnboardingManager for test isolation
-extension OnboardingManager {
+public extension OnboardingManager {
     /// Creates an OnboardingManager with isolated UserDefaults for testing
-    public static func createForTesting(testName: String) -> OnboardingManager {
+    static func createForTesting(testName: String) -> OnboardingManager {
         let userDefaults = IsolatedUserDefaults.create(for: testName)
         return OnboardingManager(userDefaults: userDefaults)
     }
 }
 
 // Extension to WorkspaceManager for test isolation
-extension WorkspaceManager {
+public extension WorkspaceManager {
     /// Creates a WorkspaceManager with isolated UserDefaults for testing
     /// Uses the test function name to ensure uniqueness
-    public static func createForTesting(testName: String) -> WorkspaceManager {
+    static func createForTesting(testName: String) -> WorkspaceManager {
         let userDefaults = IsolatedUserDefaults.create(for: testName)
         return WorkspaceManager(userDefaults: userDefaults)
     }
 }
 
 // Extension to CacheManager for test isolation
-extension CacheManager {
+public extension CacheManager {
     /// Creates a CacheManager with isolated cache directory for testing
     /// Uses UUID to ensure complete isolation between tests
-    public static func createForTesting() -> CacheManager {
+    static func createForTesting() -> CacheManager {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -114,12 +113,12 @@ extension CacheManager {
 }
 
 // Extension to FileTracker for test isolation
-extension FileTracker {
+public extension FileTracker {
     /// Creates a FileTracker with isolated cache file for testing
     /// Uses UUID to ensure complete isolation between tests
     /// Note: FileTracker is @MainActor, so this must be called from MainActor context
     @MainActor
-    public static func createForTesting() -> FileTracker {
+    static func createForTesting() -> FileTracker {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

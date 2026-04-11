@@ -3,6 +3,7 @@ import Foundation
 extension SwiftLintCLIActor {
     private static let docFileReadAttempts = 20
 
+    /// Generate markdown documentation for a specific rule
     public func generateDocsForRule(ruleId: String) async throws -> String {
         // Check current SwiftLint version
         let currentVersion = try await getVersion()

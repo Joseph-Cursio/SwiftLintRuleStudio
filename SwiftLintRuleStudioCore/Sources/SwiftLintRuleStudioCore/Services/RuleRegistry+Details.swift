@@ -1,6 +1,7 @@
 import Foundation
 
 extension RuleRegistry {
+    /// Enriches rules with detailed documentation fetched from SwiftLint
     public func updateRulesWithDetails(_ rules: [Rule]) async -> [Rule] {
         let rulesToFetchDetails = Array(rules.prefix(20))
         var updatedRules = rules
@@ -60,6 +61,7 @@ extension RuleRegistry {
         }
     }
 
+    /// Fetches detailed documentation for a single rule by identifier
     public func fetchRuleDetails(identifier: String, category: RuleCategory, isOptIn: Bool) async throws -> Rule {
         return try await Self.fetchRuleDetailsHelper(
             identifier: identifier,
@@ -76,7 +78,11 @@ extension RuleRegistry {
         isOptIn: Bool,
         swiftLintCLI: SwiftLintCLIProtocol
     ) async throws -> Rule {
-        var state = RuleDetailsState(identifier: identifier, isOptIn: isOptIn)
+        var state = RuleDetailsState(
+            identifier: identifier,
+            isOptIn: isOptIn,
+            name: identifier.replacingOccurrences(of: "_", with: " ").capitalized
+        )
         await populateFromDocs(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
         if state.triggeringExamples.isEmpty && state.nonTriggeringExamples.isEmpty {
             try await populateFromRuleDetails(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
@@ -88,26 +94,13 @@ extension RuleRegistry {
         let identifier: String
         let isOptIn: Bool
         var name: String
-        var description: String
-        var triggeringExamples: [String]
-        var nonTriggeringExamples: [String]
-        var supportsAutocorrection: Bool
+        var description: String = "No description available"
+        var triggeringExamples: [String] = []
+        var nonTriggeringExamples: [String] = []
+        var supportsAutocorrection: Bool = false
         var minimumSwiftVersion: String?
         var defaultSeverity: Severity?
         var markdownDoc: String?
-
-        public init(identifier: String, isOptIn: Bool) {
-            self.identifier = identifier
-            self.isOptIn = isOptIn
-            name = identifier.replacingOccurrences(of: "_", with: " ").capitalized
-            description = "No description available"
-            triggeringExamples = []
-            nonTriggeringExamples = []
-            supportsAutocorrection = false
-            minimumSwiftVersion = nil
-            defaultSeverity = nil
-            markdownDoc = nil
-        }
 
         mutating func apply(_ doc: ParsedRuleDocumentation) {
             if !doc.name.isEmpty {

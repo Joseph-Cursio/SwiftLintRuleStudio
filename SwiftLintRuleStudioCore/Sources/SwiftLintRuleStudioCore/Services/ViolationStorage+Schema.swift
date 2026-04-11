@@ -2,6 +2,7 @@ import Foundation
 import SQLite3
 
 extension ViolationStorageActor {
+    /// Resolve the database file path, using in-memory or default location as needed
     public static func resolveDatabasePath(databasePath: URL?, useInMemory: Bool) throws -> URL {
         if useInMemory {
             return URL(fileURLWithPath: ":memory:")
@@ -16,6 +17,7 @@ extension ViolationStorageActor {
         return dbDir.appendingPathComponent("violations.db")
     }
 
+    /// Open a SQLite database at the given path
     public static func openDatabase(at path: URL, useInMemory: Bool) throws -> OpaquePointer {
         let dbPath: String = useInMemory ? ":memory:" : path.path
         if !useInMemory {
@@ -42,6 +44,7 @@ extension ViolationStorageActor {
         return databaseHandle
     }
 
+    /// Create the violations database schema if it does not already exist
     public static func createSchema(in databaseHandle: OpaquePointer) throws {
         let createViolationsTable = """
         CREATE TABLE IF NOT EXISTS violations (

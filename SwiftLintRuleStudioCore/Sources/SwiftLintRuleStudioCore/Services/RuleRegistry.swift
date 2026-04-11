@@ -11,9 +11,13 @@ import Observation
 /// Service for managing SwiftLint rules metadata
 @MainActor
 public protocol RuleRegistryProtocol {
+    /// Load all SwiftLint rules from the CLI or cache
     func loadRules() async throws -> [Rule]
+    /// Get a specific rule by its identifier
     func getRule(id: String) -> Rule?
+    /// Refresh rules by re-fetching from the SwiftLint CLI
     func refreshRules() async throws
+    /// The currently loaded rules
     var rules: [Rule] { get }
 }
 
@@ -37,7 +41,7 @@ public class RuleRegistry: RuleRegistryProtocol {
         backgroundLoadingTask?.cancel()
     }
 
-    public nonisolated static var isRunningTests: Bool {
+    nonisolated public static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 

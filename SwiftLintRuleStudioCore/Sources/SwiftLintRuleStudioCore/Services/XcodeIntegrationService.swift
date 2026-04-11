@@ -13,11 +13,13 @@ import AppKit
 public class XcodeIntegrationService {
     private var projectCache: [URL: URL] = [:] // Cache workspace -> project mapping
 
-    public nonisolated static var isRunningTests: Bool {
+    /// Whether the app is currently running inside a test host
+    nonisolated public static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
-    public nonisolated static var isUITesting: Bool {
+    /// Whether the app is running in UI testing mode
+    nonisolated public static var isUITesting: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTesting")
     }
 

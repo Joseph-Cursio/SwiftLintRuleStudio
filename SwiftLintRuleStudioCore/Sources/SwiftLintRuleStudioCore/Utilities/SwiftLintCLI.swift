@@ -7,9 +7,13 @@
 
 import Foundation
 
+/// Closure type for running SwiftLint commands with arguments
 public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async throws -> (Data, Data)
+/// Closure type for checking file existence
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
+/// Closure type for running a process directly with environment
 public typealias SwiftLintProcessRunner = @Sendable (URL, [String], [String: String]) async throws -> (Data, Data)
+/// Closure type for running commands through a shell
 public typealias SwiftLintShellRunner = @Sendable (String, [String], [String: String]) async throws -> (Data, Data)
 
 /// Protocol for SwiftLint CLI operations

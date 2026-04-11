@@ -2,6 +2,7 @@ import Foundation
 import Yams
 
 extension YAMLConfigurationEngine {
+    /// Serialize a YAML configuration to a string
     public func serialize(_ config: YAMLConfig) throws -> String {
         // Convert to SwiftLintConfiguration for encoding
         var swiftLintConfig = SwiftLintConfiguration()

@@ -15,10 +15,13 @@ private struct WorkspaceData: Codable {
     let lastAnalyzed: Date?
 }
 
-extension WorkspaceManager {
-    public func loadRecentWorkspaces() {
+public extension WorkspaceManager {
+    /// Loads recent workspaces from UserDefaults, filtering out deleted directories
+    func loadRecentWorkspaces() {
         guard let data = userDefaults.data(forKey: recentWorkspacesKey),
-              let decoded = try? JSONDecoder().decode([WorkspaceData].self, from: data) else {
+              let decoded = try? JSONDecoder().decode(
+                [WorkspaceData].self, from: data
+              ) else {
             return
         }
 
@@ -28,18 +31,21 @@ extension WorkspaceManager {
                 return nil
             }
 
-            var workspace = Workspace(id: data.id, path: url, name: data.name)
-            workspace.configPath = data.configPath.map { URL(fileURLWithPath: $0) }
+            var workspace = Workspace(
+                id: data.id, path: url, name: data.name
+            )
+            workspace.configPath = data.configPath.map {
+                URL(fileURLWithPath: $0)
+            }
             workspace.lastAnalyzed = data.lastAnalyzed
             return workspace
         }
 
         saveRecentWorkspaces()
     }
-}
 
-extension WorkspaceManager {
-    public func saveRecentWorkspaces() {
+    /// Persists the current recent workspaces list to UserDefaults
+    func saveRecentWorkspaces() {
         let data = recentWorkspaces.map { workspace in
             WorkspaceData(
                 id: workspace.id,

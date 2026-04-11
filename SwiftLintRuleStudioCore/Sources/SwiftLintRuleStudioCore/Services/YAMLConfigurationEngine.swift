@@ -16,21 +16,34 @@ public class YAMLConfigurationEngine {
 
     /// Represents a YAML configuration with preserved comments
     public struct YAMLConfig {
+        /// Rule configurations keyed by rule identifier
         public var rules: [String: RuleConfiguration]
+        /// Paths to include in analysis
         public var included: [String]?
+        /// Paths to exclude from analysis
         public var excluded: [String]?
+        /// The reporter format
         public var reporter: String?
+        /// Rules to disable
         public var disabledRules: [String]?
+        /// Opt-in rules to enable
         public var optInRules: [String]?
+        /// Analyzer rules to enable
         public var analyzerRules: [String]?
+        /// Only these rules will be active
         public var onlyRules: [String]?
+        /// Warning threshold count
         public var warningThreshold: Int?
+        /// Whether strict mode is enabled
         public var strict: Bool?
 
         // Comment preservation
-        public var comments: [String: String] = [:] // Key path -> comment text
-        public var keyOrder: [String] = [] // Preserve original key order
+        /// Preserved comments mapped by YAML key path
+        public var comments: [String: String] = [:]
+        /// Preserved ordering of top-level YAML keys
+        public var keyOrder: [String] = []
 
+        /// Create an empty YAML configuration
         public init() {
             self.rules = [:]
             self.included = nil
@@ -75,12 +88,16 @@ public class YAMLConfigurationEngine {
 
     // MARK: - Properties
 
+    /// Path to the `.swiftlint.yml` configuration file
     public let configPath: URL
+    /// The original file content before modifications
     public var originalContent: String = ""
+    /// The current in-memory configuration state
     public var currentConfig: YAMLConfig = YAMLConfig()
 
     // MARK: - Initialization
 
+    /// Initialize the engine with the path to a `.swiftlint.yml` file
     public init(configPath: URL) {
         self.configPath = configPath
     }

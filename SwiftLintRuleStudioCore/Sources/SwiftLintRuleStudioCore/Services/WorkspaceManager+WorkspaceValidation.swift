@@ -7,22 +7,25 @@
 
 import Foundation
 
-extension WorkspaceManager {
+public extension WorkspaceManager {
     /// Validate that a directory is a valid Swift project workspace
-    public func validateSwiftWorkspace(at url: URL) throws {
+    func validateSwiftWorkspace(at url: URL) throws {
         let path = url.path
         let indicators = try scanTopLevelIndicators(at: url)
         if indicators.hasProjectMarker {
             return
         }
 
-        let hasSwiftFiles = indicators.hasSwiftFiles || hasSwiftFilesWithinDepth(
-            at: url,
-            rootPath: path,
-            maxDepth: 3
-        )
+        let hasSwiftFiles = indicators.hasSwiftFiles
+            || hasSwiftFilesWithinDepth(
+                at: url,
+                rootPath: path,
+                maxDepth: 3
+            )
         if !hasSwiftFiles {
-            throw WorkspaceError.notASwiftProject(directory: url.lastPathComponent)
+            throw WorkspaceError.notASwiftProject(
+                directory: url.lastPathComponent
+            )
         }
     }
 }
@@ -33,11 +36,15 @@ private extension WorkspaceManager {
         let hasSwiftFiles: Bool
     }
 
-    func scanTopLevelIndicators(at url: URL) throws -> WorkspaceIndicators {
+    func scanTopLevelIndicators(
+        at url: URL
+    ) throws -> WorkspaceIndicators {
         do {
             let contents = try FileManager.default.contentsOfDirectory(
                 at: url,
-                includingPropertiesForKeys: [.isDirectoryKey, .isRegularFileKey]
+                includingPropertiesForKeys: [
+                    .isDirectoryKey, .isRegularFileKey
+                ]
             )
             var hasSwiftFiles = false
             var hasProjectMarker = false
@@ -51,7 +58,10 @@ private extension WorkspaceManager {
                 }
             }
 
-            return WorkspaceIndicators(hasProjectMarker: hasProjectMarker, hasSwiftFiles: hasSwiftFiles)
+            return WorkspaceIndicators(
+                hasProjectMarker: hasProjectMarker,
+                hasSwiftFiles: hasSwiftFiles
+            )
         } catch {
             throw WorkspaceError.accessDenied
         }
@@ -59,13 +69,18 @@ private extension WorkspaceManager {
 
     func isProjectMarker(_ url: URL) -> Bool {
         let itemName = url.lastPathComponent
-        if itemName.hasSuffix(".xcodeproj") || itemName.hasSuffix(".xcworkspace") {
+        if itemName.hasSuffix(".xcodeproj")
+            || itemName.hasSuffix(".xcworkspace") {
             return true
         }
         return itemName == "Package.swift" || itemName == ".swiftpm"
     }
 
-    func hasSwiftFilesWithinDepth(at url: URL, rootPath: String, maxDepth: Int) -> Bool {
+    func hasSwiftFilesWithinDepth(
+        at url: URL,
+        rootPath: String,
+        maxDepth: Int
+    ) -> Bool {
         guard let enumerator = FileManager.default.enumerator(
             at: url,
             includingPropertiesForKeys: [.isRegularFileKey],
@@ -75,8 +90,12 @@ private extension WorkspaceManager {
         }
 
         for case let fileURL as URL in enumerator {
-            let relativePath = fileURL.path.replacingOccurrences(of: rootPath + "/", with: "")
-            let depth = relativePath.components(separatedBy: "/").count
+            let relativePath = fileURL.path.replacingOccurrences(
+                of: rootPath + "/", with: ""
+            )
+            let depth = relativePath.components(
+                separatedBy: "/"
+            ).count
 
             if depth > maxDepth {
                 enumerator.skipDescendants()
@@ -97,6 +116,8 @@ private extension WorkspaceManager {
     }
 
     func shouldSkipWorkspaceScan(path: String) -> Bool {
-        DefaultExclusions.pathPatterns.contains(where: { path.contains($0) })
+        DefaultExclusions.pathPatterns.contains(where: {
+            path.contains($0)
+        })
     }
 }

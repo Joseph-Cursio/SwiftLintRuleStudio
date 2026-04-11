@@ -68,14 +68,13 @@ extension RuleDetailView {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
 
             // Skip the main title (we already show it in the header)
-            if index == 0 && (trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")) {
+            if index == 0 && isMainTitle(trimmed) {
                 continue
             }
 
             // Skip metadata section (we show this info in badges/configuration)
-            if trimmed.contains("* **") || trimmed.hasPrefix("* **") {
-                if trimmed.contains("default configuration:")
-                    || trimmed.contains("Default configuration:") {
+            if isMetadataLine(trimmed) {
+                if isDefaultConfigLine(trimmed) {
                     skipTable = true
                 }
                 continue
@@ -83,36 +82,18 @@ extension RuleDetailView {
 
             // Skip HTML table if we're in the metadata section
             if skipTable {
-                if trimmed.hasPrefix("<table>") || trimmed.contains("<table>") {
-                    continue
-                } else if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
-                    skipTable = false
-                    continue
-                } else if trimmed.contains("<thead>") || trimmed.contains("</thead>") ||
-                          trimmed.contains("<tbody>") || trimmed.contains("</tbody>") ||
-                          trimmed.contains("<tr>") || trimmed.contains("</tr>") ||
-                          trimmed.contains("<th>") || trimmed.contains("</th>") ||
-                          trimmed.contains("<td>") || trimmed.contains("</td>") {
-                    continue
-                }
+                let tableAction = handleTableLine(trimmed)
+                if tableAction == .endTable { skipTable = false; continue }
+                if tableAction == .skipLine { continue }
             }
 
             // Skip rationale/why section (shown separately in "Why This Matters")
-            if trimmed.hasPrefix("##") {
-                let heading = trimmed.lowercased()
-                if heading.contains("rationale") || heading.contains("why") {
-                    skipRationale = true
-                    continue
-                } else if skipRationale {
-                    skipRationale = false
-                }
-            }
-            if skipRationale {
-                continue
-            }
+            let rationaleResult = handleRationale(trimmed, skipRationale: skipRationale)
+            skipRationale = rationaleResult.0
+            if rationaleResult.1 { continue }
 
             // Add a blank line before "Non Triggering Examples" for visual separation
-            if trimmed.hasPrefix("## Non") || trimmed.hasPrefix("## Non Triggering") {
+            if trimmed.hasPrefix("## Non") {
                 processedLines.append("")
             }
 
@@ -120,6 +101,57 @@ extension RuleDetailView {
         }
 
         return processedLines.joined(separator: "\n")
+    }
+
+    private func isMainTitle(_ trimmed: String) -> Bool {
+        trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")
+    }
+
+    private func isMetadataLine(_ trimmed: String) -> Bool {
+        trimmed.contains("* **") || trimmed.hasPrefix("* **")
+    }
+
+    private func isDefaultConfigLine(_ trimmed: String) -> Bool {
+        trimmed.contains("default configuration:") || trimmed.contains("Default configuration:")
+    }
+
+    private enum TableAction {
+        case skipLine
+        case endTable
+        case noAction
+    }
+
+    private static let htmlTableTags = [
+        "<thead>", "</thead>", "<tbody>", "</tbody>",
+        "<tr>", "</tr>", "<th>", "</th>", "<td>", "</td>"
+    ]
+
+    private func handleTableLine(_ trimmed: String) -> TableAction {
+        if trimmed.contains("<table>") {
+            return .skipLine
+        }
+        if trimmed.contains("</table>") {
+            return .endTable
+        }
+        if Self.htmlTableTags.contains(where: { trimmed.contains($0) }) {
+            return .skipLine
+        }
+        return .noAction
+    }
+
+    private func handleRationale(_ trimmed: String, skipRationale: Bool) -> (Bool, Bool) {
+        if trimmed.hasPrefix("##") {
+            let heading = trimmed.lowercased()
+            if heading.contains("rationale") || heading.contains("why") {
+                return (true, true)
+            } else if skipRationale {
+                return (false, false)
+            }
+        }
+        if skipRationale {
+            return (true, true)
+        }
+        return (skipRationale, false)
     }
 
     func convertMarkdownToHTML(content: String, colorScheme: ColorScheme? = nil) -> String {

@@ -9,19 +9,19 @@ import Foundation
 
 /// Represents a SwiftLint rule violation
 public struct Violation: Identifiable, Codable, Hashable, Sendable {
-    public nonisolated let id: UUID
-    public nonisolated let ruleID: String
-    public nonisolated let filePath: String
-    public nonisolated let line: Int
-    public nonisolated let column: Int?
-    public nonisolated let severity: Severity
-    public nonisolated let message: String
-    public nonisolated let detectedAt: Date
-    public nonisolated var resolvedAt: Date?
-    public nonisolated var suppressed: Bool
-    public nonisolated var suppressionReason: String?
+    nonisolated public let id: UUID
+    nonisolated public let ruleID: String
+    nonisolated public let filePath: String
+    nonisolated public let line: Int
+    nonisolated public let column: Int?
+    nonisolated public let severity: Severity
+    nonisolated public let message: String
+    nonisolated public let detectedAt: Date
+    nonisolated public var resolvedAt: Date?
+    nonisolated public var suppressed: Bool
+    nonisolated public var suppressionReason: String?
 
-    public nonisolated init(
+    nonisolated public init(
         id: UUID = UUID(),
         ruleID: String,
         filePath: String,
@@ -56,7 +56,7 @@ public struct ViolationFilter: Sendable {
     public var suppressedOnly: Bool?
     public var dateRange: ClosedRange<Date>?
 
-    public nonisolated init(
+    nonisolated public init(
         ruleIDs: [String]? = nil,
         filePaths: [String]? = nil,
         severities: [Severity]? = nil,
@@ -70,7 +70,7 @@ public struct ViolationFilter: Sendable {
         self.dateRange = dateRange
     }
 
-    public nonisolated static var all: ViolationFilter {
+    nonisolated public static var all: ViolationFilter {
         ViolationFilter()
     }
 }

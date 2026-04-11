@@ -4,7 +4,7 @@ import PackageDescription
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
     .defaultIsolation(MainActor.self),
-    .enableUpcomingFeature("MemberImportVisibility"),
+    .enableUpcomingFeature("MemberImportVisibility")
 ]
 
 let package = Package(
@@ -18,10 +18,10 @@ let package = Package(
         .library(
             name: "SwiftLintRuleStudioCoreTestSupport",
             targets: ["SwiftLintRuleStudioCoreTestSupport"]
-        ),
+        )
     ],
     dependencies: [
-        .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1"),
+        .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1")
     ],
     targets: [
         .target(
@@ -29,7 +29,7 @@ let package = Package(
             dependencies: ["Yams"],
             swiftSettings: swiftSettings,
             linkerSettings: [
-                .linkedLibrary("sqlite3"),
+                .linkedLibrary("sqlite3")
             ]
         ),
         .target(
@@ -41,9 +41,9 @@ let package = Package(
             name: "SwiftLintRuleStudioCoreTests",
             dependencies: [
                 "SwiftLintRuleStudioCore",
-                "SwiftLintRuleStudioCoreTestSupport",
+                "SwiftLintRuleStudioCoreTestSupport"
             ],
             swiftSettings: swiftSettings
-        ),
+        )
     ]
 )

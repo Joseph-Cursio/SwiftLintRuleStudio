@@ -18,7 +18,7 @@ public struct SwiftLintConfiguration: Codable, Sendable {
     public var analyzerRules: [String]?
     public var onlyRules: [String]?
 
-    public nonisolated init() {
+    nonisolated public init() {
         self.rules = [:]
         self.included = nil
         self.excluded = nil
@@ -36,7 +36,7 @@ public struct RuleConfiguration: Codable, Equatable, Sendable {
     public var severity: Severity?
     public var parameters: [String: AnyCodable]?
 
-    public nonisolated init(enabled: Bool = true, severity: Severity? = nil, parameters: [String: AnyCodable]? = nil) {
+    nonisolated public init(enabled: Bool = true, severity: Severity? = nil, parameters: [String: AnyCodable]? = nil) {
         self.enabled = enabled
         self.severity = severity
         self.parameters = parameters
@@ -45,20 +45,20 @@ public struct RuleConfiguration: Codable, Equatable, Sendable {
 
 /// Represents a workspace/project
 public struct Workspace: Identifiable, Equatable, Sendable {
-    public nonisolated let id: UUID
-    public nonisolated let path: URL
-    public nonisolated let name: String
-    public nonisolated var configPath: URL?
-    public nonisolated var lastAnalyzed: Date?
+    nonisolated public let id: UUID
+    nonisolated public let path: URL
+    nonisolated public let name: String
+    nonisolated public var configPath: URL?
+    nonisolated public var lastAnalyzed: Date?
 
-    public nonisolated init(id: UUID = UUID(), path: URL, name: String? = nil) {
+    nonisolated public init(id: UUID = UUID(), path: URL, name: String? = nil) {
         self.id = id
         self.path = path
         self.name = name ?? path.lastPathComponent
         self.configPath = path.appendingPathComponent(".swiftlint.yml")
     }
 
-    public nonisolated static func == (lhs: Workspace, rhs: Workspace) -> Bool {
+    nonisolated public static func == (lhs: Workspace, rhs: Workspace) -> Bool {
         lhs.id == rhs.id && lhs.path == rhs.path
     }
 }

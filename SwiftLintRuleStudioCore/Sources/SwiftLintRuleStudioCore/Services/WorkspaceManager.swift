@@ -15,16 +15,23 @@ public class WorkspaceManager {
 
     // MARK: - Properties
 
+    /// The currently active workspace
     public var currentWorkspace: Workspace?
+    /// List of recently opened workspaces
     public var recentWorkspaces: [Workspace] = []
+    /// Whether the current workspace is missing a `.swiftlint.yml` config file
     public var configFileMissing: Bool = false
 
+    /// UserDefaults key for persisting recent workspaces
     public let recentWorkspacesKey = "SwiftLintRuleStudio.recentWorkspaces"
+    /// Maximum number of recent workspaces to persist
     public let maxRecentWorkspaces = 10
+    /// The UserDefaults instance used for persistence
     public let userDefaults: UserDefaults
 
     // MARK: - Initialization
 
+    /// Initialize the workspace manager with the specified user defaults
     public init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
         loadRecentWorkspaces()

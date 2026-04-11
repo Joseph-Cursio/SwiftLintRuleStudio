@@ -1,7 +1,9 @@
 import Foundation
 @testable import SwiftLintRuleStudioCore
 
+/// Test helpers for YAML configuration engine tests
 public enum YAMLConfigurationEngineTestHelpers {
+    /// Create a temporary engine and run an operation against it
     public static func withEngine<T: Sendable>(
         configPath: URL,
         operation: (YAMLConfigurationEngine) throws -> T
@@ -10,6 +12,7 @@ public enum YAMLConfigurationEngineTestHelpers {
         return try operation(engine)
     }
 
+    /// Create a temporary `.swiftlint.yml` file with the given content
     public static func createTempConfigFile(content: String) throws -> URL {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
@@ -21,6 +24,7 @@ public enum YAMLConfigurationEngineTestHelpers {
         return configFile
     }
 
+    /// Remove the temporary config file and its parent directory
     public static func cleanupTempFile(_ url: URL) {
         try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
     }

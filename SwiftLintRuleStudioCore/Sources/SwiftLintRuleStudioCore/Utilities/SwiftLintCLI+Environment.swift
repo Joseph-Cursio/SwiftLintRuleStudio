@@ -1,7 +1,8 @@
 import Foundation
 
-extension SwiftLintCLIActor {
-    public nonisolated static func buildEnvironment(base: [String: String]) -> [String: String] {
+public extension SwiftLintCLIActor {
+    /// Builds a process environment dictionary with Homebrew paths prepended to PATH
+    nonisolated static func buildEnvironment(base: [String: String]) -> [String: String] {
         var environment = base
         if let currentPath = environment["PATH"], !currentPath.contains("/opt/homebrew/bin") {
             environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(currentPath)"
@@ -11,14 +12,16 @@ extension SwiftLintCLIActor {
         return environment
     }
 
-    public nonisolated static func buildShellCommand(command: String, arguments: [String]) -> String {
+    /// Joins command and arguments into a single shell-safe command string
+    nonisolated static func buildShellCommand(command: String, arguments: [String]) -> String {
         var commandParts = [command]
         commandParts.append(contentsOf: arguments)
         let escapedParts = commandParts.map { escapeShellArgument($0) }
         return escapedParts.joined(separator: " ")
     }
 
-    public nonisolated static func escapeShellArgument(_ value: String) -> String {
+    /// Wraps a string in single quotes if it contains special shell characters
+    nonisolated static func escapeShellArgument(_ value: String) -> String {
         if value.contains(" ") || value.contains("'") || value.contains("\"") {
             let escaped = value.replacingOccurrences(of: "'", with: "'\"'\"'")
             return "'\(escaped)'"
@@ -26,7 +29,8 @@ extension SwiftLintCLIActor {
         return value
     }
 
-    public nonisolated static func buildLintArguments(
+    /// Builds the argument array for `swiftlint lint --reporter json`
+    nonisolated static func buildLintArguments(
         configPath: URL?,
         workspacePath: URL,
         fileExists: @escaping SwiftLintFileExists

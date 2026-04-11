@@ -7,11 +7,12 @@
 
 import Foundation
 
-extension BuiltInTemplates {
+public extension BuiltInTemplates {
 
     // MARK: - Swift Package Templates
 
-    public static let packageStrict = ConfigurationTemplate(
+    /// Strict Swift package configuration with maximum code quality rules
+    static let packageStrict = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000007"),
         name: "Swift Package - Strict",
         description: "Maximum code quality for Swift packages",
@@ -59,7 +60,8 @@ extension BuiltInTemplates {
         isBuiltIn: true
     )
 
-    public static let packageBalanced = ConfigurationTemplate(
+    /// Balanced Swift package configuration
+    static let packageBalanced = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000008"),
         name: "Swift Package - Balanced",
         description: "Good balance for Swift packages",
@@ -85,7 +87,8 @@ extension BuiltInTemplates {
         isBuiltIn: true
     )
 
-    public static let packageLenient = ConfigurationTemplate(
+    /// Lenient Swift package configuration focused on critical issues
+    static let packageLenient = ConfigurationTemplate(
         id: builtInID("00000000-0000-0000-0000-000000000009"),
         name: "Swift Package - Lenient",
         description: "Minimal rules for Swift packages",

@@ -24,7 +24,6 @@ opt_in_rules:
 - single_test_class
 - unneeded_parentheses_in_closure_argument
 - vertical_parameter_alignment_on_call
-- incompatible_concurrency_annotation
 - async_without_await
 - unhandled_throwing_task
 - period_spacing

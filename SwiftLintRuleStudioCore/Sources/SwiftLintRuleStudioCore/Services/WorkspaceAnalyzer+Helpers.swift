@@ -7,8 +7,9 @@
 
 import Foundation
 
-extension WorkspaceAnalyzer {
-    public func beginAnalysis() {
+public extension WorkspaceAnalyzer {
+    /// Marks the analyzer as actively running and resets progress
+    func beginAnalysis() {
         isAnalyzing = true
         currentProgress = AnalysisProgress(
             currentFile: nil,
@@ -19,7 +20,8 @@ extension WorkspaceAnalyzer {
         )
     }
 
-    public func finalizeAnalysisSuccess(result: AnalysisResult, violationsCount: Int) {
+    /// Records a successful analysis result and marks progress complete
+    func finalizeAnalysisSuccess(result: AnalysisResult, violationsCount: Int) {
         lastAnalysisResult = result
         currentProgress = AnalysisProgress(
             currentFile: nil,
@@ -31,12 +33,14 @@ extension WorkspaceAnalyzer {
         isAnalyzing = false
     }
 
-    public func finalizeAnalysisFailure() {
+    /// Clears progress and marks the analyzer as idle after a failure
+    func finalizeAnalysisFailure() {
         isAnalyzing = false
         currentProgress = nil
     }
 
-    public func resolveConfigPath(_ configPath: URL?, workspace: Workspace) -> URL? {
+    /// Returns the effective config file path, falling back to the workspace default
+    func resolveConfigPath(_ configPath: URL?, workspace: Workspace) -> URL? {
         let configPathToUse = configPath ?? workspace.configPath
         if let configPath = configPathToUse,
            FileManager.default.fileExists(atPath: configPath.path) {
@@ -45,7 +49,8 @@ extension WorkspaceAnalyzer {
         return nil
     }
 
-    public func runLintAndParse(
+    /// Runs SwiftLint and parses the JSON output into violation models
+    func runLintAndParse(
         configPath: URL?,
         workspacePath: URL
     ) async throws -> [Violation] {
@@ -56,7 +61,8 @@ extension WorkspaceAnalyzer {
         return try parseViolations(from: lintData, workspacePath: workspacePath)
     }
 
-    public func makeResult(
+    /// Constructs an `AnalysisResult` from collected violations and timing data
+    func makeResult(
         violations: [Violation],
         filesAnalyzed: Int,
         startedAt: Date,
@@ -73,7 +79,8 @@ extension WorkspaceAnalyzer {
         )
     }
 
-    public func resolveFilesToAnalyze(_ filePaths: [URL], onlyChanged: Bool) -> [String] {
+    /// Filters file paths to only changed files when incremental analysis is requested
+    func resolveFilesToAnalyze(_ filePaths: [URL], onlyChanged: Bool) -> [String] {
         let filePathStrings = filePaths.map { $0.path }
         if onlyChanged {
             return fileTracker.getChangedFiles(from: filePathStrings)
@@ -81,7 +88,8 @@ extension WorkspaceAnalyzer {
         return filePathStrings
     }
 
-    public func analyzeBatches(
+    /// Analyzes files in batches, updating progress between each batch
+    func analyzeBatches(
         _ filesToAnalyzeURLs: [URL],
         in workspace: Workspace,
         configPath: URL?
@@ -90,7 +98,8 @@ extension WorkspaceAnalyzer {
         let batchSize = 10
 
         for batchStart in stride(from: 0, to: filesToAnalyzeURLs.count, by: batchSize) {
-            let batch = Array(filesToAnalyzeURLs[batchStart..<min(batchStart + batchSize, filesToAnalyzeURLs.count)])
+            let batchEnd = min(batchStart + batchSize, filesToAnalyzeURLs.count)
+            let batch = Array(filesToAnalyzeURLs[batchStart..<batchEnd])
             updateProgress(
                 currentFile: batch.first?.lastPathComponent,
                 filesProcessed: batchStart,
@@ -114,7 +123,8 @@ extension WorkspaceAnalyzer {
         return allViolations
     }
 
-    public func updateProgress(
+    /// Updates the current analysis progress snapshot
+    func updateProgress(
         currentFile: String?,
         filesProcessed: Int,
         totalFiles: Int,
@@ -129,7 +139,8 @@ extension WorkspaceAnalyzer {
         )
     }
 
-    public func filterViolations(
+    /// Filters violations to only those whose file path matches the current batch
+    func filterViolations(
         _ violations: [Violation],
         batch: [URL],
         workspacePath: URL
@@ -141,7 +152,8 @@ extension WorkspaceAnalyzer {
         }
     }
 
-    public func findSwiftFiles(in directory: URL) throws -> [URL] {
+    /// Recursively finds all `.swift` files in a directory, excluding build artifacts
+    func findSwiftFiles(in directory: URL) throws -> [URL] {
         let fileManager = FileManager.default
         var swiftFiles: [URL] = []
 
@@ -168,7 +180,8 @@ extension WorkspaceAnalyzer {
         return swiftFiles
     }
 
-    public func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
+    /// Parses SwiftLint JSON output into an array of `Violation` models
+    func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
         guard let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
             if let string = String(data: data, encoding: .utf8),
                string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -216,7 +229,8 @@ extension WorkspaceAnalyzer {
         return violations
     }
 
-    public func calculateConfigHash(configPath: URL?) throws -> String? {
+    /// Computes a SHA-256 hash of the config file for change detection
+    func calculateConfigHash(configPath: URL?) throws -> String? {
         guard let configPath = configPath,
               FileManager.default.fileExists(atPath: configPath.path) else {
             return nil

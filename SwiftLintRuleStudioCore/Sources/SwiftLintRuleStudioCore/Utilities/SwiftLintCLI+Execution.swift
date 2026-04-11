@@ -46,11 +46,16 @@ extension SwiftLintCLIActor {
         return stdout
     }
 
+    /// Result of a process read operation with timeout support
     public struct ReadWithTimeoutResult {
+        /// Standard output data from the process
         let stdout: Data
+        /// Standard error data from the process
         let stderr: Data
+        /// Whether the read timed out
         let didTimeout: Bool
 
+        /// Initialize with stdout, stderr, and timeout status
         public init(
             stdout: Data,
             stderr: Data,
@@ -62,7 +67,8 @@ extension SwiftLintCLIActor {
         }
     }
 
-    public nonisolated static func readWithTimeout(
+    /// Read process output with a timeout, invoking onTimeout if time expires
+    nonisolated public static func readWithTimeout(
         timeoutSeconds: UInt64,
         read: @escaping @Sendable () async -> (Data, Data),
         onTimeout: @escaping @Sendable () async -> Void
@@ -102,7 +108,8 @@ extension SwiftLintCLIActor {
         return ReadWithTimeoutResult(stdout: stdout, stderr: stderr, didTimeout: timedOut)
     }
 
-    public nonisolated static func readChunks(
+    /// Read data in chunks with periodic sleep intervals
+    nonisolated public static func readChunks(
         read: @escaping @Sendable () -> Data,
         sleep: @escaping @Sendable (UInt64) async -> Void,
         intervalNs: UInt64

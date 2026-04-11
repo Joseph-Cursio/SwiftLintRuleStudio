@@ -9,13 +9,18 @@ import Foundation
 @testable import SwiftLintRuleStudioCore
 
 public enum RulesTable: Sendable {
-    nonisolated(unsafe) public static let border = "+------------------------------------------+--------+-------------+" +
-        "------------------------+-------------+----------+----------------+---------------+"
-    nonisolated(unsafe) public static let header = "| identifier | opt-in | correctable | enabled in your config | kind | analyzer | " +
+    nonisolated(unsafe) public static let border =
+        "+------------------------------------------+--------+-------------+" +
+        "------------------------+-------------+----------+" +
+        "----------------+---------------+"
+    nonisolated(unsafe) public static let header =
+        "| identifier | opt-in | correctable " +
+        "| enabled in your config | kind | analyzer | " +
         "uses sourcekit | configuration |"
 }
 
-public nonisolated func makeRulesTableData(rows: [String]) -> Data {
+/// Build a mock rules table data blob from the given rows
+nonisolated public func makeRulesTableData(rows: [String]) -> Data {
     let lines = [RulesTable.border, RulesTable.header, RulesTable.border] + rows + [RulesTable.border]
     return Data(lines.joined(separator: "\n").utf8)
 }
@@ -24,7 +29,7 @@ public final class HangGate: @unchecked Sendable {
     nonisolated(unsafe) private var continuation: CheckedContinuation<Void, Never>?
     private let lock = NSLock()
 
-    public nonisolated func wait() async {
+    nonisolated public func wait() async {
         await withCheckedContinuation { continuation in
             lock.lock()
             self.continuation = continuation
@@ -32,7 +37,7 @@ public final class HangGate: @unchecked Sendable {
         }
     }
 
-    public nonisolated func open() {
+    nonisolated public func open() {
         lock.lock()
         continuation?.resume()
         continuation = nil

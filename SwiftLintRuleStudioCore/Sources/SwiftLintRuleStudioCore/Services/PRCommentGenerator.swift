@@ -195,10 +195,10 @@ public class PRCommentGenerator: PRCommentGeneratorProtocol {
 
 // MARK: - Convenience Extensions
 
-extension YAMLConfigurationEngine.ConfigDiff {
+public extension YAMLConfigurationEngine.ConfigDiff {
     /// Generate a markdown PR comment from this diff
     @MainActor
-    public func toMarkdown(options: PRCommentOptions = .default) -> String {
+    func toMarkdown(options: PRCommentOptions = .default) -> String {
         let generator = PRCommentGenerator()
         return generator.generateMarkdown(from: self, options: options)
     }

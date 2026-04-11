@@ -2,6 +2,7 @@ import Foundation
 import SQLite3
 
 extension ViolationStorageActor {
+    /// Store violations for a workspace, replacing any existing violations
     public func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
         guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
@@ -201,6 +202,7 @@ extension ViolationStorageActor {
         sqlite3_bind_text(statement, index, cString, -1, free)
     }
 
+    /// Mark violations as suppressed with the given reason
     public func suppressViolations(_ violationIds: [UUID], reason: String) throws {
         guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
@@ -253,6 +255,7 @@ extension ViolationStorageActor {
         }
     }
 
+    /// Mark violations as resolved with the current timestamp
     public func resolveViolations(_ violationIds: [UUID]) throws {
         guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen
@@ -301,6 +304,7 @@ extension ViolationStorageActor {
         }
     }
 
+    /// Delete all violations for a workspace
     public func deleteViolations(for workspaceId: UUID) throws {
         guard let handle = database else {
             throw ViolationStorageError.databaseNotOpen

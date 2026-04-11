@@ -31,7 +31,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
     public var defaultSeverity: Severity?
     public var markdownDocumentation: String?
 
-    public nonisolated init(
+    nonisolated public init(
         id: String,
         name: String,
         description: String,
@@ -78,9 +78,9 @@ public enum RuleCategory: String, Codable, CaseIterable, Identifiable, Sendable 
     case performance
     case idiomatic
 
-    public nonisolated var id: String { rawValue }
+    nonisolated public var id: String { rawValue }
 
-    public nonisolated var displayName: String {
+    nonisolated public var displayName: String {
         rawValue.capitalized
     }
 }
@@ -90,9 +90,9 @@ public enum Severity: String, Codable, CaseIterable, Identifiable, Sendable {
     case warning
     case error
 
-    public nonisolated var id: String { rawValue }
+    nonisolated public var id: String { rawValue }
 
-    public nonisolated var displayName: String {
+    nonisolated public var displayName: String {
         rawValue.capitalized
     }
 }
@@ -104,7 +104,7 @@ public struct RuleParameter: Codable, Hashable, Sendable {
     public let defaultValue: AnyCodable
     public let description: String?
 
-    public nonisolated init(name: String, type: ParameterType, defaultValue: AnyCodable, description: String? = nil) {
+    nonisolated public init(name: String, type: ParameterType, defaultValue: AnyCodable, description: String? = nil) {
         self.name = name
         self.type = type
         self.defaultValue = defaultValue

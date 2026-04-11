@@ -1,6 +1,7 @@
 import Foundation
 
 extension YAMLConfigurationEngine {
+    /// Extract and preserve comments from YAML content
     public func extractComments(from content: String) {
         let lines = content.components(separatedBy: .newlines)
         var currentKey: String?
@@ -45,6 +46,7 @@ extension YAMLConfigurationEngine {
         return nil
     }
 
+    /// Extract and preserve the ordering of top-level YAML keys
     public func extractKeyOrder(from content: String) {
         let lines = content.components(separatedBy: .newlines)
 
@@ -60,6 +62,7 @@ extension YAMLConfigurationEngine {
         }
     }
 
+    /// Reinsert preserved comments into serialized YAML output
     public func reinsertComments(into yaml: String, config: YAMLConfig) -> String {
         // Basic implementation: append comments at the end
         // More sophisticated comment preservation can be added later

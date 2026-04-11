@@ -82,7 +82,13 @@ public struct ConfigHealthReport: Identifiable, Sendable {
         public let noDeprecatedRules: Int
         public let pathConfiguration: Int
 
-        public init(rulesCoverage: Int, categoryBalance: Int, optInAdoption: Int, noDeprecatedRules: Int, pathConfiguration: Int) {
+        public init(
+            rulesCoverage: Int,
+            categoryBalance: Int,
+            optInAdoption: Int,
+            noDeprecatedRules: Int,
+            pathConfiguration: Int
+        ) {
             self.rulesCoverage = rulesCoverage
             self.categoryBalance = categoryBalance
             self.optInAdoption = optInAdoption
@@ -164,7 +170,7 @@ public protocol ConfigurationHealthAnalyzerProtocol {
 
 /// Service for analyzing SwiftLint configuration health
 public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
-    private let recommendedOptInRules: Set<String> = [
+    let recommendedOptInRules: Set<String> = [
         "explicit_init",
         "first_where",
         "joined_default_parameter",
@@ -337,71 +343,4 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
         return min(score, 100)
     }
 
-    private func generateRecommendations(
-        config: YAMLConfigurationEngine.YAMLConfig,
-        knownRules: [Rule],
-        breakdown: ConfigHealthReport.ScoreBreakdown
-    ) -> [HealthRecommendation] {
-        var recommendations: [HealthRecommendation] = []
-
-        // Low opt-in adoption
-        if breakdown.optInAdoption < 50 {
-            let missingOptIn = recommendedOptInRules.subtracting(Set(config.optInRules ?? []))
-            if !missingOptIn.isEmpty {
-                recommendations.append(HealthRecommendation(
-                    priority: .medium,
-                    title: "Enable Recommended Opt-In Rules",
-                    description: "Consider enabling: \(missingOptIn.prefix(3).joined(separator: ", "))",
-                    presetId: "performance",
-                    actionType: .enablePreset("performance")
-                ))
-            }
-        }
-
-        // Poor path configuration
-        if breakdown.pathConfiguration < 60 {
-            recommendations.append(HealthRecommendation(
-                priority: .high,
-                title: "Configure Excluded Paths",
-                description: "Add common paths like Pods, Carthage, or vendor to excluded",
-                presetId: nil,
-                actionType: .configureExcludes
-            ))
-        }
-
-        // Low category balance
-        if breakdown.categoryBalance < 60 {
-            recommendations.append(HealthRecommendation(
-                priority: .low,
-                title: "Improve Category Coverage",
-                description: "Consider enabling rules from underrepresented categories",
-                presetId: nil,
-                actionType: .general
-            ))
-        }
-
-        // Very low rules coverage
-        if breakdown.rulesCoverage < 30 {
-            recommendations.append(HealthRecommendation(
-                priority: .high,
-                title: "Enable More Rules",
-                description: "Your configuration has very few rules enabled",
-                presetId: "code_style",
-                actionType: .enablePreset("code_style")
-            ))
-        }
-
-        // Very high rules coverage (might be too noisy)
-        if breakdown.rulesCoverage > 90 {
-            recommendations.append(HealthRecommendation(
-                priority: .low,
-                title: "Consider Reducing Rules",
-                description: "Having too many rules enabled might create noise",
-                presetId: nil,
-                actionType: .general
-            ))
-        }
-
-        return recommendations
-    }
 }

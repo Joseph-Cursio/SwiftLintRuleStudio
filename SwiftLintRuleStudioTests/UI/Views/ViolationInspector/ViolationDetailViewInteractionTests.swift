@@ -16,13 +16,12 @@ import SwiftLintRuleStudioCoreTestSupport
 // Interaction tests for ViolationDetailView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
-// swiftlint:disable:next type_body_length
 @MainActor
 struct ViolationDetailViewInteractionTests {
 
     // MARK: - Test Data Helpers
 
-    private func makeTestViolation(
+    func makeTestViolation(
         id: UUID = UUID(),
         ruleID: String = "test_rule",
         filePath: String = "Test.swift",
@@ -59,7 +58,7 @@ struct ViolationDetailViewInteractionTests {
 
     // Workaround for Swift 6 strict concurrency: Return ViewResult instead of 'some View'
     @MainActor
-    private func createViolationDetailView(
+    func createViolationDetailView(
         violation: Violation,
         onSuppress: @escaping (String) -> Void = { _ in },
         onResolve: @escaping () -> Void = {}
@@ -75,7 +74,7 @@ struct ViolationDetailViewInteractionTests {
         return ViewResult(view: view)
     }
 
-    private func waitForCondition(
+    func waitForCondition(
         timeoutSeconds: TimeInterval = 1.0,
         condition: @escaping @MainActor () -> Bool
     ) async -> Bool {
@@ -87,7 +86,7 @@ struct ViolationDetailViewInteractionTests {
     }
 
     @MainActor
-    private func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
+    func findButton<V: View>(in view: V, label: String) throws -> InspectableView<ViewType.Button> {
         try view.inspect().find(ViewType.Button.self) { button in
             let text = try? button.labelView().find(ViewType.Text.self).string()
             return text == label
@@ -269,90 +268,6 @@ struct ViolationDetailViewInteractionTests {
         #expect(resolveCalled == true, "Resolve button should trigger onResolve callback")
     }
 
-    // MARK: - Open in Xcode Button Tests
-
-    @Test("ViolationDetailView open in Xcode button exists")
-    func testOpenInXcodeButtonExists() async throws {
-        let violation = makeTestViolation()
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-
-        // Find the open in Xcode button by searching for buttons and checking their labels
-        // The button uses a Label, so we need to find it differently
-        let hasOpenButton = try await MainActor.run {
-            let buttons = try result.view.inspect().findAll(ViewType.Button.self)
-            let openButton = buttons.first { button in
-                // Try to find text "Open in Xcode" within the button's label
-                do {
-                    _ = try button.find(text: "Open in Xcode")
-                    return true
-                } catch {
-                    return false
-                }
-            }
-            return openButton != nil
-        }
-        #expect(hasOpenButton == true, "ViolationDetailView should have 'Open in Xcode' button")
-    }
-
-    @Test("ViolationDetailView open in Xcode button is tappable")
-    func testOpenInXcodeButtonIsTappable() async throws {
-        let violation = makeTestViolation()
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-
-        // Find the open in Xcode button by searching for buttons
-        let isTappable = try await MainActor.run {
-            let buttons = try result.view.inspect().findAll(ViewType.Button.self)
-            let openButton = buttons.first { button in
-                // Try to find text "Open in Xcode" within the button's label
-                do {
-                    _ = try button.find(text: "Open in Xcode")
-                    return true
-                } catch {
-                    return false
-                }
-            }
-
-            guard let openButton = openButton else {
-                return false
-            }
-
-            // Button should be tappable (no crash)
-            try openButton.tap()
-            return true
-        }
-        #expect(isTappable == true, "Open in Xcode button should be tappable")
-    }
-
-    // MARK: - Button Visibility Tests
-
-    @Test("ViolationDetailView suppress button is hidden when suppressed")
-    func testSuppressButtonHiddenWhenSuppressed() async throws {
-        let violation = makeTestViolation(suppressed: true)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-
-        // Suppress button should not exist
-        let hasSuppressButton = await MainActor.run {
-            let suppressText = try? result.view.inspect().find(text: "Suppress")
-            return suppressText != nil
-        }
-        #expect(hasSuppressButton == false, "Suppress button should be hidden when violation is suppressed")
-    }
-
-    @Test("ViolationDetailView resolve button is hidden when resolved")
-    func testResolveButtonHiddenWhenResolved() async throws {
-        let violation = makeTestViolation(resolvedAt: Date.now)
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createViolationDetailView(violation: violation) }.value
-
-        // Resolve button should not exist
-        let hasResolveButton = await MainActor.run {
-            (try? findButton(in: result.view, label: "Mark as Resolved")) != nil
-        }
-        #expect(hasResolveButton == false, "Resolve button should be hidden when violation is resolved")
-    }
 }
 
 // MARK: - ViewInspector Extensions

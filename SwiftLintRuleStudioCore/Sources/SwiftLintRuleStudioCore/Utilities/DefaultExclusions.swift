@@ -9,6 +9,7 @@
 
 import Foundation
 
+/// Canonical directory exclusions for SwiftLint analysis
 public enum DefaultExclusions {
     /// Canonical list of directory names to exclude from SwiftLint analysis.
     /// These are build artifacts, dependency caches, and metadata directories

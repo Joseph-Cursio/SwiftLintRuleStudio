@@ -2,6 +2,7 @@ import Foundation
 import SQLite3
 
 extension ViolationStorageActor {
+    /// Fetch violations matching the given filter criteria
     public func fetchViolations(
         filter: ViolationFilter,
         workspaceId: UUID?
@@ -42,6 +43,7 @@ extension ViolationStorageActor {
         return violations
     }
 
+    /// Get the count of violations matching the given filter criteria
     public func getViolationCount(
         filter: ViolationFilter,
         workspaceId: UUID?
