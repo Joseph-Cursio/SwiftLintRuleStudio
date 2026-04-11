@@ -26,6 +26,7 @@ struct RuleAuditRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             mainRow
+                .accessibilityAddTraits(.isButton)
                 .onTapGesture {
                     if isExpandable {
                         onToggleExpand()
