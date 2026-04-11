@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftLintRuleStudioCore
+import LintStudioUI
 
 struct ViolationListItem: View {
     let violation: Violation
@@ -107,30 +108,6 @@ struct ViolationListItem: View {
 
     private var severityColor: Color {
         switch violation.severity {
-        case .error:
-            return .red
-        case .warning:
-            return .orange
-        }
-    }
-}
-
-struct SeverityBadge: View {
-    let severity: Severity
-
-    var body: some View {
-        Text(severity.rawValue.uppercased())
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(severityColor.opacity(0.2))
-            .foregroundStyle(severityColor)
-            .clipShape(.rect(cornerRadius: 4))
-    }
-
-    private var severityColor: Color {
-        switch severity {
         case .error:
             return .red
         case .warning:

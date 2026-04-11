@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftLintRuleStudioCore
+import LintStudioCore
 
 enum CSVReportGenerator {
     static func generate(violations: [Violation]) -> String {
@@ -28,16 +29,16 @@ enum CSVReportGenerator {
 
         for violation in violations {
             let row = [
-                escapeCSV(violation.ruleID),
-                escapeCSV(violation.filePath),
+                CSVEscaping.escape(violation.ruleID),
+                CSVEscaping.escape(violation.filePath),
                 "\(violation.line)",
                 violation.column.map { "\($0)" } ?? "",
                 violation.severity.rawValue,
-                escapeCSV(violation.message),
+                CSVEscaping.escape(violation.message),
                 isoFormatter.string(from: violation.detectedAt),
                 violation.resolvedAt.map { isoFormatter.string(from: $0) } ?? "",
                 violation.suppressed ? "true" : "false",
-                violation.suppressionReason.map { escapeCSV($0) } ?? ""
+                violation.suppressionReason.map { CSVEscaping.escape($0) } ?? ""
             ].joined(separator: ",")
             csv += row + "\n"
         }
@@ -45,10 +46,4 @@ enum CSVReportGenerator {
         return csv
     }
 
-    private static func escapeCSV(_ value: String) -> String {
-        if value.contains(",") || value.contains("\"") || value.contains("\n") {
-            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
-        }
-        return value
-    }
 }

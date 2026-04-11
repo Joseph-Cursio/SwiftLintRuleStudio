@@ -9,6 +9,8 @@ import Testing
 import Foundation
 import SwiftUI
 @testable import SwiftLintRuleStudio
+import LintStudioCore
+import LintStudioUI
 
 @MainActor
 @Suite("UnifiedDiffEngine Tests")

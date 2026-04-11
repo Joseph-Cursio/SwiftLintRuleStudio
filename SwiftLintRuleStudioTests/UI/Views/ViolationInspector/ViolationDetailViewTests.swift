@@ -10,6 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+import LintStudioUI
 
 private func makeTestViolation(
     id: UUID = UUID(),

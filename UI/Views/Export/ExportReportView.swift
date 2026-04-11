@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftLintRuleStudioCore
+import LintStudioUI
 
 struct ExportReportView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
@@ -42,35 +43,5 @@ struct ExportReportView: View {
         } message: {
             Text(errorMessage)
         }
-    }
-}
-
-// MARK: - Export Format
-
-enum ExportFormat: String, CaseIterable, Identifiable {
-    case html = "HTML"
-    case json = "JSON"
-    case csv = "CSV"
-
-    var id: String { rawValue }
-
-    var subtitle: String {
-        switch self {
-        case .html: "Interactive report"
-        case .json: "Machine-readable"
-        case .csv: "Spreadsheet"
-        }
-    }
-
-    var iconName: String {
-        switch self {
-        case .html: "doc.richtext"
-        case .json: "curlybraces"
-        case .csv: "tablecells"
-        }
-    }
-
-    var fileExtension: String {
-        rawValue.lowercased()
     }
 }

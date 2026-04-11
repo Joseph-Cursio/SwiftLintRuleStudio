@@ -8,6 +8,8 @@
 import Testing
 import Foundation
 @testable import SwiftLintRuleStudio
+import LintStudioUI
+import LintStudioCore
 
 @MainActor
 @Suite("ExportFormat Tests")
@@ -63,7 +65,7 @@ struct HTMLReportTemplateTests {
 
     @Test("wrapInHTML produces valid HTML document")
     func validDocument() {
-        let html = HTMLReportGenerator.wrapInHTML(
+        let html = HTMLReportTemplate.wrapInHTML(
             title: "Test Report",
             timestamp: "2026-01-01",
             body: "<p>Hello</p>"
@@ -77,7 +79,7 @@ struct HTMLReportTemplateTests {
 
     @Test("wrapInHTML escapes title for HTML safety")
     func escapesTitle() {
-        let html = HTMLReportGenerator.wrapInHTML(
+        let html = HTMLReportTemplate.wrapInHTML(
             title: "Test <script>alert(1)</script>",
             timestamp: "now",
             body: ""
@@ -89,7 +91,7 @@ struct HTMLReportTemplateTests {
 
     @Test("wrapInHTML includes responsive meta tag")
     func responsiveMeta() {
-        let html = HTMLReportGenerator.wrapInHTML(
+        let html = HTMLReportTemplate.wrapInHTML(
             title: "Test",
             timestamp: "now",
             body: ""
@@ -100,7 +102,7 @@ struct HTMLReportTemplateTests {
 
     @Test("wrapInHTML includes embedded CSS with dark mode")
     func embeddedCSS() {
-        let html = HTMLReportGenerator.wrapInHTML(
+        let html = HTMLReportTemplate.wrapInHTML(
             title: "Test",
             timestamp: "now",
             body: ""
@@ -114,7 +116,7 @@ struct HTMLReportTemplateTests {
 
     @Test("wrapInHTML includes footer branding")
     func footerBranding() {
-        let html = HTMLReportGenerator.wrapInHTML(
+        let html = HTMLReportTemplate.wrapInHTML(
             title: "Test",
             timestamp: "now",
             body: ""

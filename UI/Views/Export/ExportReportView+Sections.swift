@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftLintRuleStudioCore
+import LintStudioUI
 
 // MARK: - Format Selection
 

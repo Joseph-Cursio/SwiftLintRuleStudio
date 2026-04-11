@@ -7,6 +7,8 @@
 
 import SwiftUI
 import SwiftLintRuleStudioCore
+import LintStudioUI
+import LintStudioCore
 
 struct RuleListItem: View {
     let rule: Rule
@@ -39,7 +41,10 @@ struct RuleListItem: View {
 
                 // Category badge and opt-in indicator
                 HStack(spacing: 8) {
-                    CategoryBadge(category: rule.category)
+                    CategoryBadge(
+                        category: rule.category,
+                        color: RuleCategoryColors.color(for: rule.category)
+                    )
 
                     if rule.isOptIn {
                         Label("Opt-In", systemImage: "star.fill")
@@ -68,35 +73,6 @@ struct RuleListItem: View {
             return .orange
         } else {
             return .gray
-        }
-    }
-}
-
-struct CategoryBadge: View {
-    let category: RuleCategory
-
-    var body: some View {
-        Text(category.displayName)
-            .font(.caption2)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(categoryColor.opacity(0.2))
-            .foregroundStyle(categoryColor)
-            .clipShape(.rect(cornerRadius: 4))
-    }
-
-    private var categoryColor: Color {
-        switch category {
-        case .style:
-            return .blue
-        case .lint:
-            return .red
-        case .metrics:
-            return .purple
-        case .performance:
-            return .orange
-        case .idiomatic:
-            return .green
         }
     }
 }

@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */; };
 		2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */; };
+		AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000230000002AABBCCDD /* LintStudioCore */; };
+		AA10000330000003AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000430000004AABBCCDD /* LintStudioUI */; };
+		AA10000630000006AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000830000008AABBCCDD /* LintStudioCore */; };
+		AA10000730000007AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000930000009AABBCCDD /* LintStudioUI */; };
 		703C936D2F0030E8006A88AE /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 703886762EFC3A3500F2A033 /* Yams */; };
 		703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 703886742EFC3A3500F2A033 /* ViewInspector */; };
 		70C716772F43A97500B0D793 /* Claude Prompt Library.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716712F43A97500B0D793 /* Claude Prompt Library.md */; };
@@ -73,6 +77,8 @@
 			files = (
 				2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */,
 				703C936D2F0030E8006A88AE /* Yams in Frameworks */,
+				AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */,
+				AA10000330000003AABBCCDD /* LintStudioUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +88,8 @@
 			files = (
 				2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */,
 				703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */,
+				AA10000630000006AABBCCDD /* LintStudioCore in Frameworks */,
+				AA10000730000007AABBCCDD /* LintStudioUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +167,8 @@
 			packageProductDependencies = (
 				703886762EFC3A3500F2A033 /* Yams */,
 				2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */,
+				AA10000230000002AABBCCDD /* LintStudioCore */,
+				AA10000430000004AABBCCDD /* LintStudioUI */,
 			);
 			productName = SwiftLintRuleStudio;
 			productReference = 703886472EFC3A3400F2A033 /* SwiftLintRuleStudio.app */;
@@ -184,6 +194,8 @@
 			packageProductDependencies = (
 				703886742EFC3A3500F2A033 /* ViewInspector */,
 				2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */,
+				AA10000830000008AABBCCDD /* LintStudioCore */,
+				AA10000930000009AABBCCDD /* LintStudioUI */,
 			);
 			productName = SwiftLintRuleStudioTests;
 			productReference = 703886562EFC3A3500F2A033 /* SwiftLintRuleStudioTests.xctest */;
@@ -248,6 +260,7 @@
 				703886732EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "ViewInspector" */,
 				703886752EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "Yams" */,
 				2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */,
+				AA10000530000005AABBCCDD /* XCLocalSwiftPackageReference "../LintStudioUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 703886482EFC3A3400F2A033 /* Products */;
@@ -669,6 +682,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = SwiftLintRuleStudioCore;
 		};
+		AA10000530000005AABBCCDD /* XCLocalSwiftPackageReference "../LintStudioUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../LintStudioUI;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -710,6 +727,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 703886752EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "Yams" */;
 			productName = Yams;
+		};
+		AA10000230000002AABBCCDD /* LintStudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA10000530000005AABBCCDD /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioCore;
+		};
+		AA10000430000004AABBCCDD /* LintStudioUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA10000530000005AABBCCDD /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioUI;
+		};
+		AA10000830000008AABBCCDD /* LintStudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA10000530000005AABBCCDD /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioCore;
+		};
+		AA10000930000009AABBCCDD /* LintStudioUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA10000530000005AABBCCDD /* XCLocalSwiftPackageReference "../LintStudioUI" */;
+			productName = LintStudioUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

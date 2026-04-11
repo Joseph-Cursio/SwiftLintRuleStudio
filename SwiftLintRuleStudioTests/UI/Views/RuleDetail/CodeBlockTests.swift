@@ -10,6 +10,7 @@ import ViewInspector
 import SwiftUI
 @testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+import LintStudioUI
 
 @MainActor
 struct CodeBlockTests {

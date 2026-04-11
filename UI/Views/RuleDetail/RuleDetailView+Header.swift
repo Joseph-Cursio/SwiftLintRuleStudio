@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftLintRuleStudioCore
+import LintStudioUI
+import LintStudioCore
 
 extension RuleDetailView {
     /// Determines if the short description should be shown (only if it's unique and not in markdown)
@@ -41,7 +43,10 @@ extension RuleDetailView {
 
                 Spacer()
 
-                CategoryBadge(category: rule.category)
+                CategoryBadge(
+                    category: rule.category,
+                    color: RuleCategoryColors.color(for: rule.category)
+                )
                     .scaleEffect(1.2)
             }
 

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftLintRuleStudioCore
+import LintStudioCore
 
 struct HTMLReportOptions {
     let violations: [Violation]
@@ -57,8 +58,8 @@ enum HTMLReportGenerator {
             )
         }
 
-        return wrapInHTML(
-            title: "\(options.workspaceName) — Lint Report",
+        return HTMLReportTemplate.wrapInHTML(
+            title: "\(options.workspaceName) \u{2014} Lint Report",
             timestamp: timestamp,
             body: body
         )
@@ -116,10 +117,10 @@ enum HTMLReportGenerator {
             let fileName = URL(fileURLWithPath: file).lastPathComponent
             html += """
               <div class="file-group">
-                <h3>\(escapeHTML(fileName))
+                <h3>\(HTMLEscaping.escape(fileName))
                   <span class="file-count">\(fileViolations.count) violations</span>
                 </h3>
-                <p class="file-path">\(escapeHTML(file))</p>
+                <p class="file-path">\(HTMLEscaping.escape(file))</p>
                 <table>
                   <thead>
                     <tr>
@@ -136,8 +137,8 @@ enum HTMLReportGenerator {
                     <tr>
                       <td class="line-num">\(violation.line)</td>
                       <td class="\(severityClass)">\(severityLabel)</td>
-                      <td class="rule-id">\(escapeHTML(violation.ruleID))</td>
-                      <td>\(escapeHTML(violation.message))</td>
+                      <td class="rule-id">\(HTMLEscaping.escape(violation.ruleID))</td>
+                      <td>\(HTMLEscaping.escape(violation.message))</td>
                     </tr>
                 """
 
@@ -148,7 +149,7 @@ enum HTMLReportGenerator {
                     ) {
                         html += """
                             <tr class="snippet-row">
-                              <td colspan="4"><pre class="snippet">\(escapeHTML(snippet))</pre></td>
+                              <td colspan="4"><pre class="snippet">\(HTMLEscaping.escape(snippet))</pre></td>
                             </tr>
                         """
                     }
@@ -179,12 +180,12 @@ enum HTMLReportGenerator {
 
             html += """
               <div class="rule-detail">
-                <h4>\(escapeHTML(ruleId))
+                <h4>\(HTMLEscaping.escape(ruleId))
                   <span class="file-count">\(count) violations</span>
                 </h4>
-                <p>\(escapeHTML(description))</p>
+                <p>\(HTMLEscaping.escape(description))</p>
                 <div class="rule-meta">
-                  <span>Category: \(escapeHTML(category))</span>
+                  <span>Category: \(HTMLEscaping.escape(category))</span>
                   <span>Auto-fixable: \(autoFix)</span>
                 </div>
               </div>
@@ -213,12 +214,4 @@ enum HTMLReportGenerator {
             return "\(marker) \(lineNum) | \(lines[idx])"
         }.joined(separator: "\n")
     }
-
-    static func escapeHTML(_ text: String) -> String {
-        text.replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
-            .replacingOccurrences(of: "\"", with: "&quot;")
-    }
-
 }

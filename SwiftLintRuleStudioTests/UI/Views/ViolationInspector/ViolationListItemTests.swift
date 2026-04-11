@@ -11,6 +11,7 @@ import SwiftUI
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 @testable import SwiftLintRuleStudio
+import LintStudioUI
 
 // Tests for ViolationListItem component
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests

@@ -10,6 +10,7 @@ import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 @testable import SwiftLintRuleStudio
+import LintStudioCore
 
 @MainActor
 @Suite("HTMLReportGenerator Tests")
@@ -268,32 +269,32 @@ struct HTMLReportGeneratorEscapingTests {
 
     @Test("escapeHTML escapes ampersands")
     func escapesAmpersands() {
-        let result = HTMLReportGenerator.escapeHTML("A & B")
+        let result = HTMLEscaping.escape("A & B")
         #expect(result == "A &amp; B")
     }
 
     @Test("escapeHTML escapes angle brackets")
     func escapesAngleBrackets() {
-        let result = HTMLReportGenerator.escapeHTML("<script>alert('xss')</script>")
+        let result = HTMLEscaping.escape("<script>alert('xss')</script>")
         #expect(result == "&lt;script&gt;alert('xss')&lt;/script&gt;")
     }
 
     @Test("escapeHTML escapes double quotes")
     func escapesDoubleQuotes() {
-        let result = HTMLReportGenerator.escapeHTML("She said \"hello\"")
+        let result = HTMLEscaping.escape("She said \"hello\"")
         #expect(result == "She said &quot;hello&quot;")
     }
 
     @Test("escapeHTML handles multiple special characters together")
     func escapesMultipleSpecials() {
-        let result = HTMLReportGenerator.escapeHTML("<a href=\"/test?a=1&b=2\">")
+        let result = HTMLEscaping.escape("<a href=\"/test?a=1&b=2\">")
         #expect(result == "&lt;a href=&quot;/test?a=1&amp;b=2&quot;&gt;")
     }
 
     @Test("escapeHTML passes through safe strings unchanged")
     func safeStringsUnchanged() {
         let safeText = "Hello World 123"
-        let result = HTMLReportGenerator.escapeHTML(safeText)
+        let result = HTMLEscaping.escape(safeText)
         #expect(result == safeText)
     }
 

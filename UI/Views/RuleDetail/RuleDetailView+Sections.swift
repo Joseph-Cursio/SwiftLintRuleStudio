@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftLintRuleStudioCore
+import LintStudioUI
 
 extension RuleDetailView {
     var configurationView: some View {
