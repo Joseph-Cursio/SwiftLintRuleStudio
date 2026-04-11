@@ -98,6 +98,8 @@ struct ContentView: View {
             }
         case .violations:
             ViolationInspectorView()
+        case .exportReport:
+            ExportReportView()
         case .dashboard:
             Text("Dashboard")
                 .navigationTitle("Dashboard")
@@ -196,6 +198,7 @@ struct ContentView: View {
     private var titleMenuContent: some View {
         Button("Rules") { selection = .rules }
         Button("Enabled Rule Violations") { selection = .violations }
+        Button("Export Report") { selection = .exportReport }
         Button("Dashboard") { selection = .dashboard }
         Button("Disabled Rule Audit") { selection = .ruleAudit }
         Button("Version History") { selection = .versionHistory }

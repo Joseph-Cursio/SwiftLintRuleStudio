@@ -56,6 +56,9 @@ struct SidebarView: View {
             Label("Enabled Rule Violations", systemImage: "exclamationmark.triangle")
                 .tag(AppSection.violations)
                 .accessibilityIdentifier("SidebarViolationsLink")
+            Label("Export Report", systemImage: "square.and.arrow.up")
+                .tag(AppSection.exportReport)
+                .accessibilityIdentifier("SidebarExportReportLink")
         }
     }
 

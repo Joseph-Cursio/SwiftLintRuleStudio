@@ -8,6 +8,7 @@
 public enum AppSection: Hashable, Sendable {
     case rules
     case violations
+    case exportReport
     case dashboard
     case ruleAudit
     case versionHistory
