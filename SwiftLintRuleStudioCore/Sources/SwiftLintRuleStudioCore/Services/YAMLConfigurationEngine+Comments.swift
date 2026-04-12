@@ -1,80 +1,36 @@
 import Foundation
+import LintStudioCore
 
 extension YAMLConfigurationEngine {
-    /// Extract and preserve comments from YAML content
+    /// Extract and preserve comments from YAML content using the shared YAMLCommentPreserver.
     public func extractComments(from content: String) {
-        let lines = content.components(separatedBy: .newlines)
-        var currentKey: String?
-
-        for (index, line) in lines.enumerated() {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-
-            // Check for comment
-            if trimmed.hasPrefix("#") {
-                let comment = String(trimmed.dropFirst()).trimmingCharacters(in: .whitespaces)
-
-                // Try to associate with previous or next key
-                if let key = currentKey {
-                    currentConfig.comments[key] = comment
-                } else if index < lines.count - 1 {
-                    // Look ahead for key
-                    let nextLine = lines[index + 1].trimmingCharacters(in: .whitespaces)
-                    if let key = extractKey(from: nextLine) {
-                        currentConfig.comments[key] = comment
-                    }
-                }
-            } else if !trimmed.isEmpty && !trimmed.hasPrefix("#") {
-                // Extract key from this line
-                if let key = extractKey(from: line) {
-                    currentKey = key
-                }
+        let preserver = YAMLCommentPreserver(yamlContent: content)
+        // Store comments in the config's comments dictionary keyed by following key
+        for entry in preserver.comments {
+            if let key = entry.followingKey {
+                currentConfig.comments[key] = entry.line
             }
         }
     }
 
-    private func extractKey(from line: String) -> String? {
-        let trimmed = line.trimmingCharacters(in: .whitespaces)
-
-        // Match YAML key pattern: "key:" or "  key:"
-        if let colonIndex = trimmed.firstIndex(of: ":") {
-            let key = String(trimmed[..<colonIndex]).trimmingCharacters(in: .whitespaces)
-            if !key.isEmpty {
-                return key
-            }
-        }
-
-        return nil
-    }
-
-    /// Extract and preserve the ordering of top-level YAML keys
+    /// Extract and preserve the ordering of top-level YAML keys using the shared preserver.
     public func extractKeyOrder(from content: String) {
-        let lines = content.components(separatedBy: .newlines)
-
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if !trimmed.isEmpty && !trimmed.hasPrefix("#") {
-                if let key = extractKey(from: line) {
-                    if !currentConfig.keyOrder.contains(key) {
-                        currentConfig.keyOrder.append(key)
-                    }
-                }
-            }
-        }
+        let preserver = YAMLCommentPreserver(yamlContent: content)
+        currentConfig.keyOrder = preserver.keyOrder
     }
 
-    /// Reinsert preserved comments into serialized YAML output
+    /// Reinsert preserved comments into serialized YAML output using the shared preserver.
     public func reinsertComments(into yaml: String, config: YAMLConfig) -> String {
-        // Basic implementation: append comments at the end
-        // More sophisticated comment preservation can be added later
-        var result = yaml
+        guard !config.comments.isEmpty else { return yaml }
 
-        if !config.comments.isEmpty {
-            result += "\n\n# Preserved comments:\n"
-            for (key, comment) in config.comments.sorted(by: { $0.key < $1.key }) {
-                result += "# \(key): \(comment)\n"
-            }
+        // Reconstruct a YAMLCommentPreserver from the stored comments
+        // Build a synthetic original YAML that the preserver can parse
+        var syntheticLines: [String] = []
+        for (key, commentLine) in config.comments.sorted(by: { $0.key < $1.key }) {
+            syntheticLines.append(commentLine)
+            syntheticLines.append("\(key):")
         }
-
-        return result
+        let preserver = YAMLCommentPreserver(yamlContent: syntheticLines.joined(separator: "\n"))
+        return preserver.reinsertComments(into: yaml)
     }
 }
