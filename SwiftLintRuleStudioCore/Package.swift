@@ -21,12 +21,16 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1")
+        .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1"),
+        .package(path: "../../LintStudioUI")
     ],
     targets: [
         .target(
             name: "SwiftLintRuleStudioCore",
-            dependencies: ["Yams"],
+            dependencies: [
+                "Yams",
+                .product(name: "LintStudioCore", package: "LintStudioUI")
+            ],
             swiftSettings: swiftSettings,
             linkerSettings: [
                 .linkedLibrary("sqlite3")

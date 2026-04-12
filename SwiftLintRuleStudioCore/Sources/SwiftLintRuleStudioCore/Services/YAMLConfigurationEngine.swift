@@ -7,6 +7,7 @@
 
 import Foundation
 import Yams
+import LintStudioCore
 
 /// Service for safely editing SwiftLint YAML configuration files
 /// with comment preservation and validation
@@ -220,41 +221,11 @@ public class YAMLConfigurationEngine {
         // Validate before saving
         try validate(config)
 
-        // Create backup if requested
-        // IMPORTANT: Create backup BEFORE we modify the file
-        if createBackup {
-            // Check if original file exists (before any modifications)
-            let fileExists = FileManager.default.fileExists(atPath: configPath.path)
-            if fileExists {
-                // Use timestamped backup filename to avoid conflicts in parallel operations
-                let timestamp = Int(Date.now.timeIntervalSince1970)
-                let backupFileName = "\(configPath.lastPathComponent).\(timestamp).backup"
-                let backupPath = configPath.deletingLastPathComponent().appendingPathComponent(backupFileName)
-                // Remove existing backup if it exists (shouldn't happen with timestamp, but be safe)
-                if FileManager.default.fileExists(atPath: backupPath.path) {
-                    try FileManager.default.removeItem(at: backupPath)
-                }
-                // Create backup by copying the original file
-                try FileManager.default.copyItem(at: configPath, to: backupPath)
-            }
-        }
-
         // Serialize to YAML
         let yamlContent = try serialize(config)
 
-        // Atomic write: write to temp file, then move
-        // Use UUID in temp filename to avoid conflicts in parallel operations
-        let tempFileName = "\(configPath.lastPathComponent).\(UUID().uuidString).tmp"
-        let tempFile = configPath.deletingLastPathComponent().appendingPathComponent(tempFileName)
-        try yamlContent.write(to: tempFile, atomically: true, encoding: .utf8)
-
-        // Move temp file to final location atomically
-        // Remove destination if it exists (can happen in parallel test execution)
-        // This ensures no race conditions if multiple operations happen in parallel
-        if FileManager.default.fileExists(atPath: configPath.path) {
-            try FileManager.default.removeItem(at: configPath)
-        }
-        try FileManager.default.moveItem(at: tempFile, to: configPath)
+        // Atomic write with optional backup via shared SafeFileWriter
+        try SafeFileWriter.write(yamlContent, to: configPath, createBackup: createBackup)
 
         // Update current config
         currentConfig = config
