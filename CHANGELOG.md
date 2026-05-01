@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.1] — 2026-05-01
+
+### Changed
+- `LintStudioUI` is now consumed as a remote SwiftPM dependency from `https://github.com/Joseph-Cursio/LintStudioUI.git` (pinned `from: "1.0.0"`) instead of a local path, decoupling the build from sibling-checkout layout
+
+---
+
 ## [1.0.1] — 2026-03-06
 
 ### Fixed
