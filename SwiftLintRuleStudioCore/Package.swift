@@ -22,7 +22,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1"),
-        .package(path: "../../LintStudioUI")
+        .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.0.0")
     ],
     targets: [
         .target(
