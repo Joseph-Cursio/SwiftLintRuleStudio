@@ -52,10 +52,24 @@ public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
     private var shouldHang: Bool = false
     private let hangGate = HangGate()
     public var lintCommandHandler: (@Sendable (URL?, URL) async throws -> Data)?
+    public var ruleDetailCommandHandler: (@Sendable (String) async throws -> Data)?
+    public var generateDocsHandler: (@Sendable (String) async throws -> String)?
 
     public init(shouldFail: Bool = false, mockRulesData: Data? = nil) {
         self.shouldFail = shouldFail
         self.mockRulesData = mockRulesData
+    }
+
+    public func setRuleDetailCommandHandler(
+        _ handler: @escaping @Sendable (String) async throws -> Data
+    ) {
+        ruleDetailCommandHandler = handler
+    }
+
+    public func setGenerateDocsHandler(
+        _ handler: @escaping @Sendable (String) async throws -> String
+    ) {
+        generateDocsHandler = handler
     }
 
     public func setMockLintOutput(_ data: Data) {
@@ -105,6 +119,9 @@ public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
         if shouldFail {
             throw SwiftLintError.executionFailed(message: "Mock failure")
         }
+        if let handler = ruleDetailCommandHandler {
+            return try await handler(ruleId)
+        }
         let mockDetail = """
         Force Cast (force_cast): Force casts should be avoided
 
@@ -132,6 +149,9 @@ public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
         await Task.yield()
         if shouldFail {
             throw SwiftLintError.executionFailed(message: "Mock failure")
+        }
+        if let handler = generateDocsHandler {
+            return try await handler(ruleId)
         }
         return """
         # \(ruleId.capitalized)

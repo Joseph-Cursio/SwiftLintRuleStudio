@@ -28,7 +28,7 @@ extension RuleRegistry {
         updateRules(updatedRules)
     }
 
-    private func buildRulesData(
+    func buildRulesData(
         from rules: [Rule],
         startingIndex: Int
     ) -> [RuleBackgroundData] {
@@ -45,7 +45,7 @@ extension RuleRegistry {
     }
 }
 
-private extension RuleRegistry {
+extension RuleRegistry {
     struct RuleBackgroundData {
         let id: String
         let category: RuleCategory
