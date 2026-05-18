@@ -68,6 +68,8 @@ extension RuleRegistry {
         let isOptIn = optInStr == "yes"
         let kindStr = columns.count > 4 ? columns[4].lowercased() : "style"
         let category = mapCategory(kindStr)
+        let analyzerStr = columns.count > 5 ? columns[5].lowercased() : "no"
+        let isAnalyzer = analyzerStr == "yes"
 
         return Rule(
             id: identifier,
@@ -75,6 +77,7 @@ extension RuleRegistry {
             description: "Loading...",
             category: category,
             isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
             severity: nil,
             parameters: nil,
             triggeringExamples: [],

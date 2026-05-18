@@ -14,6 +14,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
     public let description: String
     public let category: RuleCategory
     public let isOptIn: Bool
+    public let isAnalyzer: Bool
     public var severity: Severity?
     public let parameters: [RuleParameter]?
     public let triggeringExamples: [String]
@@ -37,6 +38,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
         description: String,
         category: RuleCategory,
         isOptIn: Bool,
+        isAnalyzer: Bool = false,
         severity: Severity? = nil,
         parameters: [RuleParameter]? = nil,
         triggeringExamples: [String] = [],
@@ -55,6 +57,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
         self.description = description
         self.category = category
         self.isOptIn = isOptIn
+        self.isAnalyzer = isAnalyzer
         self.severity = severity
         self.parameters = parameters
         self.triggeringExamples = triggeringExamples
