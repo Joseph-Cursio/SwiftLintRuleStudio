@@ -185,6 +185,75 @@ struct RuleBrowserViewModelBulkTests {
         }
     }
 
+    @MainActor
+    private static func createTestViewModelWithMixedRules() -> RuleBrowserViewModel {
+        let cacheManager = CacheManager()
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager)
+        let registry = RuleRegistry(swiftLintCLI: cli, cacheManager: cacheManager)
+
+        registry.setRulesForTesting([
+            // Default-enabled rule
+            Rule(
+                id: "force_cast", name: "Force Cast", description: "Avoid force casting",
+                category: .style, isOptIn: false, isAnalyzer: false, severity: .warning,
+                parameters: nil, triggeringExamples: [], nonTriggeringExamples: [], documentation: nil,
+                isEnabled: false, supportsAutocorrection: false
+            ),
+            // Opt-in rule
+            Rule(
+                id: "explicit_init", name: "Explicit Init", description: "Use explicit init",
+                category: .style, isOptIn: true, isAnalyzer: false, severity: .warning,
+                parameters: nil, triggeringExamples: [], nonTriggeringExamples: [], documentation: nil,
+                isEnabled: false, supportsAutocorrection: false
+            ),
+            // Analyzer-only rule
+            Rule(
+                id: "unused_declaration", name: "Unused Declaration", description: "Detect unused decls",
+                category: .lint, isOptIn: false, isAnalyzer: true, severity: .warning,
+                parameters: nil, triggeringExamples: [], nonTriggeringExamples: [], documentation: nil,
+                isEnabled: false, supportsAutocorrection: false
+            )
+        ])
+
+        return RuleBrowserViewModel(ruleRegistry: registry)
+    }
+
+    @Test("Bulk enable routes analyzer rule into analyzer_rules and opt-in into opt_in_rules")
+    func testBulkEnableRoutesAnalyzerAndOptInCorrectly() async throws {
+        let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(content: "rules: {}")
+        defer { RuleDetailViewModelTestHelpers.cleanupTempFile(configPath) }
+
+        try await MainActor.run {
+            let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+            let viewModel = Self.createTestViewModelWithMixedRules()
+            viewModel.selectedRuleIds = Set(["force_cast", "explicit_init", "unused_declaration"])
+            viewModel.enableSelectedRules(yamlEngine: yamlEngine)
+            try viewModel.saveBulkChanges(yamlEngine: yamlEngine)
+        }
+
+        let (analyzer, optIn, disabled) = try await MainActor.run {
+            () -> ([String]?, [String]?, [String]?) in
+            let engine = YAMLConfigurationEngine(configPath: configPath)
+            try engine.load()
+            let config = engine.getConfig()
+            return (config.analyzerRules, config.optInRules, config.disabledRules)
+        }
+
+        // Analyzer rule goes only to analyzer_rules
+        #expect(analyzer?.contains("unused_declaration") == true)
+        #expect(optIn?.contains("unused_declaration") != true)
+        // Opt-in rule goes only to opt_in_rules
+        #expect(optIn?.contains("explicit_init") == true)
+        #expect(analyzer?.contains("explicit_init") != true)
+        // Default-enabled rule is in neither list
+        #expect(analyzer?.contains("force_cast") != true)
+        #expect(optIn?.contains("force_cast") != true)
+        // None of them ended up in disabled_rules
+        #expect(disabled?.contains("force_cast") != true)
+        #expect(disabled?.contains("explicit_init") != true)
+        #expect(disabled?.contains("unused_declaration") != true)
+    }
+
     @Test("Save bulk changes persists to file")
     func testSaveBulkChanges() async throws {
         let configContent = """

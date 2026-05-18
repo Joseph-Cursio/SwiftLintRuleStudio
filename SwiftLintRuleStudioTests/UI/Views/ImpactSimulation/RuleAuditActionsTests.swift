@@ -215,6 +215,80 @@ struct RuleAuditApplyEnableRulesTests {
 
     // MARK: - Combined Scenarios
 
+    // MARK: - Analyzer Rules
+
+    @Test("Enabling an analyzer rule adds it to analyzerRules, not optInRules")
+    func addsToAnalyzerRules() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        let analyzerRuleIds: Set<String> = ["unused_declaration"]
+        let optInRuleIds: Set<String> = []
+
+        RuleAuditView.applyEnableRules(
+            config: &config,
+            ruleIds: ["unused_declaration"],
+            optInRuleIds: optInRuleIds,
+            analyzerRuleIds: analyzerRuleIds
+        )
+
+        #expect(config.analyzerRules?.contains("unused_declaration") == true)
+        #expect(config.optInRules?.contains("unused_declaration") != true)
+    }
+
+    @Test("Enabling an analyzer rule already in analyzerRules does not duplicate")
+    func doesNotDuplicateAnalyzerRule() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.analyzerRules = ["unused_declaration"]
+        let analyzerRuleIds: Set<String> = ["unused_declaration"]
+
+        RuleAuditView.applyEnableRules(
+            config: &config,
+            ruleIds: ["unused_declaration"],
+            optInRuleIds: [],
+            analyzerRuleIds: analyzerRuleIds
+        )
+
+        let occurrences = config.analyzerRules?.filter { $0 == "unused_declaration" }.count ?? 0
+        #expect(occurrences == 1)
+    }
+
+    @Test("Analyzer routing wins when a rule appears in both analyzer and opt-in sets")
+    func analyzerRoutingTakesPrecedenceOverOptIn() {
+        // Defensive — production never populates both for the same id, but
+        // the routing logic uses `else if` and should not double-list a rule.
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        let bothIds: Set<String> = ["unused_declaration"]
+
+        RuleAuditView.applyEnableRules(
+            config: &config,
+            ruleIds: ["unused_declaration"],
+            optInRuleIds: bothIds,
+            analyzerRuleIds: bothIds
+        )
+
+        #expect(config.analyzerRules?.contains("unused_declaration") == true)
+        #expect(config.optInRules?.contains("unused_declaration") != true)
+    }
+
+    @Test("Enabling mix of analyzer, opt-in, and default routes each to the right list")
+    func mixedRulesGoToCorrectLists() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        let optInRuleIds: Set<String> = ["explicit_init"]
+        let analyzerRuleIds: Set<String> = ["unused_declaration"]
+
+        RuleAuditView.applyEnableRules(
+            config: &config,
+            ruleIds: ["force_cast", "explicit_init", "unused_declaration"],
+            optInRuleIds: optInRuleIds,
+            analyzerRuleIds: analyzerRuleIds
+        )
+
+        #expect(config.analyzerRules == ["unused_declaration"])
+        #expect(config.optInRules == ["explicit_init"])
+        #expect(config.rules["force_cast"]?.enabled == true)
+        #expect(config.rules["explicit_init"]?.enabled == true)
+        #expect(config.rules["unused_declaration"]?.enabled == true)
+    }
+
     @Test("Enabling opt-in rule removes from disabled, adds to optIn, and adds to onlyRules")
     func combinedScenario() {
         var config = YAMLConfigurationEngine.YAMLConfig()

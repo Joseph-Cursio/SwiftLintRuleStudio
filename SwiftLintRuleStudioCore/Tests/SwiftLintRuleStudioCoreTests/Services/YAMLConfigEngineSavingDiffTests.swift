@@ -197,6 +197,40 @@ struct YAMLConfigEngineSavingDiffTests {
         #expect(modifiedSnapshot.removedRules.isEmpty)
     }
 
+    @Test("YAMLConfigurationEngine round-trips analyzer_rules through save and load")
+    func testRoundTripAnalyzerRules() async throws {
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: "")
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        try? FileManager.default.removeItem(at: configFile)
+
+        let config = await MainActor.run {
+            var config = YAMLConfigurationEngine.YAMLConfig()
+            config.analyzerRules = ["unused_declaration", "unused_import"]
+            return config
+        }
+
+        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+            try engine.save(config: config, createBackup: false)
+        }
+
+        let savedYAML = try String(contentsOf: configFile, encoding: .utf8)
+        #expect(savedYAML.contains("analyzer_rules"))
+        // Should not leak into opt_in_rules
+        #expect(savedYAML.contains("opt_in_rules") == false)
+
+        let analyzerRules = try await YAMLConfigurationEngineTestHelpers.withEngine(
+            configPath: configFile
+        ) { engine in
+            try engine.load()
+            return engine.getConfig().analyzerRules
+        }
+
+        #expect(analyzerRules?.contains("unused_declaration") == true)
+        #expect(analyzerRules?.contains("unused_import") == true)
+        #expect(analyzerRules?.count == 2)
+    }
+
     @Test("YAMLConfigurationEngine detects no changes in diff")
     func testDiffNoChanges() async throws {
         let yamlContent = """

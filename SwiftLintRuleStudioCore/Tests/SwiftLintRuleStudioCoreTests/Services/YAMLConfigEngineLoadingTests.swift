@@ -138,6 +138,58 @@ struct YAMLConfigEngineLoadingTests {
         #expect(lineLengthEnabled == true)
     }
 
+    @Test("YAMLConfigurationEngine migrates legacy rules block entries into disabled_rules")
+    func testLegacyRulesBlockMigratesDisabledEntries() async throws {
+        // Legacy app-emitted layout: `rules:` block carrying enabled/disabled
+        // state for each rule. SwiftLint rejects this, so the parser migrates
+        // any disabled entries into the canonical `disabled_rules` list while
+        // tolerating the legacy block.
+        let yamlContent = """
+        rules:
+          foo:
+            enabled: false
+          bar: false
+          baz: true
+        """
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        let disabledRules = try await MainActor.run { () -> [String] in
+            let engine = YAMLConfigurationEngine(configPath: configFile)
+            try engine.load()
+            return engine.getConfig().disabledRules ?? []
+        }
+
+        #expect(disabledRules.contains("foo"))
+        #expect(disabledRules.contains("bar"))
+        // Enabled rule should NOT be migrated into disabled_rules
+        #expect(disabledRules.contains("baz") == false)
+    }
+
+    @Test("YAMLConfigurationEngine merges legacy disabled entries with existing disabled_rules")
+    func testLegacyRulesBlockMergesWithExistingDisabledRules() async throws {
+        let yamlContent = """
+        disabled_rules:
+          - existing_rule
+        rules:
+          legacy_disabled:
+            enabled: false
+        """
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        let disabledRules = try await MainActor.run { () -> [String] in
+            let engine = YAMLConfigurationEngine(configPath: configFile)
+            try engine.load()
+            return engine.getConfig().disabledRules ?? []
+        }
+
+        #expect(disabledRules.contains("existing_rule"))
+        #expect(disabledRules.contains("legacy_disabled"))
+    }
+
     @Test("YAMLConfigurationEngine handles empty configuration")
     func testLoadEmptyConfiguration() async throws {
         let yamlContent = ""

@@ -44,13 +44,14 @@ enum RuleDetailViewModelTestHelpers {
         try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
     }
 
-    static func createTestRule(id: String, isOptIn: Bool) -> Rule {
+    static func createTestRule(id: String, isOptIn: Bool, isAnalyzer: Bool = false) -> Rule {
         Rule(
             id: id,
             name: id.replacingOccurrences(of: "_", with: " ").capitalized,
             description: "Test rule description",
             category: .style,
             isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
             severity: nil,
             parameters: nil,
             triggeringExamples: [],
