@@ -1,6 +1,6 @@
 //
 //  RulePresetsTests.swift
-//  SwiftLintRuleStudioTests
+//  SwiftLintRuleStudioCoreTests
 //
 //  Unit tests for RulePresets
 //
@@ -8,7 +8,6 @@
 import Foundation
 import Testing
 @testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
 struct PresetExpectation: Sendable, CustomTestStringConvertible {
@@ -20,7 +19,7 @@ struct PresetExpectation: Sendable, CustomTestStringConvertible {
     var testDescription: String { expectedName }
 }
 
-let presetExpectations: [PresetExpectation] = [
+nonisolated(unsafe) let presetExpectations: [PresetExpectation] = [
     PresetExpectation(
         presetID: "performance", expectedName: "Performance",
         expectedCategory: .performance, expectedRuleIDs: ["reduce_into", "first_where", "empty_count"]
