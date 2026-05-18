@@ -155,19 +155,22 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         try await Task { @MainActor in
             try yamlEngine.load()
         }.value
-        let (hasRule1, rule1Severity, hasRule2) = await MainActor.run {
+        let (hasRule1, rule1Severity, rule2Disabled) = await MainActor.run {
             let config = yamlEngine.getConfig()
-            return (config.rules["rule_1"] != nil, config.rules["rule_1"]?.severity, config.rules["rule_2"] != nil)
+            return (
+                config.rules["rule_1"] != nil,
+                config.rules["rule_1"]?.severity,
+                config.disabledRules?.contains("rule_2") == true
+            )
         }
-        let (rule2Enabled, hasRule3, rule3Severity) = await MainActor.run {
+        let (hasRule3, rule3Severity) = await MainActor.run {
             let config = yamlEngine.getConfig()
-            return (config.rules["rule_2"]?.enabled, config.rules["rule_3"] != nil, config.rules["rule_3"]?.severity)
+            return (config.rules["rule_3"] != nil, config.rules["rule_3"]?.severity)
         }
 
         #expect(hasRule1)
         #expect(rule1Severity == .error)
-        #expect(hasRule2)
-        #expect(rule2Enabled == false)
+        #expect(rule2Disabled)
         #expect(hasRule3)
         #expect(rule3Severity == .error)
     }

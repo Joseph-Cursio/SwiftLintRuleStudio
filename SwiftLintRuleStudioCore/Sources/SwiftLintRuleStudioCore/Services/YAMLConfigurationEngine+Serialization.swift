@@ -29,12 +29,7 @@ extension YAMLConfigurationEngine {
     private func configToDictionary(_ config: YAMLConfig) -> [String: Any] {
         var dict: [String: Any] = [:]
 
-        // Add rules
-        if !config.rules.isEmpty {
-            dict["rules"] = buildRulesDictionary(from: config.rules)
-        }
-
-        // Add other fields
+        // Add SwiftLint reserved top-level keys
         if let included = config.included {
             dict["included"] = included
         }
@@ -57,24 +52,21 @@ extension YAMLConfigurationEngine {
             dict["only_rules"] = onlyRules
         }
 
+        // Per-rule configuration (severity / parameters) goes as top-level
+        // keys, matching SwiftLint's expected schema. Skip simple on/off
+        // entries — those states are conveyed by the rule-list keys above.
+        for (ruleId, ruleConfig) in config.rules {
+            guard let value = topLevelRuleValue(for: ruleConfig) else { continue }
+            dict[ruleId] = value
+        }
+
         return dict
     }
 
-    private func buildRulesDictionary(from rules: [String: RuleConfiguration]) -> [String: Any] {
-        var rulesDict: [String: Any] = [:]
-        for (ruleId, ruleConfig) in rules {
-            rulesDict[ruleId] = ruleDictionaryValue(for: ruleConfig)
-        }
-        return rulesDict
-    }
-
-    private func ruleDictionaryValue(for ruleConfig: RuleConfiguration) -> Any {
-        if isSimpleBooleanRule(ruleConfig, enabled: true) {
-            return true
-        }
-        if isSimpleBooleanRule(ruleConfig, enabled: false) {
-            return false
-        }
+    private func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> Any? {
+        let hasSeverity = ruleConfig.severity != nil
+        let hasParameters = !(ruleConfig.parameters?.isEmpty ?? true)
+        guard hasSeverity || hasParameters else { return nil }
 
         var ruleDict: [String: Any] = [:]
         if let severity = ruleConfig.severity {
@@ -85,13 +77,6 @@ extension YAMLConfigurationEngine {
                 ruleDict[key] = value.value
             }
         }
-        if !ruleConfig.enabled {
-            ruleDict["enabled"] = false
-        }
         return ruleDict
-    }
-
-    private func isSimpleBooleanRule(_ ruleConfig: RuleConfiguration, enabled: Bool) -> Bool {
-        ruleConfig.severity == nil && ruleConfig.parameters == nil && ruleConfig.enabled == enabled
     }
 }

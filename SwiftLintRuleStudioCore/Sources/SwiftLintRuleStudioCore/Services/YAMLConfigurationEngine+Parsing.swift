@@ -72,37 +72,81 @@ extension YAMLConfigurationEngine {
     /// Parse a dictionary into a SwiftLintConfiguration struct
     public func parseDictionaryToConfig(_ dict: [String: Any]) throws -> SwiftLintConfiguration {
         var config = SwiftLintConfiguration()
-
-        // Parse rules
-        if let rulesDict = dict["rules"] as? [String: Any] {
-            config.rules = parseRulesConfig(from: rulesDict)
-        }
-
-        // Parse other fields
-        if let included = dict["included"] as? [String] {
-            config.included = included
-        }
-        if let excluded = dict["excluded"] as? [String] {
-            config.excluded = excluded
-        }
-        if let reporter = dict["reporter"] as? String {
-            config.reporter = reporter
-        }
-        if let disabledRules = dict["disabled_rules"] as? [String] {
-            config.disabledRules = disabledRules
-        }
-        if let optInRules = dict["opt_in_rules"] as? [String] {
-            config.optInRules = optInRules
-        }
-        if let analyzerRules = dict["analyzer_rules"] as? [String] {
-            config.analyzerRules = analyzerRules
-        }
-        if let onlyRules = dict["only_rules"] as? [String] {
-            config.onlyRules = onlyRules
-        }
-
+        parseReservedFields(from: dict, into: &config)
+        parseLegacyRulesBlock(from: dict, into: &config)
+        parseTopLevelRuleConfigurations(from: dict, into: &config)
         return config
     }
+
+    private func parseReservedFields(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
+        config.included = dict["included"] as? [String]
+        config.excluded = dict["excluded"] as? [String]
+        config.reporter = dict["reporter"] as? String
+        config.disabledRules = dict["disabled_rules"] as? [String]
+        config.optInRules = dict["opt_in_rules"] as? [String]
+        config.analyzerRules = dict["analyzer_rules"] as? [String]
+        config.onlyRules = dict["only_rules"] as? [String]
+    }
+
+    // Tolerant read of the legacy `rules:` block (older versions of this app
+    // emitted it; SwiftLint rejects it). Parsing it here lets those files
+    // round-trip into the correct top-level layout on next save, and any
+    // `enabled: false` entries get migrated into `disabled_rules`.
+    private func parseLegacyRulesBlock(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
+        guard let rulesDict = dict["rules"] as? [String: Any] else { return }
+        config.rules = parseRulesConfig(from: rulesDict)
+        var migrated = config.disabledRules ?? []
+        for (ruleId, ruleConfig) in config.rules where !ruleConfig.enabled {
+            if !migrated.contains(ruleId) {
+                migrated.append(ruleId)
+            }
+        }
+        if !migrated.isEmpty {
+            config.disabledRules = migrated
+        }
+    }
+
+    // Any top-level key not in the reserved set is treated as a per-rule
+    // configuration — that matches SwiftLint's actual schema.
+    private func parseTopLevelRuleConfigurations(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
+        for (key, value) in dict where !Self.reservedTopLevelKeys.contains(key) {
+            if let ruleConfig = parseRuleConfiguration(from: value) {
+                config.rules[key] = ruleConfig
+            }
+        }
+    }
+
+    /// Top-level YAML keys SwiftLint recognizes as configuration rather than
+    /// rule identifiers. Anything not in this set is read as a rule config.
+    static let reservedTopLevelKeys: Set<String> = [
+        "rules", // legacy app-emitted block, handled separately above
+        "included",
+        "excluded",
+        "reporter",
+        "disabled_rules",
+        "opt_in_rules",
+        "analyzer_rules",
+        "only_rules",
+        "whitelist_rules",
+        "warning_threshold",
+        "strict",
+        "lenient",
+        "cache_path",
+        "swiftlint_version",
+        "parent_config",
+        "child_config",
+        "remote_timeout",
+        "remote_timeout_if_cached",
+        "allow_zero_lintable_files",
+        "treat_deprecated_as_warning",
+        "force_exclude",
+        "use_alternative_excluding",
+        "use_nested_configs",
+        "baseline",
+        "write_baseline",
+        "check_for_updates",
+        "custom_rules"
+    ]
 
     private func parseRulesConfig(from rulesDict: [String: Any]) -> [String: RuleConfiguration] {
         var rules: [String: RuleConfiguration] = [:]

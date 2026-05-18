@@ -114,19 +114,19 @@ struct ImpactSimulatorWorkflowTests {
         #expect(result.isSafe)
         #expect(result.violationCount == 0)
 
-        // Now enable it
+        // Now enable it (via opt_in_rules, which is how SwiftLint enables opt-in rules)
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
         let isEnabled = try await MainActor.run {
             let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
             try yamlEngine.load()
             var config = yamlEngine.getConfig()
-            config.rules["test_rule"] = RuleConfiguration(enabled: true)
+            config.optInRules = ["test_rule"]
             try yamlEngine.save(config: config, createBackup: false)
 
             // Verify it's enabled
             try yamlEngine.load()
             let updatedConfig = yamlEngine.getConfig()
-            return updatedConfig.rules["test_rule"]?.enabled == true
+            return updatedConfig.optInRules?.contains("test_rule") == true
         }
         #expect(isEnabled)
     }

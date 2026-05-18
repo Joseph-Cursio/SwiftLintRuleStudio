@@ -290,6 +290,18 @@ private extension RuleDetailViewModel {
         config.rules[rule.id] = ruleConfig
         removeOptInRuleIfPresent(from: &config)
         removeOnlyRuleIfPresent(from: &config)
+        addDisabledRuleIfNeeded(to: &config)
+    }
+
+    func addDisabledRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+        // Opt-in / analyzer rules are disabled by absence from their lists,
+        // not by being added to disabled_rules.
+        guard !rule.isOptIn && !rule.isAnalyzer else { return }
+        var disabledRules = config.disabledRules ?? []
+        if !disabledRules.contains(rule.id) {
+            disabledRules.append(rule.id)
+            config.disabledRules = disabledRules
+        }
     }
 
     func addOptInRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {

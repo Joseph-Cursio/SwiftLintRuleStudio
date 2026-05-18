@@ -86,15 +86,17 @@ struct RuleDetailViewModelSaveTests {
             try viewModel.saveConfiguration()
         }
 
-        let (hasRule, isEnabled) = try await MainActor.run {
+        let (hasRule, isDisabled) = try await MainActor.run {
             try yamlEngine.load()
             let config = yamlEngine.getConfig()
-            let ruleConfig = config.rules["test_rule"]
-            return (ruleConfig != nil, ruleConfig?.enabled == false)
+            return (
+                config.rules["test_rule"] != nil,
+                config.disabledRules?.contains("test_rule") == true
+            )
         }
 
         #expect(hasRule)
-        #expect(isEnabled)
+        #expect(isDisabled)
     }
 
     @Test("RuleDetailViewModel saves severity change")

@@ -41,15 +41,17 @@ struct ConfigImportServiceTests {
 
     @Test("Replace mode overwrites existing config")
     func testReplaceMode() throws {
-        let existingConfig = try createTempConfig(content: "rules:\n  force_cast: true\n")
+        let existingConfig = try createTempConfig(
+            content: "force_cast:\n  severity: warning\n"
+        )
         defer { cleanup(existingConfig) }
 
         var importedConfig = YAMLConfigurationEngine.YAMLConfig()
-        importedConfig.rules = ["line_length": RuleConfiguration(enabled: true)]
+        importedConfig.rules = ["line_length": RuleConfiguration(enabled: true, severity: .warning)]
 
         let preview = ConfigImportPreview(
             sourceURL: try #require(URL(string: "https://example.com/.swiftlint.yml")),
-            fetchedYAML: "rules:\n  line_length: true\n",
+            fetchedYAML: "line_length:\n  severity: warning\n",
             parsedConfig: importedConfig,
             diff: nil,
             validationErrors: []
@@ -70,15 +72,17 @@ struct ConfigImportServiceTests {
 
     @Test("Merge mode combines rules")
     func testMergeMode() throws {
-        let existingConfig = try createTempConfig(content: "rules:\n  force_cast: true\n")
+        let existingConfig = try createTempConfig(
+            content: "force_cast:\n  severity: warning\n"
+        )
         defer { cleanup(existingConfig) }
 
         var importedConfig = YAMLConfigurationEngine.YAMLConfig()
-        importedConfig.rules = ["line_length": RuleConfiguration(enabled: true)]
+        importedConfig.rules = ["line_length": RuleConfiguration(enabled: true, severity: .warning)]
 
         let preview = ConfigImportPreview(
             sourceURL: try #require(URL(string: "https://example.com/.swiftlint.yml")),
-            fetchedYAML: "rules:\n  line_length: true\n",
+            fetchedYAML: "line_length:\n  severity: warning\n",
             parsedConfig: importedConfig,
             diff: nil,
             validationErrors: []

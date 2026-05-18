@@ -15,7 +15,8 @@ struct YAMLConfigEngineSavingDiffTests {
 
         let config = await MainActor.run {
             var config = YAMLConfigurationEngine.YAMLConfig()
-            config.rules["force_cast"] = RuleConfiguration(enabled: false, severity: .error)
+            config.rules["force_cast"] = RuleConfiguration(enabled: true, severity: .error)
+            config.disabledRules = ["todo"]
             config.included = ["Sources"]
             return config
         }
@@ -26,20 +27,21 @@ struct YAMLConfigEngineSavingDiffTests {
 
         #expect(FileManager.default.fileExists(atPath: configFile.path))
 
-        let (rulesCount, forceCastEnabled, included) = try await YAMLConfigurationEngineTestHelpers.withEngine(
-            configPath: configFile
-        ) { engine in
-            try engine.load()
-            let loadedConfig = engine.getConfig()
-            return (
-                rulesCount: loadedConfig.rules.count,
-                forceCastEnabled: loadedConfig.rules["force_cast"]?.enabled,
-                included: loadedConfig.included
-            )
-        }
+        let (rulesCount, forceCastSeverity, disabledRules, included) = try await
+            YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+                try engine.load()
+                let loadedConfig = engine.getConfig()
+                return (
+                    rulesCount: loadedConfig.rules.count,
+                    forceCastSeverity: loadedConfig.rules["force_cast"]?.severity,
+                    disabledRules: loadedConfig.disabledRules,
+                    included: loadedConfig.included
+                )
+            }
 
         #expect(rulesCount == 1)
-        #expect(forceCastEnabled == false)
+        #expect(forceCastSeverity == .error)
+        #expect(disabledRules == ["todo"])
         #expect(included == ["Sources"])
     }
 
