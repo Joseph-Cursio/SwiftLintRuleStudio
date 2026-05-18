@@ -60,59 +60,44 @@ struct RuleParameterEditor: View {
 
     private func intBinding(for param: RuleParameter) -> Binding<Int> {
         Binding(
-            get: {
-                if let val = values[param.name]?.value as? Int {
-                    return val
-                }
-                return param.defaultValue.value as? Int ?? 0
-            },
+            get: { RuleParameterValues(values: values).intValue(for: param) },
             set: { newValue in
-                values[param.name] = AnyCodable(newValue)
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
             }
         )
     }
 
     private func boolBinding(for param: RuleParameter) -> Binding<Bool> {
         Binding(
-            get: {
-                if let val = values[param.name]?.value as? Bool {
-                    return val
-                }
-                return param.defaultValue.value as? Bool ?? false
-            },
+            get: { RuleParameterValues(values: values).boolValue(for: param) },
             set: { newValue in
-                values[param.name] = AnyCodable(newValue)
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
             }
         )
     }
 
     private func stringBinding(for param: RuleParameter) -> Binding<String> {
         Binding(
-            get: {
-                if let val = values[param.name]?.value as? String {
-                    return val
-                }
-                return param.defaultValue.value as? String ?? ""
-            },
+            get: { RuleParameterValues(values: values).stringValue(for: param) },
             set: { newValue in
-                values[param.name] = AnyCodable(newValue)
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
             }
         )
     }
 
     private func arrayBinding(for param: RuleParameter) -> Binding<[String]> {
         Binding(
-            get: {
-                if let val = values[param.name]?.value as? [Any] {
-                    return val.map { String(describing: $0) }
-                }
-                if let val = param.defaultValue.value as? [Any] {
-                    return val.map { String(describing: $0) }
-                }
-                return []
-            },
+            get: { RuleParameterValues(values: values).arrayValue(for: param) },
             set: { newValue in
-                values[param.name] = AnyCodable(newValue)
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
             }
         )
     }
@@ -302,14 +287,13 @@ private struct ArrayParameterRow: View {
                         .accessibilityLabel("Add item")
                 }
                 .buttonStyle(.plain)
-                .disabled(newItem.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(RuleParameterValues.sanitizedArrayItem(newItem) == nil)
             }
         }
     }
 
     private func addItem() {
-        let trimmed = newItem.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        guard let trimmed = RuleParameterValues.sanitizedArrayItem(newItem) else { return }
         values.append(trimmed)
         newItem = ""
     }
