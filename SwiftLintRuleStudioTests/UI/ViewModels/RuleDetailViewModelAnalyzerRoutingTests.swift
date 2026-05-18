@@ -49,7 +49,9 @@ struct RuleDetailViewModelAnalyzerRoutingTests {
 
     @Test("Disabling an opt-in rule does NOT add it to disabled_rules")
     func testDisableOptInRuleSkipsDisabledRules() async throws {
-        let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(content: "opt_in_rules: [explicit_init]")
+        let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(
+            content: "opt_in_rules: [explicit_init]"
+        )
         defer { RuleDetailViewModelTestHelpers.cleanupTempFile(configPath) }
 
         let yamlEngine = await RuleDetailViewModelTestHelpers.createYAMLConfigurationEngine(configPath: configPath)

@@ -231,27 +231,30 @@ struct RuleBrowserViewModelBulkTests {
             try viewModel.saveBulkChanges(yamlEngine: yamlEngine)
         }
 
-        let (analyzer, optIn, disabled) = try await MainActor.run {
-            () -> ([String]?, [String]?, [String]?) in
+        let lists = try await MainActor.run { () -> RuleListSnapshot in
             let engine = YAMLConfigurationEngine(configPath: configPath)
             try engine.load()
             let config = engine.getConfig()
-            return (config.analyzerRules, config.optInRules, config.disabledRules)
+            return RuleListSnapshot(
+                analyzer: config.analyzerRules,
+                optIn: config.optInRules,
+                disabled: config.disabledRules
+            )
         }
 
         // Analyzer rule goes only to analyzer_rules
-        #expect(analyzer?.contains("unused_declaration") == true)
-        #expect(optIn?.contains("unused_declaration") != true)
+        #expect(lists.analyzer?.contains("unused_declaration") == true)
+        #expect(lists.optIn?.contains("unused_declaration") != true)
         // Opt-in rule goes only to opt_in_rules
-        #expect(optIn?.contains("explicit_init") == true)
-        #expect(analyzer?.contains("explicit_init") != true)
+        #expect(lists.optIn?.contains("explicit_init") == true)
+        #expect(lists.analyzer?.contains("explicit_init") != true)
         // Default-enabled rule is in neither list
-        #expect(analyzer?.contains("force_cast") != true)
-        #expect(optIn?.contains("force_cast") != true)
+        #expect(lists.analyzer?.contains("force_cast") != true)
+        #expect(lists.optIn?.contains("force_cast") != true)
         // None of them ended up in disabled_rules
-        #expect(disabled?.contains("force_cast") != true)
-        #expect(disabled?.contains("explicit_init") != true)
-        #expect(disabled?.contains("unused_declaration") != true)
+        #expect(lists.disabled?.contains("force_cast") != true)
+        #expect(lists.disabled?.contains("explicit_init") != true)
+        #expect(lists.disabled?.contains("unused_declaration") != true)
     }
 
     @Test("Save bulk changes persists to file")
@@ -278,4 +281,10 @@ struct RuleBrowserViewModelBulkTests {
         let saved = try String(contentsOf: configPath, encoding: .utf8)
         #expect(saved.contains("error"))
     }
+}
+
+private struct RuleListSnapshot {
+    let analyzer: [String]?
+    let optIn: [String]?
+    let disabled: [String]?
 }
