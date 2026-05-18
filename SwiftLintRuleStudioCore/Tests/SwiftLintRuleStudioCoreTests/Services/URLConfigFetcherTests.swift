@@ -14,102 +14,8 @@ import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 
-// MARK: - URLProtocol stub
-
-/// Intercepts every request on the test URLSession and returns a canned
-/// response or error. State is stored in nonisolated globals guarded by a
-/// lock so that Sendable / strict concurrency rules are satisfied.
-private final class StubURLProtocol: URLProtocol, @unchecked Sendable {
-
-    struct Stub: Sendable {
-        let data: Data?
-        let statusCode: Int
-        let headers: [String: String]
-        let error: Error?
-    }
-
-    nonisolated(unsafe) static var stubProvider: (@Sendable (URL) -> Stub)?
-    nonisolated(unsafe) static var observedURLs: [URL] = []
-    nonisolated(unsafe) private static let lock = NSLock()
-
-    nonisolated static func install(_ provider: @escaping @Sendable (URL) -> Stub) {
-        lock.lock(); defer { lock.unlock() }
-        stubProvider = provider
-        observedURLs = []
-    }
-
-    nonisolated static func reset() {
-        lock.lock(); defer { lock.unlock() }
-        stubProvider = nil
-        observedURLs = []
-    }
-
-    nonisolated static func recordedURLs() -> [URL] {
-        lock.lock(); defer { lock.unlock() }
-        return observedURLs
-    }
-
-    override nonisolated class func canInit(with request: URLRequest) -> Bool { true }
-    override nonisolated class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override nonisolated init(
-        request: URLRequest,
-        cachedResponse: CachedURLResponse?,
-        client: URLProtocolClient?
-    ) {
-        super.init(request: request, cachedResponse: cachedResponse, client: client)
-    }
-
-    override nonisolated func startLoading() {
-        guard let url = request.url else {
-            client?.urlProtocol(self, didFailWithError: URLError(.badURL))
-            return
-        }
-
-        Self.lock.lock()
-        Self.observedURLs.append(url)
-        let provider = Self.stubProvider
-        Self.lock.unlock()
-
-        guard let provider = provider else {
-            client?.urlProtocol(self, didFailWithError: URLError(.unknown))
-            return
-        }
-
-        let stub = provider(url)
-
-        if let error = stub.error {
-            client?.urlProtocol(self, didFailWithError: error)
-            return
-        }
-
-        let response = HTTPURLResponse(
-            url: url,
-            statusCode: stub.statusCode,
-            httpVersion: "HTTP/1.1",
-            headerFields: stub.headers
-        )!
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        if let data = stub.data {
-            client?.urlProtocol(self, didLoad: data)
-        }
-        client?.urlProtocolDidFinishLoading(self)
-    }
-
-    override nonisolated func stopLoading() {}
-}
-
-private func makeStubbedSession() -> URLSession {
-    let config = URLSessionConfiguration.ephemeral
-    config.protocolClasses = [StubURLProtocol.self]
-    config.timeoutIntervalForRequest = 5
-    config.timeoutIntervalForResource = 5
-    return URLSession(configuration: config)
-}
-
-private func makeFetcher() -> URLConfigFetcher {
-    URLConfigFetcher(session: makeStubbedSession())
-}
+// The URLProtocol stub and shared fetcher helpers live in
+// URLConfigFetcherStubURLProtocol.swift to keep this file under file_length.
 
 private func httpsURL(_ string: String = "https://example.com/.swiftlint.yml") throws -> URL {
     try #require(URL(string: string))
@@ -271,7 +177,7 @@ struct URLConfigFetcherFetchTests {
     func http404() async throws {
         install { _ in
             StubURLProtocol.Stub(
-                data: "not found".data(using: .utf8),
+                data: Data("not found".utf8),
                 statusCode: 404,
                 headers: [:],
                 error: nil
