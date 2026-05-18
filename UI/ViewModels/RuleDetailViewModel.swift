@@ -244,7 +244,24 @@ class RuleDetailViewModel {
         return false
     }
 
-    private func applyRuleChanges(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    private func finalizeSaveSuccess() {
+        originalEnabled = isEnabled
+        originalSeverity = severity
+        originalParameters = parameterValues.isEmpty ? nil : parameterValues
+        pendingChanges = nil
+        saveError = nil
+        NotificationCenter.default.post(
+            name: .ruleConfigurationDidChange,
+            object: nil,
+            userInfo: ["ruleId": rule.id]
+        )
+    }
+}
+
+// MARK: - Config Mutation Helpers
+
+private extension RuleDetailViewModel {
+    func applyRuleChanges(to config: inout YAMLConfigurationEngine.YAMLConfig) {
         if isEnabled {
             applyEnabledRule(to: &config)
         } else {
@@ -252,7 +269,7 @@ class RuleDetailViewModel {
         }
     }
 
-    private func applyEnabledRule(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func applyEnabledRule(to config: inout YAMLConfigurationEngine.YAMLConfig) {
         var ruleConfig = config.rules[rule.id] ?? RuleConfiguration(enabled: true)
         ruleConfig.enabled = true
         if let sev = severity {
@@ -267,7 +284,7 @@ class RuleDetailViewModel {
         addOnlyRuleIfNeeded(to: &config)
     }
 
-    private func applyDisabledRule(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func applyDisabledRule(to config: inout YAMLConfigurationEngine.YAMLConfig) {
         var ruleConfig = config.rules[rule.id] ?? RuleConfiguration(enabled: false)
         ruleConfig.enabled = false
         config.rules[rule.id] = ruleConfig
@@ -275,7 +292,15 @@ class RuleDetailViewModel {
         removeOnlyRuleIfPresent(from: &config)
     }
 
-    private func addOptInRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func addOptInRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+        if rule.isAnalyzer {
+            var analyzerRules = config.analyzerRules ?? []
+            if !analyzerRules.contains(rule.id) {
+                analyzerRules.append(rule.id)
+                config.analyzerRules = analyzerRules
+            }
+            return
+        }
         guard rule.isOptIn else { return }
         var optInRules = config.optInRules ?? []
         if !optInRules.contains(rule.id) {
@@ -284,19 +309,23 @@ class RuleDetailViewModel {
         }
     }
 
-    private func removeOptInRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func removeOptInRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
+        if rule.isAnalyzer, var analyzerRules = config.analyzerRules {
+            analyzerRules.removeAll { $0 == rule.id }
+            config.analyzerRules = analyzerRules.isEmpty ? nil : analyzerRules
+        }
         guard rule.isOptIn, var optInRules = config.optInRules else { return }
         optInRules.removeAll { $0 == rule.id }
         config.optInRules = optInRules.isEmpty ? nil : optInRules
     }
 
-    private func removeDisabledRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func removeDisabledRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
         guard var disabledRules = config.disabledRules else { return }
         disabledRules.removeAll { $0 == rule.id }
         config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
     }
 
-    private func addOnlyRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func addOnlyRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
         guard var onlyRules = config.onlyRules else { return }
         if !onlyRules.contains(rule.id) {
             onlyRules.append(rule.id)
@@ -304,23 +333,10 @@ class RuleDetailViewModel {
         }
     }
 
-    private func removeOnlyRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func removeOnlyRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
         guard var onlyRules = config.onlyRules else { return }
         onlyRules.removeAll { $0 == rule.id }
         config.onlyRules = onlyRules.isEmpty ? nil : onlyRules
-    }
-
-    private func finalizeSaveSuccess() {
-        originalEnabled = isEnabled
-        originalSeverity = severity
-        originalParameters = parameterValues.isEmpty ? nil : parameterValues
-        pendingChanges = nil
-        saveError = nil
-        NotificationCenter.default.post(
-            name: .ruleConfigurationDidChange,
-            object: nil,
-            userInfo: ["ruleId": rule.id]
-        )
     }
 }
 

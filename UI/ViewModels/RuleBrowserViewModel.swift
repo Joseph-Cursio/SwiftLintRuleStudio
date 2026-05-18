@@ -222,12 +222,20 @@ class RuleBrowserViewModel {
             ruleConfig.enabled = true
             config.rules[ruleId] = ruleConfig
 
-            // Handle opt-in rules
-            if let rule = ruleRegistry.rules.first(where: { $0.id == ruleId }), rule.isOptIn {
-                var optInRules = config.optInRules ?? []
-                if !optInRules.contains(ruleId) {
-                    optInRules.append(ruleId)
-                    config.optInRules = optInRules
+            // Route to analyzer_rules or opt_in_rules as appropriate
+            if let rule = ruleRegistry.rules.first(where: { $0.id == ruleId }) {
+                if rule.isAnalyzer {
+                    var analyzerRules = config.analyzerRules ?? []
+                    if !analyzerRules.contains(ruleId) {
+                        analyzerRules.append(ruleId)
+                        config.analyzerRules = analyzerRules
+                    }
+                } else if rule.isOptIn {
+                    var optInRules = config.optInRules ?? []
+                    if !optInRules.contains(ruleId) {
+                        optInRules.append(ruleId)
+                        config.optInRules = optInRules
+                    }
                 }
             }
 
@@ -248,9 +256,11 @@ class RuleBrowserViewModel {
             ruleConfig.enabled = false
             config.rules[ruleId] = ruleConfig
 
-            // Remove from opt-in rules
+            // Remove from opt-in / analyzer rules
             config.optInRules?.removeAll { $0 == ruleId }
             if config.optInRules?.isEmpty == true { config.optInRules = nil }
+            config.analyzerRules?.removeAll { $0 == ruleId }
+            if config.analyzerRules?.isEmpty == true { config.analyzerRules = nil }
         }
 
         bulkDiff = yamlEngine.generateDiff(proposedConfig: config)

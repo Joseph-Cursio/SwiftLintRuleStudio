@@ -55,14 +55,20 @@ extension RuleAuditView {
                 var config = yamlEngine.getConfig()
                 let optInRuleIds = Set(
                     dependencies.ruleRegistry.rules
-                        .filter { $0.isOptIn }
+                        .filter { $0.isOptIn && !$0.isAnalyzer }
+                        .map { $0.id }
+                )
+                let analyzerRuleIds = Set(
+                    dependencies.ruleRegistry.rules
+                        .filter { $0.isAnalyzer }
                         .map { $0.id }
                 )
 
                 Self.applyEnableRules(
                     config: &config,
                     ruleIds: Array(selectedRules),
-                    optInRuleIds: optInRuleIds
+                    optInRuleIds: optInRuleIds,
+                    analyzerRuleIds: analyzerRuleIds
                 )
 
                 try yamlEngine.save(config: config, createBackup: true)
@@ -94,7 +100,8 @@ extension RuleAuditView {
     static func applyEnableRules(
         config: inout YAMLConfigurationEngine.YAMLConfig,
         ruleIds: [String],
-        optInRuleIds: Set<String>
+        optInRuleIds: Set<String>,
+        analyzerRuleIds: Set<String> = []
     ) {
         for ruleId in ruleIds {
             if config.rules[ruleId] == nil {
@@ -111,7 +118,13 @@ extension RuleAuditView {
                 config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
             }
 
-            if optInRuleIds.contains(ruleId) {
+            if analyzerRuleIds.contains(ruleId) {
+                var analyzerRules = config.analyzerRules ?? []
+                if !analyzerRules.contains(ruleId) {
+                    analyzerRules.append(ruleId)
+                    config.analyzerRules = analyzerRules
+                }
+            } else if optInRuleIds.contains(ruleId) {
                 var optInRules = config.optInRules ?? []
                 if !optInRules.contains(ruleId) {
                     optInRules.append(ruleId)
@@ -138,7 +151,8 @@ private extension RuleAuditView {
             if allRules.isEmpty {
                 allRules = try await dependencies.ruleRegistry.loadRules()
             }
-            let optInRuleIds = Set(allRules.filter { $0.isOptIn }.map { $0.id })
+            let optInRuleIds = Set(allRules.filter { $0.isOptIn && !$0.isAnalyzer }.map { $0.id })
+            let analyzerRuleIds = Set(allRules.filter { $0.isAnalyzer }.map { $0.id })
 
             let config = loadConfiguration(for: workspace)
             let disabledRules = allRules.filter { !isRuleEnabled($0, config: config) }
@@ -163,7 +177,8 @@ private extension RuleAuditView {
                 ruleIds: disabledRuleIds,
                 workspace: workspace,
                 baseConfigPath: workspace.configPath,
-                optInRuleIds: optInRuleIds
+                optInRuleIds: optInRuleIds,
+                analyzerRuleIds: analyzerRuleIds
             ) { current, total, ruleId in
                 auditProgress = AuditProgress(current: current, total: total, ruleId: ruleId)
             }

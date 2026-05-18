@@ -88,7 +88,8 @@ public class ImpactSimulator {
         ruleId: String,
         workspace: Workspace,
         baseConfigPath: URL?,
-        isOptIn: Bool = false
+        isOptIn: Bool = false,
+        isAnalyzer: Bool = false
     ) async throws -> RuleImpactResult {
         let startTime = Date.now
 
@@ -98,7 +99,8 @@ public class ImpactSimulator {
             enabled: true,
             baseConfigPath: baseConfigPath,
             workspace: workspace,
-            isOptIn: isOptIn
+            isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer
         )
 
         defer {
@@ -146,6 +148,7 @@ public class ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?,
         optInRuleIds: Set<String> = [],
+        analyzerRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> BatchSimulationResult {
         let startTime = Date.now
@@ -160,7 +163,8 @@ public class ImpactSimulator {
                     ruleId: ruleId,
                     workspace: workspace,
                     baseConfigPath: baseConfigPath,
-                    isOptIn: optInRuleIds.contains(ruleId)
+                    isOptIn: optInRuleIds.contains(ruleId),
+                    isAnalyzer: analyzerRuleIds.contains(ruleId)
                 )
                 results.append(result)
             } catch {
@@ -198,6 +202,7 @@ public class ImpactSimulator {
         baseConfigPath: URL?,
         disabledRuleIds: [String],
         optInRuleIds: Set<String> = [],
+        analyzerRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> [String] {
         let batchResult = try await simulateRules(
@@ -205,6 +210,7 @@ public class ImpactSimulator {
             workspace: workspace,
             baseConfigPath: baseConfigPath,
             optInRuleIds: optInRuleIds,
+            analyzerRuleIds: analyzerRuleIds,
             progressHandler: progressHandler
         )
 
@@ -222,82 +228,78 @@ public class ImpactSimulator {
         enabled: Bool,
         baseConfigPath: URL?,
         workspace: Workspace,
-        isOptIn: Bool
+        isOptIn: Bool,
+        isAnalyzer: Bool = false
     ) throws -> URL {
-        // Create temporary directory for config
         let tempDir = fileManager.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
-
         let tempConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
 
-        // Load base config if it exists
         let configPathToUse = baseConfigPath
             ?? workspace.configPath
             ?? workspace.path.appendingPathComponent(".swiftlint.yml")
         let yamlEngine = YAMLConfigurationEngine(configPath: configPathToUse)
-
         if fileManager.fileExists(atPath: configPathToUse.path) {
             try yamlEngine.load()
         }
 
         var config = yamlEngine.getConfig()
+        config.excluded = resolveExclusions(config.excluded, workspace: workspace)
+        enableRule(ruleId, in: &config, isOptIn: isOptIn, isAnalyzer: isAnalyzer)
 
-        // Ensure default exclusions are present so simulations
-        // don't count violations in build artifacts or dependencies.
-        // Because the temp config lives outside the workspace, SwiftLint
-        // resolves relative excluded paths against the temp directory
-        // (not the workspace). Convert them to absolute paths so they
-        // resolve correctly regardless of where the config file sits.
-        let merged = DefaultExclusions.mergedWith(existing: config.excluded)
-        config.excluded = merged.map { entry in
-            if entry.hasPrefix("/") {
-                return entry  // already absolute
-            }
-            return workspace.path.appendingPathComponent(entry).path
+        let tempEngine = YAMLConfigurationEngine(configPath: tempConfigPath)
+        tempEngine.updateConfig(config)
+        try tempEngine.save(config: config, createBackup: false)
+        return tempConfigPath
+    }
+
+    /// Default exclusions must be present so simulations don't count violations
+    /// in build artifacts. The temp config lives outside the workspace, so
+    /// SwiftLint resolves relative excluded paths against the temp directory
+    /// rather than the workspace — convert to absolute paths to compensate.
+    private func resolveExclusions(_ existing: [String]?, workspace: Workspace) -> [String] {
+        let merged = DefaultExclusions.mergedWith(existing: existing)
+        return merged.map { entry in
+            entry.hasPrefix("/") ? entry : workspace.path.appendingPathComponent(entry).path
+        }
+    }
+
+    private func enableRule(
+        _ ruleId: String,
+        in config: inout YAMLConfigurationEngine.YAMLConfig,
+        isOptIn: Bool,
+        isAnalyzer: Bool
+    ) {
+        var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
+        ruleConfig.enabled = true
+        config.rules[ruleId] = ruleConfig
+
+        // SwiftLint only honors analyzer-only rules when listed under
+        // analyzer_rules; opt-in rules need opt_in_rules.
+        if isAnalyzer {
+            appendUnique(ruleId, to: &config.analyzerRules)
+        } else if isOptIn {
+            appendUnique(ruleId, to: &config.optInRules)
         }
 
-        // Enable the specific rule
-        if config.rules[ruleId] == nil {
-            // Rule not in config, add it as enabled
-            config.rules[ruleId] = RuleConfiguration(enabled: true)
-        } else if var ruleConfig = config.rules[ruleId] {
-            // Rule exists, update it to enabled
-            ruleConfig.enabled = true
-            config.rules[ruleId] = ruleConfig
+        if config.onlyRules != nil {
+            appendUnique(ruleId, to: &config.onlyRules)
         }
 
-        // Ensure opt-in rules are enabled via opt_in_rules
-        if isOptIn {
-            var optInRules = config.optInRules ?? []
-            if !optInRules.contains(ruleId) {
-                optInRules.append(ruleId)
-                config.optInRules = optInRules
-            }
-        }
-
-        // Ensure only_rules includes this rule if configured
-        if var onlyRules = config.onlyRules {
-            if !onlyRules.contains(ruleId) {
-                onlyRules.append(ruleId)
-                config.onlyRules = onlyRules
-            }
-        }
-
-        // Remove from disabled rules list if present
         if var disabledRules = config.disabledRules {
             disabledRules.removeAll { $0 == ruleId }
             config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
         }
+    }
 
-        // Save to temporary location
-        let tempEngine = YAMLConfigurationEngine(configPath: tempConfigPath)
-        tempEngine.updateConfig(config)
-        try tempEngine.save(config: config, createBackup: false)
-
-        return tempConfigPath
+    private func appendUnique(_ ruleId: String, to list: inout [String]?) {
+        var current = list ?? []
+        if !current.contains(ruleId) {
+            current.append(ruleId)
+            list = current
+        }
     }
 
     /// Parse violations from SwiftLint JSON output

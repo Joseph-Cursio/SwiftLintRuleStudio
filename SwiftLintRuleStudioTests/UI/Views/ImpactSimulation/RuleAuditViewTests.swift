@@ -326,6 +326,7 @@ final class MockImpactSimulator: ImpactSimulator {
         baseConfigPath: URL?,
         disabledRuleIds: [String],
         optInRuleIds: Set<String>,
+        analyzerRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> [String] {
         await Task.yield()
@@ -340,7 +341,8 @@ final class MockImpactSimulator: ImpactSimulator {
         ruleId: String,
         workspace: Workspace,
         baseConfigPath: URL?,
-        isOptIn: Bool
+        isOptIn: Bool,
+        isAnalyzer: Bool = false
     ) async throws -> RuleImpactResult {
         await Task.yield()
         simulateRuleCalls += 1
@@ -361,6 +363,7 @@ final class MockImpactSimulator: ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?,
         optInRuleIds: Set<String> = [],
+        analyzerRuleIds: Set<String> = [],
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> BatchSimulationResult {
         await Task.yield()

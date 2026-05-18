@@ -188,7 +188,8 @@ struct RuleDetailView: View {
                     ruleId: rule.id,
                     workspace: workspace,
                     baseConfigPath: workspace.configPath,
-                    isOptIn: rule.isOptIn
+                    isOptIn: rule.isOptIn,
+                    isAnalyzer: rule.isAnalyzer
                 )
 
                 impactResult = result
