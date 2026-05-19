@@ -155,8 +155,8 @@ private extension RuleAuditView {
             let analyzerRuleIds = Set(allRules.filter { $0.isAnalyzer }.map { $0.id })
 
             let config = loadConfiguration(for: workspace)
-            let disabledRules = allRules.filter { !isRuleEnabled($0, config: config) }
-            let enabledRules = allRules.filter { isRuleEnabled($0, config: config) }
+            let disabledRules = allRules.filter { !RuleAuditView.isRuleEnabled($0, config: config) }
+            let enabledRules = allRules.filter { RuleAuditView.isRuleEnabled($0, config: config) }
             let disabledRuleIds = disabledRules.map { $0.id }
 
             // Count Swift files in workspace
@@ -285,9 +285,18 @@ private extension RuleAuditView {
         }
     }
 
-    func isRuleEnabled(_ rule: Rule, config: YAMLConfigurationEngine.YAMLConfig) -> Bool {
+}
+
+extension RuleAuditView {
+    static func isRuleEnabled(_ rule: Rule, config: YAMLConfigurationEngine.YAMLConfig) -> Bool {
         if let onlyRules = config.onlyRules {
             return onlyRules.contains(rule.id)
+        }
+        if rule.isAnalyzer {
+            if let ruleConfig = config.rules[rule.id], ruleConfig.enabled == false {
+                return false
+            }
+            return config.analyzerRules?.contains(rule.id) ?? false
         }
         if rule.isOptIn {
             if let ruleConfig = config.rules[rule.id], ruleConfig.enabled == false {
