@@ -39,6 +39,7 @@ extension RuleRegistry {
                 id: rule.id,
                 category: rule.category,
                 isOptIn: rule.isOptIn,
+                isAnalyzer: rule.isAnalyzer,
                 index: currentIndex
             )
         }
@@ -50,6 +51,7 @@ extension RuleRegistry {
         let id: String
         let category: RuleCategory
         let isOptIn: Bool
+        let isAnalyzer: Bool
         let index: Int
     }
 
@@ -88,6 +90,7 @@ extension RuleRegistry {
                         ruleId: data.id,
                         category: data.category,
                         isOptIn: data.isOptIn,
+                        isAnalyzer: data.isAnalyzer,
                         swiftLintCLI: swiftLintCLI
                     )
                     return (data.index, rule)
@@ -104,6 +107,7 @@ extension RuleRegistry {
         ruleId: String,
         category: RuleCategory,
         isOptIn: Bool,
+        isAnalyzer: Bool = false,
         swiftLintCLI: SwiftLintCLIProtocol
     ) async -> Rule {
         do {
@@ -115,6 +119,7 @@ extension RuleRegistry {
                     identifier: ruleId,
                     category: category,
                     isOptIn: isOptIn,
+                    isAnalyzer: isAnalyzer,
                     swiftLintCLI: swiftLintCLI
                 )
             }
@@ -126,6 +131,7 @@ extension RuleRegistry {
                 description: "No description available",
                 category: category,
                 isOptIn: isOptIn,
+                isAnalyzer: isAnalyzer,
                 parameters: nil,
                 triggeringExamples: [],
                 nonTriggeringExamples: [],

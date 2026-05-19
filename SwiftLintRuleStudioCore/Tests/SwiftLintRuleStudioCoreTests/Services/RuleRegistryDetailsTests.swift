@@ -73,4 +73,28 @@ struct RuleRegistryDetailsTests {
         #expect(rule.triggeringExamples.count == 1)
         #expect(rule.nonTriggeringExamples.count == 1)
     }
+
+    // Regression: previously the details-enrichment pass dropped the analyzer
+    // flag because RuleDetailsState.asRule didn't forward it. That meant the UI
+    // routed enabled analyzer rules into `opt_in_rules` instead of
+    // `analyzer_rules`, and SwiftLint emitted "should be listed in the
+    // 'analyzer_rules' configuration section" warnings.
+    @Test("fetchRuleDetailsHelper preserves isAnalyzer flag")
+    @MainActor
+    func testFetchRuleDetailsPreservesAnalyzerFlag() async throws {
+        let detail = """
+        Capture Variable (capture_variable): Captures a variable
+        """
+        let cli = RuleDetailsSwiftLintCLIActor(docs: "", detail: detail)
+        let rule = try await RuleRegistry.fetchRuleDetailsHelper(
+            identifier: "capture_variable",
+            category: .lint,
+            isOptIn: true,
+            isAnalyzer: true,
+            swiftLintCLI: cli
+        )
+
+        #expect(rule.isAnalyzer == true)
+        #expect(rule.isOptIn == true)
+    }
 }

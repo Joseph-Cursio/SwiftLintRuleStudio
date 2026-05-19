@@ -91,7 +91,10 @@ public class RuleRegistry: RuleRegistryProtocol {
         }
 
         guard let detailedRule = try? await fetchRuleDetails(
-            identifier: rule.id, category: rule.category, isOptIn: rule.isOptIn
+            identifier: rule.id,
+            category: rule.category,
+            isOptIn: rule.isOptIn,
+            isAnalyzer: rule.isAnalyzer
         ) else { return }
 
         // Update the rule in the rules array

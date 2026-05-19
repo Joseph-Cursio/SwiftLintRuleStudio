@@ -54,6 +54,7 @@ nonisolated private func makeBackgroundBatch(count: Int, startingIndex: Int = 0)
             id: "rule_\(offset)",
             category: .style,
             isOptIn: false,
+            isAnalyzer: false,
             index: startingIndex + offset
         )
     }
@@ -271,7 +272,14 @@ struct RuleRegistryBackgroundLoadingTests {
         let inputs: [Rule] = [
             Rule(id: "alpha", name: "Alpha", description: "", category: .style, isOptIn: false),
             Rule(id: "beta", name: "Beta", description: "", category: .lint, isOptIn: true),
-            Rule(id: "gamma", name: "Gamma", description: "", category: .metrics, isOptIn: false)
+            Rule(
+                id: "gamma",
+                name: "Gamma",
+                description: "",
+                category: .metrics,
+                isOptIn: true,
+                isAnalyzer: true
+            )
         ]
 
         let result = registry.buildRulesData(from: inputs, startingIndex: 5)
@@ -280,6 +288,43 @@ struct RuleRegistryBackgroundLoadingTests {
         #expect(result.map(\.index) == [5, 6, 7])
         #expect(result.map(\.id) == ["alpha", "beta", "gamma"])
         #expect(result.map(\.category) == [.style, .lint, .metrics])
-        #expect(result.map(\.isOptIn) == [false, true, false])
+        #expect(result.map(\.isOptIn) == [false, true, true])
+        #expect(result.map(\.isAnalyzer) == [false, false, true])
+    }
+
+    @Test("fetchDetailedRule preserves isAnalyzer flag through happy path")
+    func fetchDetailedRulePreservesAnalyzerFlag() async {
+        let mockCLI = MockSwiftLintCLIActor()
+        await mockCLI.setGenerateDocsHandler { ruleId in emptyDocs(forRuleId: ruleId) }
+        await mockCLI.setRuleDetailCommandHandler { ruleId in
+            Data(makeDetailsBody(ruleId: ruleId).utf8)
+        }
+
+        let rule = await RuleRegistry.fetchDetailedRule(
+            ruleId: "capture_variable",
+            category: .lint,
+            isOptIn: true,
+            isAnalyzer: true,
+            swiftLintCLI: mockCLI
+        )
+
+        #expect(rule.isAnalyzer == true)
+        #expect(rule.isOptIn == true)
+    }
+
+    @Test("fetchDetailedRule preserves isAnalyzer flag through fallback path")
+    func fetchDetailedRuleFallbackPreservesAnalyzerFlag() async {
+        let mockCLI = MockSwiftLintCLIActor(shouldFail: true)
+
+        let rule = await RuleRegistry.fetchDetailedRule(
+            ruleId: "unused_import",
+            category: .lint,
+            isOptIn: true,
+            isAnalyzer: true,
+            swiftLintCLI: mockCLI
+        )
+
+        #expect(rule.isAnalyzer == true)
+        #expect(rule.isOptIn == true)
     }
 }

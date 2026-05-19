@@ -37,7 +37,8 @@ extension RuleRegistry {
                 try await self.fetchRuleDetails(
                     identifier: rule.id,
                     category: rule.category,
-                    isOptIn: rule.isOptIn
+                    isOptIn: rule.isOptIn,
+                    isAnalyzer: rule.isAnalyzer
                 )
             }
             timeoutGroup.addTask {
@@ -62,11 +63,17 @@ extension RuleRegistry {
     }
 
     /// Fetches detailed documentation for a single rule by identifier
-    public func fetchRuleDetails(identifier: String, category: RuleCategory, isOptIn: Bool) async throws -> Rule {
+    public func fetchRuleDetails(
+        identifier: String,
+        category: RuleCategory,
+        isOptIn: Bool,
+        isAnalyzer: Bool = false
+    ) async throws -> Rule {
         return try await Self.fetchRuleDetailsHelper(
             identifier: identifier,
             category: category,
             isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
             swiftLintCLI: swiftLintCLI
         )
     }
@@ -76,11 +83,13 @@ extension RuleRegistry {
         identifier: String,
         category: RuleCategory,
         isOptIn: Bool,
+        isAnalyzer: Bool = false,
         swiftLintCLI: SwiftLintCLIProtocol
     ) async throws -> Rule {
         var state = RuleDetailsState(
             identifier: identifier,
             isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
             name: identifier.replacingOccurrences(of: "_", with: " ").capitalized
         )
         await populateFromDocs(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
@@ -93,6 +102,7 @@ extension RuleRegistry {
     private struct RuleDetailsState {
         let identifier: String
         let isOptIn: Bool
+        let isAnalyzer: Bool
         var name: String
         var description: String = "No description available"
         var triggeringExamples: [String] = []
@@ -123,6 +133,7 @@ extension RuleRegistry {
                 description: description,
                 category: category,
                 isOptIn: isOptIn,
+                isAnalyzer: isAnalyzer,
                 severity: defaultSeverity,
                 parameters: nil,
                 triggeringExamples: triggeringExamples,
