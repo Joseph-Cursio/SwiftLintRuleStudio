@@ -193,4 +193,74 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
         #expect(hasTypeLevel)
         #expect(hasFunctionLevel)
     }
+
+    // Regression: unquoted YAML integers arrive as plain-style Yams scalars
+    // with no explicit tag. The parser previously fell through to "treat as
+    // String", so re-serialization emitted `error: '150'` instead of
+    // `error: 150` — which SwiftLint rejects as "Invalid configuration for
+    // 'line_length' rule. Falling back to default."
+    @Test("Plain-style numeric scalars parse as Int and survive re-serialize")
+    func testNumericScalarsRoundTripAsIntegers() async throws {
+        let yamlContent = """
+        line_length:
+          warning: 120
+          error: 150
+          ignores_comments: true
+        nesting:
+          type_level: 2
+          function_level: 3
+        """
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        struct ParseSnapshot {
+            let warningType: String
+            let errorType: String
+            let warningValue: Int?
+            let errorValue: Int?
+            let ignoresCommentsType: String
+            let typeLevelValue: Int?
+            let serialized: String
+        }
+
+        let snapshot = try await YAMLConfigurationEngineTestHelpers.withEngine(
+            configPath: configFile
+        ) { engine in
+            try engine.load()
+            let config = engine.getConfig()
+            let lineLength = config.rules["line_length"]
+            let nesting = config.rules["nesting"]
+            let warning = lineLength?.parameters?["warning"]?.value
+            let lineError = lineLength?.parameters?["error"]?.value
+            let ignoresComments = lineLength?.parameters?["ignores_comments"]?.value
+            let typeLevel = nesting?.parameters?["type_level"]?.value
+            let serialized = try engine.serialize(engine.getConfig())
+            return ParseSnapshot(
+                warningType: String(describing: type(of: warning ?? "")),
+                errorType: String(describing: type(of: lineError ?? "")),
+                warningValue: warning as? Int,
+                errorValue: lineError as? Int,
+                ignoresCommentsType: String(describing: type(of: ignoresComments ?? "")),
+                typeLevelValue: typeLevel as? Int,
+                serialized: serialized
+            )
+        }
+
+        #expect(snapshot.warningValue == 120)
+        #expect(snapshot.errorValue == 150)
+        #expect(snapshot.typeLevelValue == 2)
+        #expect(snapshot.warningType == "Int", "Got \(snapshot.warningType)")
+        #expect(snapshot.errorType == "Int", "Got \(snapshot.errorType)")
+        #expect(snapshot.ignoresCommentsType == "Bool", "Got \(snapshot.ignoresCommentsType)")
+
+        // Re-serialized output must emit unquoted integers; quoting them as
+        // `'120'` would make SwiftLint reject the rule configuration.
+        #expect(!snapshot.serialized.contains("'120'"))
+        #expect(!snapshot.serialized.contains("'150'"))
+        #expect(!snapshot.serialized.contains("\"120\""))
+        #expect(!snapshot.serialized.contains("\"150\""))
+        #expect(snapshot.serialized.contains("warning: 120"))
+        #expect(snapshot.serialized.contains("error: 150"))
+    }
 }

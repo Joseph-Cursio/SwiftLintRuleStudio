@@ -51,6 +51,19 @@ extension YAMLConfigurationEngine {
         if isFloatScalar(tagDescription: tagDescription) {
             return Double(stringValue) ?? stringValue
         }
+        // Plain (unquoted) scalars arrive without an explicit tag — Yams leaves
+        // tag resolution to the consumer when you walk Nodes directly. Apply
+        // YAML's implicit-resolution rules so unquoted numerics like `120`
+        // round-trip as Int rather than String (otherwise re-serialization
+        // emits them quoted, which SwiftLint rejects as invalid configuration).
+        if scalar.style == .plain {
+            if let intValue = Int(stringValue) {
+                return intValue
+            }
+            if let doubleValue = Double(stringValue) {
+                return doubleValue
+            }
+        }
         return stringValue
     }
 
