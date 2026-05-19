@@ -47,6 +47,9 @@ struct RuleAuditView: View {
             }
         }
         .navigationTitle("Disabled Rule Audit")
+        .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
+            resetAuditState()
+        }
         .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
             Button("OK") {
                 errorMessage = nil

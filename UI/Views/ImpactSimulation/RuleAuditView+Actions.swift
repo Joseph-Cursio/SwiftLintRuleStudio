@@ -11,6 +11,19 @@ import SwiftLintRuleStudioCore
 // MARK: - Audit Execution
 
 extension RuleAuditView {
+    func resetAuditState() {
+        auditEntries = []
+        selectedRules.removeAll()
+        expandedRuleId = nil
+        totalSwiftFiles = 0
+        auditDuration = 0
+        auditProgress = nil
+        isAuditing = false
+        isEnabling = false
+        errorMessage = nil
+        showError = false
+    }
+
     func runAudit() {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else {
             return
