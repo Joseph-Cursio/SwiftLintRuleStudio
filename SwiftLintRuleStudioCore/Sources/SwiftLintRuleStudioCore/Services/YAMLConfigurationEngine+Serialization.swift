@@ -2,68 +2,92 @@ import Foundation
 import Yams
 
 extension YAMLConfigurationEngine {
-    /// Serialize a YAML configuration to a string
+    /// Serialize a YAML configuration to a string, preserving the top-level
+    /// key order from the loaded file when possible so that round-tripping a
+    /// user's `.swiftlint.yml` doesn't reorganize their layout.
     public func serialize(_ config: YAMLConfig) throws -> String {
-        // Convert to SwiftLintConfiguration for encoding
-        var swiftLintConfig = SwiftLintConfiguration()
-        swiftLintConfig.rules = config.rules
-        swiftLintConfig.included = config.included
-        swiftLintConfig.excluded = config.excluded
-        swiftLintConfig.reporter = config.reporter
-
-        // Encode to YAML using Yams
         do {
-            // Convert to dictionary for Yams encoding
-            let dict = configToDictionary(config)
-            let node = try Node(dict)
-            // Yams.serialize returns a String directly
+            let pairs = try orderedTopLevelPairs(for: config)
+            let mapping = Node.Mapping(pairs)
+            let node = Node.mapping(mapping)
             let yamlString = try Yams.serialize(node: node)
-
-            // Reinsert comments if possible
             return reinsertComments(into: yamlString, config: config)
         } catch {
             throw YAMLConfigError.serializationError(error.localizedDescription)
         }
     }
 
-    private func configToDictionary(_ config: YAMLConfig) -> [String: Any] {
-        var dict: [String: Any] = [:]
+    /// Build the ordered list of (key, value) pairs for the top-level mapping.
+    ///
+    /// Order priority:
+    /// 1. Keys in `config.keyOrder` (preserves the user's original file layout)
+    /// 2. Reserved SwiftLint keys not yet emitted, in `defaultTopLevelKeyOrder`
+    /// 3. Per-rule configuration keys, alphabetically (stable output)
+    private func orderedTopLevelPairs(for config: YAMLConfig) throws -> [(Node, Node)] {
+        let keyValues = try collectTopLevelKeyValues(from: config)
+        var pairs: [(Node, Node)] = []
+        var seen: Set<String> = []
 
-        // Add SwiftLint reserved top-level keys
-        if let included = config.included {
-            dict["included"] = included
-        }
-        if let excluded = config.excluded {
-            dict["excluded"] = excluded
-        }
-        if let reporter = config.reporter {
-            dict["reporter"] = reporter
-        }
-        if let disabledRules = config.disabledRules {
-            dict["disabled_rules"] = disabledRules
-        }
-        if let optInRules = config.optInRules {
-            dict["opt_in_rules"] = optInRules
-        }
-        if let analyzerRules = config.analyzerRules {
-            dict["analyzer_rules"] = analyzerRules
-        }
-        if let onlyRules = config.onlyRules {
-            dict["only_rules"] = onlyRules
+        for key in config.keyOrder {
+            guard !seen.contains(key), let value = keyValues[key] else { continue }
+            pairs.append((Node(key), value))
+            seen.insert(key)
         }
 
-        // Per-rule configuration (severity / parameters) goes as top-level
-        // keys, matching SwiftLint's expected schema. Skip simple on/off
-        // entries — those states are conveyed by the rule-list keys above.
-        for (ruleId, ruleConfig) in config.rules {
-            guard let value = topLevelRuleValue(for: ruleConfig) else { continue }
-            dict[ruleId] = value
+        for key in Self.defaultTopLevelKeyOrder where !seen.contains(key) {
+            if let value = keyValues[key] {
+                pairs.append((Node(key), value))
+                seen.insert(key)
+            }
         }
 
-        return dict
+        let remaining = keyValues.keys.filter { !seen.contains($0) }.sorted()
+        for key in remaining {
+            if let value = keyValues[key] {
+                pairs.append((Node(key), value))
+            }
+        }
+
+        return pairs
     }
 
-    private func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> Any? {
+    /// Collect every top-level YAML key the config wants to emit, mapped to
+    /// its already-serialized Node value.
+    private func collectTopLevelKeyValues(from config: YAMLConfig) throws -> [String: Node] {
+        var result: [String: Node] = [:]
+
+        if let included = config.included { result["included"] = try Node(included) }
+        if let excluded = config.excluded { result["excluded"] = try Node(excluded) }
+        if let reporter = config.reporter { result["reporter"] = Node(reporter) }
+        if let disabledRules = config.disabledRules { result["disabled_rules"] = try Node(disabledRules) }
+        if let optInRules = config.optInRules { result["opt_in_rules"] = try Node(optInRules) }
+        if let analyzerRules = config.analyzerRules { result["analyzer_rules"] = try Node(analyzerRules) }
+        if let onlyRules = config.onlyRules { result["only_rules"] = try Node(onlyRules) }
+
+        for (ruleId, ruleConfig) in config.rules {
+            guard let value = topLevelRuleValue(for: ruleConfig) else { continue }
+            result[ruleId] = try Node(value)
+        }
+
+        return result
+    }
+
+    /// Conventional emission order for reserved top-level SwiftLint keys when
+    /// the loaded file didn't already provide an ordering for them.
+    private static let defaultTopLevelKeyOrder: [String] = [
+        "included",
+        "excluded",
+        "disabled_rules",
+        "opt_in_rules",
+        "analyzer_rules",
+        "only_rules",
+        "warning_threshold",
+        "strict",
+        "lenient",
+        "reporter"
+    ]
+
+    private func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> [String: Any]? {
         let hasSeverity = ruleConfig.severity != nil
         let hasParameters = !(ruleConfig.parameters?.isEmpty ?? true)
         guard hasSeverity || hasParameters else { return nil }
