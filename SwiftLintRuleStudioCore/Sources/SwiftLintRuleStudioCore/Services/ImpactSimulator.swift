@@ -247,6 +247,7 @@ public class ImpactSimulator {
 
         var config = yamlEngine.getConfig()
         config.excluded = resolveExclusions(config.excluded, workspace: workspace)
+        config.included = resolveInclusions(config.included, workspace: workspace)
         enableRule(ruleId, in: &config, isOptIn: isOptIn, isAnalyzer: isAnalyzer)
 
         let tempEngine = YAMLConfigurationEngine(configPath: tempConfigPath)
@@ -262,6 +263,17 @@ public class ImpactSimulator {
     private func resolveExclusions(_ existing: [String]?, workspace: Workspace) -> [String] {
         let merged = DefaultExclusions.mergedWith(existing: existing)
         return merged.map { entry in
+            entry.hasPrefix("/") ? entry : workspace.path.appendingPathComponent(entry).path
+        }
+    }
+
+    /// Same problem as `resolveExclusions`, but for `included:` — without this,
+    /// relative paths like `Sources` / `Tests` are looked up under the temp
+    /// directory and SwiftLint silently finds nothing to lint, so every
+    /// simulated rule reports zero violations.
+    private func resolveInclusions(_ existing: [String]?, workspace: Workspace) -> [String]? {
+        guard let existing else { return nil }
+        return existing.map { entry in
             entry.hasPrefix("/") ? entry : workspace.path.appendingPathComponent(entry).path
         }
     }

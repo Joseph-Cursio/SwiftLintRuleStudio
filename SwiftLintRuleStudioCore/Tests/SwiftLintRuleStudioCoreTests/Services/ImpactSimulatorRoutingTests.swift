@@ -190,6 +190,104 @@ struct ImpactSimulatorRoutingTests {
         #expect(plainConfig.analyzerRules?.contains("force_cast") != true)
     }
 
+    @Test("Relative included paths in base config are rewritten to absolute workspace paths")
+    func relativeIncludedPathsRewrittenToAbsolute() async throws {
+        // Regression: when the workspace .swiftlint.yml has relative included
+        // entries (e.g. `Sources`, `Tests`), the temp config — written outside
+        // the workspace — resolved them against the temp directory and
+        // SwiftLint found nothing to lint, so every simulated rule reported
+        // zero violations.
+        let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
+        defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
+
+        let baseConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
+        let baseYAML = """
+        included:
+          - Sources
+          - Tests
+        """
+        try baseYAML.write(to: baseConfigPath, atomically: true, encoding: .utf8)
+
+        let workspace = Workspace(path: tempDir)
+        let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
+
+        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+            try await simulator.simulateRule(
+                ruleId: "explicit_type_interface",
+                workspace: workspace,
+                baseConfigPath: baseConfigPath,
+                isOptIn: true,
+                isAnalyzer: false
+            )
+        }
+
+        let configs = await store.configs
+        let captured = try #require(configs.first)
+        let included = try #require(captured.included)
+        let expectedSources = workspace.path.appendingPathComponent("Sources").path
+        let expectedTests = workspace.path.appendingPathComponent("Tests").path
+        #expect(included.contains(expectedSources))
+        #expect(included.contains(expectedTests))
+        #expect(included.allSatisfy { $0.hasPrefix("/") })
+    }
+
+    @Test("Absolute included paths in base config are preserved as-is")
+    func absoluteIncludedPathsPreserved() async throws {
+        let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
+        defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
+
+        let baseConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
+        let absolutePath = "/opt/elsewhere/Sources"
+        let baseYAML = """
+        included:
+          - \(absolutePath)
+        """
+        try baseYAML.write(to: baseConfigPath, atomically: true, encoding: .utf8)
+
+        let workspace = Workspace(path: tempDir)
+        let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
+
+        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+            try await simulator.simulateRule(
+                ruleId: "force_cast",
+                workspace: workspace,
+                baseConfigPath: baseConfigPath
+            )
+        }
+
+        let configs = await store.configs
+        let captured = try #require(configs.first)
+        #expect(captured.included == [absolutePath])
+    }
+
+    @Test("Missing included section stays missing in temp config")
+    func missingIncludedStaysMissing() async throws {
+        // Without this, the simulator could accidentally introduce an included
+        // block, narrowing what SwiftLint scans for workspaces that didn't have
+        // one in the first place.
+        let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
+        defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
+
+        let baseConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
+        try "opt_in_rules:\n  - explicit_init\n".write(to: baseConfigPath, atomically: true, encoding: .utf8)
+
+        let workspace = Workspace(path: tempDir)
+        let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
+
+        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+            try await simulator.simulateRule(
+                ruleId: "explicit_init",
+                workspace: workspace,
+                baseConfigPath: baseConfigPath,
+                isOptIn: true
+            )
+        }
+
+        let configs = await store.configs
+        let captured = try #require(configs.first)
+        #expect(captured.included == nil)
+    }
+
     @Test("appendUnique does not duplicate analyzer rule already present in base config")
     func appendUniqueIsIdempotent() async throws {
         let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
