@@ -1,13 +1,13 @@
 {
-  "originHash" : "3c6a62b94fbc3e8f6a7ebc02b1ef631c0224e287b21a9222269ac252b9688a12",
+  "originHash" : "133bd60c75d1bd5e5902c0192883e08f6fd4fa1e2b3823c26e21445d0ce30f3f",
   "pins" : [
     {
       "identity" : "lintstudioui",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Joseph-Cursio/LintStudioUI.git",
       "state" : {
-        "revision" : "133074564ed8ea978af8e8920aed817ff59204a5",
-        "version" : "1.0.0"
+        "revision" : "78c5152a56c70fe6068faf9476a7fe1760532dfb",
+        "version" : "1.1.0"
       }
     },
     {
