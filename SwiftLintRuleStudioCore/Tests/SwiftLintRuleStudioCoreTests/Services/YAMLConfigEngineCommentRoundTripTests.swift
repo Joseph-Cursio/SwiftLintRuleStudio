@@ -182,4 +182,28 @@ struct YAMLConfigEngineCommentRoundTripTests {
         excluded:
         """))
     }
+
+    @Test("Block sequence items are indented two spaces under their key")
+    func sequenceItemsIndentedUnderKey() async throws {
+        let yamlContent = """
+        included:
+        - Sources
+        - Tests
+        """
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+            try engine.load()
+            let config = engine.getConfig()
+            try engine.save(config: config, createBackup: false)
+        }
+
+        let savedYAML = try String(contentsOf: configFile, encoding: .utf8)
+
+        #expect(savedYAML.contains("included:\n  - Sources\n  - Tests"))
+        // No item is left flush against column zero.
+        #expect(savedYAML.contains("\n- Sources") == false)
+    }
 }

@@ -11,10 +11,32 @@ extension YAMLConfigurationEngine {
             let mapping = Node.Mapping(pairs)
             let node = Node.mapping(mapping)
             let yamlString = try Yams.serialize(node: node)
-            return reinsertComments(into: yamlString, config: config)
+            let indented = Self.indentBlockSequences(in: yamlString)
+            return reinsertComments(into: indented, config: config)
         } catch {
             throw YAMLConfigError.serializationError(error.localizedDescription)
         }
+    }
+
+    /// Re-indent block-sequence items two spaces under their parent key.
+    ///
+    /// Yams (via libyaml) emits block sequences "indentless" — each `- item`
+    /// sits at the same column as its parent mapping key. SwiftLint configs
+    /// are conventionally hand-written with sequence items indented two spaces
+    /// under the key, so a naive round-trip would flip every list and produce
+    /// noisy diffs. Adding two spaces to each sequence-item line restores the
+    /// conventional style while keeping each item exactly two columns deeper
+    /// than its key (nesting included). Comments are reinserted afterwards, so
+    /// this pass only ever sees Yams output and never touches `#` lines.
+    static func indentBlockSequences(in yaml: String) -> String {
+        yaml
+            .components(separatedBy: .newlines)
+            .map { line -> String in
+                let trimmed = line.drop { $0 == " " }
+                guard trimmed == "-" || trimmed.hasPrefix("- ") else { return line }
+                return "  " + line
+            }
+            .joined(separator: "\n")
     }
 
     /// Build the ordered list of (key, value) pairs for the top-level mapping.
