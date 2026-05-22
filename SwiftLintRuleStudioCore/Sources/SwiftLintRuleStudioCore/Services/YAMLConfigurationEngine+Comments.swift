@@ -3,13 +3,20 @@ import LintStudioCore
 
 public extension YAMLConfigurationEngine {
     /// Extract and preserve comments from YAML content using the shared YAMLCommentPreserver.
+    ///
+    /// A multi-line comment block above a key arrives from the preserver as
+    /// several `CommentEntry` values that share one `followingKey`. They are
+    /// accumulated in file order and stored as a single newline-joined block
+    /// so the whole block survives a round-trip — not just its last line.
     func extractComments(from content: String) {
         let preserver = YAMLCommentPreserver(yamlContent: content)
-        // Store comments in the config's comments dictionary keyed by following key
+        var blocks: [String: [String]] = [:]
         for entry in preserver.comments {
-            if let key = entry.followingKey {
-                currentConfig.comments[key] = entry.line
-            }
+            guard let key = entry.followingKey else { continue }
+            blocks[key, default: []].append(entry.line)
+        }
+        for (key, block) in blocks {
+            currentConfig.comments[key] = block.joined(separator: "\n")
         }
     }
 
@@ -19,14 +26,17 @@ public extension YAMLConfigurationEngine {
         currentConfig.keyOrder = preserver.keyOrder
     }
 
-    /// Reinsert preserved comments into serialized YAML output using the shared preserver.
+    /// Reinsert preserved comments into serialized YAML output.
+    ///
+    /// Each anchor key's comment block is inserted directly above the line
+    /// where that key reappears, as a single unit so a multi-line block keeps
+    /// its original top-to-bottom line order.
     ///
     /// Only comments whose anchor key still appears in `yaml` are reinserted.
     /// A key dropped from the config — e.g. a `disabled_rules` list emptied to
-    /// `nil` — leaves a stale entry in `config.comments`; passing it to the
-    /// shared preserver would treat it as orphaned and append it to the end of
-    /// the file, corrupting the trailing layout. Filtering against the keys
-    /// actually emitted discards a stale comment along with its deleted key.
+    /// `nil` — leaves a stale entry in `config.comments`; filtering against the
+    /// keys actually emitted discards that stale comment along with its deleted
+    /// key, rather than orphaning it to the end of the file.
     func reinsertComments(into yaml: String, config: YAMLConfig) -> String {
         guard !config.comments.isEmpty else { return yaml }
 
@@ -37,15 +47,22 @@ public extension YAMLConfigurationEngine {
             .sorted { $0.key < $1.key }
         guard !liveComments.isEmpty else { return yaml }
 
-        // Reconstruct a YAMLCommentPreserver from the surviving comments by
-        // building a synthetic original YAML that the preserver can parse.
-        var syntheticLines: [String] = []
-        for (key, commentLine) in liveComments {
-            syntheticLines.append(commentLine)
-            syntheticLines.append("\(key):")
+        var lines = yaml.components(separatedBy: .newlines)
+        var insertions: [(index: Int, block: [String])] = []
+        for (key, commentBlock) in liveComments {
+            guard let targetIdx = lines.firstIndex(where: { line in
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                return trimmed.hasPrefix(key + ":") || trimmed.hasPrefix("\"\(key)\":")
+            }) else { continue }
+            insertions.append((targetIdx, commentBlock.components(separatedBy: "\n")))
         }
-        let preserver = YAMLCommentPreserver(yamlContent: syntheticLines.joined(separator: "\n"))
-        return preserver.reinsertComments(into: yaml)
+
+        // Insert in reverse index order so earlier indices stay valid; each
+        // block is inserted as a unit, preserving its internal line order.
+        for insertion in insertions.sorted(by: { $0.index > $1.index }) {
+            lines.insert(contentsOf: insertion.block, at: insertion.index)
+        }
+        return lines.joined(separator: "\n")
     }
 
     /// The set of top-level mapping keys present in serialized YAML output.

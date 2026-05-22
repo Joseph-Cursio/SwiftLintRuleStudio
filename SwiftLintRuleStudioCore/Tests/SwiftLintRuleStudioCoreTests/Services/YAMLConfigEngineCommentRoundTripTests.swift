@@ -151,4 +151,35 @@ struct YAMLConfigEngineCommentRoundTripTests {
         #expect(savedYAML.hasSuffix("\n"))
         #expect(savedYAML.hasSuffix("\n\n") == false)
     }
+
+    @Test("A multi-line comment block above a key survives a round-trip intact")
+    func multiLineCommentBlockPreserved() async throws {
+        let yamlContent = """
+        # First line of the rationale
+        # Second line of the rationale
+        # Third line of the rationale
+        excluded:
+        - .build
+        """
+
+        let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
+        defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+
+        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+            try engine.load()
+            let config = engine.getConfig()
+            try engine.save(config: config, createBackup: false)
+        }
+
+        let savedYAML = try String(contentsOf: configFile, encoding: .utf8)
+
+        // All three comment lines survive, in order, directly above the key —
+        // not collapsed to just the last line, and not reversed.
+        #expect(savedYAML.contains("""
+        # First line of the rationale
+        # Second line of the rationale
+        # Third line of the rationale
+        excluded:
+        """))
+    }
 }
