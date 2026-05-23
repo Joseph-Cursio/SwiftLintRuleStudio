@@ -63,7 +63,8 @@ public class YAMLConfigurationEngine {
         public var onlyRules: [String]?
         /// Warning threshold count
         public var warningThreshold: Int?
-        /// Whether strict mode is enabled
+        /// Whether strict mode is enabled (nil = not specified in YAML)
+        // swiftlint:disable:next discouraged_optional_boolean
         public var strict: Bool?
 
         // Comment preservation

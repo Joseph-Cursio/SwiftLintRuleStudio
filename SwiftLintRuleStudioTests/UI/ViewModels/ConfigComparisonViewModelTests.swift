@@ -278,6 +278,8 @@ struct ConfigComparisonViewModelTests {
     @Test("compare() exposes isComparing == true while the service call is in flight")
     func testCompareIsComparingTrueDuringServiceCall() {
         let service = SpyConfigComparisonService(resultToReturn: makeResult())
+        // nil distinguishes "hook never ran" from observed values
+        // swiftlint:disable:next discouraged_optional_boolean
         var observedIsComparing: Bool?
         let viewModel = ConfigComparisonViewModel(service: service, currentWorkspace: nil)
         viewModel.leftWorkspacePath = Self.leftPath

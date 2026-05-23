@@ -12,6 +12,8 @@ public struct ViolationFilter: Sendable {
     public var ruleIDs: [String]?
     public var filePaths: [String]?
     public var severities: [Severity]?
+    // nil = no filter, true = suppressed only, false = unsuppressed only
+    // swiftlint:disable:next discouraged_optional_boolean
     public var suppressedOnly: Bool?
     public var dateRange: ClosedRange<Date>?
 
@@ -19,6 +21,7 @@ public struct ViolationFilter: Sendable {
         ruleIDs: [String]? = nil,
         filePaths: [String]? = nil,
         severities: [Severity]? = nil,
+        // swiftlint:disable:next discouraged_optional_boolean
         suppressedOnly: Bool? = nil,
         dateRange: ClosedRange<Date>? = nil
     ) {

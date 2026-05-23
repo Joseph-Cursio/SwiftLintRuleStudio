@@ -215,9 +215,12 @@ struct RuleDetailViewModelWorkflowIntegrationTests {
     @MainActor
     private struct RuleConfigSnapshot {
         let hasNewRule: Bool
+        // nil = rule absent from config, true/false = explicit enabled state
+        // swiftlint:disable:next discouraged_optional_boolean
         let newRuleEnabled: Bool?
         let newRuleSeverity: Severity?
         let hasExistingRule: Bool
+        // swiftlint:disable:next discouraged_optional_boolean
         let existingRuleEnabled: Bool?
         let existingRuleSeverity: Severity?
     }

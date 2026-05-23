@@ -197,8 +197,11 @@ struct ImpactSimulatorWorkflowTests {
 
     private struct RuleEnablement {
         let rule1Exists: Bool
+        // nil = rule absent from config, true/false = explicit enabled state
+        // swiftlint:disable:next discouraged_optional_boolean
         let rule1Enabled: Bool?
         let rule2Exists: Bool
+        // swiftlint:disable:next discouraged_optional_boolean
         let rule2Enabled: Bool?
     }
 

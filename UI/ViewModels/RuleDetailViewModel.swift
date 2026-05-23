@@ -12,6 +12,8 @@ import SwiftLintRuleStudioCore
 // MARK: - Supporting Types
 
 struct PendingRuleChanges {
+    // nil = no change, true = enable, false = disable
+    // swiftlint:disable:next discouraged_optional_boolean
     let enabled: Bool?
     let severity: Severity?
     var parameters: [String: AnyCodable]?

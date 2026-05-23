@@ -181,6 +181,8 @@ extension YAMLConfigurationEngine {
         return parseComplexRuleConfiguration(from: ruleDict)
     }
 
+    // Returns nil when the value isn't parseable as a boolean
+    // swiftlint:disable:next discouraged_optional_boolean
     private func parseBoolRuleValue(from ruleValue: Any) -> Bool? {
         if let boolRuleValue = ruleValue as? Bool {
             return boolRuleValue
