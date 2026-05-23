@@ -197,4 +197,3 @@ struct RuleDetailViewModelWorkspaceIntegrationTests {
         return (tempDir, configPath)
     }
 }
-

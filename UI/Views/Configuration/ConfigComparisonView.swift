@@ -306,4 +306,3 @@ struct ConfigComparisonView: View {
         .padding()
     }
 }
-

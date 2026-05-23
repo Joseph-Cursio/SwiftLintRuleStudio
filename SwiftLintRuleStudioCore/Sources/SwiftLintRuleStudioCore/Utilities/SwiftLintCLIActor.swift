@@ -147,4 +147,3 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
     }
 
 }
-

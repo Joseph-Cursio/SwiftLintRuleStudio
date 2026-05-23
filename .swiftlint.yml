@@ -132,6 +132,12 @@ prefixed_toplevel_constant:
   # `let package = Package(...)` is required by Swift Package Manager — limit the
   # k-prefix requirement to private constants.
   only_private: true
+type_name:
+  # Integration test struct names match their file names and run long; raise the
+  # warning threshold to match the error threshold so descriptive names don't trip noise.
+  max_length:
+    warning: 60
+    error: 60
 # Analyzer-only rules (run via `swiftlint analyze`, not `swiftlint lint`)
 analyzer_rules:
   - capture_variable

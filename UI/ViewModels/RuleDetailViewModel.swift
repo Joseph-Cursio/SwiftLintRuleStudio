@@ -376,4 +376,3 @@ private extension RuleDetailViewModel {
         config.onlyRules = onlyRules.isEmpty ? nil : onlyRules
     }
 }
-

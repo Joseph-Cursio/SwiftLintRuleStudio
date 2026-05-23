@@ -111,4 +111,3 @@ public enum WorkspaceAnalyzerTestHelpers {
         try? FileManager.default.removeItem(at: workspace.path)
     }
 }
-
