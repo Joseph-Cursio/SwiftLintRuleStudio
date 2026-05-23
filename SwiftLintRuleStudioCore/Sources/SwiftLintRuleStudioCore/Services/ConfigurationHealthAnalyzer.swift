@@ -35,7 +35,7 @@ public enum HealthGrade: String, CaseIterable, Sendable {
         }
     }
 
-    public static func from(score: Int) -> HealthGrade {
+    public static func from(score: Int) -> Self {
         switch score {
         case 90...100: return .excellent
         case 75..<90: return .good
@@ -144,8 +144,8 @@ public struct HealthRecommendation: Identifiable, Sendable {
             rawValue.capitalized
         }
 
-        public static func < (lhs: Priority, rhs: Priority) -> Bool {
-            let order: [Priority] = [.high, .medium, .low]
+        public static func < (lhs: Self, rhs: Self) -> Bool {
+            let order: [Self] = [.high, .medium, .low]
             return (order.firstIndex(of: lhs) ?? 0) < (order.firstIndex(of: rhs) ?? 0)
         }
     }
@@ -248,7 +248,7 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
         guard !knownRules.isEmpty else { return 50 }
 
         // Count enabled rules
-        let enabledRuleIds = Set(config.rules.filter { $0.value.enabled }.keys)
+        let enabledRuleIds = Set(config.rules.filter(\.value.enabled).keys)
         let optInRuleIds = Set(config.optInRules ?? [])
         let disabledRuleIds = Set(config.disabledRules ?? [])
 
@@ -281,9 +281,8 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
             let enabledInCategory = rules.filter { rule in
                 if rule.isOptIn {
                     return optInRuleIds.contains(rule.id)
-                } else {
-                    return !disabledRuleIds.contains(rule.id)
                 }
+                return !disabledRuleIds.contains(rule.id)
             }
             if !enabledInCategory.isEmpty {
                 categoriesWithCoverage += 1

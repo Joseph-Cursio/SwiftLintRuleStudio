@@ -6,9 +6,9 @@
 //  rendering without unwanted margins.
 //
 
-import SwiftUI
 import AppKit
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 /// A SwiftUI view that displays NSAttributedString content using NSTextView,
 /// providing proper control over text margins and insets.
@@ -19,7 +19,7 @@ import SwiftLintRuleStudioCore
 private struct AttributedTextView: NSViewRepresentable {
     let attributedString: NSAttributedString
 
-    func makeNSView(context: Context) -> NSScrollView {
+    func makeNSView(context _: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         let textView = NSTextView()
 
@@ -46,7 +46,7 @@ private struct AttributedTextView: NSViewRepresentable {
         return scrollView
     }
 
-    func updateNSView(_ scrollView: NSScrollView, context: Context) {
+    func updateNSView(_ scrollView: NSScrollView, context _: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
 
         // Post-process attributed string to remove leading whitespace/newlines
@@ -59,7 +59,7 @@ private struct AttributedTextView: NSViewRepresentable {
         textView.invalidateIntrinsicContentSize()
     }
 
-    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSScrollView, context: Context) -> CGSize? {
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSScrollView, context _: Context) -> CGSize? {
         guard let textView = nsView.documentView as? NSTextView else {
             return nil
         }
@@ -124,7 +124,11 @@ private struct AttributedTextView: NSViewRepresentable {
     ///   - font: The base font to use (default: system font)
     ///   - textColor: The text color (default: label color)
     @MainActor
-    init?(html: String, font: NSFont = .systemFont(ofSize: NSFont.systemFontSize), textColor: NSColor = .labelColor) {
+    init?(
+        html: String,
+        font _: NSFont = .systemFont(ofSize: NSFont.systemFontSize),
+        textColor _: NSColor = .labelColor
+    ) {
         guard let data = html.data(using: .utf8),
               let attributedString = try? NSAttributedString(
                 data: data,

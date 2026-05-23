@@ -6,8 +6,36 @@
 //
 
 import Foundation
-import Yams
 import LintStudioCore
+import Yams
+
+// MARK: - Errors
+
+public enum YAMLConfigError: LocalizedError, Sendable {
+    case parseError(String)
+    case serializationError(String)
+    case invalidSeverity(ruleId: String, severity: String)
+    case invalidPath(path: String)
+    case fileNotFound
+    case writeFailed(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .parseError(let message):
+            return "Failed to parse YAML: \(message)"
+        case .serializationError(let message):
+            return "Failed to serialize YAML: \(message)"
+        case .invalidSeverity(let ruleId, let severity):
+            return "Invalid severity '\(severity)' for rule '\(ruleId)'. Must be 'warning' or 'error'."
+        case .invalidPath(let path):
+            return "Invalid path: \(path)"
+        case .fileNotFound:
+            return "Configuration file not found"
+        case .writeFailed(let message):
+            return "Failed to write configuration: \(message)"
+        }
+    }
+}
 
 /// Service for safely editing SwiftLint YAML configuration files
 /// with comment preservation and validation
@@ -94,7 +122,7 @@ public class YAMLConfigurationEngine {
     /// The original file content before modifications
     public var originalContent: String = ""
     /// The current in-memory configuration state
-    public var currentConfig: YAMLConfig = YAMLConfig()
+    public var currentConfig = YAMLConfig()
 
     // MARK: - Initialization
 
@@ -155,7 +183,7 @@ public class YAMLConfigurationEngine {
 
     /// Get current configuration
     public func getConfig() -> YAMLConfig {
-        return currentConfig
+        currentConfig
     }
 
     /// Update configuration (doesn't save to disk)
@@ -232,32 +260,4 @@ public class YAMLConfigurationEngine {
         originalContent = yamlContent
     }
 
-}
-
-// MARK: - Errors
-
-public enum YAMLConfigError: LocalizedError, Sendable {
-    case parseError(String)
-    case serializationError(String)
-    case invalidSeverity(ruleId: String, severity: String)
-    case invalidPath(path: String)
-    case fileNotFound
-    case writeFailed(String)
-
-    public var errorDescription: String? {
-        switch self {
-        case .parseError(let message):
-            return "Failed to parse YAML: \(message)"
-        case .serializationError(let message):
-            return "Failed to serialize YAML: \(message)"
-        case .invalidSeverity(let ruleId, let severity):
-            return "Invalid severity '\(severity)' for rule '\(ruleId)'. Must be 'warning' or 'error'."
-        case .invalidPath(let path):
-            return "Invalid path: \(path)"
-        case .fileNotFound:
-            return "Configuration file not found"
-        case .writeFailed(let message):
-            return "Failed to write configuration: \(message)"
-        }
-    }
 }

@@ -5,12 +5,12 @@
 //  ViewInspector extension tests extracted from UITestHelpersCoverageTests
 //
 
-import Testing
-import SwiftUI
-import ViewInspector
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 extension UITestHelpersCoverageTests {
 

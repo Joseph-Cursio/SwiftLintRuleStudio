@@ -5,8 +5,25 @@
 //  View component that recommends creating a SwiftLint configuration file
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
+
+private struct ConfigBenefitRow: View {
+    let icon: String
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(.green)
+                .font(.caption)
+                .accessibilityHidden(true)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
 
 struct ConfigRecommendationView: View {
     var workspaceManager: WorkspaceManager
@@ -121,23 +138,6 @@ struct ConfigRecommendationView: View {
             }
 
             isCreatingConfig = false
-        }
-    }
-}
-
-private struct ConfigBenefitRow: View {
-    let icon: String
-    let text: String
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(.green)
-                .font(.caption)
-                .accessibilityHidden(true)
-            Text(text)
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
     }
 }

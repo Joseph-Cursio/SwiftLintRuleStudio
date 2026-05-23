@@ -5,10 +5,10 @@
 //  Batch simulation tests
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ImpactSimulatorBatchTests {
     private struct ProgressEvent {
@@ -49,7 +49,7 @@ struct ImpactSimulatorBatchTests {
         }
 
         let results = batchResult.results
-        let ruleIds = results.map { $0.ruleId }
+        let ruleIds = results.map(\.ruleId)
         #expect(results.count == 2)
         #expect(ruleIds.contains("rule1"))
         #expect(ruleIds.contains("rule2"))

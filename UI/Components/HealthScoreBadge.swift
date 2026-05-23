@@ -5,61 +5,8 @@
 //  Badge component for displaying configuration health score
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
-
-/// Compact badge showing the health score
-private struct HealthScoreBadge: View {
-    let report: ConfigHealthReport
-    let showGrade: Bool
-
-    init(report: ConfigHealthReport, showGrade: Bool = true) {
-        self.report = report
-        self.showGrade = showGrade
-    }
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(gradeColor)
-                .frame(width: 12, height: 12)
-                .overlay(
-                    Circle()
-                        .stroke(gradeColor.opacity(0.3), lineWidth: 2)
-                )
-
-            if showGrade {
-                Text(report.grade.rawValue)
-                    .font(.system(.caption, design: .rounded, weight: .bold))
-                    .foregroundStyle(gradeColor)
-            }
-
-            Text("\(report.score)")
-                .font(.system(.caption, design: .rounded, weight: .semibold))
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(gradeColor.opacity(0.15))
-        )
-        .overlay(
-            Capsule()
-                .stroke(gradeColor.opacity(0.3), lineWidth: 1)
-        )
-    }
-
-    private var gradeColor: Color {
-        switch report.grade {
-        case .excellent: return .green
-        case .good: return .blue
-        case .fair: return .yellow
-        case .needsWork: return .orange
-        case .poor: return .red
-        }
-    }
-}
+import SwiftUI
 
 /// Larger health score display with ring chart
 struct HealthScoreRing: View {
@@ -134,6 +81,59 @@ private struct HealthScoreIndicator: View {
 
     private var gradeColor: Color {
         switch grade {
+        case .excellent: return .green
+        case .good: return .blue
+        case .fair: return .yellow
+        case .needsWork: return .orange
+        case .poor: return .red
+        }
+    }
+}
+
+/// Compact badge showing the health score
+private struct HealthScoreBadge: View {
+    let report: ConfigHealthReport
+    let showGrade: Bool
+
+    init(report: ConfigHealthReport, showGrade: Bool = true) {
+        self.report = report
+        self.showGrade = showGrade
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(gradeColor)
+                .frame(width: 12, height: 12)
+                .overlay(
+                    Circle()
+                        .stroke(gradeColor.opacity(0.3), lineWidth: 2)
+                )
+
+            if showGrade {
+                Text(report.grade.rawValue)
+                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .foregroundStyle(gradeColor)
+            }
+
+            Text("\(report.score)")
+                .font(.system(.caption, design: .rounded, weight: .semibold))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(gradeColor.opacity(0.15))
+        )
+        .overlay(
+            Capsule()
+                .stroke(gradeColor.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    private var gradeColor: Color {
+        switch report.grade {
         case .excellent: return .green
         case .good: return .blue
         case .fair: return .yellow

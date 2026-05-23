@@ -13,11 +13,10 @@ extension RuleRegistry {
         backgroundLoadingTask = Task { [swiftLintCLI] in
             await Self.runBackgroundBatches(
                 rulesData: rulesData,
-                swiftLintCLI: swiftLintCLI,
-                update: { [weak self] index, rule in
-                    await self?.updateRule(at: index, with: rule)
-                }
-            )
+                swiftLintCLI: swiftLintCLI
+            ) { [weak self] index, rule in
+                await self?.updateRule(at: index, with: rule)
+            }
         }
     }
 
@@ -111,7 +110,7 @@ extension RuleRegistry {
         swiftLintCLI: SwiftLintCLIProtocol
     ) async -> Rule {
         do {
-            let detailedRule = try await withTimeout(
+            return try await withTimeout(
                 seconds: 30,
                 ruleId: ruleId
             ) {
@@ -123,7 +122,6 @@ extension RuleRegistry {
                     swiftLintCLI: swiftLintCLI
                 )
             }
-            return detailedRule
         } catch {
             return Rule(
                 id: ruleId,

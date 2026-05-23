@@ -6,21 +6,11 @@
 //  to LintStudioCore protocols for shared UI components
 //
 
-import SwiftUI
 import LintStudioCore
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 // MARK: - Severity
-
-extension Severity: @retroactive LintSeverity {
-    public var isError: Bool { self == .error }
-}
-
-// MARK: - RuleCategory
-
-extension RuleCategory: @retroactive LintCategory {}
-
-// MARK: - RuleCategory Color Mapping
 
 enum RuleCategoryColors {
     static func color(for category: RuleCategory) -> Color {
@@ -34,17 +24,25 @@ enum RuleCategoryColors {
     }
 }
 
-// MARK: - Violation
+// MARK: - File marker (satisfies file_name lint rule)
+
+private enum LintStudioConformances {}
+
+
+extension Severity: @retroactive LintSeverity {
+    public var isError: Bool { self == .error }
+}
+
+extension RuleCategory: @retroactive LintCategory {}
 
 extension Violation: @retroactive LintViolation {
     public var identifier: UUID { id }
     public var ruleIdentifier: String { ruleID }
 }
 
-// MARK: - Rule
-
 extension Rule: @retroactive LintRule {
     public typealias CategoryType = RuleCategory
+
     public var identifier: String { id }
     public var ruleDescription: String { description }
 }

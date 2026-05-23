@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
 struct SwiftLintCLIReadTests {
@@ -53,7 +53,7 @@ struct SwiftLintCLIReadTests {
 
         let gate = HangGate()
         let read: @Sendable () async -> (Data, Data) = {
-            return await withTaskCancellationHandler {
+            await withTaskCancellationHandler {
                 await gate.wait()
                 return (Data(), Data())
             } onCancel: {
@@ -62,6 +62,7 @@ struct SwiftLintCLIReadTests {
         }
         actor TimeoutTrackerActor {
             var didTimeout = false
+
             func mark() { didTimeout = true }
         }
         let tracker = TimeoutTrackerActor()

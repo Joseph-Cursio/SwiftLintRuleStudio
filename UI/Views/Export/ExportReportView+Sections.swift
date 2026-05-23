@@ -5,30 +5,11 @@
 //  Section views for the Export Report screen
 //
 
-import SwiftUI
-import SwiftLintRuleStudioCore
 import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 // MARK: - Format Selection
-
-extension ExportReportView {
-    var formatSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Export Format")
-                .font(.headline)
-
-            HStack(spacing: 12) {
-                ForEach(ExportFormat.allCases) { format in
-                    ExportFormatCard(
-                        format: format,
-                        isSelected: selectedFormat == format,
-                        onSelect: { selectedFormat = format }
-                    )
-                }
-            }
-        }
-    }
-}
 
 private struct ExportFormatCard: View {
     let format: ExportFormat
@@ -64,7 +45,23 @@ private struct ExportFormatCard: View {
     }
 }
 
-// MARK: - Content Options
+extension ExportReportView {
+    var formatSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Export Format")
+                .font(.headline)
+
+            HStack(spacing: 12) {
+                ForEach(ExportFormat.allCases) { format in
+                    ExportFormatCard(
+                        format: format,
+                        isSelected: selectedFormat == format
+                    ) { selectedFormat = format }
+                }
+            }
+        }
+    }
+}
 
 extension ExportReportView {
     var contentSection: some View {
@@ -92,8 +89,6 @@ extension ExportReportView {
         }
     }
 }
-
-// MARK: - Output Options
 
 extension ExportReportView {
     var outputSection: some View {
@@ -149,8 +144,6 @@ extension ExportReportView {
         }
     }
 }
-
-// MARK: - Actions
 
 extension ExportReportView {
     var actionSection: some View {

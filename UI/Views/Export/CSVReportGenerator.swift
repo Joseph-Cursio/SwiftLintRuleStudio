@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import SwiftLintRuleStudioCore
 import LintStudioCore
+import SwiftLintRuleStudioCore
 
 enum CSVReportGenerator {
     static func generate(violations: [Violation]) -> String {

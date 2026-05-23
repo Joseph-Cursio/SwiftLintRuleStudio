@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
 enum StorageFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
@@ -62,7 +62,7 @@ enum StorageFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
 
 @MainActor
 @Suite("ViolationStorageActor", .tags(.storage))
-struct ViolationStorageBasicTests {
+enum ViolationStorageBasicTests {
 
     @MainActor
     @Suite("Storing")
@@ -168,7 +168,7 @@ struct ViolationStorageBasicTests {
             let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
             let workspaceId = UUID()
 
-            let oldDate = Date.now.addingTimeInterval(-86400)
+            let oldDate = Date.now.addingTimeInterval(-86_400)
             let newDate = Date.now
 
             let oldViolation = Violation(
@@ -191,7 +191,7 @@ struct ViolationStorageBasicTests {
 
             try await storage.storeViolations([oldViolation, newViolation], for: workspaceId)
 
-            let yesterday = Date.now.addingTimeInterval(-43200)
+            let yesterday = Date.now.addingTimeInterval(-43_200)
             let filter = ViolationFilter(dateRange: yesterday...Date.now)
 
             let fetched = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)

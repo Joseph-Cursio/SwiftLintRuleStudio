@@ -5,10 +5,10 @@
 //  Integration tests for OnboardingManager with other services
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // DependencyContainer is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -19,7 +19,7 @@ struct OnboardingManagerIntegrationTests {
         userDefaults: UserDefaults? = nil,
         operation: @MainActor (DependencyContainer) throws -> T
     ) async throws -> T {
-        return try await MainActor.run {
+        try await MainActor.run {
             let container = userDefaults.map {
                 DependencyContainer.createForTesting(userDefaults: $0)
             } ?? DependencyContainer.createForTesting()
@@ -39,7 +39,7 @@ struct OnboardingManagerIntegrationTests {
         // Use isolated UserDefaults for complete test isolation
         // Swift Testing creates a fresh struct instance for each test, but we still need isolated UserDefaults
         let (hasManager, hasCompleted, currentStep) = try await withContainer { container in
-            return (
+            (
                 true,
                 container.onboardingManager.hasCompletedOnboarding,
                 container.onboardingManager.currentStep

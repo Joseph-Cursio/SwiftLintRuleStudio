@@ -5,13 +5,13 @@
 //  UI tests for ViolationListItem component
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+import LintStudioUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
-import LintStudioUI
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for ViolationListItem component
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -137,14 +137,14 @@ struct ViolationListItemTests {
 
         // Find the SeverityBadge
         let hasSeverityBadge = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.Text.self, where: { textView in
+            _ = try result.view.inspect().find(ViewType.Text.self) { textView in
                 do {
                     let text = try textView.string()
                     return text == "ERROR"
                 } catch {
                     return false
                 }
-            })
+            }
             return true
         }
         #expect(hasSeverityBadge == true, "ViolationListItem should show ERROR badge for error severity")
@@ -159,14 +159,14 @@ struct ViolationListItemTests {
 
         // Find the SeverityBadge
         let hasSeverityBadge = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.Text.self, where: { textView in
+            _ = try result.view.inspect().find(ViewType.Text.self) { textView in
                 do {
                     let text = try textView.string()
                     return text == "WARNING"
                 } catch {
                     return false
                 }
-            })
+            }
             return true
         }
         #expect(hasSeverityBadge == true, "ViolationListItem should show WARNING badge for warning severity")

@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // SwiftLintCLIActor is an actor (not @MainActor), but CacheManager has Swift 6 false positive
 // Temporarily using @MainActor on the test struct as a workaround (same as CacheManagerTests)

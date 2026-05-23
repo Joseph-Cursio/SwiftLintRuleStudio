@@ -5,8 +5,8 @@
 //  Navigation sidebar listing all app sections
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct SidebarView: View {
     @Binding var selection: AppSection?

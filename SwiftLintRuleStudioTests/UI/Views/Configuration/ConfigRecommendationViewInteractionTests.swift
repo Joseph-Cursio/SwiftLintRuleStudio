@@ -5,13 +5,13 @@
 //  Interaction tests for ConfigRecommendationView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Interaction tests for ConfigRecommendationView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -22,7 +22,7 @@ struct ConfigRecommendationViewInteractionTests {
     // MARK: - Test Data Helpers
 
     private func createConfigRecommendationView() async -> (view: some View, workspaceManager: WorkspaceManager) {
-        return await MainActor.run {
+        await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
             let view = ConfigRecommendationView(workspaceManager: workspaceManager)
             return (view, workspaceManager)
@@ -42,7 +42,7 @@ struct ConfigRecommendationViewInteractionTests {
         expected: Bool,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+        await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
                 workspaceManager.configFileMissing == expected
             }
@@ -55,7 +55,7 @@ struct ConfigRecommendationViewInteractionTests {
         text: String,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForText(
+        await UIAsyncTestHelpers.waitForText(
             in: view,
             text: text,
             timeout: timeoutSeconds

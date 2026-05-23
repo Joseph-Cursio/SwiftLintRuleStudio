@@ -1,6 +1,6 @@
+import SwiftLintRuleStudioCore
 import SwiftUI
 import UniformTypeIdentifiers
-import SwiftLintRuleStudioCore
 
 extension ViolationInspectorView {
     func exportViolations(scope: ViolationExportScope, format: ViolationExportFormat) {

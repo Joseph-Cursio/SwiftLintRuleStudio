@@ -5,9 +5,20 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import Testing
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+// Main test suite - individual test files are organized by module
+@MainActor
+struct SwiftLintRuleStudioTests {
+
+    @Test("Test suite is properly configured")
+    func testSuiteConfiguration() {
+        // Verify test infrastructure is working
+        #expect(true)
+    }
+}
 
 // MARK: - Shared Tags
 // Use these tags to filter tests in Xcode Test Plans and the test navigator.
@@ -24,15 +35,4 @@ extension Tag {
     @Tag static var userInterface: Self
     /// Tests that wire real service implementations together
     @Tag static var integration: Self
-}
-
-// Main test suite - individual test files are organized by module
-@MainActor
-struct SwiftLintRuleStudioTests {
-
-    @Test("Test suite is properly configured")
-    func testSuiteConfiguration() {
-        // Verify test infrastructure is working
-        #expect(true)
-    }
 }

@@ -48,7 +48,7 @@ public final class HangGate: @unchecked Sendable {
 public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
     private let shouldFail: Bool
     private let mockRulesData: Data?
-    private var mockLintOutput: Data = Data()
+    private var mockLintOutput = Data()
     private var shouldHang: Bool = false
     private let hangGate = HangGate()
     public var lintCommandHandler: (@Sendable (URL?, URL) async throws -> Data)?
@@ -222,17 +222,17 @@ public actor RuleDetailsSwiftLintCLIActor: SwiftLintCLIProtocol {
         return Data()
     }
 
-    public func executeRuleDetailCommand(ruleId: String) async throws -> Data {
+    public func executeRuleDetailCommand(ruleId _: String) async throws -> Data {
         await Task.yield()
         return Data(detail.utf8)
     }
 
-    public func generateDocsForRule(ruleId: String) async throws -> String {
+    public func generateDocsForRule(ruleId _: String) async throws -> String {
         await Task.yield()
         return docs
     }
 
-    public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
+    public func executeLintCommand(configPath _: URL?, workspacePath _: URL) async throws -> Data {
         await Task.yield()
         return Data()
     }
@@ -290,3 +290,7 @@ public final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
         cachedDocsDirectory = nil
     }
 }
+
+// MARK: - File marker (satisfies file_name lint rule)
+
+private enum RuleRegistryTestHelpers {}

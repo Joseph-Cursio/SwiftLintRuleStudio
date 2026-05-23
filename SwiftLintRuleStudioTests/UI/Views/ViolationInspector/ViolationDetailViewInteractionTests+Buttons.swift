@@ -5,13 +5,13 @@
 //  Open in Xcode and button visibility tests for ViolationDetailView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // MARK: - Open in Xcode Button Tests
 

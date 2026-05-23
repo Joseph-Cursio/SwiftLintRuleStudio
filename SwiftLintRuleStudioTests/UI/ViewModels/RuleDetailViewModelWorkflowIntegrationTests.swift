@@ -6,19 +6,19 @@
 //
 
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
-struct RuleDetailVMWorkflowIntegrationTests {
+struct RuleDetailViewModelWorkflowIntegrationTests {
     @Test("Complete workflow: open workspace -> configure rule -> save -> verify")
     func testCompleteRuleConfigurationWorkflow() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
-        let configPath = try RuleDetailVMIntegrationHelpers.createConfigFile(
+        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: """
             rules:
@@ -28,14 +28,14 @@ struct RuleDetailVMWorkflowIntegrationTests {
             """
         )
 
-        let workspaceManager = await RuleDetailVMIntegrationHelpers.createWorkspaceManager()
+        let workspaceManager = await RuleDetailViewModelIntegrationTestHelpers.createWorkspaceManager()
         _ = try await openWorkspace(workspaceManager: workspaceManager, at: tempDir)
 
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "new_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -59,11 +59,11 @@ struct RuleDetailVMWorkflowIntegrationTests {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
-        let configPath = try RuleDetailVMIntegrationHelpers.createConfigFile(
+        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: "rules: {}"
         )
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
@@ -97,18 +97,18 @@ struct RuleDetailVMWorkflowIntegrationTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
         try await configureRule(viewModel, severity: .error, enabled: true)
 
-        let yamlEngine2 = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine2 = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
         try await Task { @MainActor in
@@ -125,7 +125,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
         #expect(snapshot.1 == true)
         #expect(snapshot.2 == .error)
 
-        let viewModel2 = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel2 = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine2
         )
@@ -153,7 +153,7 @@ struct RuleDetailVMWorkflowIntegrationTests {
         isOptIn: Bool = false
     ) async -> RuleDetailViewModel {
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: ruleId, isOptIn: isOptIn)
-        return await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        return await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )

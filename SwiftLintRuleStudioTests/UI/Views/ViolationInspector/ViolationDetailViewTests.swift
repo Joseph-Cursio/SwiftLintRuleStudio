@@ -5,12 +5,12 @@
 //  UI tests for ViolationDetailView
 //
 
+import LintStudioUI
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
 import Testing
 import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
-import LintStudioUI
 
 private func makeTestViolation(
     id: UUID = UUID(),
@@ -73,14 +73,14 @@ struct ViolationDetailViewTests {
 
         // Find severity badge (should show "ERROR")
         let hasSeverityBadge = try await MainActor.run {
-            _ = try result.view.inspect().find(ViewType.Text.self, where: { textView in
+            _ = try result.view.inspect().find(ViewType.Text.self) { textView in
                 do {
                     let text = try textView.string()
                     return text == "ERROR"
                 } catch {
                     return false
                 }
-            })
+            }
             return true
         }
         #expect(hasSeverityBadge == true, "ViolationDetailView should display severity badge")

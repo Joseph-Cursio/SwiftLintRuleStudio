@@ -5,11 +5,11 @@
 //  Section rendering tests for RuleDetailView
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
 import Testing
 import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 @MainActor
 struct RuleDetailViewSectionTests {

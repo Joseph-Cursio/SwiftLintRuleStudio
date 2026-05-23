@@ -5,10 +5,10 @@
 //  View for selecting and opening workspaces
 //
 
-import SwiftUI
-import UniformTypeIdentifiers
 import AppKit
 import SwiftLintRuleStudioCore
+import SwiftUI
+import UniformTypeIdentifiers
 
 struct WorkspaceSelectionView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var iconSizeLarge: CGFloat = 64
@@ -100,8 +100,8 @@ struct WorkspaceSelectionView: View {
         guard let provider = providers.first else { return false }
         provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
             let url: URL?
-            if let nsURL = item as? NSURL {
-                url = nsURL as URL
+            if let foundationURL = item as? URL {
+                url = foundationURL
             } else if let data = item as? Data {
                 url = URL(dataRepresentation: data, relativeTo: nil)
             } else {

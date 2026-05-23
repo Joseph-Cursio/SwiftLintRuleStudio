@@ -7,11 +7,11 @@
 //  container but its initialisation is accidentally broken.
 //
 
-import Testing
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
 struct DependencyContainerTests {

@@ -1,11 +1,11 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
-struct VIViewModelSortingTests {
+struct ViolationInspectorViewModelSortingTests {
     @Test("ViolationInspectorViewModel sorts by file")
     func testSortByFile() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
@@ -120,7 +120,7 @@ struct VIViewModelSortingTests {
         )
 
         let workspaceId = UUID()
-        let oldDate = Date.now.addingTimeInterval(-86400)
+        let oldDate = Date.now.addingTimeInterval(-86_400)
         let newDate = Date.now
 
         let violations = [

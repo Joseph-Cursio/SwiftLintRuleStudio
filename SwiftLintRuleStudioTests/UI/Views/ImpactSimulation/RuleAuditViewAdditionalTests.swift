@@ -5,11 +5,11 @@
 //  Additional tests for RuleAuditView support types and actions
 //
 
-import Testing
-import SwiftUI
-import ViewInspector
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
+import Testing
+import ViewInspector
 
 @MainActor
 struct RuleAuditViewAdditionalTests {
@@ -143,8 +143,8 @@ struct RuleAuditViewAdditionalTests {
             return (
                 safeRules.count,
                 rulesWithViolations.count,
-                safeRules.allSatisfy { $0.isSafe },
-                rulesWithViolations.allSatisfy { $0.hasViolations }
+                safeRules.allSatisfy(\.isSafe),
+                rulesWithViolations.allSatisfy(\.hasViolations)
             )
         }
         #expect(safeRulesCount == 2)

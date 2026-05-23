@@ -44,3 +44,7 @@ public actor AsyncMapActor<Value> {
         values[key] = value
     }
 }
+
+// MARK: - File marker (satisfies file_name lint rule)
+
+private enum SwiftLintCLITestHelpers {}

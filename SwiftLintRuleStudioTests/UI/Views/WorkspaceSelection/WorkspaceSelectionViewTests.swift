@@ -5,13 +5,13 @@
 //  UI tests for WorkspaceSelectionView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for WorkspaceSelectionView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -26,7 +26,7 @@ struct WorkspaceSelectionViewTests {
         hasRecentWorkspaces: Bool = false
     ) async -> (view: some View, workspaceManager: WorkspaceManager) {
         // Create view on MainActor
-        return await MainActor.run {
+        await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
 
             if hasCurrentWorkspace {
@@ -47,7 +47,7 @@ struct WorkspaceSelectionViewTests {
         exists: Bool,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+        await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
                 (workspaceManager.currentWorkspace != nil) == exists
             }
@@ -59,7 +59,7 @@ struct WorkspaceSelectionViewTests {
         isEmpty: Bool,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+        await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
                 workspaceManager.recentWorkspaces.isEmpty == isEmpty
             }

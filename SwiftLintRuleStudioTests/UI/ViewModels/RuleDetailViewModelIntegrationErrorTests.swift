@@ -6,16 +6,16 @@
 //
 
 import Foundation
-import Testing
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
 
 @MainActor
-struct RuleDetailVMIntegrationErrorTests {
+struct RuleDetailViewModelIntegrationErrorTests {
     @Test("RuleDetailViewModel handles invalid workspace gracefully")
     func testRuleDetailViewModelHandlesInvalidWorkspace() async throws {
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(rule: rule)
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(rule: rule)
 
         try await Task { @MainActor in
             try viewModel.loadConfiguration()
@@ -38,11 +38,11 @@ struct RuleDetailVMIntegrationErrorTests {
             .appendingPathComponent("nonexistent")
             .appendingPathComponent(".swiftlint.yml")
 
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: invalidPath
         )
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )

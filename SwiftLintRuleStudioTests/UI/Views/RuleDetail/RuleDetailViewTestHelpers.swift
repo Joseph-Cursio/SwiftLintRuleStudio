@@ -5,11 +5,11 @@
 //  Helper utilities for RuleDetailView tests
 //
 
-import SwiftUI
-import ViewInspector
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import ViewInspector
 
 enum RuleDetailViewTestHelpers {
     struct ViewResult: @unchecked Sendable {
@@ -23,9 +23,9 @@ enum RuleDetailViewTestHelpers {
     struct StubSwiftLintCLI: SwiftLintCLIProtocol {
         func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
         func executeRulesCommand() throws -> Data { Data() }
-        func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
-        func generateDocsForRule(ruleId: String) throws -> String { "" }
-        func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
+        func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
+        func generateDocsForRule(ruleId _: String) throws -> String { "" }
+        func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
         func getVersion() throws -> String { "0.0.0" }
     }
 

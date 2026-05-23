@@ -5,10 +5,10 @@
 //  Tests for ConfigVersionHistoryService
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ConfigVersionHistoryServiceTests {
 
@@ -47,9 +47,9 @@ struct ConfigVersionHistoryServiceTests {
         defer { cleanup(dir) }
 
         try "rules: {}".write(to: configPath, atomically: true, encoding: .utf8)
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700000000, content: "rules: {}")
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700001000, content: "rules: {}")
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700002000, content: "rules: {}")
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_000_000, content: "rules: {}")
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_001_000, content: "rules: {}")
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_002_000, content: "rules: {}")
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
@@ -81,13 +81,13 @@ struct ConfigVersionHistoryServiceTests {
         defer { cleanup(dir) }
 
         try "rules: {}".write(to: configPath, atomically: true, encoding: .utf8)
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700000000, content: "rules: {}")
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_000_000, content: "rules: {}")
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
 
         let backup = try #require(backups.first, "Expected one backup")
-        #expect(backup.timestamp == Date(timeIntervalSince1970: 1700000000))
+        #expect(backup.timestamp == Date(timeIntervalSince1970: 1_700_000_000))
     }
 
     @Test("Load backup returns content")
@@ -98,7 +98,7 @@ struct ConfigVersionHistoryServiceTests {
 
         let content = "rules:\n  force_cast: true\n"
         try content.write(to: configPath, atomically: true, encoding: .utf8)
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700000000, content: content)
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_000_000, content: content)
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
@@ -117,7 +117,7 @@ struct ConfigVersionHistoryServiceTests {
         let currentContent = "rules:\n  force_cast: true\n"
         let oldContent = "rules:\n  line_length: true\n"
         try currentContent.write(to: configPath, atomically: true, encoding: .utf8)
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700000000, content: oldContent)
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_000_000, content: oldContent)
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)
@@ -144,7 +144,7 @@ struct ConfigVersionHistoryServiceTests {
             try createBackupFile(
                 in: dir,
                 configName: ".swiftlint.yml",
-                timestamp: 1700000000 + (idx * 1000),
+                timestamp: 1_700_000_000 + (idx * 1_000),
                 content: "rules: {}"
             )
         }
@@ -168,8 +168,8 @@ struct ConfigVersionHistoryServiceTests {
         let content1 = "rules:\n  force_cast: true\n"
         let content2 = "rules:\n  force_cast: true\n  line_length: true\n"
         try content1.write(to: configPath, atomically: true, encoding: .utf8)
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700000000, content: content1)
-        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1700001000, content: content2)
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_000_000, content: content1)
+        try createBackupFile(in: dir, configName: ".swiftlint.yml", timestamp: 1_700_001_000, content: content2)
 
         let service = ConfigVersionHistoryService()
         let backups = service.listBackups(for: configPath)

@@ -5,9 +5,9 @@
 //  Component for displaying a violation in a list
 //
 
-import SwiftUI
-import SwiftLintRuleStudioCore
 import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct ViolationListItem: View {
     let violation: Violation

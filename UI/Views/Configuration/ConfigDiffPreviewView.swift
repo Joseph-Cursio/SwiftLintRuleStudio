@@ -5,9 +5,9 @@
 //  View for previewing configuration changes before saving
 //
 
-import SwiftUI
-import SwiftLintRuleStudioCore
 import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct ConfigDiffPreviewView: View {
     let diff: YAMLConfigurationEngine.ConfigDiff

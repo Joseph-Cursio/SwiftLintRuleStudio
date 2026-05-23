@@ -5,8 +5,8 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct RuleBrowserView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry

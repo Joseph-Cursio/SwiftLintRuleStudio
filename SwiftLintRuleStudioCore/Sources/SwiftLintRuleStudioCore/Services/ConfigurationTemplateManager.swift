@@ -5,8 +5,8 @@
 //  Service for managing SwiftLint configuration templates
 //
 
-import Foundation
 import Combine
+import Foundation
 
 /// Represents a configuration template
 public struct ConfigurationTemplate: Identifiable, Codable, Sendable, Equatable, Hashable {
@@ -103,6 +103,24 @@ public protocol ConfigurationTemplateManagerProtocol {
 
     /// Get templates filtered by coding style
     func templates(for codingStyle: ConfigurationTemplate.CodingStyle) -> [ConfigurationTemplate]
+}
+
+/// Errors for template operations
+public enum TemplateError: LocalizedError, Sendable {
+    case cannotDeleteBuiltIn
+    case serializationFailed
+    case templateNotFound
+
+    public var errorDescription: String? {
+        switch self {
+        case .cannotDeleteBuiltIn:
+            return "Cannot delete built-in templates"
+        case .serializationFailed:
+            return "Failed to serialize configuration"
+        case .templateNotFound:
+            return "Template not found"
+        }
+    }
 }
 
 /// Service for managing configuration templates
@@ -204,24 +222,6 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
                 return nil
             }
             return template
-        }
-    }
-}
-
-/// Errors for template operations
-public enum TemplateError: LocalizedError, Sendable {
-    case cannotDeleteBuiltIn
-    case serializationFailed
-    case templateNotFound
-
-    public var errorDescription: String? {
-        switch self {
-        case .cannotDeleteBuiltIn:
-            return "Cannot delete built-in templates"
-        case .serializationFailed:
-            return "Failed to serialize configuration"
-        case .templateNotFound:
-            return "Template not found"
         }
     }
 }

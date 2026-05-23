@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 @MainActor
 struct ConfigurationValidatorTests {

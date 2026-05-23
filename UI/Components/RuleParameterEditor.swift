@@ -5,105 +5,8 @@
 //  Visual editor for rule parameters with typed controls
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
-
-struct RuleParameterEditor: View {
-    let parameters: [RuleParameter]
-    @Binding var values: [String: AnyCodable]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Parameters")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-
-            ForEach(parameters, id: \.name) { param in
-                parameterRow(for: param)
-                if param.name != parameters.last?.name {
-                    Divider()
-                }
-            }
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .clipShape(.rect(cornerRadius: 6))
-    }
-
-    @ViewBuilder
-    private func parameterRow(for param: RuleParameter) -> some View {
-        switch param.type {
-        case .integer:
-            IntegerParameterRow(
-                param: param,
-                value: intBinding(for: param)
-            )
-        case .boolean:
-            BooleanParameterRow(
-                param: param,
-                value: boolBinding(for: param)
-            )
-        case .string:
-            StringParameterRow(
-                param: param,
-                value: stringBinding(for: param)
-            )
-        case .array:
-            ArrayParameterRow(
-                param: param,
-                values: arrayBinding(for: param)
-            )
-        }
-    }
-
-    // MARK: - Bindings
-
-    private func intBinding(for param: RuleParameter) -> Binding<Int> {
-        Binding(
-            get: { RuleParameterValues(values: values).intValue(for: param) },
-            set: { newValue in
-                var resolver = RuleParameterValues(values: values)
-                resolver.setValue(newValue, for: param)
-                values = resolver.values
-            }
-        )
-    }
-
-    private func boolBinding(for param: RuleParameter) -> Binding<Bool> {
-        Binding(
-            get: { RuleParameterValues(values: values).boolValue(for: param) },
-            set: { newValue in
-                var resolver = RuleParameterValues(values: values)
-                resolver.setValue(newValue, for: param)
-                values = resolver.values
-            }
-        )
-    }
-
-    private func stringBinding(for param: RuleParameter) -> Binding<String> {
-        Binding(
-            get: { RuleParameterValues(values: values).stringValue(for: param) },
-            set: { newValue in
-                var resolver = RuleParameterValues(values: values)
-                resolver.setValue(newValue, for: param)
-                values = resolver.values
-            }
-        )
-    }
-
-    private func arrayBinding(for param: RuleParameter) -> Binding<[String]> {
-        Binding(
-            get: { RuleParameterValues(values: values).arrayValue(for: param) },
-            set: { newValue in
-                var resolver = RuleParameterValues(values: values)
-                resolver.setValue(newValue, for: param)
-                values = resolver.values
-            }
-        )
-    }
-}
-
-// MARK: - Parameter Row Views
+import SwiftUI
 
 private struct IntegerParameterRow: View {
     let param: RuleParameter
@@ -144,7 +47,7 @@ private struct IntegerParameterRow: View {
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 70)
 
-                Stepper("", value: $value, in: 1...10000)
+                Stepper("", value: $value, in: 1...10_000)
                     .labelsHidden()
             }
         }
@@ -299,8 +202,6 @@ private struct ArrayParameterRow: View {
     }
 }
 
-// MARK: - Help Popover
-
 private struct HelpPopover: View {
     let text: String
     @State private var isShowing = false
@@ -321,5 +222,100 @@ private struct HelpPopover: View {
                 .padding(8)
                 .frame(maxWidth: 250)
         }
+    }
+}
+
+struct RuleParameterEditor: View {
+    let parameters: [RuleParameter]
+    @Binding var values: [String: AnyCodable]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Parameters")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            ForEach(parameters, id: \.name) { param in
+                parameterRow(for: param)
+                if param.name != parameters.last?.name {
+                    Divider()
+                }
+            }
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .clipShape(.rect(cornerRadius: 6))
+    }
+
+    @ViewBuilder
+    private func parameterRow(for param: RuleParameter) -> some View {
+        switch param.type {
+        case .integer:
+            IntegerParameterRow(
+                param: param,
+                value: intBinding(for: param)
+            )
+        case .boolean:
+            BooleanParameterRow(
+                param: param,
+                value: boolBinding(for: param)
+            )
+        case .string:
+            StringParameterRow(
+                param: param,
+                value: stringBinding(for: param)
+            )
+        case .array:
+            ArrayParameterRow(
+                param: param,
+                values: arrayBinding(for: param)
+            )
+        }
+    }
+
+    // MARK: - Bindings
+
+    private func intBinding(for param: RuleParameter) -> Binding<Int> {
+        Binding(
+            get: { RuleParameterValues(values: values).intValue(for: param) },
+            set: { newValue in
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
+            }
+        )
+    }
+
+    private func boolBinding(for param: RuleParameter) -> Binding<Bool> {
+        Binding(
+            get: { RuleParameterValues(values: values).boolValue(for: param) },
+            set: { newValue in
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
+            }
+        )
+    }
+
+    private func stringBinding(for param: RuleParameter) -> Binding<String> {
+        Binding(
+            get: { RuleParameterValues(values: values).stringValue(for: param) },
+            set: { newValue in
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
+            }
+        )
+    }
+
+    private func arrayBinding(for param: RuleParameter) -> Binding<[String]> {
+        Binding(
+            get: { RuleParameterValues(values: values).arrayValue(for: param) },
+            set: { newValue in
+                var resolver = RuleParameterValues(values: values)
+                resolver.setValue(newValue, for: param)
+                values = resolver.values
+            }
+        )
     }
 }

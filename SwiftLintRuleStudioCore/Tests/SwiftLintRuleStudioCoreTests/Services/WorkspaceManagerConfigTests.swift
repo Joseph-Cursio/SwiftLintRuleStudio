@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct WorkspaceManagerConfigTests {
     @Test("WorkspaceManager checkConfigFileExists clears missing state without workspace")

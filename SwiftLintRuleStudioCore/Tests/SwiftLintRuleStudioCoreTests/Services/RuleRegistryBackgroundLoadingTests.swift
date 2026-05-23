@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 /// Actor that records (index, ruleId) tuples seen by the background-loading update callback.
 private actor UpdateRecorder {
@@ -45,7 +45,7 @@ nonisolated private func makeDetailsBody(ruleId: String) -> String {
 
 /// Build empty markdown docs so populateFromDocs leaves examples empty and we fall through
 /// to populateFromRuleDetails.
-nonisolated private func emptyDocs(forRuleId ruleId: String) -> String { "" }
+nonisolated private func emptyDocs(forRuleId _: String) -> String { "" }
 
 /// Build a batch of N rules suitable for runBackgroundBatches/loadBatch.
 nonisolated private func makeBackgroundBatch(count: Int, startingIndex: Int = 0) -> [RuleRegistry.RuleBackgroundData] {
@@ -74,16 +74,15 @@ struct RuleRegistryBackgroundLoadingTests {
 
         await RuleRegistry.runBackgroundBatches(
             rulesData: rulesData,
-            swiftLintCLI: mockCLI,
-            update: { index, rule in
-                await recorder.append(index, rule.id)
-            }
-        )
+            swiftLintCLI: mockCLI
+        ) { index, rule in
+            await recorder.append(index, rule.id)
+        }
 
         let snapshot = await recorder.snapshot()
         try #require(snapshot.count == 15, "Expected one update per rule")
 
-        let observedIndices = Set(snapshot.map { $0.0 })
+        let observedIndices = Set(snapshot.map(\.0))
         let expectedIndices = Set(100..<115)
         #expect(observedIndices == expectedIndices, "startingIndex offset must be preserved")
 
@@ -117,11 +116,10 @@ struct RuleRegistryBackgroundLoadingTests {
         let work = Task {
             await RuleRegistry.runBackgroundBatches(
                 rulesData: rulesData,
-                swiftLintCLI: mockCLI,
-                update: { index, rule in
-                    await recorder.append(index, rule.id)
-                }
-            )
+                swiftLintCLI: mockCLI
+            ) { index, rule in
+                await recorder.append(index, rule.id)
+            }
         }
 
         // Batch 1 takes ~200ms (10 parallel * 200ms), then 100ms sleep, then batch 2 begins.
@@ -142,11 +140,10 @@ struct RuleRegistryBackgroundLoadingTests {
 
         await RuleRegistry.runBackgroundBatches(
             rulesData: [],
-            swiftLintCLI: mockCLI,
-            update: { index, rule in
-                await recorder.append(index, rule.id)
-            }
-        )
+            swiftLintCLI: mockCLI
+        ) { index, rule in
+            await recorder.append(index, rule.id)
+        }
 
         let count = await recorder.count()
         #expect(count == 0)
@@ -168,11 +165,10 @@ struct RuleRegistryBackgroundLoadingTests {
         let start = ContinuousClock.now
         await RuleRegistry.loadBatch(
             batch,
-            swiftLintCLI: mockCLI,
-            update: { index, rule in
-                await recorder.append(index, rule.id)
-            }
-        )
+            swiftLintCLI: mockCLI
+        ) { index, rule in
+            await recorder.append(index, rule.id)
+        }
         let elapsed = ContinuousClock.now - start
 
         let count = await recorder.count()

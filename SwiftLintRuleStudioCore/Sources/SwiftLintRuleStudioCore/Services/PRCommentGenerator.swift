@@ -5,8 +5,8 @@
 //  Generates markdown PR comments from configuration diffs
 //
 
-import Foundation
 import AppKit
+import Foundation
 
 /// Protocol for generating PR comments from configuration diffs
 public protocol PRCommentGeneratorProtocol {
@@ -45,12 +45,12 @@ public struct PRCommentOptions: Sendable {
         self.customTitle = customTitle
     }
 
-    public static var `default`: PRCommentOptions {
-        PRCommentOptions()
+    public static var `default`: Self {
+        Self()
     }
 
-    public static var minimal: PRCommentOptions {
-        PRCommentOptions(
+    public static var minimal: Self {
+        Self(
             includeHeader: false,
             includeFooter: false,
             includeRuleLinks: false,

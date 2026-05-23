@@ -5,8 +5,8 @@
 //  Row view for a single configuration backup entry
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct BackupRow: View {
     let backup: ConfigBackup

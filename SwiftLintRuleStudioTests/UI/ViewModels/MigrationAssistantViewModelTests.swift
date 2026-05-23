@@ -5,10 +5,58 @@
 //  Tests for MigrationAssistantViewModel state management and service delegation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+@MainActor
+private final class SpyMigrationAssistant: MigrationAssistantProtocol, @unchecked Sendable {
+    private let planToReturn: MigrationPlan
+
+    var detectCallCount = 0
+    var applyCallCount = 0
+
+    init(planToReturn: MigrationPlan = MigrationPlan(fromVersion: "5.0", toVersion: "6.0", steps: [])) {
+        self.planToReturn = planToReturn
+    }
+
+    func detectMigrations(
+        config _: YAMLConfigurationEngine.YAMLConfig,
+        fromVersion _: String,
+        toVersion _: String
+    ) -> MigrationPlan {
+        detectCallCount += 1
+        return planToReturn
+    }
+
+    func applyMigration(_: MigrationPlan, to _: inout YAMLConfigurationEngine.YAMLConfig) {
+        applyCallCount += 1
+    }
+}
+
+private final class SpyMigrationCLI: SwiftLintCLIProtocol, @unchecked Sendable {
+    private let versionToReturn: String
+    private let shouldThrow: Bool
+
+    init(versionToReturn: String = "0.57.0", shouldThrow: Bool = false) {
+        self.versionToReturn = versionToReturn
+        self.shouldThrow = shouldThrow
+    }
+
+    func getVersion() throws -> String {
+        if shouldThrow {
+            throw NSError(domain: "SpyCLI", code: 1, userInfo: [NSLocalizedDescriptionKey: "CLI unavailable"])
+        }
+        return versionToReturn
+    }
+
+    func detectSwiftLintPath() throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
+    func executeRulesCommand() throws -> Data { Data() }
+    func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
+    func generateDocsForRule(ruleId _: String) throws -> String { "" }
+    func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
+}
 
 @MainActor
 struct MigrationAssistantViewModelTests {
@@ -259,54 +307,4 @@ struct MigrationAssistantViewModelTests {
         #expect(viewModel.migrationComplete == false)
         #expect(viewModel.isMigrating == false)
     }
-}
-
-// MARK: - Spies
-
-@MainActor
-private final class SpyMigrationAssistant: MigrationAssistantProtocol, @unchecked Sendable {
-    private let planToReturn: MigrationPlan
-
-    var detectCallCount = 0
-    var applyCallCount = 0
-
-    init(planToReturn: MigrationPlan = MigrationPlan(fromVersion: "5.0", toVersion: "6.0", steps: [])) {
-        self.planToReturn = planToReturn
-    }
-
-    func detectMigrations(
-        config: YAMLConfigurationEngine.YAMLConfig,
-        fromVersion: String,
-        toVersion: String
-    ) -> MigrationPlan {
-        detectCallCount += 1
-        return planToReturn
-    }
-
-    func applyMigration(_ plan: MigrationPlan, to config: inout YAMLConfigurationEngine.YAMLConfig) {
-        applyCallCount += 1
-    }
-}
-
-private final class SpyMigrationCLI: SwiftLintCLIProtocol, @unchecked Sendable {
-    private let versionToReturn: String
-    private let shouldThrow: Bool
-
-    init(versionToReturn: String = "0.57.0", shouldThrow: Bool = false) {
-        self.versionToReturn = versionToReturn
-        self.shouldThrow = shouldThrow
-    }
-
-    func getVersion() throws -> String {
-        if shouldThrow {
-            throw NSError(domain: "SpyCLI", code: 1, userInfo: [NSLocalizedDescriptionKey: "CLI unavailable"])
-        }
-        return versionToReturn
-    }
-
-    func detectSwiftLintPath() throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
-    func executeRulesCommand() throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
-    func generateDocsForRule(ruleId: String) throws -> String { "" }
-    func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
 }

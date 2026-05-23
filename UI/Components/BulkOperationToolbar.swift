@@ -5,8 +5,8 @@
 //  Toolbar shown during multi-select mode for batch rule operations
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct BulkOperationToolbar: View {
     let selectedCount: Int

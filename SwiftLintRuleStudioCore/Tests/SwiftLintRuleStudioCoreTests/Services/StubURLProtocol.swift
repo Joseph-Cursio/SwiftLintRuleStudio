@@ -41,7 +41,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         return observedURLs
     }
 
-    override nonisolated static func canInit(with request: URLRequest) -> Bool { true }
+    override nonisolated static func canInit(with _: URLRequest) -> Bool { true }
     override nonisolated static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override nonisolated init(

@@ -5,11 +5,11 @@
 //  Tests for parameter editing in RuleDetailViewModel
 //
 
-import Testing
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
 struct RuleDetailViewModelParameterTests {

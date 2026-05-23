@@ -5,8 +5,8 @@
 //  Actions for the Rule Audit view: audit execution, enable rules, file counting
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 // MARK: - Audit Execution
 
@@ -69,12 +69,12 @@ extension RuleAuditView {
                 let optInRuleIds = Set(
                     dependencies.ruleRegistry.rules
                         .filter { $0.isOptIn && !$0.isAnalyzer }
-                        .map { $0.id }
+                        .map(\.id)
                 )
                 let analyzerRuleIds = Set(
                     dependencies.ruleRegistry.rules
-                        .filter { $0.isAnalyzer }
-                        .map { $0.id }
+                        .filter(\.isAnalyzer)
+                        .map(\.id)
                 )
 
                 Self.applyEnableRules(
@@ -164,13 +164,13 @@ private extension RuleAuditView {
             if allRules.isEmpty {
                 allRules = try await dependencies.ruleRegistry.loadRules()
             }
-            let optInRuleIds = Set(allRules.filter { $0.isOptIn && !$0.isAnalyzer }.map { $0.id })
-            let analyzerRuleIds = Set(allRules.filter { $0.isAnalyzer }.map { $0.id })
+            let optInRuleIds = Set(allRules.filter { $0.isOptIn && !$0.isAnalyzer }.map(\.id))
+            let analyzerRuleIds = Set(allRules.filter(\.isAnalyzer).map(\.id))
 
             let config = loadConfiguration(for: workspace)
             let disabledRules = allRules.filter { !RuleAuditView.isRuleEnabled($0, config: config) }
             let enabledRules = allRules.filter { RuleAuditView.isRuleEnabled($0, config: config) }
-            let disabledRuleIds = disabledRules.map { $0.id }
+            let disabledRuleIds = disabledRules.map(\.id)
 
             // Count Swift files in workspace
             let swiftFileCount = countSwiftFiles(in: workspace)

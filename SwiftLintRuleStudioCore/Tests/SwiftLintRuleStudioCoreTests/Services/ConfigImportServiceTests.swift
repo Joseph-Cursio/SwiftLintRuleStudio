@@ -5,10 +5,26 @@
 //  Tests for ConfigImportService
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
+
+private final class MockURLConfigFetcher: URLConfigFetcherProtocol, @unchecked Sendable {
+    let yamlContent: String
+
+    init(yamlContent: String) {
+        self.yamlContent = yamlContent
+    }
+
+    func fetchConfig(from _: URL) throws -> String {
+        yamlContent
+    }
+
+    func validateURL(_: URL) -> URLValidationResult {
+        .valid
+    }
+}
 
 @MainActor
 struct ConfigImportServiceTests {
@@ -159,23 +175,5 @@ struct ConfigImportServiceTests {
 
         #expect(preview.diff != nil)
         #expect(preview.diff?.hasChanges == true)
-    }
-}
-
-// MARK: - Mock Fetcher
-
-private final class MockURLConfigFetcher: URLConfigFetcherProtocol, @unchecked Sendable {
-    let yamlContent: String
-
-    init(yamlContent: String) {
-        self.yamlContent = yamlContent
-    }
-
-    func fetchConfig(from url: URL) throws -> String {
-        return yamlContent
-    }
-
-    func validateURL(_ url: URL) -> URLValidationResult {
-        return .valid
     }
 }

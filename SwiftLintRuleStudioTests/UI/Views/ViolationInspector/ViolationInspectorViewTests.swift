@@ -5,12 +5,12 @@
 //  UI tests for ViolationInspectorView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for ViolationInspectorView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -53,7 +53,7 @@ struct ViolationInspectorViewTests {
     // Workaround for Swift 6 strict concurrency: Return ViewResult instead of 'some View'
     @MainActor
     private func createViolationInspectorView(
-        violations: [Violation] = [],
+        violations _: [Violation] = [],
         workspace: Workspace? = nil
     ) -> ViewResult {
         let container = DependencyContainer.createForTesting()

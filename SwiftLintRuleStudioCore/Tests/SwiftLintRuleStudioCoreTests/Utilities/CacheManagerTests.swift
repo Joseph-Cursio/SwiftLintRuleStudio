@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // CacheManager is not @MainActor, but Swift 6 false positive requires it temporarily
 @MainActor

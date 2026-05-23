@@ -9,6 +9,31 @@ import Foundation
 import Observation
 import SwiftLintRuleStudioCore
 
+// MARK: - Supporting Types
+
+struct PendingRuleChanges {
+    let enabled: Bool?
+    let severity: Severity?
+    var parameters: [String: AnyCodable]?
+}
+
+enum RuleConfigurationError: LocalizedError {
+    case noWorkspace
+    case configLoadFailed
+    case saveFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .noWorkspace:
+            return "No workspace is open. Please open a workspace to configure rules."
+        case .configLoadFailed:
+            return "Failed to load configuration file."
+        case .saveFailed:
+            return "Failed to save configuration changes."
+        }
+    }
+}
+
 @MainActor
 @Observable
 class RuleDetailViewModel {
@@ -352,27 +377,3 @@ private extension RuleDetailViewModel {
     }
 }
 
-// MARK: - Supporting Types
-
-struct PendingRuleChanges {
-    let enabled: Bool?
-    let severity: Severity?
-    var parameters: [String: AnyCodable]?
-}
-
-enum RuleConfigurationError: LocalizedError {
-    case noWorkspace
-    case configLoadFailed
-    case saveFailed
-
-    var errorDescription: String? {
-        switch self {
-        case .noWorkspace:
-            return "No workspace is open. Please open a workspace to configure rules."
-        case .configLoadFailed:
-            return "Failed to load configuration file."
-        case .saveFailed:
-            return "Failed to save configuration changes."
-        }
-    }
-}

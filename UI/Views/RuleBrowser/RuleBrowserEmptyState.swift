@@ -5,8 +5,8 @@
 //  Empty state view for the rule browser
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct RuleBrowserEmptyState: View {
     let searchText: String

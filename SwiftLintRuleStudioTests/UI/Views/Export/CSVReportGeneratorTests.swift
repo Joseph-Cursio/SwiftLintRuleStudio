@@ -5,10 +5,10 @@
 //  Tests for CSV report generation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
 
 @MainActor
 @Suite("CSVReportGenerator Tests")

@@ -5,8 +5,8 @@
 //  View for migrating SwiftLint configs between versions
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct MigrationAssistantView: View {
     @State private var viewModel: MigrationAssistantViewModel

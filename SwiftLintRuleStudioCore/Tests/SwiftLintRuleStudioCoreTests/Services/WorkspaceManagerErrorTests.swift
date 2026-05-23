@@ -5,9 +5,9 @@
 //  Error description tests for WorkspaceManager
 //
 
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct WorkspaceManagerErrorTests {
     @Test("WorkspaceError provides descriptions and recovery suggestions")

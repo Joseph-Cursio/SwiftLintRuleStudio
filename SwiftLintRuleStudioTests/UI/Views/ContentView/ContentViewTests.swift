@@ -5,12 +5,12 @@
 //  UI tests for ContentView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for ContentView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -38,8 +38,8 @@ struct ContentViewTests {
     private func createContentView(
         testName: String,
         hasCompletedOnboarding: Bool = false,
-        hasWorkspace: Bool = false,
-        configFileMissing: Bool = false
+        hasWorkspace _: Bool = false,
+        configFileMissing _: Bool = false
     ) -> ViewResult {
         let userDefaults = IsolatedUserDefaults.create(for: testName)
         let onboardingManager = OnboardingManager(userDefaults: userDefaults)

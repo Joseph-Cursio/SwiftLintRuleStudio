@@ -1,8 +1,8 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated static properties
 enum ViewModelFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
@@ -56,7 +56,7 @@ enum ViewModelFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
 
 @Suite("ViolationInspectorViewModel Filtering", .tags(.viewModel))
 @MainActor
-struct VIViewModelFilteringTests {
+struct ViolationInspectorViewModelFilteringTests {
     @Test("ViolationInspectorViewModel filters by search text")
     func testFilterBySearchText() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

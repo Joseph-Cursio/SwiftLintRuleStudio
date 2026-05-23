@@ -5,8 +5,42 @@
 //  View for displaying impact simulation results
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
+
+private struct ViolationRow: View {
+    let violation: Violation
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: violation.severity == .error ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(violation.severity == .error ? .red : .orange)
+                .frame(width: 20)
+                .accessibilityLabel(violation.severity == .error ? "Error" : "Warning")
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(violation.filePath)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+
+                    Text("Line \(violation.line)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(violation.message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 6))
+    }
+}
 
 struct ImpactSimulationView: View {
     let ruleId: String
@@ -151,40 +185,6 @@ struct ImpactSimulationView: View {
                 }
             }
         }
-    }
-}
-
-private struct ViolationRow: View {
-    let violation: Violation
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: violation.severity == .error ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
-                .foregroundStyle(violation.severity == .error ? .red : .orange)
-                .frame(width: 20)
-                .accessibilityLabel(violation.severity == .error ? "Error" : "Warning")
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(violation.filePath)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-
-                    Text("Line \(violation.line)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Text(violation.message)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 6))
     }
 }
 

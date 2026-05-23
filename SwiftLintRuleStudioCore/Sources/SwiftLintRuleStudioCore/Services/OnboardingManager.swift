@@ -26,7 +26,7 @@ public class OnboardingManager {
         case workspaceSelection = 2
         case complete = 3
 
-        var next: OnboardingStep? {
+        var next: Self? {
             switch self {
             case .welcome:
                 return .swiftLintCheck
@@ -39,7 +39,7 @@ public class OnboardingManager {
             }
         }
 
-        var previous: OnboardingStep? {
+        var previous: Self? {
             switch self {
             case .welcome:
                 return nil

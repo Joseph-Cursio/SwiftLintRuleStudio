@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension RuleDetailView {
     private func convertDocumentationToPlainText(markdown: String) -> String {
@@ -144,7 +144,8 @@ extension RuleDetailView {
             let heading = trimmed.lowercased()
             if heading.contains("rationale") || heading.contains("why") {
                 return (true, true)
-            } else if skipRationale {
+            }
+            if skipRationale {
                 return (false, false)
             }
         }

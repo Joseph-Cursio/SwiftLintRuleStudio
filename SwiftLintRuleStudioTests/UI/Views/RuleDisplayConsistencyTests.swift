@@ -5,12 +5,12 @@
 //  Created for testing display inconsistencies between list and detail views
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests to identify display inconsistencies between RuleListItem and RuleDetailView
 //
@@ -72,9 +72,9 @@ struct RuleDisplayConsistencyTests {
 
         // Inspect the view to find the enabled label
         let hasEnabledLabel = await MainActor.run {
-            (try? view.inspect().find(ViewType.Text.self, where: { view in
+            (try? view.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
-            })) != nil
+            }) != nil
         }
         #expect(hasEnabledLabel == true, "RuleListItem should show 'Enabled' label for enabled rules")
     }
@@ -88,9 +88,9 @@ struct RuleDisplayConsistencyTests {
 
         // Try to find the enabled label - it should not exist
         let foundEnabled = await MainActor.run {
-            (try? view.inspect().find(ViewType.Text.self, where: { view in
+            (try? view.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
-            })) != nil
+            }) != nil
         }
         #expect(foundEnabled == false, "RuleListItem should not show 'Enabled' label for disabled rules")
     }
@@ -103,9 +103,9 @@ struct RuleDisplayConsistencyTests {
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasEnabledLabel = await MainActor.run {
             let view = createRuleDetailView(rule: enabledRule)
-            return (try? view.inspect().find(ViewType.Text.self, where: { view in
+            return (try? view.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
-            })) != nil
+            }) != nil
         }
         #expect(hasEnabledLabel == true, "RuleDetailView should show 'Enabled' label for enabled rules")
     }
@@ -136,13 +136,13 @@ struct RuleDisplayConsistencyTests {
             let listView = RuleListItem(rule: enabledRule)
             let detailView = createRuleDetailViewSync(rule: enabledRule)
 
-            let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self, where: { view in
+            let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
-            })) != nil
+            }) != nil
 
-            let detailShowsEnabled = (try? detailView.inspect().find(ViewType.Text.self, where: { view in
+            let detailShowsEnabled = (try? detailView.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
-            })) != nil
+            }) != nil
 
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
             let toggleIsOn = try toggle.isOn()
@@ -165,9 +165,9 @@ struct RuleDisplayConsistencyTests {
             let listView = RuleListItem(rule: disabledRule)
             let detailView = createRuleDetailViewSync(rule: disabledRule)
 
-            let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self, where: { view in
+            let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
-            })) != nil
+            }) != nil
 
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
             let toggleIsOn = try toggle.isOn()
@@ -241,9 +241,9 @@ struct RuleDisplayConsistencyTests {
 
     private func findEnabledLabel(in view: InspectableView<ViewType.View<RuleListItem>>) -> Bool {
         do {
-            _ = try view.find(ViewType.Text.self, where: { textView in
+            _ = try view.find(ViewType.Text.self) { textView in
                 try textView.string() == "Enabled"
-            })
+            }
             return true
         } catch {
             return false

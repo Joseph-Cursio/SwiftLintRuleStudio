@@ -1,8 +1,8 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
@@ -117,10 +117,9 @@ struct WorkspaceManagerIntegrationWorkflowTests {
     }
 
     private func createInMemoryStorage() async throws -> ViolationStorageActor {
-        let storage = try await Task.detached {
+        try await Task.detached {
             try await ViolationStorageActor(useInMemory: true)
         }.value
-        return storage
     }
 
     private func configureMockViolations(mockCLI: MockSwiftLintCLIActor) async {
@@ -149,7 +148,7 @@ struct WorkspaceManagerIntegrationWorkflowTests {
         storage: ViolationStorageActor,
         mockCLI: MockSwiftLintCLIActor
     ) async -> WorkspaceAnalyzer {
-        return await MainActor.run {
+        await MainActor.run {
             WorkspaceAnalyzer(
                 swiftLintCLI: mockCLI,
                 violationStorage: storage,

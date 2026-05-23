@@ -5,9 +5,9 @@
 //  SQL error tests for ViolationStorageActor
 //
 
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ViolationStorageSQLTests {
     @Test("ViolationStorageActor executeSQL throws when database is closed")

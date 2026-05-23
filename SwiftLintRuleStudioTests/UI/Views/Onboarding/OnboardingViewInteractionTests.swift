@@ -5,13 +5,13 @@
 //  Interaction tests for OnboardingView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Interaction tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -31,7 +31,7 @@ struct OnboardingViewInteractionTests {
         testName: String,
         step: OnboardingManager.OnboardingStep = .welcome
     ) async -> OnboardingViewResult {
-        return await MainActor.run {
+        await MainActor.run {
             let userDefaults = IsolatedUserDefaults.create(for: testName)
             let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             onboardingManager.currentStep = step
@@ -94,7 +94,7 @@ struct OnboardingViewInteractionTests {
         text: String,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForText(
+        await UIAsyncTestHelpers.waitForText(
             in: view,
             text: text,
             timeout: timeoutSeconds

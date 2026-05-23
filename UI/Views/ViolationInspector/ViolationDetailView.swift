@@ -5,8 +5,8 @@
 //  Detailed view of a single violation
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct ViolationDetailView: View {
     let violation: Violation
@@ -84,7 +84,7 @@ struct ViolationDetailView: View {
         reason: Binding<String>,
         onSuppress: @escaping (String) -> Void
     ) -> some View {
-        SuppressViolationDialog(reason: reason, onSuppress: onSuppress, onCancel: {})
+        SuppressViolationDialog(reason: reason, onSuppress: onSuppress) {}
     }
 
     /// Test-only alias kept for existing interaction tests.

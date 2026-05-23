@@ -5,10 +5,61 @@
 //  Tests for GitBranchDiffViewModel state management and service delegation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+private final class SpyGitBranchDiffService: GitBranchDiffServiceProtocol, @unchecked Sendable {
+    private let refsToReturn: GitRefs?
+    private let comparisonResultToReturn: ConfigComparisonResult?
+    private let errorToThrow: Error?
+    private let compareErrorToThrow: Error?
+
+    var listRefsCallCount = 0
+    var compareCallCount = 0
+    var lastComparedBranch: String?
+    var lastCompareConfigPath: String?
+
+    init(
+        refsToReturn: GitRefs? = nil,
+        comparisonResultToReturn: ConfigComparisonResult? = nil,
+        errorToThrow: Error? = nil,
+        compareErrorToThrow: Error? = nil
+    ) {
+        self.refsToReturn = refsToReturn
+        self.comparisonResultToReturn = comparisonResultToReturn
+        self.errorToThrow = errorToThrow
+        self.compareErrorToThrow = compareErrorToThrow
+    }
+
+    func listAvailableRefs(at _: URL) throws -> GitRefs {
+        listRefsCallCount += 1
+        if let error = errorToThrow {
+            throw error
+        }
+        return refsToReturn ?? GitRefs(currentBranch: "main", branches: ["main"], tags: [])
+    }
+
+    func compareConfigWithBranch(
+        repoPath _: URL,
+        branch: String,
+        configRelativePath: String
+    ) throws -> ConfigComparisonResult {
+        compareCallCount += 1
+        lastComparedBranch = branch
+        lastCompareConfigPath = configRelativePath
+        if let error = compareErrorToThrow {
+            throw error
+        }
+        return comparisonResultToReturn ?? ConfigComparisonResult(
+            onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
+            diff: YAMLConfigurationEngine.ConfigDiff(
+                addedRules: [], removedRules: [], modifiedRules: [], before: "", after: ""
+            )
+        )
+    }
+}
 
 @MainActor
 struct GitBranchDiffViewModelTests {
@@ -191,58 +242,5 @@ struct GitBranchDiffViewModelTests {
         #expect(viewModel.error != nil)
         #expect(viewModel.comparisonResult == nil)
         #expect(viewModel.isLoading == false)
-    }
-}
-
-// MARK: - Spy
-
-private final class SpyGitBranchDiffService: GitBranchDiffServiceProtocol, @unchecked Sendable {
-    private let refsToReturn: GitRefs?
-    private let comparisonResultToReturn: ConfigComparisonResult?
-    private let errorToThrow: Error?
-    private let compareErrorToThrow: Error?
-
-    var listRefsCallCount = 0
-    var compareCallCount = 0
-    var lastComparedBranch: String?
-    var lastCompareConfigPath: String?
-
-    init(
-        refsToReturn: GitRefs? = nil,
-        comparisonResultToReturn: ConfigComparisonResult? = nil,
-        errorToThrow: Error? = nil,
-        compareErrorToThrow: Error? = nil
-    ) {
-        self.refsToReturn = refsToReturn
-        self.comparisonResultToReturn = comparisonResultToReturn
-        self.errorToThrow = errorToThrow
-        self.compareErrorToThrow = compareErrorToThrow
-    }
-
-    func listAvailableRefs(at repoPath: URL) throws -> GitRefs {
-        listRefsCallCount += 1
-        if let error = errorToThrow {
-            throw error
-        }
-        return refsToReturn ?? GitRefs(currentBranch: "main", branches: ["main"], tags: [])
-    }
-
-    func compareConfigWithBranch(
-        repoPath: URL,
-        branch: String,
-        configRelativePath: String
-    ) throws -> ConfigComparisonResult {
-        compareCallCount += 1
-        lastComparedBranch = branch
-        lastCompareConfigPath = configRelativePath
-        if let error = compareErrorToThrow {
-            throw error
-        }
-        return comparisonResultToReturn ?? ConfigComparisonResult(
-            onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
-            diff: YAMLConfigurationEngine.ConfigDiff(
-                addedRules: [], removedRules: [], modifiedRules: [], before: "", after: ""
-            )
-        )
     }
 }

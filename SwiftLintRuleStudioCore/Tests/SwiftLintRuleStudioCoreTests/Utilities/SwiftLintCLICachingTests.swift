@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // CacheManager is not @MainActor, but Swift 6 has a false positive that incorrectly infers @MainActor
 // Temporarily using @MainActor on the test struct as a workaround (same as CacheManagerTests)
@@ -27,12 +27,11 @@ struct SwiftLintCLICachingTests {
 
     // Helper to create mock SwiftLint CLI that simulates version
     private func createMockCLIWithVersion(
-        _ version: String, cacheManager: CacheManagerProtocol
+        _: String, cacheManager _: CacheManagerProtocol
     ) -> MockSwiftLintCLIActor {
-        let mockCLI = MockSwiftLintCLIActor()
         // Override getVersion to return specific version
         // Note: This requires modifying MockSwiftLintCLIActor or using a different approach
-        return mockCLI
+        MockSwiftLintCLIActor()
     }
 
     @Test("generateDocsForRule saves version to cache after generation")

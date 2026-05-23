@@ -1,7 +1,7 @@
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 /// Regression tests for the SwiftAssist scenario: a `.swiftlint.yml` that
 /// already has analyzer_rules + disabled_rules + opt_in_rules in a specific
@@ -89,9 +89,10 @@ struct YAMLConfigEngineKeyOrderTests {
             analyzerRules == ["capture_variable", "unused_declaration", "unused_import"],
             "Analyzer rules should be untouched, got: \(analyzerRules.sorted())"
         )
+        let overlap = optInRules.intersection(analyzerRules)
         #expect(
             optInRules.isDisjoint(with: analyzerRules),
-            "Analyzer rules should not be duplicated into opt_in_rules, overlap: \(optInRules.intersection(analyzerRules))"
+            "Analyzer rules should not be duplicated into opt_in_rules, overlap: \(overlap)"
         )
     }
 

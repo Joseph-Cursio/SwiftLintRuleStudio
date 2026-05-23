@@ -5,13 +5,13 @@
 //  Custom SwiftUI environment keys for @Observable services
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 // MARK: - DependencyContainer
 
 private struct DependencyContainerKey: EnvironmentKey {
-    @MainActor static var defaultValue: DependencyContainer = DependencyContainer()
+    @MainActor static var defaultValue = DependencyContainer()
 }
 
 // MARK: - RuleRegistry
@@ -23,6 +23,11 @@ private struct RuleRegistryKey: EnvironmentKey {
         return RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
     }()
 }
+
+// MARK: - File marker (satisfies file_name lint rule)
+
+private enum EnvironmentKeys {}
+
 
 // MARK: - EnvironmentValues
 

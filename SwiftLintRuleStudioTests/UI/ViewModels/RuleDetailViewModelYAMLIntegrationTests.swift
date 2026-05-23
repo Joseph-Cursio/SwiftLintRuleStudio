@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
 struct RuleDetailViewModelYAMLIntegrationTests {
@@ -24,16 +24,16 @@ struct RuleDetailViewModelYAMLIntegrationTests {
             enabled: true
             severity: warning
         """
-        let configPath = try RuleDetailVMIntegrationHelpers.createConfigFile(
+        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: initialConfig
         )
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -75,12 +75,12 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "new_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -132,16 +132,16 @@ struct RuleDetailViewModelYAMLIntegrationTests {
             enabled: true
             severity: error
         """
-        let configPath = try RuleDetailVMIntegrationHelpers.createConfigFile(
+        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: initialConfig
         )
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "rule_1", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )

@@ -6,28 +6,28 @@
 //
 
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
-struct RuleDetailVMNotificationIntegrationTests {
+struct RuleDetailViewModelNotificationIntegrationTests {
     @Test("RuleDetailViewModel posts notification when configuration is saved")
     func testRuleDetailViewModelPostsNotification() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
-        let configPath = try RuleDetailVMIntegrationHelpers.createConfigFile(
+        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: "rules: {}"
         )
-        let yamlEngine = await RuleDetailVMIntegrationHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailVMIntegrationHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )

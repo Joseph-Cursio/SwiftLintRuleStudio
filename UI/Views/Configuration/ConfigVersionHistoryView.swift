@@ -5,8 +5,8 @@
 //  Timeline view for browsing and restoring configuration version history
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct ConfigVersionHistoryView: View {
     @State private var viewModel: ConfigVersionHistoryViewModel

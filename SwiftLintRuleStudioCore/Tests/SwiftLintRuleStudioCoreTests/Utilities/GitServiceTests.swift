@@ -5,10 +5,10 @@
 //  Tests for GitServiceActor
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 @MainActor
 struct GitServiceTests {

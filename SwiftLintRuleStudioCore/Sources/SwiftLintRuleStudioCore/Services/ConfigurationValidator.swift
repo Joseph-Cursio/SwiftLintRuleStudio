@@ -80,8 +80,8 @@ public struct ValidationResult: Sendable {
         }
     }
 
-    public static var valid: ValidationResult {
-        ValidationResult(isValid: true, errors: [], warnings: [])
+    public static var valid: Self {
+        Self(isValid: true, errors: [], warnings: [])
     }
 }
 
@@ -205,7 +205,7 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
         ruleId: String,
         paramName: String,
         paramValue: AnyCodable,
-        errors: inout [ValidationResult.ValidationError],
+        errors _: inout [ValidationResult.ValidationError],
         warnings: inout [ValidationResult.ValidationWarning]
     ) {
         // Check for common parameter issues
@@ -258,7 +258,7 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
         _ ruleIds: [String]?,
         fieldType: ValidationResult.ConfigField,
         knownRuleIds: Set<String>,
-        errors: inout [ValidationResult.ValidationError],
+        errors _: inout [ValidationResult.ValidationError],
         warnings: inout [ValidationResult.ValidationWarning]
     ) {
         guard let ruleIds = ruleIds, !knownRuleIds.isEmpty else { return }

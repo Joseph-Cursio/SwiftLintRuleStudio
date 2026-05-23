@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 enum TestGuard {
     static var isRunningTests: Bool {

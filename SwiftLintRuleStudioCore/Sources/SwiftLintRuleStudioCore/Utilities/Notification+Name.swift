@@ -7,6 +7,8 @@
 
 import Foundation
 
+extension Notification {}
+
 public extension Notification.Name {
     /// Posted when a rule configuration is saved
     static let ruleConfigurationDidChange = Notification.Name("ruleConfigurationDidChange")

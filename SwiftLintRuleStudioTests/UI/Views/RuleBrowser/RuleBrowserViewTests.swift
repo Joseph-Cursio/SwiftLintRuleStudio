@@ -5,12 +5,12 @@
 //  UI tests for RuleBrowserView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for RuleBrowserView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests

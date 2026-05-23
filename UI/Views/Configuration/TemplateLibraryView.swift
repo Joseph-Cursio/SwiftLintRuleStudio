@@ -5,174 +5,8 @@
 //  View for browsing and selecting configuration templates
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
-
-/// Main view for browsing the template library
-private struct TemplateLibraryView: View {
-    @State private var selectedProjectType: ConfigurationTemplate.ProjectType?
-    @State private var selectedCodingStyle: ConfigurationTemplate.CodingStyle?
-    @State private var searchText = ""
-    @State private var selectedTemplate: ConfigurationTemplate?
-
-    let onTemplateSelected: ((ConfigurationTemplate) -> Void)?
-    let templateManager: ConfigurationTemplateManager
-
-    init(
-        templateManager: ConfigurationTemplateManager = ConfigurationTemplateManager(),
-        onTemplateSelected: ((ConfigurationTemplate) -> Void)? = nil
-    ) {
-        self.templateManager = templateManager
-        self.onTemplateSelected = onTemplateSelected
-    }
-
-    var body: some View {
-        NavigationSplitView {
-            sidebarView
-        } content: {
-            templateListView
-        } detail: {
-            detailView
-        }
-        .navigationTitle("Template Library")
-    }
-
-    @ViewBuilder
-    private var sidebarView: some View {
-        List(selection: $selectedProjectType) {
-            projectTypeSection
-            codingStyleSection
-        }
-        .listStyle(.sidebar)
-        .navigationSplitViewColumnWidth(min: 180, ideal: 220)
-    }
-
-    @ViewBuilder
-    private var projectTypeSection: some View {
-        SwiftUI.Section("Project Type") {
-            Text("All Projects")
-                .tag(nil as ConfigurationTemplate.ProjectType?)
-
-            ForEach(ConfigurationTemplate.ProjectType.allCases, id: \.self) { projectType in
-                Label(projectType.rawValue, systemImage: projectType.icon)
-                    .tag(projectType as ConfigurationTemplate.ProjectType?)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var codingStyleSection: some View {
-        SwiftUI.Section("Coding Style") {
-            ForEach(ConfigurationTemplate.CodingStyle.allCases, id: \.self) { style in
-                codingStyleButton(for: style)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func codingStyleButton(for style: ConfigurationTemplate.CodingStyle) -> some View {
-        Button {
-            if selectedCodingStyle == style {
-                selectedCodingStyle = nil
-            } else {
-                selectedCodingStyle = style
-            }
-        } label: {
-            HStack {
-                Text(style.rawValue)
-                Spacer()
-                if selectedCodingStyle == style {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.tint)
-                        .accessibilityLabel("Selected")
-                }
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private var templateListView: some View {
-        List(selection: $selectedTemplate) {
-            if !filteredBuiltInTemplates.isEmpty {
-                SwiftUI.Section("Built-in Templates") {
-                    ForEach(filteredBuiltInTemplates) { template in
-                        TemplateListRow(template: template)
-                            .tag(template)
-                    }
-                }
-            }
-
-            if !filteredUserTemplates.isEmpty {
-                SwiftUI.Section("Your Templates") {
-                    ForEach(filteredUserTemplates) { template in
-                        TemplateListRow(template: template)
-                            .tag(template)
-                    }
-                }
-            }
-        }
-        .listStyle(.inset)
-        .searchable(text: $searchText, prompt: "Search templates")
-        .navigationSplitViewColumnWidth(min: 250, ideal: 300)
-        .overlay {
-            if filteredBuiltInTemplates.isEmpty && filteredUserTemplates.isEmpty {
-                ContentUnavailableView(
-                    "No Templates",
-                    systemImage: "doc.text",
-                    description: Text("No templates match your filters")
-                )
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var detailView: some View {
-        if let template = selectedTemplate {
-            TemplateDetailView(
-                template: template,
-                onApply: onTemplateSelected
-            )
-        } else {
-            ContentUnavailableView(
-                "Select a Template",
-                systemImage: "doc.text",
-                description: Text("Choose a template to see its details")
-            )
-        }
-    }
-
-    private var filteredBuiltInTemplates: [ConfigurationTemplate] {
-        filterTemplates(templateManager.builtInTemplates)
-    }
-
-    private var filteredUserTemplates: [ConfigurationTemplate] {
-        filterTemplates(templateManager.userTemplates)
-    }
-
-    private func filterTemplates(_ templates: [ConfigurationTemplate]) -> [ConfigurationTemplate] {
-        templates.filter { template in
-            // Project type filter
-            if let projectType = selectedProjectType, template.projectType != projectType {
-                return false
-            }
-
-            // Coding style filter
-            if let codingStyle = selectedCodingStyle, template.codingStyle != codingStyle {
-                return false
-            }
-
-            // Search filter
-            if !searchText.isEmpty {
-                let searchLower = searchText.lowercased()
-                return template.name.lowercased().contains(searchLower) ||
-                    template.description.lowercased().contains(searchLower)
-            }
-
-            return true
-        }
-    }
-}
+import SwiftUI
 
 /// Row view for a single template in the list
 private struct TemplateListRow: View {
@@ -347,6 +181,172 @@ private struct TemplateDetailView: View {
     }
 }
 
+/// Main view for browsing the template library
+private struct TemplateLibraryView: View {
+    @State private var selectedProjectType: ConfigurationTemplate.ProjectType?
+    @State private var selectedCodingStyle: ConfigurationTemplate.CodingStyle?
+    @State private var searchText = ""
+    @State private var selectedTemplate: ConfigurationTemplate?
+
+    let onTemplateSelected: ((ConfigurationTemplate) -> Void)?
+    let templateManager: ConfigurationTemplateManager
+
+    init(
+        templateManager: ConfigurationTemplateManager = ConfigurationTemplateManager(),
+        onTemplateSelected: ((ConfigurationTemplate) -> Void)? = nil
+    ) {
+        self.templateManager = templateManager
+        self.onTemplateSelected = onTemplateSelected
+    }
+
+    var body: some View {
+        NavigationSplitView {
+            sidebarView
+        } content: {
+            templateListView
+        } detail: {
+            detailView
+        }
+        .navigationTitle("Template Library")
+    }
+
+    @ViewBuilder
+    private var sidebarView: some View {
+        List(selection: $selectedProjectType) {
+            projectTypeSection
+            codingStyleSection
+        }
+        .listStyle(.sidebar)
+        .navigationSplitViewColumnWidth(min: 180, ideal: 220)
+    }
+
+    @ViewBuilder
+    private var projectTypeSection: some View {
+        SwiftUI.Section("Project Type") {
+            Text("All Projects")
+                .tag(nil as ConfigurationTemplate.ProjectType?)
+
+            ForEach(ConfigurationTemplate.ProjectType.allCases, id: \.self) { projectType in
+                Label(projectType.rawValue, systemImage: projectType.icon)
+                    .tag(projectType as ConfigurationTemplate.ProjectType?)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var codingStyleSection: some View {
+        SwiftUI.Section("Coding Style") {
+            ForEach(ConfigurationTemplate.CodingStyle.allCases, id: \.self) { style in
+                codingStyleButton(for: style)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func codingStyleButton(for style: ConfigurationTemplate.CodingStyle) -> some View {
+        Button {
+            if selectedCodingStyle == style {
+                selectedCodingStyle = nil
+            } else {
+                selectedCodingStyle = style
+            }
+        } label: {
+            HStack {
+                Text(style.rawValue)
+                Spacer()
+                if selectedCodingStyle == style {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.tint)
+                        .accessibilityLabel("Selected")
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var templateListView: some View {
+        List(selection: $selectedTemplate) {
+            if !filteredBuiltInTemplates.isEmpty {
+                SwiftUI.Section("Built-in Templates") {
+                    ForEach(filteredBuiltInTemplates) { template in
+                        TemplateListRow(template: template)
+                            .tag(template)
+                    }
+                }
+            }
+
+            if !filteredUserTemplates.isEmpty {
+                SwiftUI.Section("Your Templates") {
+                    ForEach(filteredUserTemplates) { template in
+                        TemplateListRow(template: template)
+                            .tag(template)
+                    }
+                }
+            }
+        }
+        .listStyle(.inset)
+        .searchable(text: $searchText, prompt: "Search templates")
+        .navigationSplitViewColumnWidth(min: 250, ideal: 300)
+        .overlay {
+            if filteredBuiltInTemplates.isEmpty && filteredUserTemplates.isEmpty {
+                ContentUnavailableView(
+                    "No Templates",
+                    systemImage: "doc.text",
+                    description: Text("No templates match your filters")
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var detailView: some View {
+        if let template = selectedTemplate {
+            TemplateDetailView(
+                template: template,
+                onApply: onTemplateSelected
+            )
+        } else {
+            ContentUnavailableView(
+                "Select a Template",
+                systemImage: "doc.text",
+                description: Text("Choose a template to see its details")
+            )
+        }
+    }
+
+    private var filteredBuiltInTemplates: [ConfigurationTemplate] {
+        filterTemplates(templateManager.builtInTemplates)
+    }
+
+    private var filteredUserTemplates: [ConfigurationTemplate] {
+        filterTemplates(templateManager.userTemplates)
+    }
+
+    private func filterTemplates(_ templates: [ConfigurationTemplate]) -> [ConfigurationTemplate] {
+        templates.filter { template in
+            // Project type filter
+            if let projectType = selectedProjectType, template.projectType != projectType {
+                return false
+            }
+
+            // Coding style filter
+            if let codingStyle = selectedCodingStyle, template.codingStyle != codingStyle {
+                return false
+            }
+
+            // Search filter
+            if !searchText.isEmpty {
+                let searchLower = searchText.lowercased()
+                return template.name.lowercased().contains(searchLower) ||
+                    template.description.lowercased().contains(searchLower)
+            }
+
+            return true
+        }
+    }
+}
+
 #Preview("Template Library") {
     TemplateLibraryView { _ in
     }
@@ -355,8 +355,7 @@ private struct TemplateDetailView: View {
 
 #Preview("Template Detail") {
     TemplateDetailView(
-        template: BuiltInTemplates.iOSStrict,
-        onApply: { _ in }
-    )
+        template: BuiltInTemplates.iOSStrict
+    ) { _ in }
     .frame(width: 500, height: 600)
 }

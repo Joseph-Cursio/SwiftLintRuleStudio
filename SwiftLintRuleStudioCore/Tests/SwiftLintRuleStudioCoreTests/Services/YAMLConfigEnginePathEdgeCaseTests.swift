@@ -1,7 +1,7 @@
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct YAMLConfigEnginePathEdgeCaseTests {
     @Test("YAMLConfigurationEngine handles multiple included paths")

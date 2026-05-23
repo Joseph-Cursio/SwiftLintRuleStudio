@@ -7,72 +7,6 @@
 
 import Foundation
 
-/// Represents a SwiftLint rule with all its metadata
-public struct Rule: Identifiable, Codable, Hashable, Sendable {
-    public let id: String // rule identifier (e.g., "force_cast")
-    public let name: String
-    public let description: String
-    public let category: RuleCategory
-    public let isOptIn: Bool
-    public let isAnalyzer: Bool
-    public var severity: Severity?
-    public let parameters: [RuleParameter]?
-    public let triggeringExamples: [String]
-    public let nonTriggeringExamples: [String]
-    public let documentation: URL?
-
-    // Configuration state (not from SwiftLint, managed by app)
-    public var isEnabled: Bool = false
-    public var configuredSeverity: Severity?
-    public var configuredParameters: [String: AnyCodable]?
-
-    // Additional metadata from generate-docs
-    public var supportsAutocorrection: Bool = false
-    public var minimumSwiftVersion: String?
-    public var defaultSeverity: Severity?
-    public var markdownDocumentation: String?
-
-    nonisolated public init(
-        id: String,
-        name: String,
-        description: String,
-        category: RuleCategory,
-        isOptIn: Bool,
-        isAnalyzer: Bool = false,
-        severity: Severity? = nil,
-        parameters: [RuleParameter]? = nil,
-        triggeringExamples: [String] = [],
-        nonTriggeringExamples: [String] = [],
-        documentation: URL? = nil,
-        isEnabled: Bool = false,
-        configuredSeverity: Severity? = nil,
-        configuredParameters: [String: AnyCodable]? = nil,
-        supportsAutocorrection: Bool = false,
-        minimumSwiftVersion: String? = nil,
-        defaultSeverity: Severity? = nil,
-        markdownDocumentation: String? = nil
-    ) {
-        self.id = id
-        self.name = name
-        self.description = description
-        self.category = category
-        self.isOptIn = isOptIn
-        self.isAnalyzer = isAnalyzer
-        self.severity = severity
-        self.parameters = parameters
-        self.triggeringExamples = triggeringExamples
-        self.nonTriggeringExamples = nonTriggeringExamples
-        self.documentation = documentation
-        self.isEnabled = isEnabled
-        self.configuredSeverity = configuredSeverity
-        self.configuredParameters = configuredParameters
-        self.supportsAutocorrection = supportsAutocorrection
-        self.minimumSwiftVersion = minimumSwiftVersion
-        self.defaultSeverity = defaultSeverity
-        self.markdownDocumentation = markdownDocumentation
-    }
-}
-
 /// Categories of SwiftLint rules
 public enum RuleCategory: String, Codable, CaseIterable, Identifiable, Sendable {
     case style
@@ -143,8 +77,8 @@ public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
             value = string
         } else if let bool = try? container.decode(Bool.self) {
             value = bool
-        } else if let array = try? container.decode([AnyCodable].self) {
-            value = array.map { $0.value }
+        } else if let array = try? container.decode([Self].self) {
+            value = array.map(\.value)
         } else {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported type")
         }
@@ -160,7 +94,7 @@ public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
         case let bool as Bool:
             try container.encode(bool)
         case let array as [Any]:
-            try container.encode(array.map { AnyCodable($0) })
+            try container.encode(array.map { Self($0) })
         default:
             let context = EncodingError.Context(
                 codingPath: [],
@@ -170,11 +104,77 @@ public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
         }
     }
 
-    public static func == (lhs: AnyCodable, rhs: AnyCodable) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         String(describing: lhs.value) == String(describing: rhs.value)
     }
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(String(describing: value))
+    }
+}
+
+/// Represents a SwiftLint rule with all its metadata
+public struct Rule: Identifiable, Codable, Hashable, Sendable {
+    public let id: String // rule identifier (e.g., "force_cast")
+    public let name: String
+    public let description: String
+    public let category: RuleCategory
+    public let isOptIn: Bool
+    public let isAnalyzer: Bool
+    public var severity: Severity?
+    public let parameters: [RuleParameter]?
+    public let triggeringExamples: [String]
+    public let nonTriggeringExamples: [String]
+    public let documentation: URL?
+
+    // Configuration state (not from SwiftLint, managed by app)
+    public var isEnabled: Bool = false
+    public var configuredSeverity: Severity?
+    public var configuredParameters: [String: AnyCodable]?
+
+    // Additional metadata from generate-docs
+    public var supportsAutocorrection: Bool = false
+    public var minimumSwiftVersion: String?
+    public var defaultSeverity: Severity?
+    public var markdownDocumentation: String?
+
+    nonisolated public init(
+        id: String,
+        name: String,
+        description: String,
+        category: RuleCategory,
+        isOptIn: Bool,
+        isAnalyzer: Bool = false,
+        severity: Severity? = nil,
+        parameters: [RuleParameter]? = nil,
+        triggeringExamples: [String] = [],
+        nonTriggeringExamples: [String] = [],
+        documentation: URL? = nil,
+        isEnabled: Bool = false,
+        configuredSeverity: Severity? = nil,
+        configuredParameters: [String: AnyCodable]? = nil,
+        supportsAutocorrection: Bool = false,
+        minimumSwiftVersion: String? = nil,
+        defaultSeverity: Severity? = nil,
+        markdownDocumentation: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.category = category
+        self.isOptIn = isOptIn
+        self.isAnalyzer = isAnalyzer
+        self.severity = severity
+        self.parameters = parameters
+        self.triggeringExamples = triggeringExamples
+        self.nonTriggeringExamples = nonTriggeringExamples
+        self.documentation = documentation
+        self.isEnabled = isEnabled
+        self.configuredSeverity = configuredSeverity
+        self.configuredParameters = configuredParameters
+        self.supportsAutocorrection = supportsAutocorrection
+        self.minimumSwiftVersion = minimumSwiftVersion
+        self.defaultSeverity = defaultSeverity
+        self.markdownDocumentation = markdownDocumentation
     }
 }

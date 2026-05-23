@@ -7,6 +7,19 @@
 
 import Foundation
 
+// MARK: - Errors
+
+public enum FileTrackerError: LocalizedError, Sendable {
+    case cannotReadFile(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .cannotReadFile(let path):
+            return "Cannot read file attributes: \(path)"
+        }
+    }
+}
+
 /// Tracks file modification times to enable incremental analysis
 public class FileTracker {
 
@@ -45,7 +58,7 @@ public class FileTracker {
 
     /// Get metadata for a file path
     public func getMetadata(for filePath: String) -> FileMetadata? {
-        return trackedFiles[filePath]
+        trackedFiles[filePath]
     }
 
     /// Check if a file has changed since last tracking
@@ -97,7 +110,7 @@ public class FileTracker {
 
     /// Get all changed files from a list
     public func getChangedFiles(from filePaths: [String]) -> [String] {
-        return filePaths.filter { hasFileChanged($0) }
+        filePaths.filter { hasFileChanged($0) }
     }
 
     /// Clear all tracking
@@ -108,7 +121,7 @@ public class FileTracker {
 
     /// Get all tracked file paths
     public func getAllTrackedPaths() -> [String] {
-        return Array(trackedFiles.keys)
+        Array(trackedFiles.keys)
     }
 
     // MARK: - Cache Management
@@ -134,19 +147,6 @@ public class FileTracker {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         if let data = try? encoder.encode(trackedFiles) {
             try? data.write(to: cacheURL)
-        }
-    }
-}
-
-// MARK: - Errors
-
-public enum FileTrackerError: LocalizedError, Sendable {
-    case cannotReadFile(String)
-
-    public var errorDescription: String? {
-        switch self {
-        case .cannotReadFile(let path):
-            return "Cannot read file attributes: \(path)"
         }
     }
 }

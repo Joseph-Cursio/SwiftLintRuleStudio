@@ -5,10 +5,10 @@
 //  End-to-end workflow tests for impact simulation
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // ImpactSimulator is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -16,7 +16,7 @@ struct ImpactSimulatorWorkflowTests {
 
     // Helper to run ImpactSimulator operations on MainActor
     private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLIActor) async -> ImpactSimulator {
-        return await MainActor.run {
+        await MainActor.run {
             ImpactSimulator(swiftLintCLI: swiftLintCLI)
         }
     }
@@ -49,7 +49,7 @@ struct ImpactSimulatorWorkflowTests {
 
         // Set up handler to return violations
         await mockCLI.setLintCommandHandler { @Sendable _, _ in
-            return jsonData ?? Data()
+            jsonData ?? Data()
         }
 
         return mockCLI
@@ -140,7 +140,7 @@ struct ImpactSimulatorWorkflowTests {
         let mockCLI = MockSwiftLintCLIActor()
 
         await mockCLI.setLintCommandHandler { _, _ in
-            return try JSONSerialization.data(withJSONObject: [])
+            try JSONSerialization.data(withJSONObject: [])
         }
 
         let simulator = await createImpactSimulator(swiftLintCLI: mockCLI)
@@ -170,6 +170,7 @@ struct ImpactSimulatorWorkflowTests {
     private func configureMockCLIForSafeRuleDiscovery(_ mockCLI: MockSwiftLintCLIActor) async {
         actor CallCounterActor {
             var count = 0
+
             func increment() -> Int {
                 count += 1
                 return count
@@ -248,6 +249,7 @@ struct ImpactSimulatorWorkflowTests {
 
     private actor ProgressCollectorActor {
         var updates: [ProgressUpdate] = []
+
         func add(_ update: ProgressUpdate) {
             updates.append(update)
         }

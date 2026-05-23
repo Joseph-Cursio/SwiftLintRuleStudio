@@ -69,7 +69,7 @@ extension RuleRegistry {
         isOptIn: Bool,
         isAnalyzer: Bool = false
     ) async throws -> Rule {
-        return try await Self.fetchRuleDetailsHelper(
+        try await Self.fetchRuleDetailsHelper(
             identifier: identifier,
             category: category,
             isOptIn: isOptIn,

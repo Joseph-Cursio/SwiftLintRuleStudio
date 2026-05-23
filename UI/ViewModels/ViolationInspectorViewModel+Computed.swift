@@ -27,14 +27,14 @@ extension ViolationInspectorViewModel {
     }
 
     var suppressedCount: Int {
-        filteredViolations.filter { $0.suppressed }.count
+        filteredViolations.filter(\.suppressed).count
     }
 
     var uniqueRules: [String] {
-        Array(Set(violations.map { $0.ruleID })).sorted()
+        Array(Set(violations.map(\.ruleID))).sorted()
     }
 
     var uniqueFiles: [String] {
-        Array(Set(violations.map { $0.filePath })).sorted()
+        Array(Set(violations.map(\.filePath))).sorted()
     }
 }

@@ -5,9 +5,9 @@
 //  View for exporting violation reports in HTML, JSON, or CSV format
 //
 
-import SwiftUI
-import SwiftLintRuleStudioCore
 import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct ExportReportView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer

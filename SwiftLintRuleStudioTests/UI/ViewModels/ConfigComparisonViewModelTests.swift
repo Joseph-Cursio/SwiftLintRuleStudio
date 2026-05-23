@@ -5,10 +5,62 @@
 //  Tests for ConfigComparisonViewModel state management and service delegation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+@MainActor
+private final class SpyConfigComparisonService: ConfigComparisonServiceProtocol {
+    private let resultToReturn: ConfigComparisonResult?
+    private let shouldThrow: Bool
+
+    var nextResult: ConfigComparisonResult?
+    var compareCallCount = 0
+    var lastLabel1: String?
+    var lastLabel2: String?
+    var lastConfig1: URL?
+    var lastConfig2: URL?
+    var compareHook: (() -> Void)?
+
+    init(
+        resultToReturn: ConfigComparisonResult? = nil,
+        shouldThrow: Bool = false
+    ) {
+        self.resultToReturn = resultToReturn
+        self.shouldThrow = shouldThrow
+    }
+
+    func compare(
+        config1: URL,
+        label1: String,
+        config2: URL,
+        label2: String
+    ) throws -> ConfigComparisonResult {
+        compareCallCount += 1
+        lastConfig1 = config1
+        lastConfig2 = config2
+        lastLabel1 = label1
+        lastLabel2 = label2
+        compareHook?()
+        if shouldThrow {
+            throw NSError(
+                domain: "SpyError",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Comparison failed"]
+            )
+        }
+        if let queued = nextResult {
+            nextResult = nil
+            return queued
+        }
+        return resultToReturn ?? ConfigComparisonResult(
+            onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
+            diff: YAMLConfigurationEngine.ConfigDiff(
+                addedRules: [], removedRules: [], modifiedRules: [], before: "", after: "")
+        )
+    }
+}
 
 @MainActor
 struct ConfigComparisonViewModelTests {
@@ -310,59 +362,5 @@ struct ConfigComparisonViewModelTests {
         let nsError = viewModel.error as NSError?
         #expect(nsError?.domain == "SpyError")
         #expect(nsError?.code == 1)
-    }
-}
-
-// MARK: - Spy
-
-@MainActor
-private final class SpyConfigComparisonService: ConfigComparisonServiceProtocol {
-    private let resultToReturn: ConfigComparisonResult?
-    private let shouldThrow: Bool
-
-    var nextResult: ConfigComparisonResult?
-    var compareCallCount = 0
-    var lastLabel1: String?
-    var lastLabel2: String?
-    var lastConfig1: URL?
-    var lastConfig2: URL?
-    var compareHook: (() -> Void)?
-
-    init(
-        resultToReturn: ConfigComparisonResult? = nil,
-        shouldThrow: Bool = false
-    ) {
-        self.resultToReturn = resultToReturn
-        self.shouldThrow = shouldThrow
-    }
-
-    func compare(
-        config1: URL,
-        label1: String,
-        config2: URL,
-        label2: String
-    ) throws -> ConfigComparisonResult {
-        compareCallCount += 1
-        lastConfig1 = config1
-        lastConfig2 = config2
-        lastLabel1 = label1
-        lastLabel2 = label2
-        compareHook?()
-        if shouldThrow {
-            throw NSError(
-                domain: "SpyError",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Comparison failed"]
-            )
-        }
-        if let queued = nextResult {
-            nextResult = nil
-            return queued
-        }
-        return resultToReturn ?? ConfigComparisonResult(
-            onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
-            diff: YAMLConfigurationEngine.ConfigDiff(
-                addedRules: [], removedRules: [], modifiedRules: [], before: "", after: "")
-        )
     }
 }

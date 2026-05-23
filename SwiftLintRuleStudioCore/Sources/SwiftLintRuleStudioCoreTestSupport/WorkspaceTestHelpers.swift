@@ -9,7 +9,7 @@ import Foundation
 @testable import SwiftLintRuleStudioCore
 
 /// Helper to create valid Swift project workspaces for testing
-public struct WorkspaceTestHelpers {
+public enum WorkspaceTestHelpers {
 
     /// Creates a temporary directory with a valid Swift project structure
     /// This ensures WorkspaceManager validation passes
@@ -81,17 +81,17 @@ public struct WorkspaceTestHelpers {
 
     /// Creates a minimal valid Swift workspace (just has a Swift file)
     public static func createMinimalSwiftWorkspace() throws -> URL {
-        return try createValidSwiftWorkspace()
+        try createValidSwiftWorkspace()
     }
 
     /// Creates a Swift Package Manager workspace
     public static func createSwiftPMWorkspace() throws -> URL {
-        return try createValidSwiftWorkspace(includePackageSwift: true)
+        try createValidSwiftWorkspace(includePackageSwift: true)
     }
 
     /// Creates an Xcode project workspace
     public static func createXcodeProjectWorkspace() throws -> URL {
-        return try createValidSwiftWorkspace(includeXcodeProject: true)
+        try createValidSwiftWorkspace(includeXcodeProject: true)
     }
 
     /// Cleans up a test workspace directory

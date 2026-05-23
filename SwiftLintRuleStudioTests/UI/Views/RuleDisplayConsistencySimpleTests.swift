@@ -5,11 +5,11 @@
 //  Simple tests for display inconsistencies that don't require ViewInspector
 //
 
-import Testing
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
 
 // Simple tests to verify rule state consistency without ViewInspector
 // These tests check the data model and view initialization logic
@@ -82,7 +82,7 @@ struct RuleDisplayConsistencySimpleTests {
         // Since isEnabled is private, we verify the view was created successfully
         // The actual state check requires ViewInspector
         let (ruleId, isEnabled) = await MainActor.run {
-            return (enabledRule.id, enabledRule.isEnabled)
+            (enabledRule.id, enabledRule.isEnabled)
         }
         #expect(ruleId == "test_rule")
         #expect(isEnabled)
@@ -98,7 +98,7 @@ struct RuleDisplayConsistencySimpleTests {
 
         // Verify the rule data is correct
         let (isEnabled, ruleId) = await MainActor.run {
-            return (enabledRule.isEnabled, enabledRule.id)
+            (enabledRule.isEnabled, enabledRule.id)
         }
         #expect(isEnabled)
         #expect(ruleId == "duplicate_imports")
@@ -119,7 +119,7 @@ struct RuleDisplayConsistencySimpleTests {
 
         // Both should reference the same rule data
         let (listItemId, listItemEnabled) = await MainActor.run {
-            return (listItem.rule.id, listItem.rule.isEnabled)
+            (listItem.rule.id, listItem.rule.isEnabled)
         }
         #expect(listItemId == "test_rule")
         #expect(listItemEnabled)
@@ -142,7 +142,7 @@ struct RuleDisplayConsistencySimpleTests {
 
         // Verify both views have the same rule data
         let (listItemId, listItemEnabled) = await MainActor.run {
-            return (listItem.rule.id, listItem.rule.isEnabled)
+            (listItem.rule.id, listItem.rule.isEnabled)
         }
         #expect(listItemId == "duplicate_imports")
         #expect(listItemEnabled)
@@ -160,7 +160,7 @@ struct RuleDisplayConsistencySimpleTests {
 
         // Same rule data should be equal - extract values to avoid Swift 6 false positive
         let (id1, id2, enabled1, enabled2) = await MainActor.run {
-            return (rule1.id, rule2.id, rule1.isEnabled, rule2.isEnabled)
+            (rule1.id, rule2.id, rule1.isEnabled, rule2.isEnabled)
         }
         #expect(id1 == id2)
         #expect(enabled1 == enabled2)
@@ -173,7 +173,7 @@ struct RuleDisplayConsistencySimpleTests {
 
         // Extract values to avoid Swift 6 false positive
         let (enabled, disabled, enabledId, disabledId) = await MainActor.run {
-            return (enabledRule.isEnabled, disabledRule.isEnabled, enabledRule.id, disabledRule.id)
+            (enabledRule.isEnabled, disabledRule.isEnabled, enabledRule.id, disabledRule.id)
         }
         #expect(enabled != disabled)
         #expect(enabledId == disabledId) // Same rule, different state

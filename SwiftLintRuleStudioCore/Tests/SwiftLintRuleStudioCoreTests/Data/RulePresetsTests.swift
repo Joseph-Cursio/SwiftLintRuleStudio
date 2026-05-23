@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
+import Testing
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
 struct PresetExpectation: Sendable, CustomTestStringConvertible {

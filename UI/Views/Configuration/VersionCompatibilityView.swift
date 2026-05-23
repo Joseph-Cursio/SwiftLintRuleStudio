@@ -5,8 +5,8 @@
 //  View for checking SwiftLint version compatibility
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct VersionCompatibilityView: View {
     @State var viewModel: VersionCompatibilityViewModel

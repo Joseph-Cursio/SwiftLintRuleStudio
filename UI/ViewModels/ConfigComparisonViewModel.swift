@@ -5,11 +5,11 @@
 //  ViewModel for cross-project configuration comparison
 //
 
+import AppKit
 import Foundation
 import Observation
-import AppKit
-import UniformTypeIdentifiers
 import SwiftLintRuleStudioCore
+import UniformTypeIdentifiers
 
 @MainActor
 @Observable

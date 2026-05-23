@@ -104,7 +104,7 @@ extension ViolationStorageActor {
         if let severities = filter.severities, !severities.isEmpty {
             let placeholders = severities.map { _ in "?" }.joined(separator: ", ")
             conditions.append("severity IN (\(placeholders))")
-            parameters.append(contentsOf: severities.map { $0.rawValue })
+            parameters.append(contentsOf: severities.map(\.rawValue))
         }
 
         if let suppressedOnly = filter.suppressedOnly {

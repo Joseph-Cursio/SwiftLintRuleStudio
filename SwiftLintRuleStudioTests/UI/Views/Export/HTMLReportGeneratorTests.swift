@@ -5,12 +5,94 @@
 //  Tests for HTML report generation
 //
 
-import Testing
 import Foundation
+import LintStudioCore
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
-import LintStudioCore
+import Testing
+
+@MainActor
+@Suite("HTMLReportGenerator Escaping Tests")
+struct HTMLReportGeneratorEscapingTests {
+
+    @Test("escapeHTML escapes ampersands")
+    func escapesAmpersands() {
+        let result = HTMLEscaping.escape("A & B")
+        #expect(result == "A &amp; B")
+    }
+
+    @Test("escapeHTML escapes angle brackets")
+    func escapesAngleBrackets() {
+        let result = HTMLEscaping.escape("<script>alert('xss')</script>")
+        #expect(result == "&lt;script&gt;alert('xss')&lt;/script&gt;")
+    }
+
+    @Test("escapeHTML escapes double quotes")
+    func escapesDoubleQuotes() {
+        let result = HTMLEscaping.escape("She said \"hello\"")
+        #expect(result == "She said &quot;hello&quot;")
+    }
+
+    @Test("escapeHTML handles multiple special characters together")
+    func escapesMultipleSpecials() {
+        let result = HTMLEscaping.escape("<a href=\"/test?a=1&b=2\">")
+        #expect(result == "&lt;a href=&quot;/test?a=1&amp;b=2&quot;&gt;")
+    }
+
+    @Test("escapeHTML passes through safe strings unchanged")
+    func safeStringsUnchanged() {
+        let safeText = "Hello World 123"
+        let result = HTMLEscaping.escape(safeText)
+        #expect(result == safeText)
+    }
+
+    @Test("HTML includes embedded CSS styles")
+    func includesCSS() {
+        let html = HTMLReportGenerator.generate(
+            options: HTMLReportOptions(
+                violations: [],
+                workspaceName: "Test",
+                includeSummary: false,
+                includeDetailedList: false,
+                includeCodeSnippets: false,
+                includeRuleConfig: false,
+                ruleRegistry: RuleRegistry(
+                    swiftLintCLI: SwiftLintCLIActor(
+                        cacheManager: CacheManager.createForTesting()
+                    ),
+                    cacheManager: CacheManager.createForTesting()
+                )
+            )
+        )
+
+        #expect(html.contains("<style>"))
+        #expect(html.contains("</style>"))
+        #expect(html.contains("font-family"))
+    }
+
+    @Test("HTML includes dark mode CSS support")
+    func includesDarkModeCSS() {
+        let html = HTMLReportGenerator.generate(
+            options: HTMLReportOptions(
+                violations: [],
+                workspaceName: "Test",
+                includeSummary: false,
+                includeDetailedList: false,
+                includeCodeSnippets: false,
+                includeRuleConfig: false,
+                ruleRegistry: RuleRegistry(
+                    swiftLintCLI: SwiftLintCLIActor(
+                        cacheManager: CacheManager.createForTesting()
+                    ),
+                    cacheManager: CacheManager.createForTesting()
+                )
+            )
+        )
+
+        #expect(html.contains("prefers-color-scheme: dark"))
+    }
+}
 
 @MainActor
 @Suite("HTMLReportGenerator Tests")
@@ -259,88 +341,4 @@ struct HTMLReportGeneratorTests {
         #expect(!html.contains("Rule Details"))
     }
 
-}
-
-// MARK: - HTML Escaping & Edge Case Tests
-
-@MainActor
-@Suite("HTMLReportGenerator Escaping Tests")
-struct HTMLReportGeneratorEscapingTests {
-
-    @Test("escapeHTML escapes ampersands")
-    func escapesAmpersands() {
-        let result = HTMLEscaping.escape("A & B")
-        #expect(result == "A &amp; B")
-    }
-
-    @Test("escapeHTML escapes angle brackets")
-    func escapesAngleBrackets() {
-        let result = HTMLEscaping.escape("<script>alert('xss')</script>")
-        #expect(result == "&lt;script&gt;alert('xss')&lt;/script&gt;")
-    }
-
-    @Test("escapeHTML escapes double quotes")
-    func escapesDoubleQuotes() {
-        let result = HTMLEscaping.escape("She said \"hello\"")
-        #expect(result == "She said &quot;hello&quot;")
-    }
-
-    @Test("escapeHTML handles multiple special characters together")
-    func escapesMultipleSpecials() {
-        let result = HTMLEscaping.escape("<a href=\"/test?a=1&b=2\">")
-        #expect(result == "&lt;a href=&quot;/test?a=1&amp;b=2&quot;&gt;")
-    }
-
-    @Test("escapeHTML passes through safe strings unchanged")
-    func safeStringsUnchanged() {
-        let safeText = "Hello World 123"
-        let result = HTMLEscaping.escape(safeText)
-        #expect(result == safeText)
-    }
-
-    @Test("HTML includes embedded CSS styles")
-    func includesCSS() {
-        let html = HTMLReportGenerator.generate(
-            options: HTMLReportOptions(
-                violations: [],
-                workspaceName: "Test",
-                includeSummary: false,
-                includeDetailedList: false,
-                includeCodeSnippets: false,
-                includeRuleConfig: false,
-                ruleRegistry: RuleRegistry(
-                    swiftLintCLI: SwiftLintCLIActor(
-                        cacheManager: CacheManager.createForTesting()
-                    ),
-                    cacheManager: CacheManager.createForTesting()
-                )
-            )
-        )
-
-        #expect(html.contains("<style>"))
-        #expect(html.contains("</style>"))
-        #expect(html.contains("font-family"))
-    }
-
-    @Test("HTML includes dark mode CSS support")
-    func includesDarkModeCSS() {
-        let html = HTMLReportGenerator.generate(
-            options: HTMLReportOptions(
-                violations: [],
-                workspaceName: "Test",
-                includeSummary: false,
-                includeDetailedList: false,
-                includeCodeSnippets: false,
-                includeRuleConfig: false,
-                ruleRegistry: RuleRegistry(
-                    swiftLintCLI: SwiftLintCLIActor(
-                        cacheManager: CacheManager.createForTesting()
-                    ),
-                    cacheManager: CacheManager.createForTesting()
-                )
-            )
-        )
-
-        #expect(html.contains("prefers-color-scheme: dark"))
-    }
 }

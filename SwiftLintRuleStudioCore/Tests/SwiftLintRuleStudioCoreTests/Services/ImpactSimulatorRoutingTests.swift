@@ -5,10 +5,10 @@
 //  Tests for analyzer / opt-in routing in ImpactSimulator's temp config
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ImpactSimulatorRoutingTests {
 

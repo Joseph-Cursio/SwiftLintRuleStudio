@@ -5,8 +5,8 @@
 //  Section detail routing for the main content area
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension ContentView {
     @ViewBuilder

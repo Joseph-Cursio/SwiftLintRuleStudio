@@ -5,9 +5,9 @@
 //  Cache and lookup tests for RuleRegistry
 //
 
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct RuleRegistryCacheTests {
     @Test("RuleRegistry initializes with empty rules")

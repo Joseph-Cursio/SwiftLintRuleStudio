@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import SwiftLintRuleStudioCore
 import LintStudioCore
+import SwiftLintRuleStudioCore
 
 struct HTMLReportOptions {
     let violations: [Violation]
@@ -208,10 +208,11 @@ enum HTMLReportGenerator {
 
         guard start <= end else { return nil }
 
-        return (start...end).map { idx in
+        let formatted = (start...end).map { idx in
             let marker = idx == line - 1 ? ">" : " "
             let lineNum = String(format: "%4d", idx + 1)
             return "\(marker) \(lineNum) | \(lines[idx])"
-        }.joined(separator: "\n")
+        }
+        return formatted.joined(separator: "\n")
     }
 }

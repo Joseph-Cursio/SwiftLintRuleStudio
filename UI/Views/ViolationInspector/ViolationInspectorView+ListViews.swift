@@ -1,6 +1,6 @@
-import SwiftUI
-import SwiftLintRuleStudioCore
 import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension ViolationInspectorView {
     var violationListView: some View {
@@ -21,7 +21,7 @@ extension ViolationInspectorView {
             } else if viewModel.filteredViolations.isEmpty {
                 emptyStateView
             } else {
-                if viewModel.groupingOption == .none {
+                if viewModel.groupingOption == .ungrouped {
                     Table(
                         viewModel.filteredViolations,
                         selection: Bindable(viewModel).selectedViolationIds,
@@ -338,7 +338,7 @@ extension ViolationInspectorView {
         option: ViolationGroupingOption
     ) -> [String] {
         switch option {
-        case .none:
+        case .ungrouped:
             return grouped.keys.sorted()
         case .severity:
             let preferredOrder = ["Error", "Warning"]
@@ -353,14 +353,14 @@ extension ViolationInspectorView {
 
     func groupViolations(_ violations: [Violation], by option: ViolationGroupingOption) -> [String: [Violation]] {
         switch option {
-        case .none:
+        case .ungrouped:
             return ["All": violations]
         case .file:
-            return Dictionary(grouping: violations, by: { $0.filePath })
+            return Dictionary(grouping: violations) { $0.filePath }
         case .rule:
-            return Dictionary(grouping: violations, by: { $0.ruleID })
+            return Dictionary(grouping: violations) { $0.ruleID }
         case .severity:
-            return Dictionary(grouping: violations, by: { $0.severity.rawValue.capitalized })
+            return Dictionary(grouping: violations) { $0.severity.rawValue.capitalized }
         }
     }
 }

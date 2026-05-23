@@ -5,10 +5,10 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import SwiftUI
-import SwiftLintRuleStudioCore
-import LintStudioUI
 import LintStudioCore
+import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct RuleListItem: View {
     let rule: Rule
@@ -69,11 +69,11 @@ struct RuleListItem: View {
     private var statusColor: Color {
         if rule.isEnabled {
             return .green
-        } else if rule.isOptIn {
-            return .orange
-        } else {
-            return .gray
         }
+        if rule.isOptIn {
+            return .orange
+        }
+        return .gray
     }
 }
 

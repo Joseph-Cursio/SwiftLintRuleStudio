@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
 struct RuleBrowserViewModelTests {
@@ -17,9 +17,9 @@ struct RuleBrowserViewModelTests {
     private struct StubSwiftLintCLI: SwiftLintCLIProtocol {
         func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
         func executeRulesCommand() throws -> Data { Data() }
-        func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
-        func generateDocsForRule(ruleId: String) throws -> String { "" }
-        func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
+        func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
+        func generateDocsForRule(ruleId _: String) throws -> String { "" }
+        func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
         func getVersion() throws -> String { "0.0.0" }
     }
 

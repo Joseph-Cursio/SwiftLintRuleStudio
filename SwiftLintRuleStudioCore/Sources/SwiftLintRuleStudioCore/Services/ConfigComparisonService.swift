@@ -141,8 +141,10 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
 
     private func buildRuleDiff(
         ruleId: String,
-        rc1: RuleConfiguration?, rc2: RuleConfiguration?,
-        label1: String, label2: String
+        rc1: RuleConfiguration?,
+        rc2: RuleConfiguration?,
+        label1: String,
+        label2: String
     ) -> RuleComparisonDiff {
         var differences: [String] = []
         if rc1?.enabled != rc2?.enabled {

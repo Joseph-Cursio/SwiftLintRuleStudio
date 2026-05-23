@@ -116,8 +116,8 @@ private extension WorkspaceManager {
     }
 
     func shouldSkipWorkspaceScan(path: String) -> Bool {
-        DefaultExclusions.pathPatterns.contains(where: {
+        DefaultExclusions.pathPatterns.contains {
             path.contains($0)
-        })
+        }
     }
 }

@@ -1,108 +1,142 @@
 disabled_rules:
-- todo
+  - todo
 excluded:
-- .build
-- SwiftLintRuleStudioCore/.build
-- Pods
-- .git
-- DerivedData
-- .swiftpm
-- xcuserdata
-- .xcode
-- SwiftLintRuleStudio.xcodeproj
+  - .build
+  - SwiftLintRuleStudioCore/.build
+  - Pods
+  - .git
+  - DerivedData
+  - .swiftpm
+  - xcuserdata
+  - .xcode
+  - SwiftLintRuleStudio.xcodeproj
 opt_in_rules:
-- empty_count
-- empty_string
-- first_where
-- accessibility_trait_for_button
-- force_unwrapping
-- implicitly_unwrapped_optional
-- overridden_super_call
-- prohibited_super_call
-- redundant_nil_coalescing
-- redundant_sendable
-- single_test_class
-- unneeded_parentheses_in_closure_argument
-- vertical_parameter_alignment_on_call
-- async_without_await
-- unhandled_throwing_task
-- period_spacing
-- last_where
-- unavailable_function
-- array_init
-- override_in_extension
-- literal_expression_end_indentation
-- missing_docs
-- prefer_zero_over_explicit_init
-- private_subject
-- quick_discouraged_pending_test
-- extension_access_modifier
-- shorthand_argument
-- private_outlet
-- enum_case_associated_values_count
-- unowned_variable_capture
-- xct_specific_matcher
-- modifier_order
-- explicit_init
-- discarded_notification_center_observer
-- empty_collection_literal
-- static_operator
-- toggle_bool
-- fatal_error_message
-- prefer_self_type_over_type_of_self
-- multiline_literal_brackets
-- reduce_into
-- sorted_first_last
-- multiline_parameters_brackets
-- strict_fileprivate
-- contains_over_first_not_nil
-- file_header
-- lower_acl_than_parent
-- discouraged_assert
-- return_value_from_void_function
-- private_action
-- local_doc_comment
-- optional_enum_case_matching
-- non_overridable_class_declaration
-- strong_iboutlet
-- prohibited_interface_builder
-- required_enum_case
-- nslocalizedstring_require_bundle
-- collection_alignment
-- empty_xctest_method
-- file_name_no_space
-- quick_discouraged_call
-- test_case_accessibility
-- discouraged_object_literal
-- joined_default_parameter
-- nslocalizedstring_key
-- nimble_operator
-- contains_over_filter_count
-- expiring_todo
-- quick_discouraged_focused_test
-- contains_over_filter_is_empty
-- comma_inheritance
-- final_test_case
-- untyped_error_in_catch
-- prefer_asset_symbols
-- ibinspectable_in_extension
-- identical_operands
-- yoda_condition
-- contains_over_range_nil_comparison
-- flatmap_over_map_reduce
-- object_literal
-- fallthrough
-- self_binding
-- closure_spacing
-- operator_usage_whitespace
-- weak_delegate
-- closure_end_indentation
-- accessibility_label_for_image
+  - empty_count
+  - empty_string
+  - first_where
+  - accessibility_trait_for_button
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - overridden_super_call
+  - prohibited_super_call
+  - redundant_nil_coalescing
+  - redundant_sendable
+  - single_test_class
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - async_without_await
+  - unhandled_throwing_task
+  - period_spacing
+  - last_where
+  - unavailable_function
+  - array_init
+  - override_in_extension
+  - literal_expression_end_indentation
+  - missing_docs
+  - prefer_zero_over_explicit_init
+  - private_subject
+  - quick_discouraged_pending_test
+  - extension_access_modifier
+  - shorthand_argument
+  - private_outlet
+  - enum_case_associated_values_count
+  - unowned_variable_capture
+  - xct_specific_matcher
+  - modifier_order
+  - explicit_init
+  - discarded_notification_center_observer
+  - empty_collection_literal
+  - static_operator
+  - toggle_bool
+  - fatal_error_message
+  - prefer_self_type_over_type_of_self
+  - multiline_literal_brackets
+  - reduce_into
+  - sorted_first_last
+  - multiline_parameters_brackets
+  - strict_fileprivate
+  - contains_over_first_not_nil
+  - file_header
+  - lower_acl_than_parent
+  - discouraged_assert
+  - return_value_from_void_function
+  - private_action
+  - local_doc_comment
+  - optional_enum_case_matching
+  - non_overridable_class_declaration
+  - strong_iboutlet
+  - prohibited_interface_builder
+  - required_enum_case
+  - nslocalizedstring_require_bundle
+  - collection_alignment
+  - empty_xctest_method
+  - file_name_no_space
+  - quick_discouraged_call
+  - test_case_accessibility
+  - discouraged_object_literal
+  - joined_default_parameter
+  - nslocalizedstring_key
+  - nimble_operator
+  - contains_over_filter_count
+  - expiring_todo
+  - quick_discouraged_focused_test
+  - contains_over_filter_is_empty
+  - comma_inheritance
+  - final_test_case
+  - untyped_error_in_catch
+  - prefer_asset_symbols
+  - ibinspectable_in_extension
+  - identical_operands
+  - yoda_condition
+  - contains_over_range_nil_comparison
+  - flatmap_over_map_reduce
+  - object_literal
+  - fallthrough
+  - self_binding
+  - closure_spacing
+  - operator_usage_whitespace
+  - weak_delegate
+  - closure_end_indentation
+  - accessibility_label_for_image
+  - redundant_type_annotation
+  - direct_return
+  - superfluous_else
+  - redundant_self
+  - number_separator
+  - trailing_closure
+  - legacy_multiple
+  - implicit_return
+  - sorted_imports
+  - discouraged_none_name
+  - multiline_parameters
+  - legacy_objc_type
+  - raw_value_for_camel_cased_codable_enum
+  - convenience_type
+  - multiline_function_chains
+  - prefixed_toplevel_constant
+  - no_grouping_extension
+  - function_default_parameter_at_end
+  - let_var_whitespace
+  - discouraged_optional_boolean
+  - prefer_self_in_static_references
+  - prefer_key_path
+  - file_name
+  - file_types_order
+  - unused_parameter
+# Per-rule configuration
+file_name:
+  # Accept the project's `Type+Anything.swift` extension pattern in addition to the
+  # default `Extensions?` suffix.
+  suffix_pattern: "(?:Extensions?|\\+\\w+)"
+prefixed_toplevel_constant:
+  # `let package = Package(...)` is required by Swift Package Manager — limit the
+  # k-prefix requirement to private constants.
+  only_private: true
 # Analyzer-only rules (run via `swiftlint analyze`, not `swiftlint lint`)
 analyzer_rules:
-- capture_variable
-- explicit_self
-- typesafe_array_init
-- unused_declaration
-- unused_import
+  - capture_variable
+  - explicit_self
+  - typesafe_array_init
+  - unused_declaration
+  - unused_import
 reporter: xcode

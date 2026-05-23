@@ -5,10 +5,46 @@
 //  Subviews for the Rule Audit view: summary cards, rule rows, expanded detail, status bar
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 // MARK: - Summary Cards
+
+private struct SummaryCard: View {
+    let title: String
+    let count: Int
+    let subtitle: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(color)
+                .tracking(0.5)
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(count)")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundStyle(color)
+
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .frame(width: 180, height: 70, alignment: .leading)
+        .background(color.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(color.opacity(0.2), lineWidth: 0.5)
+        )
+    }
+}
 
 extension RuleAuditView {
     var summaryCardsView: some View {
@@ -76,8 +112,6 @@ extension RuleAuditView {
         .accessibilityIdentifier("EnableAllSafeRulesButton")
     }
 }
-
-// MARK: - Rule List
 
 extension RuleAuditView {
     var ruleListView: some View {
@@ -152,46 +186,6 @@ extension RuleAuditView {
         }
     }
 }
-
-// MARK: - Summary Card
-
-private struct SummaryCard: View {
-    let title: String
-    let count: Int
-    let subtitle: String
-    let color: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption2)
-                .fontWeight(.semibold)
-                .foregroundStyle(color)
-                .tracking(0.5)
-
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(count)")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(color)
-
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(12)
-        .frame(width: 180, height: 70, alignment: .leading)
-        .background(color.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(color.opacity(0.2), lineWidth: 0.5)
-        )
-    }
-}
-
-// MARK: - Status Bar
 
 extension RuleAuditView {
     var statusBar: some View {

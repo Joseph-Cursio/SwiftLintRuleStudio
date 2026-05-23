@@ -1,7 +1,7 @@
-import SwiftUI
-import SwiftLintRuleStudioCore
-import LintStudioUI
 import LintStudioCore
+import LintStudioUI
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension RuleDetailView {
     /// Determines if the short description should be shown (only if it's unique and not in markdown)
@@ -139,7 +139,7 @@ extension RuleDetailView {
         }
     }
 
-    func documentationView(markdown: String, colorScheme: ColorScheme) -> some View {
+    func documentationView(markdown: String, colorScheme _: ColorScheme) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Documentation")
                 .font(.headline)

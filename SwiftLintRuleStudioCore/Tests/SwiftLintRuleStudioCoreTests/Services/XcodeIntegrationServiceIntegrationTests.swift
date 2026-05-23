@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct XcodeIntegrationServiceIntegrationTests {
 
@@ -28,7 +28,7 @@ struct XcodeIntegrationServiceIntegrationTests {
         testName: String = #function,
         operation: @MainActor @escaping (XcodeIntegrationService, WorkspaceManager) async throws -> T
     ) async throws -> T {
-        return try await Task { @MainActor in
+        try await Task { @MainActor in
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
             let service = XcodeIntegrationService()
             return try await operation(service, workspaceManager)

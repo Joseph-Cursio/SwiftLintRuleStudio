@@ -5,10 +5,10 @@
 //  Tests for RuleDocumentationParser static parsing logic
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 @MainActor
 // swiftlint:disable:next type_body_length
@@ -277,7 +277,7 @@ struct RuleDocumentationParserTests {
         ("triggering", "## Triggering Examples", true),
         ("nontriggering", "## Non Triggering Examples", false)
     ])
-    func testExampleCategorization(id: String, sectionHeader: String, isTriggering: Bool) {
+    func testExampleCategorization(id _: String, sectionHeader: String, isTriggering: Bool) {
         let markdown = """
         # Rule
 

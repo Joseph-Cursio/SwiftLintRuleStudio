@@ -9,6 +9,42 @@ import Foundation
 import Observation
 import SwiftLintRuleStudioCore
 
+/// Filter options for rule status
+enum RuleStatusFilter: String, CaseIterable, Identifiable {
+    case all
+    case enabled
+    case disabled
+    case optIn
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .all: return "All"
+        case .enabled: return "Enabled"
+        case .disabled: return "Disabled"
+        case .optIn: return "Opt-In"
+        }
+    }
+}
+
+/// Sort options for rules
+enum SortOption: String, CaseIterable, Identifiable {
+    case name
+    case identifier
+    case category
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .name: return "Name"
+        case .identifier: return "Identifier"
+        case .category: return "Category"
+        }
+    }
+}
+
 /// View model for the Rule Browser, managing search and filter state
 @MainActor
 @Observable
@@ -81,13 +117,13 @@ class RuleBrowserViewModel {
             break // Show all rules
         case .enabled:
             // Show only rules that are explicitly enabled in config
-            rules = rules.filter { $0.isEnabled }
+            rules = rules.filter(\.isEnabled)
         case .disabled:
             // Show rules that are not enabled (either disabled or not configured)
             rules = rules.filter { !$0.isEnabled }
         case .optIn:
             // Show only opt-in rules (rules that must be explicitly enabled)
-            rules = rules.filter { $0.isOptIn }
+            rules = rules.filter(\.isOptIn)
         }
 
         // Apply sorting
@@ -128,14 +164,14 @@ class RuleBrowserViewModel {
         case .all:
             break
         case .enabled:
-            rules = rules.filter { $0.isEnabled }
+            rules = rules.filter(\.isEnabled)
         case .disabled:
             rules = rules.filter { !$0.isEnabled }
         case .optIn:
-            rules = rules.filter { $0.isOptIn }
+            rules = rules.filter(\.isOptIn)
         }
 
-        return Dictionary(grouping: rules, by: { $0.category })
+        return Dictionary(grouping: rules) { $0.category }
             .mapValues { $0.count }
     }
 
@@ -163,9 +199,9 @@ class RuleBrowserViewModel {
         let presetRuleIds = Set(preset.ruleIds)
         let allRules = ruleRegistry.rules
 
-        filteredRules = allRules.filter { rule in
-            presetRuleIds.contains(rule.id)
-        }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        filteredRules = allRules
+            .filter { rule in presetRuleIds.contains(rule.id) }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     /// Get rules matching a specific preset
@@ -323,38 +359,3 @@ class RuleBrowserViewModel {
     }
 }
 
-/// Filter options for rule status
-enum RuleStatusFilter: String, CaseIterable, Identifiable {
-    case all
-    case enabled
-    case disabled
-    case optIn
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .all: return "All"
-        case .enabled: return "Enabled"
-        case .disabled: return "Disabled"
-        case .optIn: return "Opt-In"
-        }
-    }
-}
-
-/// Sort options for rules
-enum SortOption: String, CaseIterable, Identifiable {
-    case name
-    case identifier
-    case category
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .name: return "Name"
-        case .identifier: return "Identifier"
-        case .category: return "Category"
-        }
-    }
-}

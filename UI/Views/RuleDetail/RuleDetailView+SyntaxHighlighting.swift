@@ -10,7 +10,7 @@ extension RuleDetailView {
         let comment: String
         let attribute: String
 
-        static let light = SyntaxColors(
+        static let light = Self(
             keyword: "#AD3DA4",
             type: "#0B4F79",
             string: "#D12F1B",
@@ -19,7 +19,7 @@ extension RuleDetailView {
             attribute: "#6C36A9"
         )
 
-        static let dark = SyntaxColors(
+        static let dark = Self(
             keyword: "#FF7AB2",
             type: "#6BDFFF",
             string: "#FC6A5D",

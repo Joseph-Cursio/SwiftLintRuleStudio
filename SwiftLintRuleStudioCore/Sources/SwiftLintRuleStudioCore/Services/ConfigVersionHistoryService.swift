@@ -82,9 +82,8 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
             let timestampStr = String(name[startIndex..<endIndex])
             guard let timestamp = TimeInterval(timestampStr) else { return nil }
 
-            let fileSize: Int64 = (try? url.resourceValues(
-                forKeys: [.fileSizeKey]
-            ).fileSize.map(Int64.init)) ?? 0
+            let resourceValues = try? url.resourceValues(forKeys: [.fileSizeKey])
+            let fileSize: Int64 = resourceValues?.fileSize.map(Int64.init) ?? 0
 
             return ConfigBackup(
                 id: name,

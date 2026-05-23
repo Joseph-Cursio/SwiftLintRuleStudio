@@ -5,118 +5,8 @@
 //  View for displaying detailed configuration health report
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
-
-/// Full health report view with score breakdown and recommendations
-private struct ConfigHealthScoreView: View {
-    let report: ConfigHealthReport
-    let onApplyPreset: ((String) -> Void)?
-
-    init(report: ConfigHealthReport, onApplyPreset: ((String) -> Void)? = nil) {
-        self.report = report
-        self.onApplyPreset = onApplyPreset
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Header with score
-                headerSection
-
-                Divider()
-
-                // Score breakdown
-                breakdownSection
-
-                Divider()
-
-                // Recommendations
-                if !report.recommendations.isEmpty {
-                    recommendationsSection
-                }
-            }
-            .padding()
-        }
-    }
-
-    private var headerSection: some View {
-        HStack(spacing: 24) {
-            HealthScoreRing(report: report)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Configuration Health")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-
-                Text(report.grade.displayName)
-                    .font(.headline)
-                    .foregroundStyle(gradeColor)
-
-                Text(healthSummary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-        }
-    }
-
-    private var breakdownSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Score Breakdown")
-                .font(.headline)
-
-            ForEach(report.breakdown.details, id: \.name) { detail in
-                BreakdownRow(
-                    name: detail.name,
-                    score: detail.score,
-                    weight: detail.weight,
-                    description: detail.description
-                )
-            }
-        }
-    }
-
-    private var recommendationsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Recommendations")
-                .font(.headline)
-
-            ForEach(report.recommendations) { recommendation in
-                RecommendationCard(
-                    recommendation: recommendation,
-                    onApplyPreset: onApplyPreset
-                )
-            }
-        }
-    }
-
-    private var gradeColor: Color {
-        switch report.grade {
-        case .excellent: return .green
-        case .good: return .blue
-        case .fair: return .yellow
-        case .needsWork: return .orange
-        case .poor: return .red
-        }
-    }
-
-    private var healthSummary: String {
-        switch report.grade {
-        case .excellent:
-            return "Your configuration is well optimized!"
-        case .good:
-            return "Good configuration with room for improvement."
-        case .fair:
-            return "Consider implementing the recommendations below."
-        case .needsWork:
-            return "Several areas need attention."
-        case .poor:
-            return "Significant improvements recommended."
-        }
-    }
-}
+import SwiftUI
 
 /// Row displaying a single breakdown metric
 private struct BreakdownRow: View {
@@ -325,6 +215,116 @@ private struct ConfigHealthPopover: View {
         case .high: return .red
         case .medium: return .orange
         case .low: return .blue
+        }
+    }
+}
+
+/// Full health report view with score breakdown and recommendations
+private struct ConfigHealthScoreView: View {
+    let report: ConfigHealthReport
+    let onApplyPreset: ((String) -> Void)?
+
+    init(report: ConfigHealthReport, onApplyPreset: ((String) -> Void)? = nil) {
+        self.report = report
+        self.onApplyPreset = onApplyPreset
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                // Header with score
+                headerSection
+
+                Divider()
+
+                // Score breakdown
+                breakdownSection
+
+                Divider()
+
+                // Recommendations
+                if !report.recommendations.isEmpty {
+                    recommendationsSection
+                }
+            }
+            .padding()
+        }
+    }
+
+    private var headerSection: some View {
+        HStack(spacing: 24) {
+            HealthScoreRing(report: report)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Configuration Health")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text(report.grade.displayName)
+                    .font(.headline)
+                    .foregroundStyle(gradeColor)
+
+                Text(healthSummary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+    }
+
+    private var breakdownSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Score Breakdown")
+                .font(.headline)
+
+            ForEach(report.breakdown.details, id: \.name) { detail in
+                BreakdownRow(
+                    name: detail.name,
+                    score: detail.score,
+                    weight: detail.weight,
+                    description: detail.description
+                )
+            }
+        }
+    }
+
+    private var recommendationsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Recommendations")
+                .font(.headline)
+
+            ForEach(report.recommendations) { recommendation in
+                RecommendationCard(
+                    recommendation: recommendation,
+                    onApplyPreset: onApplyPreset
+                )
+            }
+        }
+    }
+
+    private var gradeColor: Color {
+        switch report.grade {
+        case .excellent: return .green
+        case .good: return .blue
+        case .fair: return .yellow
+        case .needsWork: return .orange
+        case .poor: return .red
+        }
+    }
+
+    private var healthSummary: String {
+        switch report.grade {
+        case .excellent:
+            return "Your configuration is well optimized!"
+        case .good:
+            return "Good configuration with room for improvement."
+        case .fair:
+            return "Consider implementing the recommendations below."
+        case .needsWork:
+            return "Several areas need attention."
+        case .poor:
+            return "Significant improvements recommended."
         }
     }
 }

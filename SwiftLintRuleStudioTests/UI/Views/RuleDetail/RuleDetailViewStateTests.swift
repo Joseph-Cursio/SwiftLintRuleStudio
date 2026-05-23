@@ -5,12 +5,12 @@
 //  State-based rendering tests for RuleDetailView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 @MainActor
 struct RuleDetailViewStateTests {

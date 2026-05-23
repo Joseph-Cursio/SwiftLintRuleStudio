@@ -5,14 +5,103 @@
 //  Tests for RuleAuditView
 //
 
-import Testing
-import SwiftUI
-import ViewInspector
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // swiftlint:disable function_body_length
+
+@MainActor
+final class MockImpactSimulator: ImpactSimulator {
+    private let safeRuleIds: [String]
+    private let results: [String: RuleImpactResult]
+    private(set) var findSafeRulesCalls = 0
+    private(set) var simulateRuleCalls = 0
+
+    init(safeRuleIds: [String], results: [String: RuleImpactResult]) {
+        self.safeRuleIds = safeRuleIds
+        self.results = results
+        super.init(swiftLintCLI: StubSwiftLintCLI())
+    }
+
+    override func findSafeRules(
+        workspace _: Workspace,
+        baseConfigPath _: URL?,
+        disabledRuleIds _: [String],
+        optInRuleIds _: Set<String>,
+        analyzerRuleIds _: Set<String> = [],
+        progressHandler: ((Int, Int, String) -> Void)? = nil
+    ) async throws -> [String] {
+        await Task.yield()
+        findSafeRulesCalls += 1
+        for (index, ruleId) in safeRuleIds.enumerated() {
+            progressHandler?(index + 1, safeRuleIds.count, ruleId)
+        }
+        return safeRuleIds
+    }
+
+    override func simulateRule(
+        ruleId: String,
+        workspace _: Workspace,
+        baseConfigPath _: URL?,
+        isOptIn _: Bool,
+        isAnalyzer _: Bool = false
+    ) async throws -> RuleImpactResult {
+        await Task.yield()
+        simulateRuleCalls += 1
+        if let result = results[ruleId] {
+            return result
+        }
+        return RuleImpactResult(
+            ruleId: ruleId,
+            violationCount: 0,
+            violations: [],
+            affectedFiles: [],
+            simulationDuration: 0
+        )
+    }
+
+    override func simulateRules(
+        ruleIds: [String],
+        workspace _: Workspace,
+        baseConfigPath _: URL?,
+        optInRuleIds _: Set<String> = [],
+        analyzerRuleIds _: Set<String> = [],
+        progressHandler: ((Int, Int, String) -> Void)? = nil
+    ) async throws -> BatchSimulationResult {
+        await Task.yield()
+        var ruleResults: [RuleImpactResult] = []
+        for (index, ruleId) in ruleIds.enumerated() {
+            progressHandler?(index + 1, ruleIds.count, ruleId)
+            let result = results[ruleId] ?? RuleImpactResult(
+                ruleId: ruleId,
+                violationCount: 0,
+                violations: [],
+                affectedFiles: [],
+                simulationDuration: 0.1
+            )
+            ruleResults.append(result)
+        }
+        return BatchSimulationResult(
+            results: ruleResults,
+            totalDuration: 1.0,
+            completedAt: Date.now
+        )
+    }
+}
+
+@MainActor
+struct StubSwiftLintCLI: SwiftLintCLIProtocol {
+    func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
+    func executeRulesCommand() throws -> Data { Data() }
+    func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
+    func generateDocsForRule(ruleId _: String) throws -> String { "" }
+    func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
+    func getVersion() throws -> String { "0.0.0" }
+}
 
 @MainActor // swiftlint:disable:next type_body_length
 struct RuleAuditViewTests {
@@ -308,92 +397,4 @@ struct RuleAuditViewTests {
 
 }
 
-@MainActor
-final class MockImpactSimulator: ImpactSimulator {
-    private let safeRuleIds: [String]
-    private let results: [String: RuleImpactResult]
-    private(set) var findSafeRulesCalls = 0
-    private(set) var simulateRuleCalls = 0
-
-    init(safeRuleIds: [String], results: [String: RuleImpactResult]) {
-        self.safeRuleIds = safeRuleIds
-        self.results = results
-        super.init(swiftLintCLI: StubSwiftLintCLI())
-    }
-
-    override func findSafeRules(
-        workspace: Workspace,
-        baseConfigPath: URL?,
-        disabledRuleIds: [String],
-        optInRuleIds: Set<String>,
-        analyzerRuleIds: Set<String> = [],
-        progressHandler: ((Int, Int, String) -> Void)? = nil
-    ) async throws -> [String] {
-        await Task.yield()
-        findSafeRulesCalls += 1
-        for (index, ruleId) in safeRuleIds.enumerated() {
-            progressHandler?(index + 1, safeRuleIds.count, ruleId)
-        }
-        return safeRuleIds
-    }
-
-    override func simulateRule(
-        ruleId: String,
-        workspace: Workspace,
-        baseConfigPath: URL?,
-        isOptIn: Bool,
-        isAnalyzer: Bool = false
-    ) async throws -> RuleImpactResult {
-        await Task.yield()
-        simulateRuleCalls += 1
-        if let result = results[ruleId] {
-            return result
-        }
-        return RuleImpactResult(
-            ruleId: ruleId,
-            violationCount: 0,
-            violations: [],
-            affectedFiles: [],
-            simulationDuration: 0
-        )
-    }
-
-    override func simulateRules(
-        ruleIds: [String],
-        workspace: Workspace,
-        baseConfigPath: URL?,
-        optInRuleIds: Set<String> = [],
-        analyzerRuleIds: Set<String> = [],
-        progressHandler: ((Int, Int, String) -> Void)? = nil
-    ) async throws -> BatchSimulationResult {
-        await Task.yield()
-        var ruleResults: [RuleImpactResult] = []
-        for (index, ruleId) in ruleIds.enumerated() {
-            progressHandler?(index + 1, ruleIds.count, ruleId)
-            let result = results[ruleId] ?? RuleImpactResult(
-                ruleId: ruleId,
-                violationCount: 0,
-                violations: [],
-                affectedFiles: [],
-                simulationDuration: 0.1
-            )
-            ruleResults.append(result)
-        }
-        return BatchSimulationResult(
-            results: ruleResults,
-            totalDuration: 1.0,
-            completedAt: Date.now
-        )
-    }
-}
-
-@MainActor
-struct StubSwiftLintCLI: SwiftLintCLIProtocol {
-    func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
-    func executeRulesCommand() throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
-    func generateDocsForRule(ruleId: String) throws -> String { "" }
-    func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
-    func getVersion() throws -> String { "0.0.0" }
-}
 // swiftlint:enable function_body_length

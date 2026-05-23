@@ -5,18 +5,12 @@
 //  Common test helpers and factories for UI tests
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing
 import ViewInspector
-@testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
-
-// UserDefaults is passed across actor boundaries in tests; @retroactive silences the
-// "retroactive conformance" warning while keeping the required Sendable conformance.
-extension UserDefaults: @retroactive @unchecked Sendable {}
-
-// MARK: - Test Data Factories
 
 // Factory methods for creating test data
 // Using async functions with MainActor.run to allow parallel test execution
@@ -69,9 +63,9 @@ enum UITestDataFactory {
                 id: "\(prefix)_\(index)",
                 name: "Test Rule \(index)",
                 description: "Test description \(index)",
-                category: index % 2 == 0 ? .lint : .style,
-                isOptIn: index % 3 == 0,
-                isEnabled: index % 2 == 0
+                category: index.isMultiple(of: 2) ? .lint : .style,
+                isOptIn: index.isMultiple(of: 3),
+                isEnabled: index.isMultiple(of: 2)
             )
             rules.append(rule)
         }
@@ -121,7 +115,7 @@ enum UITestDataFactory {
                 ruleID: ruleID,
                 filePath: filePath,
                 line: index + 1,
-                severity: index % 2 == 0 ? .error : .warning,
+                severity: index.isMultiple(of: 2) ? .error : .warning,
                 message: "Test violation message \(index)"
             )
             violations.append(violation)
@@ -142,8 +136,6 @@ enum UITestDataFactory {
     }
 }
 
-// MARK: - View Creation Helpers
-
 // Helpers for creating views with proper environment objects
 // Using async functions with MainActor.run to allow parallel test execution
 enum UIViewTestHelpers {
@@ -152,7 +144,7 @@ enum UIViewTestHelpers {
     static func createTestDependencyContainer(
         userDefaults: UserDefaults? = nil
     ) async -> DependencyContainer {
-        return await MainActor.run {
+        await MainActor.run {
             DependencyContainer.createForTesting(userDefaults: userDefaults)
         }
     }
@@ -188,20 +180,18 @@ enum UIViewTestHelpers {
     static func createTestOnboardingManager(
         testName: String = UUID().uuidString
     ) async -> OnboardingManager {
-        return await MainActor.run {
+        await MainActor.run {
             OnboardingManager.createForTesting(testName: testName)
         }
     }
 
     /// Creates a WorkspaceManager for testing with isolated UserDefaults
     static func createTestWorkspaceManager(testName: String = UUID().uuidString) async -> WorkspaceManager {
-        return await MainActor.run {
+        await MainActor.run {
             WorkspaceManager.createForTesting(testName: testName)
         }
     }
 }
-
-// MARK: - Test Assertion Helpers
 
 // Helpers for common test assertions
 enum UITestAssertions {
@@ -227,8 +217,8 @@ enum UITestAssertions {
     /// Asserts that a view contains a specific view type
     /// Note: Use concrete ViewType methods like find(ViewType.List.self) for better type safety
     static func assertContainsViewType<T>(
-        _ view: some View,
-        _ viewType: T.Type
+        _: some View,
+        _: T.Type
     ) throws {
         // This is a placeholder - use concrete ViewType methods in actual tests
         // For example: try view.inspect().find(ViewType.List.self)
@@ -239,15 +229,13 @@ enum UITestAssertions {
     static func assertButtonExists(
         _ view: some View,
         text: String,
-        enabled: Bool = true
+        enabled _: Bool = true
     ) throws {
         let inspectable = try view.inspect()
         _ = try inspectable.findButton(text: text)
         // Note: Button enabled state may require additional inspection
     }
 }
-
-// MARK: - Async Test Helpers
 
 // Helpers for async test operations
 enum UIAsyncTestHelpers {
@@ -308,7 +296,7 @@ enum UIAsyncTestHelpers {
         text: String,
         timeout: TimeInterval = 1.0
     ) async -> Bool {
-        return await waitForConditionOnMainActor(timeout: timeout) {
+        await waitForConditionOnMainActor(timeout: timeout) {
             do {
                 let inspectable = try view.inspect()
                 return inspectable.containsText(text)
@@ -321,15 +309,24 @@ enum UIAsyncTestHelpers {
     /// Waits for a view type to appear
     /// Note: Use concrete ViewType methods for better type safety
     static func waitForViewType<T>(
-        in view: some View,
-        _ viewType: T.Type,
+        in _: some View,
+        _: T.Type,
         timeout: TimeInterval = 1.0
     ) async -> Bool {
         // This is a placeholder - use concrete ViewType methods in actual tests
         // For example: try view.inspect().find(ViewType.List.self)
-        return await waitForCondition(timeout: timeout) {
+        await waitForCondition(timeout: timeout) {
             // Use concrete find methods instead
-            return false
+            false
         }
     }
 }
+
+// MARK: - File marker (satisfies file_name lint rule)
+
+private enum UITestHelpers {}
+
+
+// UserDefaults is passed across actor boundaries in tests; @retroactive silences the
+// "retroactive conformance" warning while keeping the required Sendable conformance.
+extension UserDefaults: @retroactive @unchecked Sendable {}

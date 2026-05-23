@@ -12,11 +12,11 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        MainActor.assumeIsolated { SwiftLintRuleStudioUITests.terminateApp() }
+        MainActor.assumeIsolated { Self.terminateApp() }
     }
 
     override func tearDownWithError() throws {
-        MainActor.assumeIsolated { SwiftLintRuleStudioUITests.terminateApp() }
+        MainActor.assumeIsolated { Self.terminateApp() }
     }
 
     @MainActor private static func terminateApp() {

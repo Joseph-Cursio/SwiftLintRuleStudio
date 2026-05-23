@@ -5,12 +5,12 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import Foundation
 import Combine
+import Foundation
 #if os(macOS)
 import AppKit
-import UserNotifications
 import SwiftLintRuleStudioCore
+import UserNotifications
 #endif
 
 extension ViolationInspectorViewModel {

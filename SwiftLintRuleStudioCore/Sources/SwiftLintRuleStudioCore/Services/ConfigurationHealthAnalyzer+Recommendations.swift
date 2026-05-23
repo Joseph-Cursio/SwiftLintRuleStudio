@@ -10,7 +10,7 @@ import Foundation
 extension ConfigurationHealthAnalyzer {
     func generateRecommendations(
         config: YAMLConfigurationEngine.YAMLConfig,
-        knownRules: [Rule],
+        knownRules _: [Rule],
         breakdown: ConfigHealthReport.ScoreBreakdown
     ) -> [HealthRecommendation] {
         var recommendations: [HealthRecommendation] = []

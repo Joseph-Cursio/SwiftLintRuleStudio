@@ -5,13 +5,13 @@
 //  Interaction tests for ViolationDetailView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Interaction tests for ViolationDetailView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -78,7 +78,7 @@ struct ViolationDetailViewInteractionTests {
         timeoutSeconds: TimeInterval = 1.0,
         condition: @escaping @MainActor () -> Bool
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+        await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
                 condition()
             }

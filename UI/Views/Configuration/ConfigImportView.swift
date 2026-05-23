@@ -5,8 +5,8 @@
 //  View for importing SwiftLint configs from URLs
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct ConfigImportView: View {
     @State private var viewModel: ConfigImportViewModel

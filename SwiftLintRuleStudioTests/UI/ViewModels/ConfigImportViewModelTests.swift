@@ -5,10 +5,54 @@
 //  Tests for ConfigImportViewModel state management and service delegation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+private final class SpyConfigImportService: ConfigImportServiceProtocol, @unchecked Sendable {
+    private let previewToReturn: ConfigImportPreview?
+    private let shouldThrow: Bool
+    private let shouldThrowOnApply: Bool
+
+    var fetchCallCount = 0
+    var lastFetchURL: URL?
+    var applyCallCount = 0
+    var lastApplyMode: ImportMode?
+
+    init(
+        previewToReturn: ConfigImportPreview? = nil,
+        shouldThrow: Bool = false,
+        shouldThrowOnApply: Bool = false
+    ) {
+        self.previewToReturn = previewToReturn
+        self.shouldThrow = shouldThrow
+        self.shouldThrowOnApply = shouldThrowOnApply
+    }
+
+    func fetchAndPreview(from url: URL, currentConfigPath _: URL?) throws -> ConfigImportPreview {
+        fetchCallCount += 1
+        lastFetchURL = url
+        if shouldThrow {
+            throw NSError(domain: "SpyError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
+        }
+        return previewToReturn ?? ConfigImportPreview(
+            sourceURL: url,
+            fetchedYAML: "",
+            parsedConfig: YAMLConfigurationEngine.YAMLConfig(),
+            diff: nil,
+            validationErrors: []
+        )
+    }
+
+    func applyImport(preview _: ConfigImportPreview, mode: ImportMode, to _: URL) throws {
+        applyCallCount += 1
+        lastApplyMode = mode
+        if shouldThrowOnApply {
+            throw NSError(domain: "SpyError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Apply failed"])
+        }
+    }
+}
 
 @MainActor
 struct ConfigImportViewModelTests {
@@ -218,51 +262,5 @@ struct ConfigImportViewModelTests {
         #expect(viewModel.error != nil)
         #expect(viewModel.importComplete == false)
         #expect(viewModel.isImporting == false)
-    }
-}
-
-// MARK: - Spy
-
-private final class SpyConfigImportService: ConfigImportServiceProtocol, @unchecked Sendable {
-    private let previewToReturn: ConfigImportPreview?
-    private let shouldThrow: Bool
-    private let shouldThrowOnApply: Bool
-
-    var fetchCallCount = 0
-    var lastFetchURL: URL?
-    var applyCallCount = 0
-    var lastApplyMode: ImportMode?
-
-    init(
-        previewToReturn: ConfigImportPreview? = nil,
-        shouldThrow: Bool = false,
-        shouldThrowOnApply: Bool = false
-    ) {
-        self.previewToReturn = previewToReturn
-        self.shouldThrow = shouldThrow
-        self.shouldThrowOnApply = shouldThrowOnApply
-    }
-
-    func fetchAndPreview(from url: URL, currentConfigPath: URL?) throws -> ConfigImportPreview {
-        fetchCallCount += 1
-        lastFetchURL = url
-        if shouldThrow {
-            throw NSError(domain: "SpyError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
-        }
-        return previewToReturn ?? ConfigImportPreview(
-            sourceURL: url,
-            fetchedYAML: "",
-            parsedConfig: YAMLConfigurationEngine.YAMLConfig(),
-            diff: nil,
-            validationErrors: []
-        )
-    }
-
-    func applyImport(preview: ConfigImportPreview, mode: ImportMode, to configPath: URL) throws {
-        applyCallCount += 1
-        lastApplyMode = mode
-        if shouldThrowOnApply {
-            throw NSError(domain: "SpyError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Apply failed"])
-        }
     }
 }

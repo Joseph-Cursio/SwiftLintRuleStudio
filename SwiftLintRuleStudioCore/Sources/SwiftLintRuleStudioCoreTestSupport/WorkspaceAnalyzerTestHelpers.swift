@@ -8,6 +8,38 @@
 import Foundation
 @testable import SwiftLintRuleStudioCore
 
+// @unchecked Sendable: Test mock with controlled single-threaded access in tests
+public final class MockViolationStorage: ViolationStorageProtocol, @unchecked Sendable {
+    public var storedViolations: [Violation] = []
+
+    public func storeViolations(_ violations: [Violation], for _: UUID) async throws {
+        await Task.yield()
+        storedViolations = violations
+    }
+
+    public func fetchViolations(filter _: ViolationFilter, workspaceId _: UUID?) async throws -> [Violation] {
+        await Task.yield()
+        return storedViolations
+    }
+
+    public func getViolationCount(filter _: ViolationFilter, workspaceId _: UUID?) async throws -> Int {
+        await Task.yield()
+        return storedViolations.count
+    }
+
+    public func suppressViolations(_: [UUID], reason _: String) async throws {
+        await Task.yield()
+    }
+
+    public func resolveViolations(_: [UUID]) async throws {
+        await Task.yield()
+    }
+
+    public func deleteViolations(for _: UUID) async throws {
+        await Task.yield()
+    }
+}
+
 /// Test helpers for workspace analyzer tests
 public enum WorkspaceAnalyzerTestHelpers {
     /// Create a temporary workspace analyzer and run an operation against it
@@ -16,7 +48,7 @@ public enum WorkspaceAnalyzerTestHelpers {
         violationStorage: ViolationStorageProtocol,
         operation: @MainActor @escaping (WorkspaceAnalyzer) async throws -> T
     ) async throws -> T {
-        return try await Task { @MainActor in
+        try await Task { @MainActor in
             let isolatedTracker = FileTracker.createForTesting()
             let analyzer = WorkspaceAnalyzer(
                 swiftLintCLI: swiftLintCLI,
@@ -35,7 +67,7 @@ public enum WorkspaceAnalyzerTestHelpers {
     public static func setupMockCLI(
         _ mockCLI: MockSwiftLintCLIActor,
         output: Data,
-        shouldFail: Bool = false,
+        shouldFail _: Bool = false,
         shouldHang: Bool = false
     ) async {
         await mockCLI.setMockLintOutput(output)
@@ -80,34 +112,3 @@ public enum WorkspaceAnalyzerTestHelpers {
     }
 }
 
-// @unchecked Sendable: Test mock with controlled single-threaded access in tests
-public final class MockViolationStorage: ViolationStorageProtocol, @unchecked Sendable {
-    public var storedViolations: [Violation] = []
-
-    public func storeViolations(_ violations: [Violation], for workspaceId: UUID) async throws {
-        await Task.yield()
-        storedViolations = violations
-    }
-
-    public func fetchViolations(filter: ViolationFilter, workspaceId: UUID?) async throws -> [Violation] {
-        await Task.yield()
-        return storedViolations
-    }
-
-    public func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int {
-        await Task.yield()
-        return storedViolations.count
-    }
-
-    public func suppressViolations(_ violationIds: [UUID], reason: String) async throws {
-        await Task.yield()
-    }
-
-    public func resolveViolations(_ violationIds: [UUID]) async throws {
-        await Task.yield()
-    }
-
-    public func deleteViolations(for workspaceId: UUID) async throws {
-        await Task.yield()
-    }
-}

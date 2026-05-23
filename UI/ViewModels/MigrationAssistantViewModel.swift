@@ -9,6 +9,17 @@ import Foundation
 import Observation
 import SwiftLintRuleStudioCore
 
+enum MigrationError: LocalizedError {
+    case noPreviousVersion
+
+    var errorDescription: String? {
+        switch self {
+        case .noPreviousVersion:
+            return "Please enter the previous SwiftLint version you are migrating from."
+        }
+    }
+}
+
 @MainActor
 @Observable
 class MigrationAssistantViewModel {
@@ -108,18 +119,5 @@ class MigrationAssistantViewModel {
             self.error = error
         }
         isMigrating = false
-    }
-}
-
-// MARK: - Errors
-
-enum MigrationError: LocalizedError {
-    case noPreviousVersion
-
-    var errorDescription: String? {
-        switch self {
-        case .noPreviousVersion:
-            return "Please enter the previous SwiftLint version you are migrating from."
-        }
     }
 }

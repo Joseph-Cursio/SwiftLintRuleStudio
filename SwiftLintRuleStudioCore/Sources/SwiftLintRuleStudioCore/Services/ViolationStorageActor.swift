@@ -8,9 +8,9 @@
 import Foundation
 import SQLite3
 
-// sqliteTransient is a function pointer constant that tells SQLite to copy the string
+// kSqliteTransient is a function pointer constant that tells SQLite to copy the string
 // In Swift, we need to define it ourselves
-private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+private let kSqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Protocol for violation storage operations
 /// All methods are async, so callers properly await across isolation boundaries
@@ -22,6 +22,25 @@ public protocol ViolationStorageProtocol: Sendable {
     func resolveViolations(_ violationIds: [UUID]) async throws
     func deleteViolations(for workspaceId: UUID) async throws
     func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int
+}
+
+// MARK: - Errors
+
+public enum ViolationStorageError: LocalizedError, Sendable {
+    case databaseNotOpen
+    case databaseOpenFailed(String)
+    case sqlError(String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .databaseNotOpen:
+            return "Database is not open"
+        case .databaseOpenFailed(let message):
+            return "Failed to open database: \(message)"
+        case .sqlError(let message):
+            return "SQL error: \(message)"
+        }
+    }
 }
 
 /// SQLite-based violation storage
@@ -59,23 +78,4 @@ public actor ViolationStorageActor: ViolationStorageProtocol {
 
     // MARK: - ViolationStorageProtocol
 
-}
-
-// MARK: - Errors
-
-public enum ViolationStorageError: LocalizedError, Sendable {
-    case databaseNotOpen
-    case databaseOpenFailed(String)
-    case sqlError(String)
-
-    public var errorDescription: String? {
-        switch self {
-        case .databaseNotOpen:
-            return "Database is not open"
-        case .databaseOpenFailed(let message):
-            return "Failed to open database: \(message)"
-        case .sqlError(let message):
-            return "SQL error: \(message)"
-        }
-    }
 }

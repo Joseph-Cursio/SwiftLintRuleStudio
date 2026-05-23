@@ -102,8 +102,10 @@ extension RuleDetailView {
                     }
                 } else if matchedString.contains("SE-") {
                     // Extract SE number and construct URL
-                    if let seNumber = matchedString.components(separatedBy: CharacterSet.decimalDigits.inverted)
-                        .joined().components(separatedBy: "SE").last,
+                    let digitsOnly = matchedString
+                        .components(separatedBy: CharacterSet.decimalDigits.inverted)
+                        .joined()
+                    if let seNumber = digitsOnly.components(separatedBy: "SE").last,
                        !seNumber.isEmpty {
                         let base = "https://github.com/apple/swift-evolution/blob/main/proposals/"
                         let urlString = "\(base)\(seNumber.prefix(4)).md"

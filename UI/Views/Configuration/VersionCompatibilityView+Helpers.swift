@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension VersionCompatibilityView {
     func removedRulesSection(_ rules: [RemovedRuleInfo]) -> some View {

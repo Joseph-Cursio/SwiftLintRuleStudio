@@ -5,38 +5,8 @@
 //  Inline error display component for configuration validation
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
-
-/// Displays validation errors and warnings inline
-private struct ValidationErrorIndicator: View {
-    let errors: [ValidationResult.ValidationError]
-    let warnings: [ValidationResult.ValidationWarning]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(errors) { error in
-                ValidationErrorRow(
-                    icon: "xmark.circle.fill",
-                    iconColor: .red,
-                    field: error.field.description,
-                    message: error.message,
-                    suggestion: error.suggestion
-                )
-            }
-
-            ForEach(warnings) { warning in
-                ValidationErrorRow(
-                    icon: "exclamationmark.triangle.fill",
-                    iconColor: .orange,
-                    field: warning.field.description,
-                    message: warning.message,
-                    suggestion: warning.suggestion
-                )
-            }
-        }
-    }
-}
+import SwiftUI
 
 /// Single row for displaying a validation error or warning
 private struct ValidationErrorRow: View {
@@ -138,21 +108,21 @@ private struct ValidationStatusBadge: View {
     private var statusIcon: String {
         if !result.isValid {
             return "xmark.circle.fill"
-        } else if !result.warnings.isEmpty {
-            return "exclamationmark.triangle.fill"
-        } else {
-            return "checkmark.circle.fill"
         }
+        if !result.warnings.isEmpty {
+            return "exclamationmark.triangle.fill"
+        }
+        return "checkmark.circle.fill"
     }
 
     private var statusColor: Color {
         if !result.isValid {
             return .red
-        } else if !result.warnings.isEmpty {
-            return .orange
-        } else {
-            return .green
         }
+        if !result.warnings.isEmpty {
+            return .orange
+        }
+        return .green
     }
 }
 
@@ -187,6 +157,36 @@ private struct FieldValidationIndicator: View {
                             .foregroundStyle(.orange)
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Displays validation errors and warnings inline
+private struct ValidationErrorIndicator: View {
+    let errors: [ValidationResult.ValidationError]
+    let warnings: [ValidationResult.ValidationWarning]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(errors) { error in
+                ValidationErrorRow(
+                    icon: "xmark.circle.fill",
+                    iconColor: .red,
+                    field: error.field.description,
+                    message: error.message,
+                    suggestion: error.suggestion
+                )
+            }
+
+            ForEach(warnings) { warning in
+                ValidationErrorRow(
+                    icon: "exclamationmark.triangle.fill",
+                    iconColor: .orange,
+                    field: warning.field.description,
+                    message: warning.message,
+                    suggestion: warning.suggestion
+                )
             }
         }
     }

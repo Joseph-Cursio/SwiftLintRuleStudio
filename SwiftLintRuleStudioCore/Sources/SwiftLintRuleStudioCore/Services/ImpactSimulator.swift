@@ -52,11 +52,11 @@ public struct BatchSimulationResult: Sendable {
     }
 
     nonisolated public var safeRules: [RuleImpactResult] {
-        results.filter { $0.isSafe }
+        results.filter(\.isSafe)
     }
 
     nonisolated public var rulesWithViolations: [RuleImpactResult] {
-        results.filter { $0.hasViolations }
+        results.filter(\.hasViolations)
     }
 }
 
@@ -121,7 +121,7 @@ public class ImpactSimulator {
         let ruleViolations = allViolations.filter { $0.ruleID == ruleId }
 
         // Extract affected files
-        let affectedFiles = Set(ruleViolations.map { $0.filePath })
+        let affectedFiles = Set(ruleViolations.map(\.filePath))
 
         let duration = Date.now.timeIntervalSince(startTime)
 
@@ -217,7 +217,7 @@ public class ImpactSimulator {
         // Filter to rules with zero violations (and no errors)
         return batchResult.safeRules
             .filter { $0.violationCount >= 0 } // Exclude error cases
-            .map { $0.ruleId }
+            .map(\.ruleId)
     }
 
     // MARK: - Helper Methods
@@ -225,7 +225,7 @@ public class ImpactSimulator {
     /// Create a temporary SwiftLint configuration with a specific rule enabled
     private func createTemporaryConfig(
         ruleId: String,
-        enabled: Bool,
+        enabled _: Bool,
         baseConfigPath: URL?,
         workspace: Workspace,
         isOptIn: Bool,

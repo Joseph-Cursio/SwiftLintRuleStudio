@@ -5,11 +5,17 @@
 //  Tests for bulk rule operations in RuleBrowserViewModel
 //
 
-import Testing
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
+
+private struct RuleListSnapshot {
+    let analyzer: [String]?
+    let optIn: [String]?
+    let disabled: [String]?
+}
 
 @MainActor
 struct RuleBrowserViewModelBulkTests {
@@ -281,10 +287,4 @@ struct RuleBrowserViewModelBulkTests {
         let saved = try String(contentsOf: configPath, encoding: .utf8)
         #expect(saved.contains("error"))
     }
-}
-
-private struct RuleListSnapshot {
-    let analyzer: [String]?
-    let optIn: [String]?
-    let disabled: [String]?
 }

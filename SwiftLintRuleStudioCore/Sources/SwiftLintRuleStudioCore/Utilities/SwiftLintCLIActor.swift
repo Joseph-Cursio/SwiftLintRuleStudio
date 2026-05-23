@@ -26,6 +26,41 @@ public protocol SwiftLintCLIProtocol: Sendable {
     func getVersion() async throws -> String
 }
 
+public enum SwiftLintError: LocalizedError, Sendable {
+    case notFound
+    case invalidVersion
+    case executionFailed(message: String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .notFound:
+            return """
+            SwiftLint not found. Please install SwiftLint using one of these methods:
+
+            • Homebrew: brew install swiftlint
+            • Mint: mint install realm/SwiftLint
+            • CocoaPods: Add to your Podfile
+            • Direct download: https://github.com/realm/SwiftLint/releases
+
+            After installing, restart SwiftLint Rule Studio.
+            """
+        case .invalidVersion:
+            return "Could not determine SwiftLint version."
+        case .executionFailed(let message):
+            return "SwiftLint execution failed: \(message)"
+        }
+    }
+
+    public var recoverySuggestion: String? {
+        switch self {
+        case .notFound:
+            return "Install SwiftLint using Homebrew: brew install swiftlint"
+        default:
+            return nil
+        }
+    }
+}
+
 /// Service for executing SwiftLint CLI commands
 public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
     private var cachedSwiftLintPath: URL?
@@ -87,11 +122,11 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
     public func executeRulesCommand() async throws -> Data {
         // Use "swiftlint" command directly - let shell PATH resolve it
         // This works better with sandboxed apps
-        return try await executeCommandViaShell(command: "swiftlint", arguments: ["rules"])
+        try await executeCommandViaShell(command: "swiftlint", arguments: ["rules"])
     }
 
     public func executeRuleDetailCommand(ruleId: String) async throws -> Data {
-        return try await executeCommandViaShell(command: "swiftlint", arguments: ["rules", ruleId])
+        try await executeCommandViaShell(command: "swiftlint", arguments: ["rules", ruleId])
     }
 
     public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
@@ -113,37 +148,3 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
 
 }
 
-public enum SwiftLintError: LocalizedError, Sendable {
-    case notFound
-    case invalidVersion
-    case executionFailed(message: String)
-
-    public var errorDescription: String? {
-        switch self {
-        case .notFound:
-            return """
-            SwiftLint not found. Please install SwiftLint using one of these methods:
-
-            • Homebrew: brew install swiftlint
-            • Mint: mint install realm/SwiftLint
-            • CocoaPods: Add to your Podfile
-            • Direct download: https://github.com/realm/SwiftLint/releases
-
-            After installing, restart SwiftLint Rule Studio.
-            """
-        case .invalidVersion:
-            return "Could not determine SwiftLint version."
-        case .executionFailed(let message):
-            return "SwiftLint execution failed: \(message)"
-        }
-    }
-
-    public var recoverySuggestion: String? {
-        switch self {
-        case .notFound:
-            return "Install SwiftLint using Homebrew: brew install swiftlint"
-        default:
-            return nil
-        }
-    }
-}

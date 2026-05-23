@@ -1,11 +1,11 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
-struct VIViewModelBulkOpsTests {
+struct ViolationInspectorViewModelBulkOperationsTests {
     @Test("ViolationInspectorViewModel suppresses selected violations")
     func testSuppressSelectedViolations() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
@@ -31,7 +31,7 @@ struct VIViewModelBulkOpsTests {
         }.value
 
         let (suppressedCount, selectedIdsEmpty) = await MainActor.run {
-            let suppressed = viewModel.violations.filter { $0.suppressed }
+            let suppressed = viewModel.violations.filter(\.suppressed)
             return (suppressed.count, viewModel.selectedViolationIds.isEmpty)
         }
         #expect(suppressedCount == 2)

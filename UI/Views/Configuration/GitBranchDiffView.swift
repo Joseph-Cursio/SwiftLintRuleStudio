@@ -5,8 +5,8 @@
 //  View for comparing .swiftlint.yml across git branches
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct GitBranchDiffView: View {
     @State private var viewModel: GitBranchDiffViewModel

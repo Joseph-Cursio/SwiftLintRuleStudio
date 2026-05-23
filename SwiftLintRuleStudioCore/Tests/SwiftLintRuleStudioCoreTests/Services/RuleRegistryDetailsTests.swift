@@ -5,9 +5,9 @@
 //  Rule details parsing tests
 //
 
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct RuleRegistryDetailsTests {
     @Test("RuleRegistry parses examples from rule details")

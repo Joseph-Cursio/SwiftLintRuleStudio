@@ -5,10 +5,10 @@
 //  Extended tests for RuleDetailView+MarkdownHelpers covering edge cases
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
 import SwiftUI
 import Testing
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 @MainActor
 @Suite("RuleDetailView MarkdownHelpers Extended Tests")

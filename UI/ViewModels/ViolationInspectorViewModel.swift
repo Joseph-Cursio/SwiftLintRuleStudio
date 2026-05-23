@@ -5,8 +5,8 @@
 //  ViewModel for managing violation inspection state
 //
 
-import Foundation
 import Combine
+import Foundation
 import Observation
 import SwiftLintRuleStudioCore
 
@@ -44,7 +44,7 @@ class ViolationInspectorViewModel {
     }
 
     // Grouping and sorting
-    var groupingOption: ViolationGroupingOption = .none {
+    var groupingOption: ViolationGroupingOption = .ungrouped {
         didSet { updateFilteredViolations() }
     }
     var sortOption: ViolationSortOption = .file {

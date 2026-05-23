@@ -5,12 +5,12 @@
 //  UI tests for CodeBlock view
 //
 
+import LintStudioUI
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
 import Testing
 import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
-import LintStudioUI
 
 @MainActor
 struct CodeBlockTests {

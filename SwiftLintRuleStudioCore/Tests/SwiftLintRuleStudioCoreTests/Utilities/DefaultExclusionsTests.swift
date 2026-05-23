@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
 enum MergeIdentityCase: CaseIterable, Sendable, CustomTestStringConvertible {

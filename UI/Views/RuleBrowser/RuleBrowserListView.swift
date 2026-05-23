@@ -88,9 +88,8 @@ struct RuleBrowserListView: View {
                 searchText: viewModel.searchText,
                 selectedCategory: viewModel.selectedCategory,
                 selectedStatus: viewModel.selectedStatus,
-                rulesAreEmpty: ruleRegistry.rules.isEmpty,
-                onClearFilters: { viewModel.clearFilters() }
-            )
+                rulesAreEmpty: ruleRegistry.rules.isEmpty
+            ) { viewModel.clearFilters() }
         } else if viewModel.isMultiSelectMode {
             List(selection: Bindable(viewModel).selectedRuleIds) {
                 ForEach(viewModel.filteredRules, id: \.id) { rule in

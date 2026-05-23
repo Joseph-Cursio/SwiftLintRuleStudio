@@ -5,11 +5,11 @@
 //  Export functionality tests for ViolationInspectorView
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
 import Testing
 import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 // MARK: - Export Tests
 

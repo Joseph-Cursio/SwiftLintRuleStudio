@@ -81,7 +81,7 @@ public extension WorkspaceAnalyzer {
 
     /// Filters file paths to only changed files when incremental analysis is requested
     func resolveFilesToAnalyze(_ filePaths: [URL], onlyChanged: Bool) -> [String] {
-        let filePathStrings = filePaths.map { $0.path }
+        let filePathStrings = filePaths.map(\.path)
         if onlyChanged {
             return fileTracker.getChangedFiles(from: filePathStrings)
         }
@@ -145,7 +145,7 @@ public extension WorkspaceAnalyzer {
         batch: [URL],
         workspacePath: URL
     ) -> [Violation] {
-        let batchPaths = Set(batch.map { $0.path })
+        let batchPaths = Set(batch.map(\.path))
         return violations.filter { violation in
             let fullPath = workspacePath.appendingPathComponent(violation.filePath).path
             return batchPaths.contains(fullPath)

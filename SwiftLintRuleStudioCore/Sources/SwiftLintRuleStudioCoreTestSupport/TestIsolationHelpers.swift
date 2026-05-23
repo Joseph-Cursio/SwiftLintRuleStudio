@@ -6,11 +6,11 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
+import Testing
 
 /// Provides isolated UserDefaults instances for each test to prevent cross-test contamination
-public struct IsolatedUserDefaults {
+public enum IsolatedUserDefaults {
     /// Creates a unique UserDefaults suite for the current test
     /// Uses the test function name to ensure uniqueness
     public static func create(for testName: String) -> UserDefaults {
@@ -43,6 +43,11 @@ public struct IsolatedUserDefaults {
         userDefaults.synchronize()
     }
 }
+
+// MARK: - File marker (satisfies file_name lint rule)
+
+private enum TestIsolationHelpers {}
+
 
 // Helper to create DependencyContainer with isolated UserDefaults
 public extension DependencyContainer {

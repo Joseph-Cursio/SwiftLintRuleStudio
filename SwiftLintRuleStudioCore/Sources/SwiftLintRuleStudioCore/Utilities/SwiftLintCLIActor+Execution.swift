@@ -130,8 +130,7 @@ extension SwiftLintCLIActor {
 private extension SwiftLintCLIActor {
     func resolveSwiftLintPath() async -> URL? {
         do {
-            let path = try await detectSwiftLintPath()
-            return path
+            return try await detectSwiftLintPath()
         } catch {
             return nil
         }
@@ -193,7 +192,7 @@ private extension SwiftLintCLIActor {
 
     func runProcess(
         _ process: Process,
-        label: String,
+        label _: String,
         useChunkedRead: Bool
     ) async throws -> ProcessOutput {
         let outputPipe = Pipe()
@@ -209,9 +208,8 @@ private extension SwiftLintCLIActor {
             let timeoutResult = try await readProcessOutput(
                 outputPipe: outputPipe,
                 errorPipe: errorPipe,
-                useChunkedRead: useChunkedRead,
-                onTimeout: { await self.terminateProcess(process) }
-            )
+                useChunkedRead: useChunkedRead
+            ) { await self.terminateProcess(process) }
             logCompletionTime(startTime: startTime)
             return ProcessOutput(
                 stdout: timeoutResult.stdout,

@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct WorkspaceAnalyzerAnalysisTests {
     @Test("WorkspaceAnalyzer analyzes workspace and returns violations")

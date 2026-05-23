@@ -5,10 +5,10 @@
 //  Helper utilities for ViolationDetailView tests
 //
 
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
 
 enum ViolationDetailViewTestHelpers {
     static func makeTestViolation(

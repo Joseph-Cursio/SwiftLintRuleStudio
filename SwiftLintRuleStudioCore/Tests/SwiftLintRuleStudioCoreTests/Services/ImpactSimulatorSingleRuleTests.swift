@@ -5,10 +5,10 @@
 //  Single rule simulation tests
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ImpactSimulatorSingleRuleTests {
     @Test("ImpactSimulator simulates rule with zero violations")

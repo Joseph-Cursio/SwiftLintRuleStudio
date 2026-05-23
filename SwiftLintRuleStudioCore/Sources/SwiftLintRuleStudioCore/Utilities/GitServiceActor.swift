@@ -89,8 +89,7 @@ public actor GitServiceActor: GitServiceProtocol {
     public func showFile(at repoPath: URL, branch: String, filePath: String) async throws -> String {
         try await ensureGitRepo(at: repoPath)
         do {
-            let output = try await runGit(at: repoPath, arguments: ["show", "\(branch):\(filePath)"])
-            return output
+            return try await runGit(at: repoPath, arguments: ["show", "\(branch):\(filePath)"])
         } catch let error as GitServiceError {
             if case .executionFailed(let msg) = error,
                msg.contains("does not exist") || msg.contains("not exist") || msg.contains("fatal: path") {
@@ -102,8 +101,7 @@ public actor GitServiceActor: GitServiceProtocol {
 
     public func diffFile(at repoPath: URL, fromRef: String, toRef: String, filePath: String) async throws -> String {
         try await ensureGitRepo(at: repoPath)
-        let output = try await runGit(at: repoPath, arguments: ["diff", fromRef, toRef, "--", filePath])
-        return output
+        return try await runGit(at: repoPath, arguments: ["diff", fromRef, toRef, "--", filePath])
     }
 
     // MARK: - Private

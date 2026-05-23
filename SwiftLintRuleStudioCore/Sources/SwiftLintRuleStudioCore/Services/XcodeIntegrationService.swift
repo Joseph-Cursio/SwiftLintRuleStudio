@@ -5,8 +5,29 @@
 //  Service for integrating with Xcode to open files at specific lines
 //
 
-import Foundation
 import AppKit
+import Foundation
+
+/// Errors that can occur during Xcode integration
+public enum XcodeIntegrationError: LocalizedError, Sendable {
+    case fileNotFound(path: String)
+    case invalidPath(path: String)
+    case xcodeNotInstalled
+    case failedToOpen
+
+    public var errorDescription: String? {
+        switch self {
+        case .fileNotFound(let path):
+            return "File not found: \(path)"
+        case .invalidPath(let path):
+            return "Invalid file path: \(path)"
+        case .xcodeNotInstalled:
+            return "Xcode is not installed"
+        case .failedToOpen:
+            return "Failed to open file in Xcode"
+        }
+    }
+}
 
 /// Service for opening files in Xcode
 @MainActor
@@ -72,7 +93,15 @@ public class XcodeIntegrationService {
             throw XcodeIntegrationError.invalidPath(path: path)
         }
 
-        let expandedPath = (trimmedPath as NSString).expandingTildeInPath
+        let expandedPath: String = {
+            guard trimmedPath.hasPrefix("~") else { return trimmedPath }
+            let homePath = NSHomeDirectory()
+            if trimmedPath == "~" { return homePath }
+            if trimmedPath.hasPrefix("~/") {
+                return homePath + trimmedPath.dropFirst()
+            }
+            return trimmedPath
+        }()
 
         // If path is already absolute, use it directly
         if expandedPath.hasPrefix("/") {
@@ -198,7 +227,7 @@ public class XcodeIntegrationService {
         fileURL: URL,
         line: Int,
         column: Int?,
-        projectURL: URL?
+        projectURL _: URL?
     ) -> URL? {
         // Use query parameter format which is more reliable and handles special characters
         var components = URLComponents()
@@ -246,26 +275,5 @@ public class XcodeIntegrationService {
     /// Clear project cache (useful when workspace changes)
     public func clearCache() {
         projectCache.removeAll()
-    }
-}
-
-/// Errors that can occur during Xcode integration
-public enum XcodeIntegrationError: LocalizedError, Sendable {
-    case fileNotFound(path: String)
-    case invalidPath(path: String)
-    case xcodeNotInstalled
-    case failedToOpen
-
-    public var errorDescription: String? {
-        switch self {
-        case .fileNotFound(let path):
-            return "File not found: \(path)"
-        case .invalidPath(let path):
-            return "Invalid file path: \(path)"
-        case .xcodeNotInstalled:
-            return "Xcode is not installed"
-        case .failedToOpen:
-            return "Failed to open file in Xcode"
-        }
     }
 }

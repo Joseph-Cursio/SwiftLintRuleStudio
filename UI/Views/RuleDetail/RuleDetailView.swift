@@ -5,8 +5,87 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
+
+private struct RuleDetailEventHandlers: ViewModifier {
+    let ruleId: String
+    @Bindable var viewModel: RuleDetailViewModel
+    @Binding var currentRule: Rule
+    let colorScheme: ColorScheme
+    let rules: [Rule]
+    let saveAction: () -> Void
+    let rebuildString: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in
+                if let changedId = notification.userInfo?["ruleId"] as? String,
+                   changedId == ruleId {
+                    try? viewModel.loadConfiguration()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .saveConfigurationRequested)) { _ in
+                guard viewModel.pendingChanges != nil else { return }
+                saveAction()
+            }
+            .onChange(of: rules) { _, newRules in
+                if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
+                    currentRule = updatedRule
+                }
+                rebuildString()
+            }
+            .onChange(of: colorScheme) { rebuildString() }
+    }
+}
+
+private struct RuleDetailSheetsAndAlerts: ViewModifier {
+    @Bindable var viewModel: RuleDetailViewModel
+    @Binding var showSaveConfirmation: Bool
+    @Binding var showError: Bool
+    @Binding var impactResult: RuleImpactResult?
+    let rule: Rule
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(item: $viewModel.pendingDiff) { diff in
+                ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
+                    Task {
+                        do {
+                            try viewModel.saveConfiguration()
+                            viewModel.pendingDiff = nil
+                            viewModel.showDiffPreview = false
+                            showSaveConfirmation = true
+                        } catch {
+                            showError = true
+                        }
+                    }
+                } onCancel: {
+                    viewModel.pendingDiff = nil
+                    viewModel.showDiffPreview = false
+                }
+            }
+            .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
+                Button("OK") { }
+            } message: {
+                Text("Rule configuration has been saved to your workspace's .swiftlint.yml file.")
+            }
+            .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
+                Button("OK") { viewModel.saveError = nil }
+            } message: {
+                Text(viewModel.saveError?.localizedDescription
+                     ?? "An error occurred while saving the configuration.")
+            }
+            .sheet(item: $impactResult) { result in
+                ImpactSimulationView(
+                    ruleId: rule.id,
+                    ruleName: rule.name,
+                    result: result,
+                    onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
+                )
+            }
+    }
+}
 
 struct RuleDetailView: View {
     @State var viewModel: RuleDetailViewModel
@@ -236,84 +315,5 @@ struct RuleDetailView: View {
                 isLoadingViolationCount = false
             }
         }
-    }
-}
-
-private struct RuleDetailEventHandlers: ViewModifier {
-    let ruleId: String
-    @Bindable var viewModel: RuleDetailViewModel
-    @Binding var currentRule: Rule
-    let colorScheme: ColorScheme
-    let rules: [Rule]
-    let saveAction: () -> Void
-    let rebuildString: () -> Void
-
-    func body(content: Content) -> some View {
-        content
-            .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { notification in
-                if let changedId = notification.userInfo?["ruleId"] as? String,
-                   changedId == ruleId {
-                    try? viewModel.loadConfiguration()
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .saveConfigurationRequested)) { _ in
-                guard viewModel.pendingChanges != nil else { return }
-                saveAction()
-            }
-            .onChange(of: rules) { _, newRules in
-                if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
-                    currentRule = updatedRule
-                }
-                rebuildString()
-            }
-            .onChange(of: colorScheme) { rebuildString() }
-    }
-}
-
-private struct RuleDetailSheetsAndAlerts: ViewModifier {
-    @Bindable var viewModel: RuleDetailViewModel
-    @Binding var showSaveConfirmation: Bool
-    @Binding var showError: Bool
-    @Binding var impactResult: RuleImpactResult?
-    let rule: Rule
-
-    func body(content: Content) -> some View {
-        content
-            .sheet(item: $viewModel.pendingDiff) { diff in
-                ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
-                    Task {
-                        do {
-                            try viewModel.saveConfiguration()
-                            viewModel.pendingDiff = nil
-                            viewModel.showDiffPreview = false
-                            showSaveConfirmation = true
-                        } catch {
-                            showError = true
-                        }
-                    }
-                } onCancel: {
-                    viewModel.pendingDiff = nil
-                    viewModel.showDiffPreview = false
-                }
-            }
-            .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
-                Button("OK") { }
-            } message: {
-                Text("Rule configuration has been saved to your workspace's .swiftlint.yml file.")
-            }
-            .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
-                Button("OK") { viewModel.saveError = nil }
-            } message: {
-                Text(viewModel.saveError?.localizedDescription
-                     ?? "An error occurred while saving the configuration.")
-            }
-            .sheet(item: $impactResult) { result in
-                ImpactSimulationView(
-                    ruleId: rule.id,
-                    ruleName: rule.name,
-                    result: result,
-                    onEnable: viewModel.isEnabled ? nil : { viewModel.updateEnabled(true) }
-                )
-            }
     }
 }

@@ -32,7 +32,7 @@ extension ViolationInspectorViewModel {
     }
 
     func selectAll() {
-        selectedViolationIds = Set(filteredViolations.map { $0.id })
+        selectedViolationIds = Set(filteredViolations.map(\.id))
     }
 
     func deselectAll() {
@@ -87,7 +87,7 @@ extension ViolationInspectorViewModel {
 
     func updateSelectionForFilteredViolations(_ filtered: [Violation]) {
         guard isInitialized, !isUpdatingSelection else { return }
-        let filteredIds = Set(filtered.map { $0.id })
+        let filteredIds = Set(filtered.map(\.id))
         let hasInvalidSelection = !selectedViolationIds.isSubset(of: filteredIds)
             || selectedViolationId.map { !filteredIds.contains($0) } ?? false
 

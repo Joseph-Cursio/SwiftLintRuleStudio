@@ -5,10 +5,10 @@
 //  Integration tests for ImpactSimulator with other services
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // DependencyContainer and ImpactSimulator are @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -26,7 +26,7 @@ struct ImpactSimulatorIntegrationTests {
 
     // Helper to create ImpactSimulator on MainActor
     private func createImpactSimulator(swiftLintCLI: MockSwiftLintCLIActor) async -> ImpactSimulator {
-        return await MainActor.run {
+        await MainActor.run {
             ImpactSimulator(swiftLintCLI: swiftLintCLI)
         }
     }
@@ -56,7 +56,7 @@ struct ImpactSimulatorIntegrationTests {
     @Test("ImpactSimulator is initialized in DependencyContainer")
     func testDependencyContainerIntegration() async throws {
         let hasSimulator = try await withContainer { _ in
-            return true
+            true
         }
 
         #expect(hasSimulator)
@@ -137,7 +137,7 @@ struct ImpactSimulatorIntegrationTests {
         }
         let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)
         await mockCLI.setLintCommandHandler { @Sendable _, _ in
-            return jsonData ?? Data()
+            jsonData ?? Data()
         }
 
         return mockCLI

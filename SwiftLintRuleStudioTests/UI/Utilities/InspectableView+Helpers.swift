@@ -5,12 +5,25 @@
 //  ViewInspector extensions for common test patterns
 //
 
-import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
+import ViewInspector
 
 // MARK: - ViewInspector Extensions
+
+// Common view types for easier reference
+private enum CommonViewType {
+    case list
+    case button
+    case textField
+    case navigationLink
+    case picker
+    case vStack
+    case hStack
+    case navigationSplitView
+    case navigationStack
+}
 
 // Extension for InspectableView to add common interaction helpers
 // Note: This extension works with any InspectableView that can find text and buttons
@@ -57,7 +70,7 @@ extension InspectableView {
     /// - Parameter placeholder: The placeholder text to find
     /// - Returns: The text field view
     /// - Throws: If text field cannot be found
-    func findTextField(placeholder: String) throws -> InspectableView<ViewType.TextField> {
+    func findTextField(placeholder _: String) throws -> InspectableView<ViewType.TextField> {
         // Note: ViewInspector may not directly support placeholder search
         // This is a helper that attempts to find by searching for text fields
         // and checking their attributes
@@ -82,10 +95,10 @@ extension InspectableView {
     /// - Parameter viewType: The view type to search for
     /// - Returns: True if view type is found, false otherwise
     /// Note: This is a generic helper - specific view types should use their concrete find methods
-    func containsViewType<T>(_ viewType: T.Type) -> Bool {
+    func containsViewType<T>(_: T.Type) -> Bool {
         // This is a placeholder - specific implementations should use concrete ViewType methods
         // For example: find(ViewType.List.self), find(ViewType.Button.self), etc.
-        return false
+        false
     }
 
     /// Finds a navigation link by its label text
@@ -114,10 +127,9 @@ extension InspectableView {
             // Try to find by label
             let labelText = try find(text: label)
             return try labelText.parent().find(ViewType.Picker.self)
-        } else {
-            // Return first picker found
-            return try find(ViewType.Picker.self)
         }
+        // Return first picker found
+        return try find(ViewType.Picker.self)
     }
 
     /// Waits for a view to appear (useful for async state changes)
@@ -127,29 +139,11 @@ extension InspectableView {
     /// - Returns: True if text appears, false if timeout
     @MainActor
     func waitForText(_ text: String, timeout: UInt64 = 1_000_000_000) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionOnMainActor(
+        await UIAsyncTestHelpers.waitForConditionOnMainActor(
             timeout: TimeInterval(timeout) / 1_000_000_000,
             interval: 0.05
         ) {
             containsText(text)
         }
     }
-}
-
-// Note: View.inspect() is already provided by ViewInspector
-// No need to extend it here
-
-// MARK: - View Type Helpers
-
-// Common view types for easier reference
-private enum CommonViewType {
-    case list
-    case button
-    case textField
-    case navigationLink
-    case picker
-    case vStack
-    case hStack
-    case navigationSplitView
-    case navigationStack
 }

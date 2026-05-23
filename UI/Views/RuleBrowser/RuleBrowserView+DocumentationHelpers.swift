@@ -1,9 +1,9 @@
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension RuleBrowserView {
     @ViewBuilder
-    func documentationTextView(markdown: String, colorScheme: ColorScheme) -> some View {
+    func documentationTextView(markdown: String, colorScheme _: ColorScheme) -> some View {
         // Strip all HTML and render as plain text to avoid any layout issues
         let strippedContent = stripHTMLTags(from: markdown)
         let processedContent = processContentForDisplay(content: strippedContent)
@@ -125,7 +125,8 @@ extension RuleBrowserView {
                 if trimmed.hasPrefix("</table>") || trimmed.contains("</table>") {
                     skipTable = false
                     continue
-                } else if trimmed.contains("<thead>") || trimmed.contains("</thead>") ||
+                }
+                if trimmed.contains("<thead>") || trimmed.contains("</thead>") ||
                             trimmed.contains("<tbody>") || trimmed.contains("</tbody>") ||
                             trimmed.contains("<tr>") || trimmed.contains("</tr>") ||
                             trimmed.contains("<th>") || trimmed.contains("</th>") ||

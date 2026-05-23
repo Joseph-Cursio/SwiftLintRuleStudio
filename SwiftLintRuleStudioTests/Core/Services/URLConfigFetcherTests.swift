@@ -5,11 +5,72 @@
 //  Tests for URLConfigFetcher
 //
 
-import Testing
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
+
+private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
+    private static let responseDataKey = "MockURLProtocol.responseData"
+    private static let statusCodeKey = "MockURLProtocol.statusCode"
+
+    static func createSession(responseData: Data, statusCode: Int) -> URLSession {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MockURLProtocol.self]
+        config.timeoutIntervalForRequest = 5
+
+        // Store per-session config in the session's URLSessionConfiguration
+        // by tagging requests with per-request properties
+        let session = URLSession(configuration: config)
+
+        // Use a unique token to tie this session to its response data
+        let token = UUID().uuidString
+        _registry[token] = (responseData, statusCode)
+
+        // Store the token in the config's httpAdditionalHeaders
+        var updatedConfig = config
+        updatedConfig.httpAdditionalHeaders = (updatedConfig.httpAdditionalHeaders ?? [:])
+        updatedConfig.httpAdditionalHeaders?["X-MockToken"] = token
+
+        return URLSession(configuration: updatedConfig)
+    }
+
+    // Thread-safe registry keyed by token
+    nonisolated(unsafe) private static var _registry: [String: (Data, Int)] = [:]
+
+    override static func canInit(with _: URLRequest) -> Bool { true }
+    override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        guard let url = request.url else {
+            client?.urlProtocolDidFinishLoading(self)
+            return
+        }
+
+        let token = request.value(forHTTPHeaderField: "X-MockToken")
+        let entry = token.flatMap { Self._registry[$0] }
+        let statusCode = entry?.1 ?? 200
+        let responseData = entry?.0
+
+        guard let response = HTTPURLResponse(
+            url: url,
+            statusCode: statusCode,
+            httpVersion: "HTTP/1.1",
+            headerFields: nil
+        ) else {
+            client?.urlProtocolDidFinishLoading(self)
+            return
+        }
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        if let data = responseData {
+            client?.urlProtocol(self, didLoad: data)
+        }
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
 
 @MainActor
 struct URLConfigFetcherTests {
@@ -129,67 +190,4 @@ struct URLConfigFetcherTests {
             _ = try await fetcher.fetchConfig(from: url)
         }
     }
-}
-
-// MARK: - Mock URLProtocol
-
-private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
-    private static let responseDataKey = "MockURLProtocol.responseData"
-    private static let statusCodeKey = "MockURLProtocol.statusCode"
-
-    static func createSession(responseData: Data, statusCode: Int) -> URLSession {
-        let config = URLSessionConfiguration.ephemeral
-        config.protocolClasses = [MockURLProtocol.self]
-        config.timeoutIntervalForRequest = 5
-
-        // Store per-session config in the session's URLSessionConfiguration
-        // by tagging requests with per-request properties
-        let session = URLSession(configuration: config)
-
-        // Use a unique token to tie this session to its response data
-        let token = UUID().uuidString
-        _registry[token] = (responseData, statusCode)
-
-        // Store the token in the config's httpAdditionalHeaders
-        var updatedConfig = config
-        updatedConfig.httpAdditionalHeaders = (updatedConfig.httpAdditionalHeaders ?? [:])
-        updatedConfig.httpAdditionalHeaders?["X-MockToken"] = token
-
-        return URLSession(configuration: updatedConfig)
-    }
-
-    // Thread-safe registry keyed by token
-    nonisolated(unsafe) private static var _registry: [String: (Data, Int)] = [:]
-
-    override static func canInit(with request: URLRequest) -> Bool { true }
-    override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        guard let url = request.url else {
-            client?.urlProtocolDidFinishLoading(self)
-            return
-        }
-
-        let token = request.value(forHTTPHeaderField: "X-MockToken")
-        let entry = token.flatMap { Self._registry[$0] }
-        let statusCode = entry?.1 ?? 200
-        let responseData = entry?.0
-
-        guard let response = HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: "HTTP/1.1",
-            headerFields: nil
-        ) else {
-            client?.urlProtocolDidFinishLoading(self)
-            return
-        }
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        if let data = responseData {
-            client?.urlProtocol(self, didLoad: data)
-        }
-        client?.urlProtocolDidFinishLoading(self)
-    }
-
-    override func stopLoading() {}
 }

@@ -1,13 +1,13 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
 @MainActor
-struct WkspManagerIntegrationErrorTests {
+struct WorkspaceManagerIntegrationErrorHandlingTests {
     @Test("Handles workspace deletion gracefully")
     func testHandlesWorkspaceDeletion() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()

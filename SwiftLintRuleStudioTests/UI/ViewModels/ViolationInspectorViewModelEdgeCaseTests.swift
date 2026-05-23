@@ -1,11 +1,11 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 @MainActor
-struct VIViewModelEdgeCaseTests {
+struct ViolationInspectorViewModelEdgeCaseTests {
     @Test("ViolationInspectorViewModel handles empty violation list")
     func testEmptyViolationList() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

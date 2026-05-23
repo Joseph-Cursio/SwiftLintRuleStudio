@@ -5,13 +5,13 @@
 //  UI tests for ConfigRecommendationView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for ConfigRecommendationView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -22,9 +22,9 @@ struct ConfigRecommendationViewTests {
     // MARK: - Test Data Helpers
 
     private func createConfigRecommendationView(
-        configFileMissing: Bool = true
+        configFileMissing _: Bool = true
     ) async -> (view: some View, workspaceManager: WorkspaceManager) {
-        return await MainActor.run {
+        await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: #function)
 
             // Note: configFileMissing is a computed property based on workspace state
@@ -41,7 +41,7 @@ struct ConfigRecommendationViewTests {
         expected: Bool,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+        await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
                 workspaceManager.configFileMissing == expected
             }

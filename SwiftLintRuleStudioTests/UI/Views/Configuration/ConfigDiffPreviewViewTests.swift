@@ -5,11 +5,11 @@
 //  UI tests for ConfigDiffPreviewView
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
 import Testing
 import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 // Tests for ConfigDiffPreviewView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -28,7 +28,7 @@ struct ConfigDiffPreviewViewTests {
         diff: YAMLConfigurationEngine.ConfigDiff? = nil,
         initialView: ConfigDiffPreviewView.DiffViewMode = .summary
     ) async -> (view: ConfigDiffPreviewView, tracker: CallbackTracker) {
-        return await MainActor.run {
+        await MainActor.run {
             let tracker = CallbackTracker()
 
             let defaultDiff = YAMLConfigurationEngine.ConfigDiff(

@@ -6,8 +6,8 @@
 //  affected files, auto-fix indicator, and expandable detail panel
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct RuleAuditRow: View {
     let entry: RuleAuditEntry

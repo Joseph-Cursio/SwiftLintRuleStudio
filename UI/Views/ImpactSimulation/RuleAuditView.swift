@@ -5,8 +5,8 @@
 //  View for auditing all rules against the workspace
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct RuleAuditView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer

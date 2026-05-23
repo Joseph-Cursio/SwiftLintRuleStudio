@@ -5,8 +5,8 @@
 //  Filter bar for the rule browser
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct RuleBrowserSearchAndFilters: View {
     @Binding var searchText: String

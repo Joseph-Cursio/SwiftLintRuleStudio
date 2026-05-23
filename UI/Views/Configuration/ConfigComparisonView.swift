@@ -5,8 +5,43 @@
 //  Side-by-side comparison of SwiftLint configurations from two workspaces
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
+
+// MARK: - Full YAML Diff View
+
+private struct FullYAMLDiffView: View {
+    let diff: YAMLConfigurationEngine.ConfigDiff
+
+    var body: some View {
+        DisclosureGroup("Full YAML Diff") {
+            HStack(alignment: .top, spacing: 16) {
+                yamlPane(title: "Left", content: diff.before)
+                yamlPane(title: "Right", content: diff.after)
+            }
+        }
+    }
+
+    private func yamlPane(
+        title: String,
+        content: String
+    ) -> some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            ScrollView {
+                Text(content)
+                    .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: 400)
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(.rect(cornerRadius: 4))
+        }
+    }
+}
 
 struct ConfigComparisonView: View {
     @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
@@ -272,37 +307,3 @@ struct ConfigComparisonView: View {
     }
 }
 
-// MARK: - Full YAML Diff View
-
-private struct FullYAMLDiffView: View {
-    let diff: YAMLConfigurationEngine.ConfigDiff
-
-    var body: some View {
-        DisclosureGroup("Full YAML Diff") {
-            HStack(alignment: .top, spacing: 16) {
-                yamlPane(title: "Left", content: diff.before)
-                yamlPane(title: "Right", content: diff.after)
-            }
-        }
-    }
-
-    private func yamlPane(
-        title: String,
-        content: String
-    ) -> some View {
-        VStack(alignment: .leading) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            ScrollView {
-                Text(content)
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxHeight: 400)
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(.rect(cornerRadius: 4))
-        }
-    }
-}

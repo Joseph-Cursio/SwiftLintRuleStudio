@@ -1,44 +1,7 @@
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
-
-enum ViolationInspectorViewModelTestHelpers {
-    static func createViolationInspectorViewModel(
-        violationStorage: ViolationStorageProtocol,
-        workspaceAnalyzer: WorkspaceAnalyzer? = nil
-    ) async -> ViolationInspectorViewModel {
-        return await MainActor.run {
-            ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: workspaceAnalyzer)
-        }
-    }
-
-    static func createMockViolationStorage() -> MockViolationStorageForViewModel {
-        MockViolationStorageForViewModel()
-    }
-
-    static func createTestViolation(
-        id: UUID = UUID(),
-        ruleID: String = "test_rule",
-        filePath: String = "Test.swift",
-        line: Int = 10,
-        severity: Severity = .warning,
-        message: String = "Test violation",
-        detectedAt: Date = Date.now,
-        suppressed: Bool = false
-    ) -> Violation {
-        Violation(
-            id: id,
-            ruleID: ruleID,
-            filePath: filePath,
-            line: line,
-            severity: severity,
-            message: message,
-            detectedAt: detectedAt,
-            suppressed: suppressed
-        )
-    }
-}
 
 @MainActor
 class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
@@ -55,7 +18,7 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
 
     override func analyze(
         workspace: Workspace,
-        configPath: URL? = nil
+        configPath _: URL? = nil
     ) async throws -> AnalysisResult {
         analyzeCallCount += 1
 
@@ -67,7 +30,7 @@ class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
 
         return AnalysisResult(
             violations: mockViolations,
-            filesAnalyzed: Set(mockViolations.map { $0.filePath }).count,
+            filesAnalyzed: Set(mockViolations.map(\.filePath)).count,
             duration: 0.1,
             startedAt: Date.now,
             completedAt: Date.now
@@ -85,7 +48,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
         storedWorkspaceIds.append(workspaceId)
     }
 
-    func fetchViolations(filter: ViolationFilter, workspaceId: UUID?) throws -> [Violation] {
+    func fetchViolations(filter: ViolationFilter, workspaceId _: UUID?) throws -> [Violation] {
         var filtered = storedViolations
 
         if let ruleIDs = filter.ruleIDs {
@@ -143,7 +106,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
         }
     }
 
-    func deleteViolations(for workspaceId: UUID) throws {
+    func deleteViolations(for _: UUID) throws {
         storedViolations.removeAll()
     }
 
@@ -151,5 +114,42 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
     func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int {
         let violations = try fetchViolations(filter: filter, workspaceId: workspaceId)
         return violations.count
+    }
+}
+
+enum ViolationInspectorViewModelTestHelpers {
+    static func createViolationInspectorViewModel(
+        violationStorage: ViolationStorageProtocol,
+        workspaceAnalyzer: WorkspaceAnalyzer? = nil
+    ) async -> ViolationInspectorViewModel {
+        await MainActor.run {
+            ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: workspaceAnalyzer)
+        }
+    }
+
+    static func createMockViolationStorage() -> MockViolationStorageForViewModel {
+        MockViolationStorageForViewModel()
+    }
+
+    static func createTestViolation(
+        id: UUID = UUID(),
+        ruleID: String = "test_rule",
+        filePath: String = "Test.swift",
+        line: Int = 10,
+        severity: Severity = .warning,
+        message: String = "Test violation",
+        detectedAt: Date = Date.now,
+        suppressed: Bool = false
+    ) -> Violation {
+        Violation(
+            id: id,
+            ruleID: ruleID,
+            filePath: filePath,
+            line: line,
+            severity: severity,
+            message: message,
+            detectedAt: detectedAt,
+            suppressed: suppressed
+        )
     }
 }

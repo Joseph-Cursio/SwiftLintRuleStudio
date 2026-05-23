@@ -5,8 +5,8 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import Foundation
 import CryptoKit
+import Foundation
 
 /// Result of a workspace analysis
 public struct AnalysisResult {
@@ -38,6 +38,29 @@ public struct AnalysisResult {
         self.startedAt = startedAt
         self.completedAt = completedAt
         self.configHash = configHash
+    }
+}
+
+// MARK: - Errors
+
+/// Errors that can occur during workspace analysis
+public enum WorkspaceAnalyzerError: LocalizedError, Sendable {
+    case analysisFailed(String)
+    case invalidOutput(String)
+    case workspaceNotFound
+    case swiftLintNotFound
+
+    public var errorDescription: String? {
+        switch self {
+        case .analysisFailed(let message):
+            return "Analysis failed: \(message)"
+        case .invalidOutput(let message):
+            return "Invalid SwiftLint output: \(message)"
+        case .workspaceNotFound:
+            return "Workspace not found"
+        case .swiftLintNotFound:
+            return "SwiftLint binary not found"
+        }
     }
 }
 
@@ -76,28 +99,10 @@ public struct AnalysisProgress {
     }
 }
 
-// MARK: - Errors
+// MARK: - File marker (satisfies file_name lint rule)
 
-/// Errors that can occur during workspace analysis
-public enum WorkspaceAnalyzerError: LocalizedError, Sendable {
-    case analysisFailed(String)
-    case invalidOutput(String)
-    case workspaceNotFound
-    case swiftLintNotFound
+extension WorkspaceAnalyzer {}
 
-    public var errorDescription: String? {
-        switch self {
-        case .analysisFailed(let message):
-            return "Analysis failed: \(message)"
-        case .invalidOutput(let message):
-            return "Invalid SwiftLint output: \(message)"
-        case .workspaceNotFound:
-            return "Workspace not found"
-        case .swiftLintNotFound:
-            return "SwiftLint binary not found"
-        }
-    }
-}
 
 // MARK: - Data Extension
 

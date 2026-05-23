@@ -1,11 +1,11 @@
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
 
 enum WorkspaceManagerIntegrationTestHelpers {
     static func withContainer<T: Sendable>(
-        testName: String = #function,
+        testName _: String = #function,
         operation: @MainActor (DependencyContainer) throws -> T
     ) async throws -> T {
         try await MainActor.run {
@@ -47,7 +47,7 @@ enum WorkspaceManagerIntegrationTestHelpers {
         violationStorage: ViolationStorageProtocol,
         workspaceAnalyzer: WorkspaceAnalyzer? = nil
     ) async -> ViolationInspectorViewModel {
-        return await MainActor.run {
+        await MainActor.run {
             if let analyzer = workspaceAnalyzer {
                 return ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: analyzer)
             }

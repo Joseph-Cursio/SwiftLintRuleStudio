@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension OnboardingView {
     // MARK: - Helper Views
@@ -143,7 +143,7 @@ extension OnboardingView {
         seconds: TimeInterval,
         operation: @escaping @Sendable () async throws -> T
     ) async throws -> T {
-        return try await withThrowingTaskGroup(of: T.self) { group in
+        try await withThrowingTaskGroup(of: T.self) { group in
             // Start the actual operation
             group.addTask { @Sendable in
                 try await operation()

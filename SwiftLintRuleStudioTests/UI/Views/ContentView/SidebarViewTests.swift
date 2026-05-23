@@ -5,13 +5,13 @@
 //  UI tests for SidebarView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for SidebarView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -61,7 +61,7 @@ struct SidebarViewTests {
         exists: Bool,
         timeoutSeconds: TimeInterval = 1.0
     ) async -> Bool {
-        return await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
+        await UIAsyncTestHelpers.waitForConditionAsync(timeout: timeoutSeconds) {
             await MainActor.run {
                 (workspaceManager.currentWorkspace != nil) == exists
             }
@@ -157,7 +157,7 @@ struct SidebarViewTests {
         // because the Rules label has a .badge() modifier that ViewInspector can't traverse.
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasRulesText = try await MainActor.run {
-            _ = try view.inspect().find(where: { (try? $0.accessibilityIdentifier()) == "SidebarRulesLink" })
+            _ = try view.inspect().find { (try? $0.accessibilityIdentifier()) == "SidebarRulesLink" }
             return true
         }
         #expect(hasRulesText == true, "SidebarView should display Rules navigation link")

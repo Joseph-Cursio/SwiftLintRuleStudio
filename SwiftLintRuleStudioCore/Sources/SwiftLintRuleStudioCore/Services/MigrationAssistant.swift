@@ -133,13 +133,13 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
                 if SwiftLintDeprecations.isVersion(fromVersion, lessThan: entry.deprecatedInVersion)
                     && !SwiftLintDeprecations.isVersion(toVersion, lessThan: entry.deprecatedInVersion) {
                     // Only add if not already handled by rename or removal
-                    let alreadyHandled = steps.contains(where: {
+                    let alreadyHandled = steps.contains {
                         switch $0 {
                         case .renameRule(let from, _): return from == ruleId
                         case .removeDeprecatedRule(let id, _): return id == ruleId
                         default: return false
                         }
-                    })
+                    }
                     if !alreadyHandled, let replacement = entry.replacement {
                         steps.append(.renameRule(from: ruleId, newName: replacement))
                     }

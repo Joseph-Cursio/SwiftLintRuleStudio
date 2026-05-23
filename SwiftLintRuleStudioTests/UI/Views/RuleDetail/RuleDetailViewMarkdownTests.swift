@@ -5,10 +5,10 @@
 //  Markdown processing tests for RuleDetailView
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
 import SwiftUI
 import Testing
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 @MainActor
 struct RuleDetailViewMarkdownTests {

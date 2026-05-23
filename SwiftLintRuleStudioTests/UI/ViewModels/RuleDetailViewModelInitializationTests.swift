@@ -5,9 +5,9 @@
 //  Initialization tests for RuleDetailViewModel
 //
 
-import Testing
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
 
 @MainActor
 struct RuleDetailViewModelInitializationTests {

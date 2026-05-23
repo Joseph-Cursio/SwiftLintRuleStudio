@@ -6,9 +6,9 @@
 //
 
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
 
 enum RuleDetailViewModelTestHelpers {
     static func createYAMLConfigurationEngine(configPath: URL) async -> YAMLConfigurationEngine {

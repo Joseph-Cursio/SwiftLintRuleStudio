@@ -5,8 +5,8 @@
 //  Background analysis engine that runs SwiftLint and tracks violations
 //
 
-import Foundation
 import Combine
+import Foundation
 
 /// Service for analyzing workspaces with SwiftLint
 @MainActor
@@ -76,7 +76,7 @@ public class WorkspaceAnalyzer: ObservableObject {
 
                 let result = self.makeResult(
                     violations: violations,
-                    filesAnalyzed: Set(violations.map { $0.filePath }).count,
+                    filesAnalyzed: Set(violations.map(\.filePath)).count,
                     startedAt: startedAt,
                     configHash: configHash
                 )

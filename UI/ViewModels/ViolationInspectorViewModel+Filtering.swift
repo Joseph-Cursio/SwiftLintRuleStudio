@@ -46,7 +46,7 @@ extension ViolationInspectorViewModel {
         }
 
         if showSuppressedOnly {
-            filtered = filtered.filter { $0.suppressed }
+            filtered = filtered.filter(\.suppressed)
         }
 
         filtered = sortViolations(filtered)

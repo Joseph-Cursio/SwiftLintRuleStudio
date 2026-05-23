@@ -93,7 +93,7 @@ extension ViolationStorageActor {
 
     private func trackDuplicateIDs(
         violation: Violation,
-        index: Int,
+        index _: Int,
         seenIDs: inout Set<String>,
         duplicateIDs: inout Set<String>
     ) {
@@ -105,11 +105,11 @@ extension ViolationStorageActor {
         }
     }
 
-    private func logDeletedViolations(_ deleted: Int) {
+    private func logDeletedViolations(_: Int) {
         // Intentionally empty - violation count tracked internally
     }
 
-    private func logDuplicateViolations(_ result: InsertionResult, total: Int) {
+    private func logDuplicateViolations(_: InsertionResult, total _: Int) {
         // Intentionally empty - duplicate tracking handled by InsertionResult
     }
 

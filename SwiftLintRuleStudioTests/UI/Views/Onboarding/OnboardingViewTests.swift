@@ -5,12 +5,12 @@
 //  UI tests for OnboardingView
 //
 
-import Testing
-import ViewInspector
-import SwiftUI
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 // Tests for OnboardingView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
@@ -32,7 +32,7 @@ struct OnboardingViewTests {
         step: OnboardingManager.OnboardingStep = .welcome,
         swiftLintStatus: OnboardingView.SwiftLintStatus = .checking
     ) async -> OnboardingViewResult {
-        return await MainActor.run {
+        await MainActor.run {
             let userDefaults = IsolatedUserDefaults.create(for: testName)
             let onboardingManager = OnboardingManager(userDefaults: userDefaults)
             onboardingManager.currentStep = step

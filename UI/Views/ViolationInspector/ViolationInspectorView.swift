@@ -5,10 +5,25 @@
 //  Main view for inspecting violations
 //
 
+import LintStudioUI
+import SwiftLintRuleStudioCore
 import SwiftUI
 import UniformTypeIdentifiers
-import SwiftLintRuleStudioCore
-import LintStudioUI
+
+// MARK: - Type Aliases for Shared UI Components
+
+typealias ViolationSummaryCard = SummaryCard
+typealias ViolationGroupHeader = GroupHeader
+
+enum ViolationExportScope: String {
+    case filtered = "Filtered"
+    case selected = "Selected"
+}
+
+enum ViolationExportFormat {
+    case json
+    case csv
+}
 
 struct ViolationInspectorView: View {
     @ScaledMetric(relativeTo: .title) var iconSizeMedium: CGFloat = 48
@@ -94,7 +109,7 @@ struct ViolationInspectorView: View {
         }
     }
 
-    private func handleWorkspaceChange(_ oldWorkspace: Workspace?, _ newWorkspace: Workspace?) {
+    private func handleWorkspaceChange(_: Workspace?, _ newWorkspace: Workspace?) {
         if let workspace = newWorkspace {
             Task {
                 try? await viewModel.loadViolations(for: workspace.id, workspace: workspace)
@@ -104,7 +119,7 @@ struct ViolationInspectorView: View {
         }
     }
 
-    private func handleConfigMissingChange(_ wasMissing: Bool, _ isMissing: Bool) {
+    private func handleConfigMissingChange(_: Bool, _ isMissing: Bool) {
         guard !isMissing, dependencies.workspaceManager.currentWorkspace != nil else { return }
         Task {
             try? await viewModel.refreshViolations()
@@ -204,17 +219,3 @@ struct ViolationInspectorView: View {
 
 }
 
-enum ViolationExportScope: String {
-    case filtered = "Filtered"
-    case selected = "Selected"
-}
-
-enum ViolationExportFormat {
-    case json
-    case csv
-}
-
-// MARK: - Type Aliases for Shared UI Components
-
-typealias ViolationSummaryCard = SummaryCard
-typealias ViolationGroupHeader = GroupHeader

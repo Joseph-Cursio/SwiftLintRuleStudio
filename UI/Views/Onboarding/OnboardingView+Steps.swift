@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 extension OnboardingView {
     // MARK: - Progress Indicator

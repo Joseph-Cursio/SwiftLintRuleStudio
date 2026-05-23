@@ -5,10 +5,10 @@
 //  Unit tests for OnboardingManager
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 // OnboardingManager is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -19,7 +19,7 @@ struct OnboardingManagerTests {
         userDefaults: UserDefaults,
         operation: @MainActor @escaping (OnboardingManager) throws -> T
     ) async throws -> T {
-        return try await Task { @MainActor in
+        try await Task { @MainActor in
             let manager = OnboardingManager(userDefaults: userDefaults)
             return try operation(manager)
         }.value
@@ -29,7 +29,7 @@ struct OnboardingManagerTests {
         userDefaults: UserDefaults,
         operation: @MainActor @escaping (OnboardingManager) async throws -> T
     ) async throws -> T {
-        return try await Task { @MainActor in
+        try await Task { @MainActor in
             let manager = OnboardingManager(userDefaults: userDefaults)
             return try await operation(manager)
         }.value
@@ -47,7 +47,7 @@ struct OnboardingManagerTests {
         }
 
         let (hasCompleted, currentStep) = try await withOnboardingManager(userDefaults: userDefaults) { manager in
-            return (manager.hasCompletedOnboarding, manager.currentStep)
+            (manager.hasCompletedOnboarding, manager.currentStep)
         }
 
         #expect(hasCompleted == false)
@@ -68,7 +68,7 @@ struct OnboardingManagerTests {
         let (hasCompleted, currentStep) = try await withOnboardingManager(userDefaults: userDefaults) { manager in
             // Note: OnboardingManager always initializes to welcome step
             // It doesn't persist completion state - always shows onboarding on launch
-            return (manager.hasCompletedOnboarding, manager.currentStep)
+            (manager.hasCompletedOnboarding, manager.currentStep)
         }
 
         #expect(hasCompleted == false)
@@ -205,7 +205,7 @@ struct OnboardingManagerTests {
         // Second instance - note: completeOnboarding() doesn't persist to UserDefaults,
         // so this test demonstrates the isolation pattern rather than actual persistence
         let (hasCompleted, currentStep) = try await withOnboardingManager(userDefaults: userDefaults) { manager2 in
-            return (manager2.hasCompletedOnboarding, manager2.currentStep)
+            (manager2.hasCompletedOnboarding, manager2.currentStep)
         }
 
         #expect(hasCompleted == false) // New instance starts fresh
@@ -245,7 +245,7 @@ struct OnboardingManagerTests {
     func testStepNextSteps() async throws {
         // Extract values to avoid Swift 6 false positive
         let (welcomeNext, swiftLintCheckNext, workspaceSelectionNext, completeNext) = await MainActor.run {
-            return (
+            (
                 OnboardingManager.OnboardingStep.welcome.next,
                 OnboardingManager.OnboardingStep.swiftLintCheck.next,
                 OnboardingManager.OnboardingStep.workspaceSelection.next,

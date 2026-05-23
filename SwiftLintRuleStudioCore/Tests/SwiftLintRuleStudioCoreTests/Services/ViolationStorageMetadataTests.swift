@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ViolationStorageMetadataTests {
     @Test("ViolationStorageActor preserves violation metadata")
@@ -110,7 +110,7 @@ struct ViolationStorageMetadataTests {
             )
         }
 
-        let ids = Set(violations.map { $0.id })
+        let ids = Set(violations.map(\.id))
         #expect(ids.count == 100, "All violations should have unique IDs")
 
         try await storage.storeViolations(violations, for: workspaceId)
@@ -118,7 +118,7 @@ struct ViolationStorageMetadataTests {
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
         #expect(fetched.count == 100)
 
-        let fetchedIDs = Set(fetched.map { $0.id })
+        let fetchedIDs = Set(fetched.map(\.id))
         #expect(fetchedIDs.count == 100, "All fetched violations should have unique IDs")
     }
 

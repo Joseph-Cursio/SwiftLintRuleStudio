@@ -5,11 +5,11 @@
 //  Tests for new ViolationInspectorView features: grouping and export functionality
 //
 
+@testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
 import Testing
 import ViewInspector
-import SwiftUI
-@testable import SwiftLintRuleStudioCore
-@testable import SwiftLintRuleStudio
 
 @MainActor
 struct ViolationInspectorNewFeaturesTests {
@@ -90,7 +90,7 @@ struct ViolationInspectorNewFeaturesTests {
             await makeTestViolation()
         ]
 
-        let grouped = await groupViolations(violations, by: .none)
+        let grouped = await groupViolations(violations, by: .ungrouped)
 
         #expect(grouped.count == 1)
         #expect(grouped["All"]?.count == 3)
@@ -110,14 +110,14 @@ struct ViolationInspectorNewFeaturesTests {
     ) async -> [String: [Violation]] {
         await MainActor.run {
             switch option {
-            case .none:
+            case .ungrouped:
                 return ["All": violations]
             case .file:
-                return Dictionary(grouping: violations, by: { $0.filePath })
+                return Dictionary(grouping: violations) { $0.filePath }
             case .rule:
-                return Dictionary(grouping: violations, by: { $0.ruleID })
+                return Dictionary(grouping: violations) { $0.ruleID }
             case .severity:
-                return Dictionary(grouping: violations, by: { $0.severity.rawValue.capitalized })
+                return Dictionary(grouping: violations) { $0.severity.rawValue.capitalized }
             }
         }
     }

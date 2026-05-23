@@ -1,13 +1,13 @@
 import Foundation
-import Testing
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import Testing
 
 // ViolationInspectorViewModel is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
 @MainActor
-struct VIViewModelLoadingTests {
+struct ViolationInspectorViewModelLoadingTests {
     @Test("ViolationInspectorViewModel initializes with empty violations")
     func testInitialization() async {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

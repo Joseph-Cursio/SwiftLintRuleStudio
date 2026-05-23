@@ -5,10 +5,71 @@
 //  Tests for ConfigVersionHistoryViewModel state management and service delegation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+@MainActor
+private final class SpyVersionHistoryService: ConfigVersionHistoryServiceProtocol {
+    private let backupsToReturn: [ConfigBackup]
+    private let diffResult: YAMLConfigurationEngine.ConfigDiff?
+    private let shouldThrowOnRestore: Bool
+    private let shouldThrowOnPrune: Bool
+    private let shouldThrowOnDiff: Bool
+
+    var listBackupsCallCount = 0
+    var lastListBackupsPath: URL?
+    var restoreCallCount = 0
+    var pruneCallCount = 0
+    var lastPruneKeepCount: Int?
+
+    init(
+        backups: [ConfigBackup] = [],
+        diffResult: YAMLConfigurationEngine.ConfigDiff? = nil,
+        shouldThrowOnRestore: Bool = false,
+        shouldThrowOnPrune: Bool = false,
+        shouldThrowOnDiff: Bool = false
+    ) {
+        self.backupsToReturn = backups
+        self.diffResult = diffResult
+        self.shouldThrowOnRestore = shouldThrowOnRestore
+        self.shouldThrowOnPrune = shouldThrowOnPrune
+        self.shouldThrowOnDiff = shouldThrowOnDiff
+    }
+
+    func listBackups(for configPath: URL) -> [ConfigBackup] {
+        listBackupsCallCount += 1
+        lastListBackupsPath = configPath
+        return backupsToReturn
+    }
+
+    func loadBackup(_: ConfigBackup) throws -> String { "" }
+
+    func restoreBackup(_: ConfigBackup, to _: URL) throws {
+        restoreCallCount += 1
+        if shouldThrowOnRestore {
+            throw NSError(domain: "SpyError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Restore failed"])
+        }
+    }
+
+    func diffBetween(_: ConfigBackup, _: ConfigBackup) throws -> YAMLConfigurationEngine.ConfigDiff {
+        if shouldThrowOnDiff {
+            throw NSError(domain: "SpyError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Diff failed"])
+        }
+        return diffResult ?? YAMLConfigurationEngine.ConfigDiff(
+            addedRules: [], removedRules: [], modifiedRules: [], before: "", after: ""
+        )
+    }
+
+    func pruneOldBackups(for _: URL, keepCount: Int) throws {
+        pruneCallCount += 1
+        lastPruneKeepCount = keepCount
+        if shouldThrowOnPrune {
+            throw NSError(domain: "SpyError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Prune failed"])
+        }
+    }
+}
 
 @MainActor
 struct ConfigVersionHistoryViewModelTests {
@@ -251,68 +312,5 @@ struct ConfigVersionHistoryViewModelTests {
         viewModel.pruneOld(keepCount: 5)
 
         #expect(viewModel.error != nil)
-    }
-}
-
-// MARK: - Spy
-
-@MainActor
-private final class SpyVersionHistoryService: ConfigVersionHistoryServiceProtocol {
-    private let backupsToReturn: [ConfigBackup]
-    private let diffResult: YAMLConfigurationEngine.ConfigDiff?
-    private let shouldThrowOnRestore: Bool
-    private let shouldThrowOnPrune: Bool
-    private let shouldThrowOnDiff: Bool
-
-    var listBackupsCallCount = 0
-    var lastListBackupsPath: URL?
-    var restoreCallCount = 0
-    var pruneCallCount = 0
-    var lastPruneKeepCount: Int?
-
-    init(
-        backups: [ConfigBackup] = [],
-        diffResult: YAMLConfigurationEngine.ConfigDiff? = nil,
-        shouldThrowOnRestore: Bool = false,
-        shouldThrowOnPrune: Bool = false,
-        shouldThrowOnDiff: Bool = false
-    ) {
-        self.backupsToReturn = backups
-        self.diffResult = diffResult
-        self.shouldThrowOnRestore = shouldThrowOnRestore
-        self.shouldThrowOnPrune = shouldThrowOnPrune
-        self.shouldThrowOnDiff = shouldThrowOnDiff
-    }
-
-    func listBackups(for configPath: URL) -> [ConfigBackup] {
-        listBackupsCallCount += 1
-        lastListBackupsPath = configPath
-        return backupsToReturn
-    }
-
-    func loadBackup(_ backup: ConfigBackup) throws -> String { "" }
-
-    func restoreBackup(_ backup: ConfigBackup, to configPath: URL) throws {
-        restoreCallCount += 1
-        if shouldThrowOnRestore {
-            throw NSError(domain: "SpyError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Restore failed"])
-        }
-    }
-
-    func diffBetween(_ first: ConfigBackup, _ second: ConfigBackup) throws -> YAMLConfigurationEngine.ConfigDiff {
-        if shouldThrowOnDiff {
-            throw NSError(domain: "SpyError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Diff failed"])
-        }
-        return diffResult ?? YAMLConfigurationEngine.ConfigDiff(
-            addedRules: [], removedRules: [], modifiedRules: [], before: "", after: ""
-        )
-    }
-
-    func pruneOldBackups(for configPath: URL, keepCount: Int) throws {
-        pruneCallCount += 1
-        lastPruneKeepCount = keepCount
-        if shouldThrowOnPrune {
-            throw NSError(domain: "SpyError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Prune failed"])
-        }
     }
 }

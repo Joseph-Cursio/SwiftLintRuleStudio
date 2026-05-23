@@ -6,16 +6,16 @@
 //
 
 import Foundation
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
 
-enum RuleDetailVMIntegrationHelpers {
+enum RuleDetailViewModelIntegrationTestHelpers {
     static func createRuleDetailViewModel(
         rule: Rule,
         yamlEngine: YAMLConfigurationEngine? = nil
     ) async -> RuleDetailViewModel {
-        return await MainActor.run {
+        await MainActor.run {
             RuleDetailViewModel(rule: rule, yamlEngine: yamlEngine)
         }
     }

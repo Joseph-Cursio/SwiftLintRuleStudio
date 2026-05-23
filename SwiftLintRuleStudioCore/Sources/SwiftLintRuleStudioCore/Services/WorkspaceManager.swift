@@ -8,6 +8,50 @@
 import Foundation
 import Observation
 
+// MARK: - Errors
+
+public enum WorkspaceError: LocalizedError, Sendable {
+    case notADirectory
+    case invalidPath
+    case accessDenied
+    case notASwiftProject(directory: String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .notADirectory:
+            return "The selected path is not a directory. Please select a folder containing your Swift project."
+        case .invalidPath:
+            return "The selected path is invalid or no longer exists."
+        case .accessDenied:
+            return "Access to the selected directory was denied. Please check file permissions."
+        case .notASwiftProject(let directory):
+            return """
+            The selected folder "\(directory)" does not appear to be a valid Swift project workspace.
+
+            A valid Swift workspace should contain:
+            • Swift source files (.swift)
+            • An Xcode project (.xcodeproj) or workspace (.xcworkspace)
+            • A Package.swift file (for Swift Package Manager projects)
+
+            Please select a directory that contains your Swift project files.
+            """
+        }
+    }
+
+    public var recoverySuggestion: String? {
+        switch self {
+        case .notASwiftProject:
+            return "Select a directory containing Swift source files, an Xcode project, or a Package.swift file."
+        case .notADirectory:
+            return "Make sure you're selecting a folder, not a file."
+        case .accessDenied:
+            return "Check that you have read permissions for the selected directory."
+        case .invalidPath:
+            return "The path may have been moved or deleted. Please select a different directory."
+        }
+    }
+}
+
 /// Service for managing workspace selection and history
 @MainActor
 @Observable
@@ -74,49 +118,5 @@ public class WorkspaceManager {
     public func closeWorkspace() {
         currentWorkspace = nil
         configFileMissing = false
-    }
-}
-
-// MARK: - Errors
-
-public enum WorkspaceError: LocalizedError, Sendable {
-    case notADirectory
-    case invalidPath
-    case accessDenied
-    case notASwiftProject(directory: String)
-
-    public var errorDescription: String? {
-        switch self {
-        case .notADirectory:
-            return "The selected path is not a directory. Please select a folder containing your Swift project."
-        case .invalidPath:
-            return "The selected path is invalid or no longer exists."
-        case .accessDenied:
-            return "Access to the selected directory was denied. Please check file permissions."
-        case .notASwiftProject(let directory):
-            return """
-            The selected folder "\(directory)" does not appear to be a valid Swift project workspace.
-
-            A valid Swift workspace should contain:
-            • Swift source files (.swift)
-            • An Xcode project (.xcodeproj) or workspace (.xcworkspace)
-            • A Package.swift file (for Swift Package Manager projects)
-
-            Please select a directory that contains your Swift project files.
-            """
-        }
-    }
-
-    public var recoverySuggestion: String? {
-        switch self {
-        case .notASwiftProject:
-            return "Select a directory containing Swift source files, an Xcode project, or a Package.swift file."
-        case .notADirectory:
-            return "Make sure you're selecting a folder, not a file."
-        case .accessDenied:
-            return "Check that you have read permissions for the selected directory."
-        case .invalidPath:
-            return "The path may have been moved or deleted. Please select a different directory."
-        }
     }
 }

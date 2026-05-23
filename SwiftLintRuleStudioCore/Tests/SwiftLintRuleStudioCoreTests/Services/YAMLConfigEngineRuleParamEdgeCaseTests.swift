@@ -1,9 +1,19 @@
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct YAMLConfigEngineRuleParamEdgeCaseTests {
+    private struct NumericScalarSnapshot {
+        let warningType: String
+        let errorType: String
+        let warningValue: Int?
+        let errorValue: Int?
+        let ignoresCommentsType: String
+        let typeLevelValue: Int?
+        let serialized: String
+    }
+
     @Test("YAMLConfigurationEngine handles rules with only parameters, no severity")
     func testRulesWithOnlyParameters() async throws {
         let yamlContent = """
@@ -214,16 +224,6 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        struct ParseSnapshot {
-            let warningType: String
-            let errorType: String
-            let warningValue: Int?
-            let errorValue: Int?
-            let ignoresCommentsType: String
-            let typeLevelValue: Int?
-            let serialized: String
-        }
-
         let snapshot = try await YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
@@ -236,7 +236,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
             let ignoresComments = lineLength?.parameters?["ignores_comments"]?.value
             let typeLevel = nesting?.parameters?["type_level"]?.value
             let serialized = try engine.serialize(engine.getConfig())
-            return ParseSnapshot(
+            return NumericScalarSnapshot(
                 warningType: String(describing: type(of: warning ?? "")),
                 errorType: String(describing: type(of: lineError ?? "")),
                 warningValue: warning as? Int,

@@ -5,10 +5,60 @@
 //  Tests for VersionCompatibilityViewModel state management and service delegation
 //
 
-import Testing
 import Foundation
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import Testing
+
+@MainActor
+private final class SpyCompatibilityChecker: VersionCompatibilityCheckerProtocol, @unchecked Sendable {
+    private let reportToReturn: CompatibilityReport
+
+    var checkCallCount = 0
+    var lastCheckedVersion: String?
+
+    init(reportToReturn: CompatibilityReport = CompatibilityReport(
+        swiftLintVersion: "0.57.0",
+        deprecatedRules: [],
+        removedRules: [],
+        renamedRules: [],
+        availableNewRules: []
+    )) {
+        self.reportToReturn = reportToReturn
+    }
+
+    func checkCompatibility(
+        config _: YAMLConfigurationEngine.YAMLConfig,
+        swiftLintVersion: String
+    ) -> CompatibilityReport {
+        checkCallCount += 1
+        lastCheckedVersion = swiftLintVersion
+        return reportToReturn
+    }
+}
+
+private final class SpyCompatibilityCLI: SwiftLintCLIProtocol, @unchecked Sendable {
+    private let versionToReturn: String
+    private let shouldThrow: Bool
+
+    init(versionToReturn: String = "0.57.0", shouldThrow: Bool = false) {
+        self.versionToReturn = versionToReturn
+        self.shouldThrow = shouldThrow
+    }
+
+    func getVersion() throws -> String {
+        if shouldThrow {
+            throw NSError(domain: "SpyCLI", code: 1, userInfo: [NSLocalizedDescriptionKey: "CLI unavailable"])
+        }
+        return versionToReturn
+    }
+
+    func detectSwiftLintPath() throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
+    func executeRulesCommand() throws -> Data { Data() }
+    func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
+    func generateDocsForRule(ruleId _: String) throws -> String { "" }
+    func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
+}
 
 @MainActor
 struct VersionCompatibilityViewModelTests {
@@ -226,56 +276,4 @@ struct VersionCompatibilityViewModelTests {
 
         #expect(viewModel.error == nil)
     }
-}
-
-// MARK: - Spies
-
-@MainActor
-private final class SpyCompatibilityChecker: VersionCompatibilityCheckerProtocol, @unchecked Sendable {
-    private let reportToReturn: CompatibilityReport
-
-    var checkCallCount = 0
-    var lastCheckedVersion: String?
-
-    init(reportToReturn: CompatibilityReport = CompatibilityReport(
-        swiftLintVersion: "0.57.0",
-        deprecatedRules: [],
-        removedRules: [],
-        renamedRules: [],
-        availableNewRules: []
-    )) {
-        self.reportToReturn = reportToReturn
-    }
-
-    func checkCompatibility(
-        config: YAMLConfigurationEngine.YAMLConfig,
-        swiftLintVersion: String
-    ) -> CompatibilityReport {
-        checkCallCount += 1
-        lastCheckedVersion = swiftLintVersion
-        return reportToReturn
-    }
-}
-
-private final class SpyCompatibilityCLI: SwiftLintCLIProtocol, @unchecked Sendable {
-    private let versionToReturn: String
-    private let shouldThrow: Bool
-
-    init(versionToReturn: String = "0.57.0", shouldThrow: Bool = false) {
-        self.versionToReturn = versionToReturn
-        self.shouldThrow = shouldThrow
-    }
-
-    func getVersion() throws -> String {
-        if shouldThrow {
-            throw NSError(domain: "SpyCLI", code: 1, userInfo: [NSLocalizedDescriptionKey: "CLI unavailable"])
-        }
-        return versionToReturn
-    }
-
-    func detectSwiftLintPath() throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
-    func executeRulesCommand() throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId: String) throws -> Data { Data() }
-    func generateDocsForRule(ruleId: String) throws -> String { "" }
-    func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data { Data() }
 }

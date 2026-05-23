@@ -5,8 +5,8 @@
 //  Onboarding flow for first-time users
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
+import SwiftUI
 
 struct OnboardingView: View {
     var onboardingManager: OnboardingManager

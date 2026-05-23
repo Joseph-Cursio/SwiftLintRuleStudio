@@ -5,11 +5,11 @@
 //  Unit tests for RuleBrowserEmptyState, exercising every branch directly.
 //
 
-import Testing
-import SwiftUI
-import ViewInspector
-@testable import SwiftLintRuleStudioCore
 @testable import SwiftLintRuleStudio
+@testable import SwiftLintRuleStudioCore
+import SwiftUI
+import Testing
+import ViewInspector
 
 @Suite("RuleBrowserEmptyState")
 @MainActor
@@ -23,9 +23,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "xyz",
             selectedCategory: nil,
             selectedStatus: .all,
-            rulesAreEmpty: false,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: false
+        ) {}
         // ContentUnavailableView.search is a system view — verify the correct branch is
         // chosen by confirming our custom label text is NOT present.
         let inspector = try view.inspect()
@@ -43,9 +42,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: .style,
             selectedStatus: .all,
-            rulesAreEmpty: false,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: false
+        ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
         #expect((try? inspector.find(text: "Try adjusting your filters.")) != nil)
@@ -58,9 +56,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: nil,
             selectedStatus: .enabled,
-            rulesAreEmpty: false,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: false
+        ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
         #expect((try? inspector.find(text: "Try adjusting your filters.")) != nil)
@@ -73,9 +70,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: .lint,
             selectedStatus: .all,
-            rulesAreEmpty: false,
-            onClearFilters: { called = true }
-        )
+            rulesAreEmpty: false
+        ) { called = true }
         let inspector = try view.inspect()
         try inspector.find(button: "Clear Filters").tap()
         #expect(called)
@@ -89,9 +85,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: nil,
             selectedStatus: .all,
-            rulesAreEmpty: true,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: true
+        ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
         #expect((try? inspector.find(text: "Loading rules\u{2026}")) != nil)
@@ -105,9 +100,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: nil,
             selectedStatus: .all,
-            rulesAreEmpty: true,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: true
+        ) {}
         let inspector = try view.inspect()
         // The label uses "magnifyingglass" — verify no crash on full traversal
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
@@ -122,9 +116,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "foo",
             selectedCategory: .style,
             selectedStatus: .all,
-            rulesAreEmpty: false,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: false
+        ) {}
         let inspector = try view.inspect()
         // Custom label not present → search branch rendered
         #expect((try? inspector.find(text: "No Rules Found")) == nil)
@@ -138,9 +131,8 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: nil,
             selectedStatus: .disabled,
-            rulesAreEmpty: true,
-            onClearFilters: {}
-        )
+            rulesAreEmpty: true
+        ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "Try adjusting your filters.")) != nil)
         #expect((try? inspector.find(text: "Loading rules\u{2026}")) == nil,

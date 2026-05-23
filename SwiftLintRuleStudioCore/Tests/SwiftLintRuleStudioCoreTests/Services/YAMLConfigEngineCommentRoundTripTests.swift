@@ -1,7 +1,7 @@
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 /// Regression coverage for comment handling when a top-level key is removed
 /// from a configuration between load and save.

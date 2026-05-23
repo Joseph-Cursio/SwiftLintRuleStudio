@@ -5,10 +5,10 @@
 //  Error handling tests for ImpactSimulator
 //
 
-import Testing
 import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ImpactSimulatorErrorTests {
     @Test("ImpactSimulator handles simulation errors gracefully")
@@ -58,7 +58,7 @@ struct ImpactSimulatorErrorTests {
             )
         }
 
-        let counts = batchResult.results.map { $0.violationCount }
+        let counts = batchResult.results.map(\.violationCount)
         #expect(counts.count == 2)
         #expect(counts.allSatisfy { $0 == -1 })
     }

@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
+import Testing
 
 struct ViolationStorageBatchTests {
     @Test("ViolationStorageActor handles large batch inserts")
@@ -34,7 +34,7 @@ struct ViolationStorageBatchTests {
         let storage = try await ViolationStorageTestHelpers.createIsolatedStorage()
         let workspaceId = UUID()
 
-        let violations = (0..<1000).map { index in
+        let violations = (0..<1_000).map { index in
             ViolationStorageTestHelpers.createTestViolation(
                 ruleID: "rule\(index)",
                 filePath: "File\(index % 10).swift"
@@ -44,10 +44,10 @@ struct ViolationStorageBatchTests {
         try await storage.storeViolations(violations, for: workspaceId)
 
         let fetched = try await storage.fetchViolations(filter: .all, workspaceId: workspaceId)
-        #expect(fetched.count == 1000)
+        #expect(fetched.count == 1_000)
 
         let count = try await storage.getViolationCount(filter: .all, workspaceId: workspaceId)
-        #expect(count == 1000)
+        #expect(count == 1_000)
 
         let filter = ViolationFilter(ruleIDs: ["rule0", "rule500", "rule999"])
         let filtered = try await storage.fetchViolations(filter: filter, workspaceId: workspaceId)

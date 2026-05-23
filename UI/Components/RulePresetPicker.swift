@@ -5,31 +5,8 @@
 //  SwiftUI picker component for selecting and applying rule presets
 //
 
-import SwiftUI
 import SwiftLintRuleStudioCore
-
-/// A menu-based picker for selecting and applying rule presets
-struct RulePresetPicker: View {
-    let onPresetSelected: (RulePreset) -> Void
-
-    var body: some View {
-        Menu {
-            ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
-                SwiftUI.Section(category.displayName) {
-                    ForEach(RulePresets.presets(in: category)) { preset in
-                        Button {
-                            onPresetSelected(preset)
-                        } label: {
-                            Label(preset.name, systemImage: preset.icon)
-                        }
-                    }
-                }
-            }
-        } label: {
-            Label("Presets", systemImage: "rectangle.stack")
-        }
-    }
-}
+import SwiftUI
 
 /// A full-screen sheet view for browsing and selecting presets with details
 private struct RulePresetBrowserView: View {
@@ -207,6 +184,29 @@ private struct PresetBadge: View {
             return .green
         case .documentation:
             return .cyan
+        }
+    }
+}
+
+/// A menu-based picker for selecting and applying rule presets
+struct RulePresetPicker: View {
+    let onPresetSelected: (RulePreset) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
+                SwiftUI.Section(category.displayName) {
+                    ForEach(RulePresets.presets(in: category)) { preset in
+                        Button {
+                            onPresetSelected(preset)
+                        } label: {
+                            Label(preset.name, systemImage: preset.icon)
+                        }
+                    }
+                }
+            }
+        } label: {
+            Label("Presets", systemImage: "rectangle.stack")
         }
     }
 }

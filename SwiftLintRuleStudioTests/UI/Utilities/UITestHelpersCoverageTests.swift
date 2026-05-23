@@ -5,12 +5,12 @@
 //  Coverage-focused tests for UI test helpers and extensions
 //
 
-import Testing
-import SwiftUI
-import ViewInspector
+@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-@testable import SwiftLintRuleStudio
+import SwiftUI
+import Testing
+import ViewInspector
 
 @MainActor
 struct UITestHelpersCoverageTests {
