@@ -19,7 +19,7 @@ struct PresetExpectation: Sendable, CustomTestStringConvertible {
     var testDescription: String { expectedName }
 }
 
-nonisolated(unsafe) let presetExpectations: [PresetExpectation] = [
+nonisolated let presetExpectations: [PresetExpectation] = [
     PresetExpectation(
         presetID: "performance", expectedName: "Performance",
         expectedCategory: .performance, expectedRuleIDs: ["reduce_into", "first_where", "empty_count"]

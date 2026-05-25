@@ -9,11 +9,11 @@ import Foundation
 @testable import SwiftLintRuleStudioCore
 
 public enum RulesTable: Sendable {
-    nonisolated(unsafe) public static let border =
+    nonisolated public static let border =
         "+------------------------------------------+--------+-------------+" +
         "------------------------+-------------+----------+" +
         "----------------+---------------+"
-    nonisolated(unsafe) public static let header =
+    nonisolated public static let header =
         "| identifier | opt-in | correctable " +
         "| enabled in your config | kind | analyzer | " +
         "uses sourcekit | configuration |"

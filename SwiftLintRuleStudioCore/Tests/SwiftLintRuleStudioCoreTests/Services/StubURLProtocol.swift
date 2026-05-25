@@ -22,7 +22,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
     nonisolated(unsafe) static var stubProvider: (@Sendable (URL) -> Stub)?
     nonisolated(unsafe) static var observedURLs: [URL] = []
-    nonisolated(unsafe) private static let lock = NSLock()
+    nonisolated private static let lock = NSLock()
 
     nonisolated static func install(_ provider: @escaping @Sendable (URL) -> Stub) {
         lock.lock(); defer { lock.unlock() }
