@@ -44,7 +44,18 @@ class RuleDetailViewModel {
 
     var isEnabled: Bool
     var severity: Severity?
-    var parameterValues: [String: AnyCodable] = [:]
+    /// The editor's RuleParameterEditor binds directly to this dictionary, so
+    /// slider/toggle/textfield edits don't pass through updateParameter(...).
+    /// The didSet keeps pendingChanges in sync with those out-of-band writes
+    /// so save-flow controls enable as soon as the user touches a control.
+    /// The isLoadingConfiguration guard suppresses spurious updates while
+    /// loadConfiguration is re-seating values from YAML.
+    var parameterValues: [String: AnyCodable] = [:] {
+        didSet {
+            guard !isLoadingConfiguration else { return }
+            updatePendingChanges()
+        }
+    }
     var isSaving: Bool = false
     var saveError: Error?
     var showDiffPreview: Bool = false
@@ -60,6 +71,11 @@ class RuleDetailViewModel {
     private var originalEnabled: Bool
     private var originalSeverity: Severity?
     private var originalParameters: [String: AnyCodable]?
+
+    // Set while loadConfiguration is re-seating in-memory state from YAML so
+    // the parameterValues didSet doesn't fire updatePendingChanges before the
+    // original* baseline has been refreshed.
+    private var isLoadingConfiguration = false
 
     // MARK: - Initialization
 
@@ -83,6 +99,15 @@ class RuleDetailViewModel {
     /// Load current configuration from workspace
     func loadConfiguration() throws {
         guard let yamlEngine = yamlEngine else { return }
+
+        // Suppress the parameterValues didSet during load so its intermediate
+        // assignment doesn't compute pendingChanges against a stale baseline.
+        // After load we recompute once with the final state.
+        isLoadingConfiguration = true
+        defer {
+            isLoadingConfiguration = false
+            updatePendingChanges()
+        }
 
         // Load current config
         try yamlEngine.load()

@@ -263,6 +263,46 @@ struct RuleDetailViewModelParameterTests {
         }
     }
 
+    // MARK: - Binding-driven mutations trigger pendingChanges
+
+    @Test("Direct assignment to parameterValues (binding path) triggers pendingChanges")
+    func testParameterValuesBindingTriggersPendingChanges() async throws {
+        // RuleParameterEditor edits viewModel.parameterValues via @Binding,
+        // bypassing updateParameter(_:value:). This regression-tests that the
+        // didSet on parameterValues still flags pending changes so the inline
+        // Save/Discard buttons enable.
+        let configContent = """
+        rules:
+          line_length:
+            warning: 120
+        """
+        let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(content: configContent)
+        defer { RuleDetailViewModelTestHelpers.cleanupTempFile(configPath) }
+
+        let yamlEngine = await RuleDetailViewModelTestHelpers.createYAMLConfigurationEngine(configPath: configPath)
+        let rule = await Self.createRuleWithParameters()
+        let viewModel = await RuleDetailViewModelTestHelpers.createRuleDetailViewModel(
+            rule: rule,
+            yamlEngine: yamlEngine
+        )
+
+        try await MainActor.run {
+            try viewModel.loadConfiguration()
+        }
+
+        await MainActor.run {
+            #expect(viewModel.pendingChanges == nil)
+
+            // Simulate the editor's binding mutating parameterValues directly.
+            var newValues = viewModel.parameterValues
+            newValues["warning"] = AnyCodable(80)
+            viewModel.parameterValues = newValues
+
+            #expect(viewModel.pendingChanges != nil)
+            #expect(viewModel.pendingChanges?.parameters?["warning"]?.value as? Int == 80)
+        }
+    }
+
     @Test("Save with only default-equal overrides clears parameters block in YAML")
     func testSaveStripsAllDefaultsFromYAML() async throws {
         // Workspace has explicit overrides that happen to equal the defaults.
