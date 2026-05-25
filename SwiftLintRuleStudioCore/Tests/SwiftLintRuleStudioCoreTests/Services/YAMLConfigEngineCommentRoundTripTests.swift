@@ -12,7 +12,7 @@ import Testing
 /// blank line and no trailing newline.
 struct YAMLConfigEngineCommentRoundTripTests {
     @Test("Removing disabled_rules drops its comment instead of orphaning it to EOF")
-    func removedKeyCommentNotOrphaned() async throws {
+    func removedKeyCommentNotOrphaned() throws {
         let yamlContent = """
         # Exclude build output
         excluded:
@@ -48,7 +48,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
     }
 
     @Test("Removing one key keeps comments anchored to the keys that remain")
-    func survivingKeysKeepTheirComments() async throws {
+    func survivingKeysKeepTheirComments() throws {
         let yamlContent = """
         # Exclude build output
         excluded:
@@ -79,7 +79,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
     }
 
     @Test("Enabling the only disabled rule produces a clean, reloadable file")
-    func enablingLastDisabledRuleProducesCleanFile() async throws {
+    func enablingLastDisabledRuleProducesCleanFile() throws {
         let yamlContent = """
         # Built-in rules we deliberately disable
         disabled_rules:
@@ -121,7 +121,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
     }
 
     @Test("Round-trip with no removed keys leaves every comment in place")
-    func roundTripPreservesLiveComments() async throws {
+    func roundTripPreservesLiveComments() throws {
         let yamlContent = """
         # Exclude build output
         excluded:
@@ -153,7 +153,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
     }
 
     @Test("A multi-line comment block above a key survives a round-trip intact")
-    func multiLineCommentBlockPreserved() async throws {
+    func multiLineCommentBlockPreserved() throws {
         let yamlContent = """
         # First line of the rationale
         # Second line of the rationale
@@ -184,7 +184,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
     }
 
     @Test("Block sequence items are indented two spaces under their key")
-    func sequenceItemsIndentedUnderKey() async throws {
+    func sequenceItemsIndentedUnderKey() throws {
         let yamlContent = """
         included:
         - Sources

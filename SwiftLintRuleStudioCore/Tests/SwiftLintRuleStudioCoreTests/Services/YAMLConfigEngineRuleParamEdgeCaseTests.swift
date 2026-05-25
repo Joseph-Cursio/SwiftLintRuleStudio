@@ -15,7 +15,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles rules with only parameters, no severity")
-    func testRulesWithOnlyParameters() async throws {
+    func testRulesWithOnlyParameters() throws {
         let yamlContent = """
         rules:
           line_length:
@@ -43,7 +43,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles disabled rules with parameters")
-    func testDisabledRulesWithParameters() async throws {
+    func testDisabledRulesWithParameters() throws {
         let yamlContent = """
         rules:
           line_length:
@@ -69,7 +69,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles empty rules dictionary")
-    func testEmptyRulesDictionary() async throws {
+    func testEmptyRulesDictionary() throws {
         let yamlContent = """
         rules: {}
         included:
@@ -94,7 +94,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles numeric rule parameters")
-    func testNumericRuleParameters() async throws {
+    func testNumericRuleParameters() throws {
         let yamlContent = """
         rules:
           file_length:
@@ -123,7 +123,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles string rule parameters")
-    func testStringRuleParameters() async throws {
+    func testStringRuleParameters() throws {
         let yamlContent = """
         rules:
           custom_rules:
@@ -149,7 +149,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles array rule parameters")
-    func testArrayRuleParameters() async throws {
+    func testArrayRuleParameters() throws {
         let yamlContent = """
         rules:
           excluded:
@@ -176,7 +176,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles nested rule configurations")
-    func testNestedRuleConfigurations() async throws {
+    func testNestedRuleConfigurations() throws {
         let yamlContent = """
         rules:
           nesting:
@@ -210,7 +210,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
     // `error: 150` — which SwiftLint rejects as "Invalid configuration for
     // 'line_length' rule. Falling back to default."
     @Test("Plain-style numeric scalars parse as Int and survive re-serialize")
-    func testNumericScalarsRoundTripAsIntegers() async throws {
+    func testNumericScalarsRoundTripAsIntegers() throws {
         let yamlContent = """
         line_length:
           warning: 120

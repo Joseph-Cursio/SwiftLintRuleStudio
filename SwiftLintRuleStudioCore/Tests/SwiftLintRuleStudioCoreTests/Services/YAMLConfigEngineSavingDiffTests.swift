@@ -46,7 +46,7 @@ struct YAMLConfigEngineSavingDiffTests {
     }
 
     @Test("YAMLConfigurationEngine creates backup when saving")
-    func testSaveCreatesBackup() async throws {
+    func testSaveCreatesBackup() throws {
         let yamlContent = """
         rules:
           force_cast: false
@@ -103,7 +103,7 @@ struct YAMLConfigEngineSavingDiffTests {
     }
 
     @Test("YAMLConfigurationEngine generates diff for added rules")
-    func testDiffAddedRules() async throws {
+    func testDiffAddedRules() throws {
         let yamlContent = """
         rules:
           force_cast: false
@@ -134,7 +134,7 @@ struct YAMLConfigEngineSavingDiffTests {
     }
 
     @Test("YAMLConfigurationEngine generates diff for removed rules")
-    func testDiffRemovedRules() async throws {
+    func testDiffRemovedRules() throws {
         let yamlContent = """
         rules:
           force_cast: false
@@ -166,7 +166,7 @@ struct YAMLConfigEngineSavingDiffTests {
     }
 
     @Test("YAMLConfigurationEngine generates diff for modified rules")
-    func testDiffModifiedRules() async throws {
+    func testDiffModifiedRules() throws {
         let yamlContent = """
         rules:
           force_cast:
@@ -232,7 +232,7 @@ struct YAMLConfigEngineSavingDiffTests {
     }
 
     @Test("YAMLConfigurationEngine detects no changes in diff")
-    func testDiffNoChanges() async throws {
+    func testDiffNoChanges() throws {
         let yamlContent = """
         rules:
           force_cast: false

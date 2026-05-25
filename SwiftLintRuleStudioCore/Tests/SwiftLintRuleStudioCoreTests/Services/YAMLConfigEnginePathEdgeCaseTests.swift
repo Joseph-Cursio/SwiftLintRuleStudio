@@ -5,7 +5,7 @@ import Testing
 
 struct YAMLConfigEnginePathEdgeCaseTests {
     @Test("YAMLConfigurationEngine handles multiple included paths")
-    func testMultipleIncludedPaths() async throws {
+    func testMultipleIncludedPaths() throws {
         let yamlContent = """
         included:
           - Sources
@@ -35,7 +35,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles multiple excluded paths")
-    func testMultipleExcludedPaths() async throws {
+    func testMultipleExcludedPaths() throws {
         let yamlContent = """
         excluded:
           - Pods
@@ -65,7 +65,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles reporter configuration")
-    func testReporterConfiguration() async throws {
+    func testReporterConfiguration() throws {
         let yamlContent = """
         reporter: xcode
         rules:
@@ -90,7 +90,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles very large configuration")
-    func testLargeConfiguration() async throws {
+    func testLargeConfiguration() throws {
         var yamlContent = "rules:\n"
         for idx in 1...50 {
             yamlContent += "  rule_\(idx): true\n"
@@ -108,7 +108,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles rules with special characters in names")
-    func testRulesWithSpecialCharacters() async throws {
+    func testRulesWithSpecialCharacters() throws {
         let yamlContent = """
         rules:
           "rule-with-dashes": true
@@ -133,7 +133,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles configuration with only rules")
-    func testConfigurationWithOnlyRules() async throws {
+    func testConfigurationWithOnlyRules() throws {
         let yamlContent = """
         rules:
           force_cast: false
@@ -162,7 +162,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine handles configuration with only included/excluded")
-    func testConfigurationWithOnlyPaths() async throws {
+    func testConfigurationWithOnlyPaths() throws {
         let yamlContent = """
         included:
           - Sources
@@ -190,7 +190,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
     }
 
     @Test("YAMLConfigurationEngine preserves rule order in diff")
-    func testRuleOrderInDiff() async throws {
+    func testRuleOrderInDiff() throws {
         let yamlContent = """
         rules:
           rule_a: true

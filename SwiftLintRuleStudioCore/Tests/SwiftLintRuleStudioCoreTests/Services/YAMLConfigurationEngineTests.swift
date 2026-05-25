@@ -96,7 +96,7 @@ struct YAMLConfigurationEngineTests {
     // MARK: - Comment Preservation Tests
 
     @Test("YAMLConfigurationEngine extracts comments from YAML")
-    func testExtractComments() async throws {
+    func testExtractComments() throws {
         let yamlContent = """
         # This is a comment
         rules:
@@ -121,7 +121,7 @@ struct YAMLConfigurationEngineTests {
     // MARK: - Error Handling Tests
 
     @Test("YAMLConfigurationEngine handles invalid YAML")
-    func testInvalidYAML() async throws {
+    func testInvalidYAML() throws {
         let invalidYAML = """
         rules:
           - invalid
@@ -140,7 +140,7 @@ struct YAMLConfigurationEngineTests {
     }
 
     @Test("YAMLConfigurationEngine handles malformed rule configuration")
-    func testMalformedRuleConfig() async throws {
+    func testMalformedRuleConfig() throws {
         let yamlContent = """
         rules:
           force_cast:
@@ -200,7 +200,7 @@ struct YAMLConfigurationEngineTests {
     }
 
     @Test("YAMLConfigurationEngine handles complex rule parameters")
-    func testComplexRuleParameters() async throws {
+    func testComplexRuleParameters() throws {
         let yamlContent = """
         rules:
           line_length:
@@ -239,7 +239,7 @@ struct YAMLConfigurationEngineTests {
 
     private func loadRoundTripSnapshot(
         configFile: URL
-    ) async throws -> RoundTripSnapshot {
+    ) throws -> RoundTripSnapshot {
         try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
