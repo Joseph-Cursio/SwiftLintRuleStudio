@@ -48,7 +48,8 @@ final class MockImpactSimulator: ImpactSimulator {
         workspace _: Workspace,
         baseConfigPath _: URL?,
         isOptIn _: Bool,
-        isAnalyzer _: Bool = false
+        isAnalyzer _: Bool = false,
+        parameterOverrides _: [String: AnyCodable]? = nil
     ) async throws -> RuleImpactResult {
         await Task.yield()
         simulateRuleCalls += 1
