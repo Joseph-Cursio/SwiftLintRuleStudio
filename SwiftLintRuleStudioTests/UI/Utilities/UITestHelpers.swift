@@ -89,13 +89,13 @@ enum UITestDataFactory {
         suppressionReason: String? = nil
     ) -> Violation {
         Violation(
-            id: id,
             ruleID: ruleID,
             filePath: filePath,
             line: line,
-            column: column,
             severity: severity,
             message: message,
+            id: id,
+            column: column,
             detectedAt: detectedAt,
             resolvedAt: resolvedAt,
             suppressed: suppressed,

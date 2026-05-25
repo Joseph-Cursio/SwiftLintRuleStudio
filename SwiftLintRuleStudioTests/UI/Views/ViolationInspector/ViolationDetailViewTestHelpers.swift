@@ -24,13 +24,13 @@ enum ViolationDetailViewTestHelpers {
     ) async -> Violation {
         await MainActor.run {
             Violation(
-                id: id,
                 ruleID: ruleID,
                 filePath: filePath,
                 line: line,
-                column: column,
                 severity: severity,
                 message: message,
+                id: id,
+                column: column,
                 detectedAt: Date.now,
                 resolvedAt: resolvedAt,
                 suppressed: suppressed

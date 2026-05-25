@@ -52,13 +52,13 @@ public struct Violation: Identifiable, Codable, Hashable, Sendable {
     nonisolated public var suppressionReason: String?
 
     nonisolated public init(
-        id: UUID = UUID(),
         ruleID: String,
         filePath: String,
         line: Int,
-        column: Int? = nil,
         severity: Severity,
         message: String,
+        id: UUID = UUID(),
+        column: Int? = nil,
         detectedAt: Date = Date.now,
         resolvedAt: Date? = nil,
         suppressed: Bool = false,

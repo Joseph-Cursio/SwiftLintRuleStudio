@@ -64,18 +64,18 @@ struct ImpactSimulationViewTests {
                 ruleID: "test_rule",
                 filePath: "Test.swift",
                 line: 10,
-                column: 5,
                 severity: .error,
                 message: "Test violation"
-            ),
+            ,
+                column: 5),
             Violation(
                 ruleID: "test_rule",
                 filePath: "Another.swift",
                 line: 20,
-                column: 10,
                 severity: .warning,
                 message: "Another violation"
-            )
+            ,
+                column: 10)
         ]
 
         let result = RuleImpactResult(

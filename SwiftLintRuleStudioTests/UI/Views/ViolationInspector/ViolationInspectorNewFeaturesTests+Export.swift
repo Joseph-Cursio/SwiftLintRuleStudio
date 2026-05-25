@@ -84,13 +84,13 @@ extension ViolationInspectorNewFeaturesTests {
 
         let violationWithSpecialChars = await MainActor.run {
             Violation(
-                id: violation.id,
                 ruleID: violation.ruleID,
                 filePath: violation.filePath,
                 line: violation.line,
-                column: violation.column,
                 severity: violation.severity,
                 message: "Message with \"quotes\" and, commas",
+                id: violation.id,
+                column: violation.column,
                 detectedAt: violation.detectedAt,
                 resolvedAt: violation.resolvedAt,
                 suppressed: violation.suppressed,
@@ -112,13 +112,13 @@ extension ViolationInspectorNewFeaturesTests {
     func testExportToJSONAllFields() async throws {
         let violation = await MainActor.run {
             Violation(
-                id: UUID(),
                 ruleID: "test_rule",
                 filePath: "Test.swift",
                 line: 10,
-                column: 5,
                 severity: .error,
                 message: "Test message",
+                id: UUID(),
+                column: 5,
                 detectedAt: Date.now,
                 resolvedAt: Date.now,
                 suppressed: true,

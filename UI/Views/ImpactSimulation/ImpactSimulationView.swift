@@ -197,17 +197,17 @@ struct ImpactSimulationView: View {
                 ruleID: "force_cast",
                 filePath: "Test.swift",
                 line: 10,
-                column: 5,
                 severity: .error,
-                message: "Force casts should be avoided"
+                message: "Force casts should be avoided",
+                column: 5
             ),
             Violation(
                 ruleID: "force_cast",
                 filePath: "Another.swift",
                 line: 25,
-                column: 12,
                 severity: .warning,
-                message: "Force casts should be avoided"
+                message: "Force casts should be avoided",
+                column: 12
             )
         ],
         affectedFiles: ["Test.swift", "Another.swift"],

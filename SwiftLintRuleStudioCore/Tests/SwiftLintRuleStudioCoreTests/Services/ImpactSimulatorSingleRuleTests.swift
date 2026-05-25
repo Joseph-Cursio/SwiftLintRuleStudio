@@ -56,10 +56,10 @@ struct ImpactSimulatorSingleRuleTests {
                 ruleID: "test_rule",
                 filePath: "Test.swift",
                 line: 1,
-                column: 1,
                 severity: .warning,
                 message: "Test violation"
-            )
+            ,
+                column: 1)
         ]
 
         let workspace = Workspace(path: tempDir)

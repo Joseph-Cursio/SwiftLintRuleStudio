@@ -33,13 +33,13 @@ struct ViolationDetailViewInteractionTests {
         resolvedAt: Date? = nil
     ) -> Violation {
         Violation(
-            id: id,
             ruleID: ruleID,
             filePath: filePath,
             line: line,
-            column: column,
             severity: severity,
             message: message,
+            id: id,
+            column: column,
             detectedAt: Date.now,
             resolvedAt: resolvedAt,
             suppressed: suppressed

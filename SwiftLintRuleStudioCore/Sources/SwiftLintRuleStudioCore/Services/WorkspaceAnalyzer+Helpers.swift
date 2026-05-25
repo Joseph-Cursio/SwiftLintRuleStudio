@@ -217,9 +217,9 @@ public extension WorkspaceAnalyzer {
                 ruleID: ruleID,
                 filePath: relativePath,
                 line: line,
-                column: column,
                 severity: severity,
                 message: message,
+                column: column,
                 detectedAt: Date.now
             )
 

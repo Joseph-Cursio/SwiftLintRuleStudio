@@ -181,13 +181,13 @@ extension ViolationStorageActor {
         let severity = Severity(rawValue: String(cString: severityString)) ?? .warning
 
         return Violation(
-            id: id,
             ruleID: String(cString: ruleID),
             filePath: String(cString: filePath),
             line: line,
-            column: column,
             severity: severity,
             message: String(cString: message),
+            id: id,
+            column: column,
             detectedAt: detectedAt,
             resolvedAt: resolvedAt,
             suppressed: suppressed,

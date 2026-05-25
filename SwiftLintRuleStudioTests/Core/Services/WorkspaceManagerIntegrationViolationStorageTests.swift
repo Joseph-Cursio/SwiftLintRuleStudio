@@ -26,18 +26,18 @@ struct WorkspaceManagerIntegrationViolationStorageTests {
             ruleID: "test_rule_1",
             filePath: "Test1.swift",
             line: 10,
-            column: 5,
             severity: .error,
-            message: "Test violation 1"
+            message: "Test violation 1",
+            column: 5
         )
 
         let violation2 = Violation(
             ruleID: "test_rule_2",
             filePath: "Test2.swift",
             line: 20,
-            column: 10,
             severity: .warning,
-            message: "Test violation 2"
+            message: "Test violation 2",
+            column: 10
         )
 
         try await storage.storeViolations([violation1, violation2], for: workspace.id)

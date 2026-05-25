@@ -25,13 +25,13 @@ struct ViolationInspectorNewFeaturesTests {
     ) async -> Violation {
         await MainActor.run {
             Violation(
-                id: id,
                 ruleID: ruleID,
                 filePath: filePath,
                 line: line,
                 severity: severity,
                 message: "Test violation"
-            )
+            ,
+                id: id)
         }
     }
 

@@ -41,9 +41,9 @@ public enum ViolationStorageTestHelpers {
             ruleID: ruleID,
             filePath: filePath,
             line: 10,
-            column: 5,
             severity: .error,
-            message: "Test violation"
+            message: "Test violation",
+            column: 5
         )
     }
 }

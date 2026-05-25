@@ -73,13 +73,13 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
     func suppressViolations(_ violationIds: [UUID], reason: String) throws {
         for (index, violation) in storedViolations.enumerated() where violationIds.contains(violation.id) {
             storedViolations[index] = Violation(
-                id: violation.id,
                 ruleID: violation.ruleID,
                 filePath: violation.filePath,
                 line: violation.line,
-                column: violation.column,
                 severity: violation.severity,
                 message: violation.message,
+                id: violation.id,
+                column: violation.column,
                 detectedAt: violation.detectedAt,
                 resolvedAt: violation.resolvedAt,
                 suppressed: true,
@@ -91,13 +91,13 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
     func resolveViolations(_ violationIds: [UUID]) throws {
         for (index, violation) in storedViolations.enumerated() where violationIds.contains(violation.id) {
             storedViolations[index] = Violation(
-                id: violation.id,
                 ruleID: violation.ruleID,
                 filePath: violation.filePath,
                 line: violation.line,
-                column: violation.column,
                 severity: violation.severity,
                 message: violation.message,
+                id: violation.id,
+                column: violation.column,
                 detectedAt: violation.detectedAt,
                 resolvedAt: Date.now,
                 suppressed: violation.suppressed,
@@ -142,12 +142,12 @@ enum ViolationInspectorViewModelTestHelpers {
         suppressed: Bool = false
     ) -> Violation {
         Violation(
-            id: id,
             ruleID: ruleID,
             filePath: filePath,
             line: line,
             severity: severity,
             message: message,
+            id: id,
             detectedAt: detectedAt,
             suppressed: suppressed
         )

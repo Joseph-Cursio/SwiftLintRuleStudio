@@ -112,9 +112,9 @@ struct HTMLReportGeneratorTests {
             ruleID: ruleID,
             filePath: filePath,
             line: line,
-            column: column,
             severity: severity,
             message: message,
+            column: column,
             detectedAt: Date(timeIntervalSince1970: 1_000_000)
         )
     }

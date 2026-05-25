@@ -31,14 +31,14 @@ struct ViolationInspectorViewInteractionTests {
         message: String = "Test violation message"
     ) -> Violation {
         Violation(
-            id: id,
             ruleID: ruleID,
             filePath: filePath,
             line: line,
-            column: column,
             severity: severity,
             message: message
-        )
+        ,
+            id: id,
+            column: column)
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views

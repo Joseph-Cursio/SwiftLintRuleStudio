@@ -369,13 +369,13 @@ public class ImpactSimulator {
             }
 
             let violation = Violation(
-                id: UUID(),
                 ruleID: ruleId,
                 filePath: relativePath,
                 line: line,
-                column: column,
                 severity: severity,
                 message: reason,
+                id: UUID(),
+                column: column,
                 detectedAt: Date.now
             )
 

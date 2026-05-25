@@ -17,13 +17,13 @@ struct ViolationStorageMetadataTests {
         let workspaceId = UUID()
 
         let original = Violation(
-            id: UUID(),
             ruleID: "test_rule",
             filePath: "Test.swift",
             line: 42,
-            column: 10,
             severity: .warning,
             message: "Test message",
+            id: UUID(),
+            column: 10,
             detectedAt: Date.now,
             resolvedAt: nil,
             suppressed: false,
@@ -68,22 +68,22 @@ struct ViolationStorageMetadataTests {
 
         let sharedID = UUID()
         let violation1 = Violation(
-            id: sharedID,
             ruleID: "rule1",
             filePath: "File1.swift",
             line: 10,
             severity: .error,
             message: "First message"
-        )
+        ,
+            id: sharedID)
 
         let violation2 = Violation(
-            id: sharedID,
             ruleID: "rule2",
             filePath: "File2.swift",
             line: 20,
             severity: .warning,
             message: "Second message"
-        )
+        ,
+            id: sharedID)
 
         try await storage.storeViolations([violation1, violation2], for: workspaceId)
 

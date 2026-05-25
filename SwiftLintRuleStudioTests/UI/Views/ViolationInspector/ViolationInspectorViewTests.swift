@@ -30,14 +30,14 @@ struct ViolationInspectorViewTests {
         message: String = "Test violation message"
     ) -> Violation {
         Violation(
-            id: id,
             ruleID: ruleID,
             filePath: filePath,
             line: line,
-            column: column,
             severity: severity,
             message: message
-        )
+        ,
+            id: id,
+            column: column)
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views
@@ -122,14 +122,14 @@ struct ViolationInspectorViewTests {
     func testShowsDetailWhenViolationSelected() async throws {
         let result = try await Task { @MainActor in
             let violation = Violation(
-                id: UUID(),
                 ruleID: "force_cast",
                 filePath: "Test.swift",
                 line: 10,
-                column: 5,
                 severity: .error,
                 message: "Test violation message"
-            )
+            ,
+                id: UUID(),
+                column: 5)
             let container = DependencyContainer.createForTesting()
             let storage = try ViolationStorageActor(useInMemory: true)
             let viewModel = ViolationInspectorViewModel(violationStorage: storage)
