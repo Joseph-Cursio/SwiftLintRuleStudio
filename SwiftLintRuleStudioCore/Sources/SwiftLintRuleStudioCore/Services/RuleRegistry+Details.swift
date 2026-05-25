@@ -93,9 +93,10 @@ extension RuleRegistry {
             name: identifier.replacingOccurrences(of: "_", with: " ").capitalized
         )
         await populateFromDocs(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
-        if state.triggeringExamples.isEmpty && state.nonTriggeringExamples.isEmpty {
-            try await populateFromRuleDetails(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
-        }
+        // Always pull from `swiftlint rules <id>` for parameter schema (markdown docs
+        // don't expose it in a parseable form). Reuse the same output to fill in
+        // examples when the docs path didn't supply any.
+        try await populateFromRuleDetails(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
         return state.asRule(category: category)
     }
 
@@ -111,6 +112,7 @@ extension RuleRegistry {
         var minimumSwiftVersion: String?
         var defaultSeverity: Severity?
         var markdownDoc: String?
+        var parameters: [RuleParameter]?
 
         mutating func apply(_ doc: ParsedRuleDocumentation) {
             if !doc.name.isEmpty {
@@ -135,7 +137,7 @@ extension RuleRegistry {
                 isOptIn: isOptIn,
                 isAnalyzer: isAnalyzer,
                 severity: defaultSeverity,
-                parameters: nil,
+                parameters: parameters,
                 triggeringExamples: triggeringExamples,
                 nonTriggeringExamples: nonTriggeringExamples,
                 documentation: nil,
@@ -171,9 +173,16 @@ extension RuleRegistry {
         guard let detailText = String(data: detailData, encoding: .utf8) else {
             return
         }
-        let lines = detailText.components(separatedBy: .newlines)
-        applyRuleHeader(lines: lines, state: &state)
-        applyRuleExamples(lines: lines, state: &state)
+        // Parameter schema only lives in this CLI output, not in the markdown docs,
+        // so always parse it.
+        state.parameters = RuleParameterParser.parseParameters(from: detailText, ruleId: ruleId)
+        // Examples and header are only filled when the docs path didn't already
+        // populate them — the docs are the more reliable source.
+        if state.triggeringExamples.isEmpty && state.nonTriggeringExamples.isEmpty {
+            let lines = detailText.components(separatedBy: .newlines)
+            applyRuleHeader(lines: lines, state: &state)
+            applyRuleExamples(lines: lines, state: &state)
+        }
     }
 
     private static func applyRuleHeader(lines: [String], state: inout RuleDetailsState) {
