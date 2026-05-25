@@ -21,39 +21,17 @@ extension RuleDetailView {
                 }
                 .frame(maxWidth: .infinity)
 
-                if viewModel.isEnabled {
+                if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Severity")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        Text("Parameters")
+                            .font(.headline)
 
-                        Picker("Severity", selection: Binding(
-                            get: { viewModel.severity ?? .warning },
-                            set: { viewModel.updateSeverity($0) }
-                        )) {
-                            ForEach(Severity.allCases) { severity in
-                                Text(severity.displayName).tag(severity)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .frame(maxWidth: 300)
-                    }
-
-                    if let parameters = rule.parameters, !parameters.isEmpty {
-                        Divider()
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Parameters")
-                                .font(.headline)
-
-                            RuleParameterEditor(
-                                parameters: parameters,
-                                values: $viewModel.parameterValues
-                            )
-                        }
+                        RuleParameterEditor(
+                            parameters: parameters,
+                            values: $viewModel.parameterValues
+                        )
                     }
                 }
 
