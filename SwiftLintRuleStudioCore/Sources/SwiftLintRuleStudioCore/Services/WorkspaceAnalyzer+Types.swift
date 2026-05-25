@@ -103,7 +103,6 @@ public struct AnalysisProgress {
 
 extension WorkspaceAnalyzer {}
 
-
 // MARK: - Data Extension
 
 public extension Data {

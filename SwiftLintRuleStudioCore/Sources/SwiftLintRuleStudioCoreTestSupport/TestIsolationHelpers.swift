@@ -48,7 +48,6 @@ public enum IsolatedUserDefaults {
 
 private enum TestIsolationHelpers {}
 
-
 // Helper to create DependencyContainer with isolated UserDefaults
 public extension DependencyContainer {
     /// Creates a DependencyContainer with isolated UserDefaults for testing

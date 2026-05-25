@@ -28,7 +28,6 @@ private struct RuleRegistryKey: EnvironmentKey {
 
 private enum EnvironmentKeys {}
 
-
 // MARK: - EnvironmentValues
 
 extension EnvironmentValues {

@@ -28,7 +28,6 @@ enum RuleCategoryColors {
 
 private enum LintStudioConformances {}
 
-
 extension Severity: @retroactive LintSeverity {
     public var isError: Bool { self == .error }
 }
