@@ -8,29 +8,6 @@
 import Foundation
 import Observation
 
-/// Sendable wrapper for the background loading task so it can be cancelled from
-/// `deinit` (nonisolated) without crossing the MainActor isolation of `RuleRegistry`.
-nonisolated final class BackgroundTaskHolder: @unchecked Sendable {
-    private let lock = NSLock()
-    private var task: Task<Void, Never>?
-
-    func cancel() {
-        lock.lock()
-        let current = task
-        task = nil
-        lock.unlock()
-        current?.cancel()
-    }
-
-    func replace(with newTask: Task<Void, Never>) {
-        lock.lock()
-        let old = task
-        task = newTask
-        lock.unlock()
-        old?.cancel()
-    }
-}
-
 /// Service for managing SwiftLint rules metadata
 @MainActor
 public protocol RuleRegistryProtocol {
@@ -53,7 +30,7 @@ public class RuleRegistry: RuleRegistryProtocol {
 
     public let swiftLintCLI: SwiftLintCLIProtocol
     public let cacheManager: CacheManagerProtocol
-    nonisolated let backgroundLoadingTask = BackgroundTaskHolder()
+    nonisolated(unsafe) var backgroundLoadingTask: Task<Void, Never>?
 
     public init(swiftLintCLI: SwiftLintCLIProtocol, cacheManager: CacheManagerProtocol) {
         self.swiftLintCLI = swiftLintCLI
@@ -61,7 +38,7 @@ public class RuleRegistry: RuleRegistryProtocol {
     }
 
     deinit {
-        backgroundLoadingTask.cancel()
+        backgroundLoadingTask?.cancel()
     }
 
     nonisolated public static var isRunningTests: Bool {
@@ -70,7 +47,8 @@ public class RuleRegistry: RuleRegistryProtocol {
 
     public func loadRules() async throws -> [Rule] {
         // Cancel any existing background loading
-        backgroundLoadingTask.cancel()
+        backgroundLoadingTask?.cancel()
+        backgroundLoadingTask = nil
 
         isLoading = true
         defer { isLoading = false }

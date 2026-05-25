@@ -6,15 +6,18 @@ extension RuleRegistry {
         if Self.isRunningTests {
             return
         }
+        // Cancel any existing background loading task
+        backgroundLoadingTask?.cancel()
+
         let rulesData = buildRulesData(from: rules, startingIndex: startingIndex)
-        backgroundLoadingTask.replace(with: Task { [swiftLintCLI] in
+        backgroundLoadingTask = Task { [swiftLintCLI] in
             await Self.runBackgroundBatches(
                 rulesData: rulesData,
                 swiftLintCLI: swiftLintCLI
             ) { [weak self] index, rule in
                 await self?.updateRule(at: index, with: rule)
             }
-        })
+        }
     }
 
     private func updateRule(at index: Int, with rule: Rule) {
