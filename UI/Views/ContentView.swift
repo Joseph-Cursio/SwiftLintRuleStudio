@@ -23,6 +23,14 @@ struct ContentView: View {
     @State var ruleBrowserViewModel: RuleBrowserViewModel?
     @State private var showWorkspacePicker = false
 
+    /// Designated initializer. The default `initialSelection: .rules`
+    /// preserves the behaviour of `ContentView()` for production call
+    /// sites while letting tests seed the `selection` @State to exercise
+    /// each branch of `sectionDetailView`.
+    init(initialSelection: AppSection? = .rules) {
+        self._selection = State(initialValue: initialSelection)
+    }
+
     var body: some View {
         Group {
             if !dependencies.onboardingManager.hasCompletedOnboarding {
