@@ -45,10 +45,9 @@ extension RuleDetailView {
                     if let parameters = rule.parameters, !parameters.isEmpty {
                         Divider()
 
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 12) {
                             Text("Parameters")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .font(.headline)
 
                             RuleParameterEditor(
                                 parameters: parameters,

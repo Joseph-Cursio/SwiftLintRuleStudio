@@ -231,10 +231,6 @@ struct RuleParameterEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Parameters")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-
             ForEach(parameters, id: \.name) { param in
                 parameterRow(for: param)
                 if param.name != parameters.last?.name {
@@ -242,9 +238,6 @@ struct RuleParameterEditor: View {
                 }
             }
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .clipShape(.rect(cornerRadius: 6))
     }
 
     @ViewBuilder
