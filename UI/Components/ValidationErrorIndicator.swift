@@ -163,7 +163,7 @@ private struct FieldValidationIndicator: View {
 }
 
 /// Displays validation errors and warnings inline
-private struct ValidationErrorIndicator: View {
+struct ValidationErrorIndicator: View {
     let errors: [ValidationResult.ValidationError]
     let warnings: [ValidationResult.ValidationWarning]
 

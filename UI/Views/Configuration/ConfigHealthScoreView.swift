@@ -220,7 +220,7 @@ private struct ConfigHealthPopover: View {
 }
 
 /// Full health report view with score breakdown and recommendations
-private struct ConfigHealthScoreView: View {
+struct ConfigHealthScoreView: View {
     let report: ConfigHealthReport
     let onApplyPreset: ((String) -> Void)?
 

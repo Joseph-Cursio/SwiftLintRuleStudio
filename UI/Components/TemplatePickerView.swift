@@ -115,7 +115,7 @@ private struct CodingStyleText: View {
 }
 
 /// Compact modal picker for selecting a template
-private struct TemplatePickerView: View {
+struct TemplatePickerView: View {
     @Environment(\.dismiss) private var dismiss
 
     let onTemplateSelected: (ConfigurationTemplate) -> Void

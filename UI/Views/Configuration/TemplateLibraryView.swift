@@ -182,7 +182,7 @@ private struct TemplateDetailView: View {
 }
 
 /// Main view for browsing the template library
-private struct TemplateLibraryView: View {
+struct TemplateLibraryView: View {
     @State private var selectedProjectType: ConfigurationTemplate.ProjectType?
     @State private var selectedCodingStyle: ConfigurationTemplate.CodingStyle?
     @State private var searchText = ""
