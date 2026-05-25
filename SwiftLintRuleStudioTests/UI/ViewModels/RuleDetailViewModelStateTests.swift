@@ -83,25 +83,6 @@ struct RuleDetailViewModelStateTests {
         #expect(viewModel.pendingChanges == nil)
     }
 
-    @Test("RuleDetailViewModel showPreview sets flag")
-    func testShowPreviewSetsFlag() async throws {
-        let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(content: "")
-        defer { RuleDetailViewModelTestHelpers.cleanupTempFile(configPath) }
-
-        let yamlEngine = await RuleDetailViewModelTestHelpers.createYAMLConfigurationEngine(configPath: configPath)
-        let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailViewModelTestHelpers.createRuleDetailViewModel(
-            rule: rule,
-            yamlEngine: yamlEngine
-        )
-
-        viewModel.updateEnabled(true)
-        viewModel.showPreview()
-
-        #expect(viewModel.showDiffPreview)
-        #expect(viewModel.pendingChanges != nil)
-    }
-
     @Test("RuleDetailViewModel clears pending changes when reverted")
     func testPendingChangesClearedOnRevert() async throws {
         let configContent = """

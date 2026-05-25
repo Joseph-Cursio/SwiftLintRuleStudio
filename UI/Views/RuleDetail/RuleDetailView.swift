@@ -48,23 +48,6 @@ private struct RuleDetailSheetsAndAlerts: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .sheet(item: $viewModel.pendingDiff) { diff in
-                ConfigDiffPreviewView(diff: diff, ruleName: rule.name) {
-                    Task {
-                        do {
-                            try viewModel.saveConfiguration()
-                            viewModel.pendingDiff = nil
-                            viewModel.showDiffPreview = false
-                            showSaveConfirmation = true
-                        } catch {
-                            showError = true
-                        }
-                    }
-                } onCancel: {
-                    viewModel.pendingDiff = nil
-                    viewModel.showDiffPreview = false
-                }
-            }
             .alert("Configuration Saved", isPresented: $showSaveConfirmation) {
                 Button("OK") { }
             } message: {
@@ -128,7 +111,6 @@ struct RuleDetailView: View {
     var body: some View {
         scrollContent
             .navigationTitle(rule.name)
-            .toolbar { toolbarContent }
             .onAppear { loadWorkspaceConfiguration() }
             .task { await fetchRuleDetailsAndBuildString() }
             .id(rule.id)
@@ -175,30 +157,6 @@ struct RuleDetailView: View {
             .padding(.top, 16)
             .padding(.bottom, 24)
             .padding(.horizontal, 20)
-        }
-    }
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItemGroup(placement: .primaryAction) {
-            if viewModel.pendingChanges != nil {
-                Button {
-                    viewModel.showPreview()
-                } label: {
-                    Label("Preview Changes", systemImage: "eye")
-                }
-                .accessibilityIdentifier("RuleDetailPreviewChangesButton")
-
-                Button(action: saveConfigurationAction) {
-                    if viewModel.isSaving {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                    } else {
-                        Label("Save", systemImage: "checkmark")
-                    }
-                }
-                .disabled(viewModel.isSaving)
-            }
         }
     }
 
@@ -286,7 +244,10 @@ struct RuleDetailView: View {
         }
     }
 
-    private func saveConfigurationAction() {
+    // Read by RuleDetailView+Sections.swift's inline Save button — internal
+    // (default) is the minimum access level that allows a cross-file extension
+    // on the same type to call it.
+    func saveConfigurationAction() {
         Task {
             do {
                 try viewModel.saveConfiguration()

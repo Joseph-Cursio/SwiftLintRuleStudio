@@ -9,7 +9,10 @@ extension RuleDetailView {
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 16) {
-                // Toggle at the top with full width
+                // Enable toggle on the left, save-flow buttons on the right.
+                // Each save-flow button is always visible but enables itself
+                // only when there's a pending change to act on, so the user
+                // can see at a glance what actions exist.
                 HStack {
                     Toggle("Enable this rule", isOn: Binding(
                         get: { viewModel.isEnabled },
@@ -17,7 +20,10 @@ extension RuleDetailView {
                     ))
                     .toggleStyle(.switch)
                     .accessibilityIdentifier("RuleDetailEnableToggle")
+
                     Spacer()
+
+                    saveFlowButtons
                 }
                 .frame(maxWidth: .infinity)
 
@@ -77,6 +83,35 @@ extension RuleDetailView {
             .background(Color(NSColor.controlBackgroundColor))
             .clipShape(.rect(cornerRadius: 8))
         }
+    }
+
+    @ViewBuilder
+    private var saveFlowButtons: some View {
+        let hasPendingChanges = viewModel.pendingChanges != nil
+
+        Button {
+            viewModel.cancelChanges()
+        } label: {
+            Label("Discard", systemImage: "arrow.uturn.backward")
+        }
+        .buttonStyle(.bordered)
+        .help("Revert unsaved changes back to the workspace YAML values")
+        .disabled(!hasPendingChanges || viewModel.isSaving)
+        .accessibilityIdentifier("RuleDetailDiscardChangesButton")
+
+        Button {
+            saveConfigurationAction()
+        } label: {
+            if viewModel.isSaving {
+                ProgressView()
+                    .scaleEffect(0.7)
+            } else {
+                Label("Save", systemImage: "checkmark")
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .help("Write unsaved changes to .swiftlint.yml")
+        .disabled(!hasPendingChanges || viewModel.isSaving)
     }
 
     var examplesView: some View {

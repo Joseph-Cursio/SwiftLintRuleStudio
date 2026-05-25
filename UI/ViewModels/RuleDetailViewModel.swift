@@ -47,9 +47,9 @@ class RuleDetailViewModel {
     /// The editor's RuleParameterEditor binds directly to this dictionary, so
     /// slider/toggle/textfield edits don't pass through updateParameter(...).
     /// The didSet keeps pendingChanges in sync with those out-of-band writes
-    /// so save-flow controls enable as soon as the user touches a control.
-    /// The isLoadingConfiguration guard suppresses spurious updates while
-    /// loadConfiguration is re-seating values from YAML.
+    /// so the inline Discard/Save buttons enable as soon as the user touches a
+    /// control. The isLoadingConfiguration guard suppresses spurious updates
+    /// while loadConfiguration is re-seating values from YAML.
     var parameterValues: [String: AnyCodable] = [:] {
         didSet {
             guard !isLoadingConfiguration else { return }
@@ -58,8 +58,6 @@ class RuleDetailViewModel {
     }
     var isSaving: Bool = false
     var saveError: Error?
-    var showDiffPreview: Bool = false
-    var pendingDiff: YAMLConfigurationEngine.ConfigDiff?
     var pendingChanges: PendingRuleChanges?
 
     // MARK: - Properties
@@ -269,13 +267,6 @@ class RuleDetailViewModel {
             saveError = error
             throw error
         }
-    }
-
-    /// Show diff preview
-    func showPreview() {
-        updatePendingChanges()
-        pendingDiff = generateDiff()
-        showDiffPreview = true
     }
 
     /// Cancel pending changes
