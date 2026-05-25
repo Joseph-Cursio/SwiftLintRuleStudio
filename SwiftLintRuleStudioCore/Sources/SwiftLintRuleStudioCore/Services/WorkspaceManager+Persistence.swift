@@ -32,7 +32,7 @@ public extension WorkspaceManager {
             }
 
             var workspace = Workspace(
-                id: data.id, path: url, name: data.name
+                path: url, id: data.id, name: data.name
             )
             workspace.configPath = data.configPath.map {
                 URL(fileURLWithPath: $0)

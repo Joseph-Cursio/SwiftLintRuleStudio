@@ -300,8 +300,8 @@ struct RuleRegistryBackgroundLoadingTests {
             ruleId: "capture_variable",
             category: .lint,
             isOptIn: true,
-            isAnalyzer: true,
-            swiftLintCLI: mockCLI
+            swiftLintCLI: mockCLI,
+            isAnalyzer: true
         )
 
         #expect(rule.isAnalyzer == true)
@@ -316,8 +316,8 @@ struct RuleRegistryBackgroundLoadingTests {
             ruleId: "unused_import",
             category: .lint,
             isOptIn: true,
-            isAnalyzer: true,
-            swiftLintCLI: mockCLI
+            swiftLintCLI: mockCLI,
+            isAnalyzer: true
         )
 
         #expect(rule.isAnalyzer == true)

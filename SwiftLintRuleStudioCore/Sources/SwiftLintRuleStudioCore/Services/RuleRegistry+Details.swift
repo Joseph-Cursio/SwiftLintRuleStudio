@@ -73,8 +73,8 @@ extension RuleRegistry {
             identifier: identifier,
             category: category,
             isOptIn: isOptIn,
-            isAnalyzer: isAnalyzer,
-            swiftLintCLI: swiftLintCLI
+            swiftLintCLI: swiftLintCLI,
+            isAnalyzer: isAnalyzer
         )
     }
 
@@ -83,8 +83,8 @@ extension RuleRegistry {
         identifier: String,
         category: RuleCategory,
         isOptIn: Bool,
-        isAnalyzer: Bool = false,
-        swiftLintCLI: SwiftLintCLIProtocol
+        swiftLintCLI: SwiftLintCLIProtocol,
+        isAnalyzer: Bool = false
     ) async throws -> Rule {
         var state = RuleDetailsState(
             identifier: identifier,

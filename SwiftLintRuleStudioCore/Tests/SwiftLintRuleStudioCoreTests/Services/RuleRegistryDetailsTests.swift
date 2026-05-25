@@ -90,8 +90,8 @@ struct RuleRegistryDetailsTests {
             identifier: "capture_variable",
             category: .lint,
             isOptIn: true,
-            isAnalyzer: true,
-            swiftLintCLI: cli
+            swiftLintCLI: cli,
+            isAnalyzer: true
         )
 
         #expect(rule.isAnalyzer == true)

@@ -51,7 +51,7 @@ public struct Workspace: Identifiable, Equatable, Sendable {
     nonisolated public var configPath: URL?
     nonisolated public var lastAnalyzed: Date?
 
-    nonisolated public init(id: UUID = UUID(), path: URL, name: String? = nil) {
+    nonisolated public init(path: URL, id: UUID = UUID(), name: String? = nil) {
         self.id = id
         self.path = path
         self.name = name ?? path.lastPathComponent

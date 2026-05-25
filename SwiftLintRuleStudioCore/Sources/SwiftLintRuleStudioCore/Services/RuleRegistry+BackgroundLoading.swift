@@ -89,8 +89,8 @@ extension RuleRegistry {
                         ruleId: data.id,
                         category: data.category,
                         isOptIn: data.isOptIn,
-                        isAnalyzer: data.isAnalyzer,
-                        swiftLintCLI: swiftLintCLI
+                        swiftLintCLI: swiftLintCLI,
+                        isAnalyzer: data.isAnalyzer
                     )
                     return (data.index, rule)
                 }
@@ -106,8 +106,8 @@ extension RuleRegistry {
         ruleId: String,
         category: RuleCategory,
         isOptIn: Bool,
-        isAnalyzer: Bool = false,
-        swiftLintCLI: SwiftLintCLIProtocol
+        swiftLintCLI: SwiftLintCLIProtocol,
+        isAnalyzer: Bool = false
     ) async -> Rule {
         do {
             return try await withTimeout(
@@ -118,8 +118,8 @@ extension RuleRegistry {
                     identifier: ruleId,
                     category: category,
                     isOptIn: isOptIn,
-                    isAnalyzer: isAnalyzer,
-                    swiftLintCLI: swiftLintCLI
+                    swiftLintCLI: swiftLintCLI,
+                    isAnalyzer: isAnalyzer
                 )
             }
         } catch {

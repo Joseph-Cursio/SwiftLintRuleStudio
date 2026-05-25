@@ -54,7 +54,7 @@ public struct ConfigurationTemplate: Identifiable, Codable, Sendable, Equatable,
     }
 
     public init(
-        id: UUID = UUID(),
+        id: UUID,
         name: String,
         description: String,
         projectType: ProjectType,
@@ -169,6 +169,7 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
         let yamlContent = try engine.serialize(config)
 
         let template = ConfigurationTemplate(
+            id: UUID(),
             name: name,
             description: description,
             projectType: projectType,
