@@ -161,12 +161,12 @@ extension ViolationStorageActor {
     }
 
     private func bindViolation(_ violation: Violation, workspaceId: UUID, statement: OpaquePointer) throws {
-        let idString = violation.id.uuidString
+        let violationIDString = violation.id.uuidString
         let idError = "Failed to allocate memory for violation ID"
         let workspaceError = "Failed to allocate memory for workspace ID"
         let ruleError = "Failed to allocate memory for rule ID"
         let filePathError = "Failed to allocate memory for file path"
-        try bindText(idString, index: 1, statement: statement, errorMessage: idError)
+        try bindText(violationIDString, index: 1, statement: statement, errorMessage: idError)
         try bindText(workspaceId.uuidString, index: 2, statement: statement, errorMessage: workspaceError)
         try bindText(violation.ruleID, index: 3, statement: statement, errorMessage: ruleError)
         try bindText(violation.filePath, index: 4, statement: statement, errorMessage: filePathError)
