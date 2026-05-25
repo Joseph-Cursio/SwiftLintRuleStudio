@@ -248,12 +248,10 @@ struct ViolationDetailViewInteractionTests {
 
         let violation = makeTestViolation(resolvedAt: nil)
         let result = await Task { @MainActor in
-            createViolationDetailView(
-                violation: violation,
-                onResolve: {
-                    tracker.resolveCalled = true
-                }
-            )
+            createViolationDetailView(violation: violation) { _ in
+            } onResolve: {
+                tracker.resolveCalled = true
+            }
         }.value
 
         // Find and tap the resolve button

@@ -34,9 +34,9 @@ public struct RulePreset: Identifiable, Codable, Sendable, Equatable {
 
     public enum PresetCategory: String, Codable, CaseIterable, Sendable {
         case performance
-        case swiftUI
+        case swiftUI = "swift_ui"
         case concurrency
-        case codeStyle
+        case codeStyle = "code_style"
         case documentation
 
         public var displayName: String {

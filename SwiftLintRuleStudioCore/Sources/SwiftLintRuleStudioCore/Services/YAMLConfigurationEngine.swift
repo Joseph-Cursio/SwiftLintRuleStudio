@@ -64,8 +64,7 @@ public class YAMLConfigurationEngine {
         /// Warning threshold count
         public var warningThreshold: Int?
         /// Whether strict mode is enabled (nil = not specified in YAML)
-        // swiftlint:disable:next discouraged_optional_boolean
-        public var strict: Bool?
+        public var strict: Bool? // swiftlint:disable:this discouraged_optional_boolean
 
         // Comment preservation
         /// Preserved comments mapped by YAML key path
