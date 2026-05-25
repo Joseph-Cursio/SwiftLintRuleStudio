@@ -12,6 +12,14 @@ import Foundation
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
+/// Sendable holder so the @Sendable lintCommandHandler closure can stash the
+/// captured config text for the test body to read after the call returns.
+private actor CapturedConfig {
+    private(set) var value: String?
+
+    func set(_ text: String) { self.value = text }
+}
+
 struct ImpactSimulatorOverridesTests {
     @Test("parameterOverrides land in the temp config the simulator generates")
     func testParameterOverridesWrittenToTempConfig() async throws {
@@ -104,11 +112,4 @@ struct ImpactSimulatorOverridesTests {
         // Without overrides the saved workspace value passes through unchanged.
         #expect(yaml.contains("warning: 15"))
     }
-}
-
-/// Sendable holder so the @Sendable lintCommandHandler closure can stash the
-/// captured config text for the test body to read after the call returns.
-private actor CapturedConfig {
-    private(set) var value: String?
-    func set(_ text: String) { self.value = text }
 }

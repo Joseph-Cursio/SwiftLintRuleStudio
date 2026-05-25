@@ -9,6 +9,9 @@
 import Foundation
 import Yams
 
+/// Namespace for parsing the "Configuration (YAML):" block emitted by
+/// `swiftlint rules <ruleId>` into the structured `RuleParameter` model
+/// the rule-detail editor consumes.
 public enum RuleParameterParser {
 
     /// Parses `swiftlint rules <ruleId>` output and returns the rule's
@@ -30,7 +33,7 @@ public enum RuleParameterParser {
         //     warning: 10
         // Tolerate the wrapper missing (top-level scalars) by treating root as the body.
         let body = (root[ruleId] as? [String: Any]) ?? root
-        let params = body.compactMap { (key, value) -> RuleParameter? in
+        let params = body.compactMap { key, value -> RuleParameter? in
             buildParameter(name: key, value: value)
         }
         // Preserve insertion order from the YAML source for stable UI display.
@@ -88,7 +91,7 @@ public enum RuleParameterParser {
     private static func deindent(_ lines: [String]) -> [String] {
         let nonEmpty = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         let leadingCounts = nonEmpty.map { line -> Int in
-            line.prefix(while: { $0 == " " }).count
+            line.prefix { $0 == " " }.count
         }
         let minIndent = leadingCounts.min() ?? 0
         guard minIndent > 0 else { return lines }
@@ -112,9 +115,8 @@ public enum RuleParameterParser {
         // The wrapper's children are indented by some N > 0; capture keys at
         // exactly that indent until we leave that block.
         let after = Array(lines.suffix(from: wrapperIndex + 1))
-        let childIndent: Int? = after
-            .first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
-            .map { $0.prefix(while: { $0 == " " }).count }
+        let firstNonEmpty = after.first { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        let childIndent: Int? = firstNonEmpty.map { $0.prefix { $0 == " " }.count }
         guard let indent = childIndent, indent > 0 else { return [] }
         return after.compactMap { keyName(from: $0, expectedIndent: indent) }
     }
@@ -123,7 +125,7 @@ public enum RuleParameterParser {
     /// the line is indented by exactly `expectedIndent` spaces. This skips
     /// list items ("- foo") and deeper-indented nested keys.
     private static func keyName(from line: String, expectedIndent: Int) -> String? {
-        let leading = line.prefix(while: { $0 == " " }).count
+        let leading = line.prefix { $0 == " " }.count
         guard leading == expectedIndent else { return nil }
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         guard let colon = trimmed.firstIndex(of: ":"), !trimmed.hasPrefix("-") else { return nil }
@@ -139,8 +141,9 @@ public enum RuleParameterParser {
         // it here so it doesn't appear twice in the rule detail UI.
         if name == "severity" { return nil }
         // Nested mappings (e.g. identifier_name.min_length.warning) aren't
-        // representable by the current flat RuleParameter model.
-        if value is [String: Any] || value is NSDictionary { return nil }
+        // representable by the current flat RuleParameter model. Yams returns
+        // mappings as Swift dictionaries, so `[String: Any]` is sufficient.
+        if value is [String: Any] { return nil }
 
         // Bool must be checked before Int: NSNumber bridging means `true`/`false`
         // also satisfy `as? Int`, so an Int-first check would mis-classify booleans
@@ -160,15 +163,12 @@ public enum RuleParameterParser {
         return nil
     }
 
-    /// Yams decodes YAML booleans as `Bool`, but `Bool` also satisfies `as? Int`
-    /// in Swift. Inspect the ObjC bridge to know whether the underlying token
-    /// was actually a boolean.
+    /// Yams decodes YAML booleans through Foundation's number bridge, which
+    /// means `Bool` values also satisfy `as? Int` and would be silently
+    /// classified as integer 0/1. Reaching CFBoolean's type id via the
+    /// AnyObject bridge — without naming `NSNumber` — distinguishes the
+    /// underlying token as a true boolean.
     private static func isYAMLBool(_ value: Any) -> Bool {
-        let typeName = String(describing: type(of: value))
-        if typeName == "Bool" || typeName == "NSNumber" {
-            let number = value as? NSNumber
-            return CFGetTypeID(number) == CFBooleanGetTypeID()
-        }
-        return false
+        CFGetTypeID(value as AnyObject) == CFBooleanGetTypeID()
     }
 }

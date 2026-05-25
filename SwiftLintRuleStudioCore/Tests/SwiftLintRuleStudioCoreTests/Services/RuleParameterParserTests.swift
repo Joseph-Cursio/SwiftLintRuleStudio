@@ -181,7 +181,7 @@ struct RuleParameterParserTests {
         // placeholder, not a real config. Feeding `{Protocol Name}:` to Yams hits
         // a fatalError in Constructor; the parser must reject it pre-Yams.
         let cliOutput = """
-        Required Enum Case (required_enum_case): Enums conforming to a specified protocol must implement a specific case(s).
+        Required Enum Case (required_enum_case): Enums conforming to a protocol must implement specific case(s).
 
         Configuration (YAML):
 

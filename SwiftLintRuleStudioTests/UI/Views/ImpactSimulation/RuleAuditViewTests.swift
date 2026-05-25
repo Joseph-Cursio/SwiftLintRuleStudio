@@ -395,7 +395,6 @@ struct RuleAuditViewTests {
         #expect(hasEnabledRule)
         #expect(hasStatusBar)
     }
-
 }
 
 // swiftlint:enable function_body_length

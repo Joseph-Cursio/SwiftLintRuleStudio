@@ -171,7 +171,7 @@ struct RuleDetailViewParameterTests {
     // MARK: - Enable-on-edit regression
 
     @Test("Editing parameterValues flips pendingChanges and enables save controls")
-    func testEditingParameterEnablesSaveControls() async throws {
+    func testEditingParameterEnablesSaveControls() throws {
         // This is the regression-test counterpart to the didSet-on-parameterValues
         // fix: the editor's @Binding writes to viewModel.parameterValues directly
         // (bypassing updateParameter), so we simulate that path and verify the
