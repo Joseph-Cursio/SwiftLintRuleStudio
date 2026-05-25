@@ -11,6 +11,8 @@ import SwiftUI
 private struct IntegerParameterRow: View {
     let param: RuleParameter
     @Binding var value: Int
+    let hasOverride: Bool
+    let reset: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -24,8 +26,6 @@ private struct IntegerParameterRow: View {
                 }
 
                 Spacer()
-
-                defaultIndicator
             }
 
             HStack(spacing: 12) {
@@ -34,8 +34,7 @@ private struct IntegerParameterRow: View {
                         get: { Double(value) },
                         set: { value = Int($0) }
                     ),
-                    in: 1...500,
-                    step: 1
+                    in: 1...500
                 )
                 .frame(maxWidth: 200)
 
@@ -49,17 +48,22 @@ private struct IntegerParameterRow: View {
 
                 Stepper("", value: $value, in: 1...10_000)
                     .labelsHidden()
+
+                Spacer()
+
+                defaultIndicator
             }
         }
     }
 
+    @ViewBuilder
     private var defaultIndicator: some View {
-        Group {
-            if let defaultInt = param.defaultValue.value as? Int {
-                Text("Default: \(defaultInt)")
-                    .font(.caption)
-                    .foregroundStyle(value != defaultInt ? .orange : .secondary)
-            }
+        if let defaultInt = param.defaultValue.value as? Int {
+            DefaultIndicator(
+                label: "Default: \(defaultInt)",
+                isOverridden: hasOverride && value != defaultInt,
+                reset: reset
+            )
         }
     }
 }
@@ -67,6 +71,8 @@ private struct IntegerParameterRow: View {
 private struct BooleanParameterRow: View {
     let param: RuleParameter
     @Binding var value: Bool
+    let hasOverride: Bool
+    let reset: () -> Void
 
     var body: some View {
         HStack {
@@ -78,22 +84,23 @@ private struct BooleanParameterRow: View {
                 HelpPopover(text: desc)
             }
 
+            Toggle("", isOn: $value)
+                .labelsHidden()
+
             Spacer()
 
             defaultIndicator
-
-            Toggle("", isOn: $value)
-                .labelsHidden()
         }
     }
 
+    @ViewBuilder
     private var defaultIndicator: some View {
-        Group {
-            if let defaultBool = param.defaultValue.value as? Bool {
-                Text("Default: \(defaultBool ? "On" : "Off")")
-                    .font(.caption)
-                    .foregroundStyle(value != defaultBool ? .orange : .secondary)
-            }
+        if let defaultBool = param.defaultValue.value as? Bool {
+            DefaultIndicator(
+                label: "Default: \(defaultBool ? "On" : "Off")",
+                isOverridden: hasOverride && value != defaultBool,
+                reset: reset
+            )
         }
     }
 }
@@ -101,6 +108,8 @@ private struct BooleanParameterRow: View {
 private struct StringParameterRow: View {
     let param: RuleParameter
     @Binding var value: String
+    let hasOverride: Bool
+    let reset: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -114,22 +123,25 @@ private struct StringParameterRow: View {
                 }
 
                 Spacer()
+            }
+
+            HStack(spacing: 12) {
+                TextField("Value", text: $value)
+                    .textFieldStyle(.roundedBorder)
 
                 defaultIndicator
             }
-
-            TextField("Value", text: $value)
-                .textFieldStyle(.roundedBorder)
         }
     }
 
+    @ViewBuilder
     private var defaultIndicator: some View {
-        Group {
-            if let defaultStr = param.defaultValue.value as? String {
-                Text("Default: \(defaultStr)")
-                    .font(.caption)
-                    .foregroundStyle(value != defaultStr ? .orange : .secondary)
-            }
+        if let defaultStr = param.defaultValue.value as? String {
+            DefaultIndicator(
+                label: "Default: \(defaultStr)",
+                isOverridden: hasOverride && value != defaultStr,
+                reset: reset
+            )
         }
     }
 }
@@ -137,6 +149,8 @@ private struct StringParameterRow: View {
 private struct ArrayParameterRow: View {
     let param: RuleParameter
     @Binding var values: [String]
+    let hasOverride: Bool
+    let reset: () -> Void
     @State private var newItem: String = ""
 
     var body: some View {
@@ -151,6 +165,16 @@ private struct ArrayParameterRow: View {
                 }
 
                 Spacer()
+
+                if hasOverride {
+                    let defaultCount = (param.defaultValue.value as? [Any])?.count ?? 0
+                    Button("Reset", action: reset)
+                        .buttonStyle(.bordered)
+                        .tint(.orange)
+                        .controlSize(.small)
+                        .font(.caption)
+                        .help("Reset to default (\(defaultCount) items)")
+                }
 
                 Text("\(values.count) items")
                     .font(.caption)
@@ -202,6 +226,27 @@ private struct ArrayParameterRow: View {
     }
 }
 
+/// Default-value indicator that doubles as a "reset to default" button when
+/// the parameter currently holds an override. Tapping it removes the entry
+/// from the parameter dictionary, causing the editor to fall back to the
+/// schema's default at display time.
+private struct DefaultIndicator: View {
+    let label: String
+    let isOverridden: Bool
+    let reset: () -> Void
+
+    var body: some View {
+        Button(action: reset) {
+            Text(label)
+                .font(.caption)
+        }
+        .buttonStyle(.bordered)
+        .tint(isOverridden ? .orange : .secondary)
+        .help(isOverridden ? "Click to reset to default" : "Already at default")
+        .disabled(!isOverridden)
+    }
+}
+
 private struct HelpPopover: View {
     let text: String
     @State private var isShowing = false
@@ -242,26 +287,36 @@ struct RuleParameterEditor: View {
 
     @ViewBuilder
     private func parameterRow(for param: RuleParameter) -> some View {
+        let hasOverride = values[param.name] != nil
+        let reset: () -> Void = { values.removeValue(forKey: param.name) }
         switch param.type {
         case .integer:
             IntegerParameterRow(
                 param: param,
-                value: intBinding(for: param)
+                value: intBinding(for: param),
+                hasOverride: hasOverride,
+                reset: reset
             )
         case .boolean:
             BooleanParameterRow(
                 param: param,
-                value: boolBinding(for: param)
+                value: boolBinding(for: param),
+                hasOverride: hasOverride,
+                reset: reset
             )
         case .string:
             StringParameterRow(
                 param: param,
-                value: stringBinding(for: param)
+                value: stringBinding(for: param),
+                hasOverride: hasOverride,
+                reset: reset
             )
         case .array:
             ArrayParameterRow(
                 param: param,
-                values: arrayBinding(for: param)
+                values: arrayBinding(for: param),
+                hasOverride: hasOverride,
+                reset: reset
             )
         }
     }
