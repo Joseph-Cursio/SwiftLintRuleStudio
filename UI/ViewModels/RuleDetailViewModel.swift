@@ -119,13 +119,16 @@ class RuleDetailViewModel {
             self.severity = rule.defaultSeverity
         }
 
-        // Load parameter values from config
+        // Load parameter values from config. Only overrides actually present in
+        // the YAML are stored; missing entries fall back to defaults at display
+        // time via RuleParameterValues. Pre-filling defaults here would cause
+        // generateDiff/applyEnabledRule to emit the full default block on save,
+        // polluting the workspace YAML with redundant entries.
         if let ruleConfig = config.rules[rule.id],
            let params = ruleConfig.parameters {
             self.parameterValues = params
         } else {
-            // Fall back to defaults from rule definition
-            self.parameterValues = defaultParameterValues()
+            self.parameterValues = [:]
         }
 
         // Update original state
@@ -162,6 +165,19 @@ class RuleDetailViewModel {
         return defaults
     }
 
+    /// Returns the subset of `parameterValues` that should be persisted to YAML:
+    /// entries whose value differs from the parameter's default. Entries that
+    /// match the default are stripped so the workspace YAML only contains real
+    /// overrides.
+    func parametersToPersist() -> [String: AnyCodable] {
+        guard let schema = rule.parameters else { return parameterValues }
+        let defaultsByName = Dictionary(uniqueKeysWithValues: schema.map { ($0.name, $0.defaultValue) })
+        return parameterValues.filter { name, value in
+            guard let defaultValue = defaultsByName[name] else { return true }
+            return value != defaultValue
+        }
+    }
+
     /// Generate diff for pending changes
     func generateDiff() -> YAMLConfigurationEngine.ConfigDiff? {
         guard let yamlEngine = yamlEngine else { return nil }
@@ -171,8 +187,10 @@ class RuleDetailViewModel {
             let currentConfig = yamlEngine.getConfig()
             var proposedConfig = currentConfig
 
-            // Apply current state changes
-            let params = parameterValues.isEmpty ? nil : parameterValues
+            // Apply current state changes — emit only entries that override the
+            // parameter's default so we don't write redundant values into YAML.
+            let persistable = parametersToPersist()
+            let params = persistable.isEmpty ? nil : persistable
             if isEnabled {
                 // Enable rule
                 if var existing = proposedConfig.rules[rule.id] {
@@ -302,8 +320,13 @@ private extension RuleDetailViewModel {
         if let sev = severity {
             ruleConfig.severity = sev
         }
-        if !parameterValues.isEmpty {
-            ruleConfig.parameters = parameterValues
+        let persistable = parametersToPersist()
+        if !persistable.isEmpty {
+            ruleConfig.parameters = persistable
+        } else {
+            // Drop any previously-persisted parameter overrides if the user
+            // has reset everything back to defaults.
+            ruleConfig.parameters = nil
         }
         config.rules[rule.id] = ruleConfig
         addOptInRuleIfNeeded(to: &config)
