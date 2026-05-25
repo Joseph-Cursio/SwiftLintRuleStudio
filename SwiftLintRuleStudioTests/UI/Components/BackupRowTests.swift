@@ -7,9 +7,9 @@
 //  exposes via Text() render in the hosted view.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
@@ -22,7 +22,7 @@ struct BackupRowTests {
             id: "test-backup",
             path: URL(fileURLWithPath: "/tmp/.swiftlint.yml.bak"),
             timestamp: Date(timeIntervalSince1970: 1_700_000_000),
-            fileSize: 2048
+            fileSize: 2_048
         )
         let view = await MainActor.run {
             BackupRow(

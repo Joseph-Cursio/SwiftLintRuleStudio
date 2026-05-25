@@ -8,10 +8,10 @@
 //  container and assert the section headers render.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector

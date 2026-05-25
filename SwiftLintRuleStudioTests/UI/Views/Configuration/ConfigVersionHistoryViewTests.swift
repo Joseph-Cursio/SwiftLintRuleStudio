@@ -7,9 +7,9 @@
 //  is what we assert on.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector

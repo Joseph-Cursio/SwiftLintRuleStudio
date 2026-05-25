@@ -7,9 +7,9 @@
 //  branch, which lets us assert the section headers it shows by default.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector

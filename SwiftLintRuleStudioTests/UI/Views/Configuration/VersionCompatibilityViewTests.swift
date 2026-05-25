@@ -8,9 +8,9 @@
 //  initial section header and the "no issues" empty state render.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector

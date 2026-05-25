@@ -7,15 +7,15 @@
 //  "Import from URL" section + mode picker without first fetching.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
 
 private struct StubConfigImportService: ConfigImportServiceProtocol {
-    func fetchAndPreview(from url: URL, currentConfigPath _: URL?) async throws -> ConfigImportPreview {
+    func fetchAndPreview(from url: URL, currentConfigPath _: URL?) throws -> ConfigImportPreview {
         ConfigImportPreview(
             sourceURL: url,
             fetchedYAML: "",

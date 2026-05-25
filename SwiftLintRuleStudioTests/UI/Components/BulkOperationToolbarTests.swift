@@ -7,9 +7,9 @@
 //  labels render for the selection-count + Set Severity / Clear menus.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector

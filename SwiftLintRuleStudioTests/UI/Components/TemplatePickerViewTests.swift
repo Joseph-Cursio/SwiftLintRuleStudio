@@ -8,9 +8,9 @@
 //  the built-in catalog and the view renders its header / count.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
