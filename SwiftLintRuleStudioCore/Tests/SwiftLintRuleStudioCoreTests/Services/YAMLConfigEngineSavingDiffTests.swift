@@ -21,13 +21,13 @@ struct YAMLConfigEngineSavingDiffTests {
             return config
         }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.save(config: config, createBackup: false)
         }
 
         #expect(FileManager.default.fileExists(atPath: configFile.path))
 
-        let (rulesCount, forceCastSeverity, disabledRules, included) = try await
+        let (rulesCount, forceCastSeverity, disabledRules, included) = try
             YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.load()
                 let loadedConfig = engine.getConfig()
@@ -55,14 +55,14 @@ struct YAMLConfigEngineSavingDiffTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let config = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        let config = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.rules["line_length"] = RuleConfiguration(enabled: true)
             return config
         }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.save(config: config, createBackup: true)
         }
 
@@ -93,7 +93,7 @@ struct YAMLConfigEngineSavingDiffTests {
             return config
         }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.save(config: config, createBackup: false)
         }
 
@@ -112,7 +112,7 @@ struct YAMLConfigEngineSavingDiffTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let diffSnapshot = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let diffSnapshot = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -144,7 +144,7 @@ struct YAMLConfigEngineSavingDiffTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let removedSnapshot = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let removedSnapshot = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -176,7 +176,7 @@ struct YAMLConfigEngineSavingDiffTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let modifiedSnapshot = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let modifiedSnapshot = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -210,7 +210,7 @@ struct YAMLConfigEngineSavingDiffTests {
             return config
         }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.save(config: config, createBackup: false)
         }
 
@@ -219,7 +219,7 @@ struct YAMLConfigEngineSavingDiffTests {
         // Should not leak into opt_in_rules
         #expect(savedYAML.contains("opt_in_rules") == false)
 
-        let analyzerRules = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let analyzerRules = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -241,7 +241,7 @@ struct YAMLConfigEngineSavingDiffTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let diffSnapshot = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        let diffSnapshot = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             let diff = engine.generateDiff(proposedConfig: config)

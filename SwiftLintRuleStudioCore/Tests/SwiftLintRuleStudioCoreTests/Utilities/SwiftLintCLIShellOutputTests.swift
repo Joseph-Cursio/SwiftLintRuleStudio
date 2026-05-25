@@ -18,7 +18,7 @@ struct SwiftLintCLIShellOutputTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
 
         do {
             _ = try await cli.executeRulesCommand()
@@ -42,7 +42,7 @@ struct SwiftLintCLIShellOutputTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
 
         do {
             _ = try await cli.executeRulesCommand()
@@ -63,7 +63,7 @@ struct SwiftLintCLIShellOutputTests {
     func testExecuteCommandViaShellFallbackUsesShell() async throws {
         let fileExists: SwiftLintFileExists = { _ in false }
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, fileExists: fileExists)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, fileExists: fileExists)
 
         let output = try await cli.executeCommandViaShell(command: "echo", arguments: ["hello"])
         let outputString = String(data: output, encoding: .utf8)
@@ -77,7 +77,7 @@ struct SwiftLintCLIShellOutputTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let output = try await cli.executeRulesCommand()
         #expect(String(data: output, encoding: .utf8) == "ok")
     }
@@ -89,7 +89,7 @@ struct SwiftLintCLIShellOutputTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let output = try await cli.executeRuleDetailCommand(ruleId: "unknown_rule")
         #expect(String(data: output, encoding: .utf8) == "ok")
     }

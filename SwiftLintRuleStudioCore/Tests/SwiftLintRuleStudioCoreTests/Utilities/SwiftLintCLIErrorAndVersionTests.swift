@@ -30,7 +30,7 @@ struct SwiftLintCLIErrorAndVersionTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let version = try await cli.getVersion()
         #expect(version == "1.2.3")
     }
@@ -42,7 +42,7 @@ struct SwiftLintCLIErrorAndVersionTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
 
         do {
             _ = try await cli.getVersion()

@@ -28,7 +28,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.disabledRules = nil
@@ -64,7 +64,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.disabledRules = nil
@@ -94,7 +94,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
 
         // Simulate enabling `todo`: remove it from disabled_rules. An emptied
         // list collapses to nil, exactly as the rule-toggle helpers do.
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             var config = engine.getConfig()
             config.disabledRules?.removeAll { $0 == "todo" }
@@ -108,7 +108,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
         #expect(savedYAML.hasSuffix("\n"))
 
         // The saved file still parses, and the surviving config is intact.
-        let reloaded = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let reloaded = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -137,7 +137,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             try engine.save(config: config, createBackup: false)
@@ -165,7 +165,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             try engine.save(config: config, createBackup: false)
@@ -194,7 +194,7 @@ struct YAMLConfigEngineCommentRoundTripTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             try engine.save(config: config, createBackup: false)

@@ -325,7 +325,7 @@ struct XcodeIntegrationServiceTests {
             // Should be able to resolve absolute path even if outside workspace
             // But will fail to open if file doesn't exist in expected location
             // This tests that absolute paths are handled correctly
-            _ = try await service.openFile(
+            _ = try service.openFile(
                 at: outsideFile.path,
                 line: 1,
                 column: nil,

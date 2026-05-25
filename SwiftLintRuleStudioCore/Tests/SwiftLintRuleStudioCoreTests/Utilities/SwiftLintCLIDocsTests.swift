@@ -33,7 +33,7 @@ struct SwiftLintCLIDocsTests {
             return (Data(), Data())
         }
 
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Cached docs")
     }
@@ -61,7 +61,7 @@ struct SwiftLintCLIDocsTests {
             return (Data(), Data())
         }
 
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Existing docs")
     }
@@ -87,7 +87,7 @@ struct SwiftLintCLIDocsTests {
             return (Data(), Data())
         }
 
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Generated docs")
     }

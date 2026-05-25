@@ -28,7 +28,7 @@ struct SwiftLintCLILintCommandTests {
         try Data("rules: {}".utf8).write(to: configURL)
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         _ = try await cli.executeLintCommand(configPath: configURL, workspacePath: tempDir)
 
         let calls = await recorder.calls
@@ -55,7 +55,7 @@ struct SwiftLintCLILintCommandTests {
 
         let missingConfigURL = tempDir.appendingPathComponent(".swiftlint.yml")
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         _ = try await cli.executeLintCommand(configPath: missingConfigURL, workspacePath: tempDir)
 
         let calls = await recorder.calls

@@ -16,7 +16,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (includedCount, hasSources, hasTests, hasScripts) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (includedCount, hasSources, hasTests, hasScripts) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -46,7 +46,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (excludedCount, hasPods, hasBuild, hasGenerated) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (excludedCount, hasPods, hasBuild, hasGenerated) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -75,7 +75,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (reporter, forceCastEnabled) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (reporter, forceCastEnabled) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -99,7 +99,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let rulesCount = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        let rulesCount = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             return config.rules.count
@@ -118,7 +118,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (dashesEnabled, underscoresEnabled) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (dashesEnabled, underscoresEnabled) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -143,7 +143,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (rulesCount, included, excluded, reporter) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (rulesCount, included, excluded, reporter) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -173,7 +173,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (rulesEmpty, included, excluded) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (rulesEmpty, included, excluded) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -201,7 +201,7 @@ struct YAMLConfigEnginePathEdgeCaseTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (addedRules, addedRulesCount) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (addedRules, addedRulesCount) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()

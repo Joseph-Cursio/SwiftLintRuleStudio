@@ -21,7 +21,7 @@ struct YAMLConfigurationEngineTests {
             return config
         }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.validate(config1)
         }
 
@@ -30,7 +30,7 @@ struct YAMLConfigurationEngineTests {
             config.rules["test_rule"] = RuleConfiguration(enabled: true, severity: .error)
             return config
         }
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.validate(config2)
         }
     }
@@ -48,7 +48,7 @@ struct YAMLConfigurationEngineTests {
             return config
         }
 
-        try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.validate(config)
         }
     }
@@ -66,8 +66,8 @@ struct YAMLConfigurationEngineTests {
             return config
         }
 
-        await #expect(throws: YAMLConfigError.self) {
-            try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        #expect(throws: YAMLConfigError.self) {
+            try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.validate(config)
             }
         }
@@ -86,8 +86,8 @@ struct YAMLConfigurationEngineTests {
             return config
         }
 
-        await #expect(throws: YAMLConfigError.self) {
-            try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        #expect(throws: YAMLConfigError.self) {
+            try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.validate(config)
             }
         }
@@ -109,7 +109,7 @@ struct YAMLConfigurationEngineTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let rulesCount = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        let rulesCount = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             return config.rules.count
@@ -132,8 +132,8 @@ struct YAMLConfigurationEngineTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: invalidYAML)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        await #expect(throws: YAMLConfigError.self) {
-            try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        #expect(throws: YAMLConfigError.self) {
+            try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
                 try engine.load()
             }
         }
@@ -150,7 +150,7 @@ struct YAMLConfigurationEngineTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let hasForceCast = try await YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        let hasForceCast = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
             let config = engine.getConfig()
             return config.rules["force_cast"] != nil
@@ -179,13 +179,13 @@ struct YAMLConfigurationEngineTests {
 
         let originalSnapshot = try await loadRoundTripSnapshot(configFile: configFile)
 
-        let originalConfig = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let originalConfig = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
             return engine.getConfig()
         }
-        try await YAMLConfigurationEngineTestHelpers.withEngine(
+        try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.save(config: originalConfig, createBackup: false)
@@ -213,7 +213,7 @@ struct YAMLConfigurationEngineTests {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
 
-        let (hasLineLength, hasParams, paramsCount) = try await YAMLConfigurationEngineTestHelpers.withEngine(
+        let (hasLineLength, hasParams, paramsCount) = try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()
@@ -240,7 +240,7 @@ struct YAMLConfigurationEngineTests {
     private func loadRoundTripSnapshot(
         configFile: URL
     ) async throws -> RoundTripSnapshot {
-        try await YAMLConfigurationEngineTestHelpers.withEngine(
+        try YAMLConfigurationEngineTestHelpers.withEngine(
             configPath: configFile
         ) { engine in
             try engine.load()

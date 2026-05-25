@@ -20,7 +20,7 @@ struct SwiftLintCLICommandAndPathTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         _ = try await cli.executeRulesCommand()
 
         let calls = await recorder.calls
@@ -38,7 +38,7 @@ struct SwiftLintCLICommandAndPathTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
         _ = try await cli.executeRuleDetailCommand(ruleId: "force_cast")
 
         let calls = await recorder.calls
@@ -57,7 +57,7 @@ struct SwiftLintCLICommandAndPathTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(
+        let cli = SwiftLintCLIActor(
             cacheManager: cacheManager,
             fileExists: fileExists
         )
@@ -80,7 +80,7 @@ struct SwiftLintCLICommandAndPathTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(
+        let cli = SwiftLintCLIActor(
             cacheManager: cacheManager,
             fileExists: fileExists,
             shellRunner: shellRunner
@@ -103,7 +103,7 @@ struct SwiftLintCLICommandAndPathTests {
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(
+        let cli = SwiftLintCLIActor(
             cacheManager: cacheManager,
             fileExists: fileExists,
             processRunner: processRunner
@@ -117,7 +117,7 @@ struct SwiftLintCLICommandAndPathTests {
     func testDetectSwiftLintPathThrows() async throws {
         let fileExists: SwiftLintFileExists = { _ in false }
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = await SwiftLintCLIActor(cacheManager: cacheManager, fileExists: fileExists)
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, fileExists: fileExists)
 
         await #expect(throws: SwiftLintError.self) {
             _ = try await cli.detectSwiftLintPath()
