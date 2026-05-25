@@ -168,7 +168,10 @@ struct UnifiedDiffEngineTests {
         let text = "unchanged line"
         let diff = UnifiedDiffEngine.computeDiff(before: text, after: text)
 
-        #expect(diff[0].spans == nil)
+        // DiffLine.spans is a non-optional [DiffSpan]; the convention is that
+        // an empty array means "no inline character-level diff for this line",
+        // which is what we expect for unchanged lines.
+        #expect(diff[0].spans.isEmpty)
     }
 
     @Test("Completely different paired lines highlight all characters")
