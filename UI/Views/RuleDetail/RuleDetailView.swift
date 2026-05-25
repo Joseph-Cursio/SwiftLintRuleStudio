@@ -261,6 +261,10 @@ struct RuleDetailView: View {
 
         isSimulating = true
 
+        // Pass the editor's in-memory parameter values so the simulation reflects
+        // the user's current (possibly-unsaved) edits, not the workspace YAML's
+        // last-saved values.
+        let overrides = viewModel.parameterValues.isEmpty ? nil : viewModel.parameterValues
         Task {
             do {
                 let result = try await dependencies.impactSimulator.simulateRule(
@@ -268,7 +272,8 @@ struct RuleDetailView: View {
                     workspace: workspace,
                     baseConfigPath: workspace.configPath,
                     isOptIn: rule.isOptIn,
-                    isAnalyzer: rule.isAnalyzer
+                    isAnalyzer: rule.isAnalyzer,
+                    parameterOverrides: overrides
                 )
 
                 impactResult = result

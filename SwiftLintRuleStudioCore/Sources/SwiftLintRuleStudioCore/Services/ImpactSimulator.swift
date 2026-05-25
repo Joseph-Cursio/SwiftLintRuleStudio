@@ -89,7 +89,8 @@ public class ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?,
         isOptIn: Bool = false,
-        isAnalyzer: Bool = false
+        isAnalyzer: Bool = false,
+        parameterOverrides: [String: AnyCodable]? = nil
     ) async throws -> RuleImpactResult {
         let startTime = Date.now
 
@@ -100,7 +101,8 @@ public class ImpactSimulator {
             baseConfigPath: baseConfigPath,
             workspace: workspace,
             isOptIn: isOptIn,
-            isAnalyzer: isAnalyzer
+            isAnalyzer: isAnalyzer,
+            parameterOverrides: parameterOverrides
         )
 
         defer {
@@ -229,7 +231,8 @@ public class ImpactSimulator {
         baseConfigPath: URL?,
         workspace: Workspace,
         isOptIn: Bool,
-        isAnalyzer: Bool = false
+        isAnalyzer: Bool = false,
+        parameterOverrides: [String: AnyCodable]? = nil
     ) throws -> URL {
         let tempDir = fileManager.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
@@ -248,7 +251,13 @@ public class ImpactSimulator {
         var config = yamlEngine.getConfig()
         config.excluded = resolveExclusions(config.excluded, workspace: workspace)
         config.included = resolveInclusions(config.included, workspace: workspace)
-        enableRule(ruleId, in: &config, isOptIn: isOptIn, isAnalyzer: isAnalyzer)
+        enableRule(
+            ruleId,
+            in: &config,
+            isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
+            parameterOverrides: parameterOverrides
+        )
 
         let tempEngine = YAMLConfigurationEngine(configPath: tempConfigPath)
         tempEngine.updateConfig(config)
@@ -282,10 +291,22 @@ public class ImpactSimulator {
         _ ruleId: String,
         in config: inout YAMLConfigurationEngine.YAMLConfig,
         isOptIn: Bool,
-        isAnalyzer: Bool
+        isAnalyzer: Bool,
+        parameterOverrides: [String: AnyCodable]? = nil
     ) {
         var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
         ruleConfig.enabled = true
+        // When the caller supplies parameter overrides (e.g. unsaved values
+        // from the rule-detail editor), merge them onto whatever was loaded
+        // from the workspace YAML so SwiftLint lints with the user's current
+        // intent rather than the persisted values.
+        if let overrides = parameterOverrides, !overrides.isEmpty {
+            var merged = ruleConfig.parameters ?? [:]
+            for (key, value) in overrides {
+                merged[key] = value
+            }
+            ruleConfig.parameters = merged
+        }
         config.rules[ruleId] = ruleConfig
 
         // SwiftLint only honors analyzer-only rules when listed under
