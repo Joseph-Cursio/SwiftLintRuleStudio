@@ -9,10 +9,10 @@
 //  assert one signature label per branch renders.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
@@ -34,7 +34,12 @@ struct ContentViewSectionsTests {
         return ViewResult(view: AnyView(wrapped))
     }
 
-    private func assertContainsText(_ text: String, in result: ViewResult, file _: String = #file, line _: Int = #line) async throws -> Bool {
+    private func assertContainsText(
+        _ text: String,
+        in result: ViewResult,
+        file _: String = #file,
+        line _: Int = #line
+    ) async throws -> Bool {
         try await MainActor.run {
             ViewHosting.expel()
             ViewHosting.host(view: result.view)
@@ -65,7 +70,12 @@ struct ContentViewSectionsTests {
     @Test(".versionHistory case routes to ConfigVersionHistoryView")
     func testVersionHistoryCase() async throws {
         let result = await MainActor.run { makeView(selection: .versionHistory) }
-        #expect(try await assertContainsText("Configuration backups will appear here after you save changes.", in: result))
+        #expect(
+            try await assertContainsText(
+                "Configuration backups will appear here after you save changes.",
+                in: result
+            )
+        )
     }
 
     @Test(".compareConfigs case routes to ConfigComparisonView")

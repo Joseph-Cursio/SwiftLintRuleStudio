@@ -7,15 +7,15 @@
 //  which doesn't need to talk to the service stub.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
 
 private struct StubGitBranchDiffService: GitBranchDiffServiceProtocol {
-    func listAvailableRefs(at _: URL) async throws -> GitRefs {
+    func listAvailableRefs(at _: URL) throws -> GitRefs {
         GitRefs(currentBranch: "main", branches: [], tags: [])
     }
 
@@ -23,7 +23,7 @@ private struct StubGitBranchDiffService: GitBranchDiffServiceProtocol {
         repoPath _: URL,
         branch _: String,
         configRelativePath _: String
-    ) async throws -> ConfigComparisonResult {
+    ) throws -> ConfigComparisonResult {
         ConfigComparisonResult(
             onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
             diff: YAMLConfigurationEngine.ConfigDiff(
@@ -49,7 +49,9 @@ struct GitBranchDiffViewTests {
             let inspector = try view.inspect()
             return (
                 (try? inspector.find(text: "Not a Git Repository")) != nil,
-                (try? inspector.find(text: "This workspace is not inside a git repository. Branch diff requires git.")) != nil
+                (try? inspector.find(
+                    text: "This workspace is not inside a git repository. Branch diff requires git."
+                )) != nil
             )
         }
 
