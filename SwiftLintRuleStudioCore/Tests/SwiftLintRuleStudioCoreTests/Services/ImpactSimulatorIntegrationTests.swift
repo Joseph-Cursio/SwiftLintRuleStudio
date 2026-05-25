@@ -69,7 +69,7 @@ struct ImpactSimulatorIntegrationTests {
         let tempDir = try createTempWorkspaceDirectory()
         defer { cleanupTempDirectory(tempDir) }
 
-        try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
+        _ = try createSwiftFile(in: tempDir, name: "Test.swift", content: "let x = 1\n")
 
         let workspace = Workspace(path: tempDir)
         let mockCLI = await createMockSwiftLintCLIActor(violations: [])

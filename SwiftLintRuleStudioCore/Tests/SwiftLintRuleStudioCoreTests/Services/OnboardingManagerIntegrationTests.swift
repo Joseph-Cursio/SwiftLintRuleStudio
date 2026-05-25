@@ -76,7 +76,7 @@ struct OnboardingManagerIntegrationTests {
 
             // Second container instance with same isolated UserDefaults suite
             // This demonstrates that state can be shared within a test's isolated suite
-            let container2 = DependencyContainer.createForTesting(userDefaults: userDefaults)
+            _ = DependencyContainer.createForTesting(userDefaults: userDefaults)
             // Note: Since completeOnboarding() doesn't save to UserDefaults, this will be false
             // But the isolation pattern is demonstrated
             return (before, after, true)
@@ -196,7 +196,7 @@ struct OnboardingManagerIntegrationTests {
             // Create new container instance with same isolated UserDefaults
             // Note: Since completeOnboarding() doesn't persist to UserDefaults,
             // a new instance will start fresh, but this demonstrates the isolation pattern
-            let container2 = DependencyContainer.createForTesting(userDefaults: userDefaults)
+            _ = DependencyContainer.createForTesting(userDefaults: userDefaults)
             let hasManager2 = true
 
             return (beforeCompleted, beforeStep, afterCompleted, afterStep, hasManager2)
