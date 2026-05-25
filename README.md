@@ -5,6 +5,7 @@ A native macOS application that puts a friendly graphical interface on top of th
 **Platform:** macOS 13.0 (Ventura) or later
 **License:** MIT
 **Swift:** 6.0 with strict concurrency checking
+**Latest release:** [v1.2.0 — Editable rule parameters](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.0)
 
 ---
 
@@ -29,6 +30,20 @@ SwiftLint's power comes with a learning curve: hundreds of rules, a hand-edited 
 | Violation Inspector | Filter, group, and bulk-manage violations; export to CSV or JSON |
 | Xcode Integration | Open any violation at the exact line in Xcode with a single click |
 | Onboarding | Detects your SwiftLint installation and guides you through workspace setup |
+
+---
+
+## What's New in v1.2.0
+
+**Editable rule parameters** end-to-end: parameter metadata is now parsed from the SwiftLint CLI, surfaced in the rule detail UI, and persisted to `.swiftlint.yml` as minimal overrides.
+
+- Parse rule parameters from `swiftlint rules` CLI output
+- Edit parameters inline with a reset-to-default control
+- Save writes only your overrides — default-equal entries are stripped automatically
+- Comment-preserving YAML save: 2-space indentation, multi-line comment blocks preserved, stale comments for removed keys dropped
+- Impact simulation now honors your in-memory parameter overrides
+
+See the [full release notes](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.0).
 
 ---
 
