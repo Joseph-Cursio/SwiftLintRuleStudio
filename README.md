@@ -3,6 +3,7 @@
 ## WARNING
 I've  been vibe-coding this: the parts worth looking at are (1) where you can view a rule at a time, and (2) the "disabled rule audit" which trial-runs all the inactive rules, one by one, and gives you a count of how many issues it finds (per rule).
 
+## Introduction
 A native macOS application that puts a friendly graphical interface on top of the wonderful [SwiftLint](https://github.com/realm/SwiftLint) project. SwiftLint Rule Studio does **not** replace SwiftLint — it is simply a GUI front end that makes SwiftLint easier to explore, configure, and manage for individuals and teams.
 
 **Platform:** macOS 13.0 (Ventura) or later
