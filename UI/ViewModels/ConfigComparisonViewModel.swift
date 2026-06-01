@@ -21,23 +21,29 @@ class ConfigComparisonViewModel {
     var error: Error?
 
     private let service: ConfigComparisonServiceProtocol
+    private let fileSelector: @MainActor () -> URL?
 
-    init(service: ConfigComparisonServiceProtocol, currentWorkspace: Workspace?) {
+    init(
+        service: ConfigComparisonServiceProtocol,
+        currentWorkspace: Workspace?,
+        fileSelector: (@MainActor () -> URL?)? = nil
+    ) {
         self.service = service
+        self.fileSelector = fileSelector ?? Self.presentOpenPanel
         if let workspace = currentWorkspace, let configPath = workspace.configPath {
             self.leftWorkspacePath = configPath
         }
     }
 
     func selectLeftWorkspace() {
-        if let path = selectConfigFile() {
+        if let path = fileSelector() {
             leftWorkspacePath = path
             comparisonResult = nil
         }
     }
 
     func selectRightWorkspace() {
-        if let path = selectConfigFile() {
+        if let path = fileSelector() {
             rightWorkspacePath = path
             comparisonResult = nil
         }
@@ -62,7 +68,7 @@ class ConfigComparisonViewModel {
         isComparing = false
     }
 
-    private func selectConfigFile() -> URL? {
+    private static func presentOpenPanel() -> URL? {
         let panel = NSOpenPanel()
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
