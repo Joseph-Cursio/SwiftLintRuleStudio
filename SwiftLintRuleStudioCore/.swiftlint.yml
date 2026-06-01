@@ -1,0 +1,10 @@
+# SwiftLint configuration for the SwiftLintRuleStudioCore package.
+#
+# When SwiftLint is invoked from this directory (e.g. by the CI/test hook),
+# config discovery does not walk up to the project root, so it would otherwise
+# fall back to the default config and lint build artifacts under .build.
+# Inherit all project rules from the root config and exclude generated output.
+parent_config: ../.swiftlint.yml
+
+excluded:
+  - .build
