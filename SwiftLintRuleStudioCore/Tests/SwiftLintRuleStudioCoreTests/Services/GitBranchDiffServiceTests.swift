@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LintStudioCore
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LintStudioCore
 import Observation
 
 /// Dependency injection container
