@@ -1,6 +1,15 @@
 {
-  "originHash" : "248195be81ceb35064a7467b8961c7774509608924bbc66351aac2b717a87baa",
+  "originHash" : "dfbc9a87283540cd822e939185fdc903ce615a85d13cb8dd23ec1d4ba38a555c",
   "pins" : [
+    {
+      "identity" : "lintstudioui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Joseph-Cursio/LintStudioUI.git",
+      "state" : {
+        "revision" : "8ceccb7abf3355849b428f34410aa11919b93480",
+        "version" : "1.2.0"
+      }
+    },
     {
       "identity" : "yams",
       "kind" : "remoteSourceControl",
