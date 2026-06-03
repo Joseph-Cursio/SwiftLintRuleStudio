@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LintStudioCore
 @testable import SwiftLintRuleStudioCore
 
 // @unchecked Sendable: Test mock with controlled single-threaded access in tests

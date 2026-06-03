@@ -7,6 +7,7 @@
 
 import Combine
 import Foundation
+import LintStudioCore
 
 /// Service for analyzing workspaces with SwiftLint
 @MainActor

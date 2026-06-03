@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LintStudioCore
 
 public extension WorkspaceAnalyzer {
     /// Marks the analyzer as actively running and resets progress
