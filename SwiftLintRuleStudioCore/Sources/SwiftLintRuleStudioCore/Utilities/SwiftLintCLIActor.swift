@@ -125,10 +125,17 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         try await runSwiftLint(arguments: ["rules", ruleId])
     }
 
+    /// Lints the workspace in `.effective` mode — SwiftLint discovers the root
+    /// config *and* nested `.swiftlint.yml` files itself, matching what the
+    /// developer and CI see. `configPath` is retained for the protocol surface
+    /// and the forthcoming "This config only" (`.rootConfigOnly`) preview; it is
+    /// intentionally not forced via `--config` here, which would disable nested
+    /// resolution and over-report violations in folders a nested config relaxes.
     public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
         let arguments = await Self.buildLintArguments(
             configPath: configPath,
             workspacePath: workspacePath,
+            mode: .effective,
             fileExists: fileExists
         )
         return try await runSwiftLint(arguments: arguments)
