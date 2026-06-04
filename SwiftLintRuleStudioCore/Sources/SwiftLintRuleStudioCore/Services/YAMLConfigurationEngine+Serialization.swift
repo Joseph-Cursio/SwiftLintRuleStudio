@@ -87,8 +87,9 @@ extension YAMLConfigurationEngine {
         if let onlyRules = config.onlyRules { result["only_rules"] = try Node(onlyRules) }
 
         for (ruleId, ruleConfig) in config.rules {
-            guard let value = topLevelRuleValue(for: ruleConfig) else { continue }
-            result[ruleId] = try Node(value)
+            if let node = try ruleNode(ruleId: ruleId, ruleConfig: ruleConfig, config: config) {
+                result[ruleId] = node
+            }
         }
 
         // Re-emit unmodeled top-level keys (custom_rules, etc.) exactly as parsed.
@@ -97,6 +98,33 @@ extension YAMLConfigurationEngine {
         }
 
         return result
+    }
+
+    /// The serialized Node for one rule — a scalar for `line_length: 120`-style
+    /// shorthand, otherwise a mapping. Returns nil for rules that emit nothing.
+    private func ruleNode(
+        ruleId: String,
+        ruleConfig: RuleConfiguration,
+        config: YAMLConfig
+    ) throws -> Node? {
+        if config.scalarShorthandRules.contains(ruleId),
+           let warning = Self.warningOnlyInt(for: ruleConfig) {
+            return Node(String(warning), Tag(.int))
+        }
+        guard let value = topLevelRuleValue(for: ruleConfig) else { return nil }
+        return try Node(value)
+    }
+
+    /// The warning threshold when `ruleConfig` is exactly a single `warning`
+    /// integer (the scalar-shorthand shape); nil otherwise.
+    private static func warningOnlyInt(for ruleConfig: RuleConfiguration) -> Int? {
+        guard ruleConfig.severity == nil,
+              let parameters = ruleConfig.parameters,
+              parameters.count == 1,
+              let warning = parameters["warning"]?.value as? Int else {
+            return nil
+        }
+        return warning
     }
 
     /// Conventional emission order for reserved top-level SwiftLint keys when

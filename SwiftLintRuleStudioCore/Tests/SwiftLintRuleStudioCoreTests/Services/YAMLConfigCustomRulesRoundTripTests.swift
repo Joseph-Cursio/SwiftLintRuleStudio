@@ -111,6 +111,35 @@ struct YAMLConfigCustomRulesRoundTripTests {
         #expect(tabsRule["severity"] as? String == "error")
     }
 
+    @Test("the line_length: 120 scalar shorthand is understood as warning 120")
+    func testScalarShorthandUnderstoodByModel() throws {
+        let configPath = try makeConfigFile()
+        defer { try? FileManager.default.removeItem(at: configPath.deletingLastPathComponent()) }
+
+        let engine = YAMLConfigurationEngine(configPath: configPath)
+        try engine.load()
+        let config = engine.getConfig()
+
+        // The model now carries the value (not just opaque bytes).
+        let lineLength = try #require(config.rules["line_length"])
+        #expect(lineLength.parameters?["warning"]?.value as? Int == 120)
+        let fileLength = try #require(config.rules["file_length"])
+        #expect(fileLength.parameters?["warning"]?.value as? Int == 800)
+    }
+
+    @Test("the shorthand round-trips as a scalar, not an expanded mapping")
+    func testScalarShorthandStaysScalar() throws {
+        let configPath = try makeConfigFile()
+        defer { try? FileManager.default.removeItem(at: configPath.deletingLastPathComponent()) }
+
+        let parsed = try roundTripAddingForceUnwrapping(configPath)
+        // Preserved as a scalar Int (would be a [String: Any] mapping if expanded).
+        #expect(parsed["line_length"] as? Int == 120)
+        // A rule the user wrote as a mapping stays a mapping (no churn).
+        let typeBodyLength = try #require(parsed["type_body_length"] as? [String: Any])
+        #expect(typeBodyLength["warning"] as? Int == 500)
+    }
+
     @Test("adding force_unwrapping preserves the rest of the config")
     func testOtherKeysSurvive() throws {
         let configPath = try makeConfigFile()

@@ -197,10 +197,25 @@ extension YAMLConfigurationEngine {
         if let boolValue = parseBoolRuleValue(from: ruleValue) {
             return RuleConfiguration(enabled: boolValue)
         }
+        // Scalar shorthand: `line_length: 120` is sugar for `{warning: 120}`.
+        if let intValue = ruleValue as? Int {
+            return RuleConfiguration(enabled: true, parameters: ["warning": AnyCodable(intValue)])
+        }
         guard let ruleDict = ruleValue as? [String: Any] else {
             return nil
         }
         return parseComplexRuleConfiguration(from: ruleDict)
+    }
+
+    /// Non-reserved top-level rule keys whose value is a bare integer scalar —
+    /// the `line_length: 120` shorthand — so serialization can re-emit them in
+    /// that exact form instead of expanding to a mapping.
+    static func scalarShorthandRuleKeys(in dict: [String: Any]) -> Set<String> {
+        var keys: Set<String> = []
+        for (key, value) in dict where !reservedTopLevelKeys.contains(key) {
+            if value is Int { keys.insert(key) }
+        }
+        return keys
     }
 
     // Returns nil when the value isn't parseable as a boolean

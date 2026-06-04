@@ -77,6 +77,12 @@ public class YAMLConfigurationEngine {
         /// that editing and re-saving a config never silently drops them.
         var passthroughNodes: [String: Node] = [:]
 
+        /// Rule keys whose value was a bare integer scalar (`line_length: 120`,
+        /// sugar for `warning: 120`). The value *is* parsed into ``rules`` so the
+        /// app understands it; this set records the shorthand so serialization
+        /// re-emits the scalar form instead of expanding it to a mapping.
+        var scalarShorthandRules: Set<String> = []
+
         /// Create an empty YAML configuration
         public init() {
             self.rules = [:]
@@ -182,6 +188,7 @@ public class YAMLConfigurationEngine {
             // (custom_rules, scalar rule shorthands like `line_length: 120`, …).
             let modeledKeys = Self.modeledReservedKeys.union(currentConfig.rules.keys)
             currentConfig.passthroughNodes = Self.passthroughNodes(from: node, modeledKeys: modeledKeys)
+            currentConfig.scalarShorthandRules = Self.scalarShorthandRuleKeys(in: dict)
 
             // Extract comments from original content
             extractComments(from: originalContent)
