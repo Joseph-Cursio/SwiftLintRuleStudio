@@ -82,6 +82,49 @@ struct ConfigMapViewModelTests {
         #expect(forceUnwrapping?.setBy == "Tests")
     }
 
+    @Test("a custom rule shadowing a built-in is flagged on the selected config")
+    func testCustomRuleConflictDetected() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(#"""
+        opt_in_rules:
+          - force_unwrapping
+        custom_rules:
+          leading_whitespace:
+            name: Tabs
+            regex: ^\t* +\t*\S
+            severity: error
+        """#, at: "", in: root)
+
+        let viewModel = ConfigMapViewModel(
+            workspacePath: root,
+            builtInRuleIdentifiers: ["leading_whitespace", "force_cast"]
+        )
+        viewModel.load()
+
+        #expect(viewModel.conflicts.map(\.ruleIdentifier) == ["leading_whitespace"])
+    }
+
+    @Test("no conflict when custom rule names are unique")
+    func testNoCustomRuleConflict() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(#"""
+        custom_rules:
+          tab_indentation:
+            name: Tabs
+            regex: ^\t* +\t*\S
+        """#, at: "", in: root)
+
+        let viewModel = ConfigMapViewModel(
+            workspacePath: root,
+            builtInRuleIdentifiers: ["leading_whitespace"]
+        )
+        viewModel.load()
+
+        #expect(viewModel.conflicts.isEmpty)
+    }
+
     @Test("no workspace yields an empty, inert map")
     func testNoWorkspace() {
         let viewModel = ConfigMapViewModel(workspacePath: nil)

@@ -13,8 +13,11 @@ import SwiftUI
 struct ConfigMapView: View {
     @State private var viewModel: ConfigMapViewModel
 
-    init(workspacePath: URL?) {
-        _viewModel = State(initialValue: ConfigMapViewModel(workspacePath: workspacePath))
+    init(workspacePath: URL?, builtInRuleIdentifiers: Set<String> = []) {
+        _viewModel = State(initialValue: ConfigMapViewModel(
+            workspacePath: workspacePath,
+            builtInRuleIdentifiers: builtInRuleIdentifiers
+        ))
     }
 
     // Test seam: inject a pre-built view model.
@@ -75,7 +78,12 @@ struct ConfigMapView: View {
     @ViewBuilder
     private var inspector: some View {
         if let display = viewModel.resolvedDisplay {
-            ResolvedConfigInspectorView(display: display)
+            VStack(spacing: 0) {
+                if !viewModel.conflicts.isEmpty {
+                    CustomRuleConflictBanner(conflicts: viewModel.conflicts)
+                }
+                ResolvedConfigInspectorView(display: display)
+            }
         } else {
             Text("Select a config to inspect")
                 .foregroundStyle(.secondary)

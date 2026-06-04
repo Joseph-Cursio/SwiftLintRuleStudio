@@ -63,7 +63,8 @@ extension ContentView {
             )
         case .configMap:
             ConfigMapView(
-                workspacePath: dependencies.workspaceManager.currentWorkspace?.path
+                workspacePath: dependencies.workspaceManager.currentWorkspace?.path,
+                builtInRuleIdentifiers: Set(ruleRegistry.rules.map(\.id))
             )
         case .none:
             Text("Select a section")

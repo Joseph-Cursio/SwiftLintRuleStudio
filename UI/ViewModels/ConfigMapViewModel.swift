@@ -21,19 +21,24 @@ class ConfigMapViewModel {
     var selectedRowID: UUID?
     /// The resolved-config inspector content for the selected folder.
     var resolvedDisplay: ResolvedConfigDisplay?
+    /// Advisories for the selected config (e.g. a custom rule shadowing a built-in).
+    var conflicts: [CustomRuleConflict] = []
     var isLoading: Bool = false
 
     /// Whether a workspace is open to map.
     var hasWorkspace: Bool { workspacePath != nil }
 
     private let workspacePath: URL?
+    private let builtInRuleIdentifiers: Set<String>
     private let discovery = ConfigTreeDiscovery()
     private let engine = ResolvedConfigurationEngine()
     private let presenter = ConfigMapPresenter()
+    private let conflictDetector = CustomRuleConflictDetector()
     private var tree: ConfigTree?
 
-    init(workspacePath: URL?) {
+    init(workspacePath: URL?, builtInRuleIdentifiers: Set<String> = []) {
         self.workspacePath = workspacePath
+        self.builtInRuleIdentifiers = builtInRuleIdentifiers
     }
 
     /// Discovers the config tree and selects the root config (if any).
@@ -42,6 +47,7 @@ class ConfigMapViewModel {
             tree = nil
             treeRows = []
             resolvedDisplay = nil
+            conflicts = []
             selectedRowID = nil
             return
         }
@@ -59,15 +65,26 @@ class ConfigMapViewModel {
         }
     }
 
-    /// Resolves and presents the effective config for the selected config's folder.
+    /// Resolves and presents the effective config for the selected config's folder,
+    /// and computes any advisories for that config.
     func select(rowID: UUID) {
         selectedRowID = rowID
         guard let tree = tree,
               let config = tree.configs.first(where: { $0.id == rowID }) else {
             resolvedDisplay = nil
+            conflicts = []
             return
         }
         let resolved = engine.resolve(at: config.directoryPath, in: tree)
         resolvedDisplay = presenter.display(for: resolved, in: tree)
+
+        if let parsed = config.config {
+            conflicts = conflictDetector.conflicts(
+                in: parsed,
+                builtInRuleIdentifiers: builtInRuleIdentifiers
+            )
+        } else {
+            conflicts = []
+        }
     }
 }
