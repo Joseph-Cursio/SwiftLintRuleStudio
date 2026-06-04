@@ -186,14 +186,22 @@ A three-tier ladder is conventional and maps cleanly to the audience split:
 | | **Free** (Individual) | **Team** | **Enterprise** |
 |---|:-:|:-:|:-:|
 | Full single-project experience | ✅ | ✅ | ✅ |
+| Within-repo nested-config visibility (Config Tree + resolved inspector) | ✅ | ✅ | ✅ |
 | Team Standards Library + locked rules | — | ✅ | ✅ |
 | Fleet dashboard + bulk apply + cross-repo | — | ✅ | ✅ |
+| Fleet nested-config drift audit | — | ✅ | ✅ |
 | Trend dashboards + compliance reports | — | ✅ | ✅ |
 | Config review/approval + rule rationale | — | ✅ | ✅ |
 | CI/PR/chat integrations | — | ✅ | ✅ |
 | SSO / RBAC / audit log / policy gate | — | — | ✅ |
 | On-prem | — | — | ✅ |
 | Support | community | priority | SLA |
+
+The split on nested configs is deliberate: seeing and editing the nested
+`.swiftlint.yml` layers *within one repo* is **baseline correctness** and free
+(the tool gives wrong answers without it); auditing nested-config drift *across a
+fleet against an org standard* is a team/compliance capability and paid. See
+`nested-config-visibility.md`.
 
 Billing is **per-seat** (or per-repo) for Team; **custom/contract** for
 Enterprise.
@@ -234,6 +242,13 @@ To protect the growth engine, keep these free forever:
 - Single-project impact simulation, health analysis, and the conflict /
   autocorrect-safety advisories.
 - Built-in presets and single-report export.
+- **Within-repo nested-config visibility** — the Config Tree, the per-folder
+  resolved-config inspector, editing any nested `.swiftlint.yml`, and the
+  `Effective / This config only` toggle. This is not a premium add-on but
+  *baseline correctness*: without it the tool over-reports violations in any
+  folder a nested config relaxes (see `nested-config-visibility.md`). Gating it
+  would mean charging to make the tool correct — exactly the kind of move that
+  poisons word-of-mouth.
 
 These are the features that earn the word-of-mouth that fills the top of the
 funnel. The paid tier monetizes the moment that single developer becomes "we, the
