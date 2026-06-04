@@ -74,6 +74,8 @@ struct SidebarView: View {
 
     private var configurationSection: some View {
         SwiftUI.Section("Configuration") {
+            Label("Config Map", systemImage: "map").tag(AppSection.configMap)
+                .accessibilityIdentifier("SidebarConfigMapLink")
             Label("Version History", systemImage: "clock.arrow.circlepath").tag(AppSection.versionHistory)
                 .accessibilityIdentifier("SidebarVersionHistoryLink")
             Label("Compare Configs", systemImage: "arrow.left.arrow.right").tag(AppSection.compareConfigs)

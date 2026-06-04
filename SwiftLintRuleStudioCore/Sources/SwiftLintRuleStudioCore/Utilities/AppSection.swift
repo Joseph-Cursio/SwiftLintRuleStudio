@@ -17,4 +17,5 @@ public enum AppSection: Hashable, Sendable {
     case importConfig
     case branchDiff
     case migration
+    case configMap
 }

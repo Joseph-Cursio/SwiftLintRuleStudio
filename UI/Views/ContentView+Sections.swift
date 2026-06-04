@@ -61,6 +61,10 @@ extension ContentView {
                 swiftLintCLI: dependencies.swiftLintCLI,
                 configPath: dependencies.workspaceManager.currentWorkspace?.configPath
             )
+        case .configMap:
+            ConfigMapView(
+                workspacePath: dependencies.workspaceManager.currentWorkspace?.path
+            )
         case .none:
             Text("Select a section")
                 .foregroundStyle(.secondary)
