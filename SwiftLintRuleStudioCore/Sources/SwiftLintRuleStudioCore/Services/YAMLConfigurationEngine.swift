@@ -72,6 +72,11 @@ public class YAMLConfigurationEngine {
         /// Preserved ordering of top-level YAML keys
         public var keyOrder: [String] = []
 
+        /// Top-level keys the engine does not model (e.g. `custom_rules`,
+        /// `warning_threshold`), preserved verbatim as their parsed YAML nodes so
+        /// that editing and re-saving a config never silently drops them.
+        var passthroughNodes: [String: Node] = [:]
+
         /// Create an empty YAML configuration
         public init() {
             self.rules = [:]
@@ -172,6 +177,11 @@ public class YAMLConfigurationEngine {
             currentConfig.optInRules = parsed.optInRules
             currentConfig.analyzerRules = parsed.analyzerRules
             currentConfig.onlyRules = parsed.onlyRules
+
+            // Preserve any top-level keys the modeled path won't re-emit
+            // (custom_rules, scalar rule shorthands like `line_length: 120`, …).
+            let modeledKeys = Self.modeledReservedKeys.union(currentConfig.rules.keys)
+            currentConfig.passthroughNodes = Self.passthroughNodes(from: node, modeledKeys: modeledKeys)
 
             // Extract comments from original content
             extractComments(from: originalContent)

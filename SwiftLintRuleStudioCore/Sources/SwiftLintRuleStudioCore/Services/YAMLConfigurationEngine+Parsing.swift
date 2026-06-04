@@ -161,6 +161,28 @@ extension YAMLConfigurationEngine {
         "custom_rules"
     ]
 
+    /// Reserved top-level keys the engine actively models (parses *and* emits).
+    static let modeledReservedKeys: Set<String> = [
+        "rules", "included", "excluded", "reporter",
+        "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules"
+    ]
+
+    /// Captures the parsed YAML nodes for top-level keys the engine does not
+    /// itself emit, so they survive a round-trip unchanged. This covers reserved
+    /// keys we don't model (`custom_rules`, `warning_threshold`, …) *and* rule
+    /// configs the engine can't parse into its model (e.g. the scalar shorthand
+    /// `line_length: 120`, which isn't a bool or a mapping). `modeledKeys` is the
+    /// set the modeled path will emit — every other top-level key passes through.
+    static func passthroughNodes(from node: Node, modeledKeys: Set<String>) -> [String: Node] {
+        guard case .mapping(let mapping) = node else { return [:] }
+        var result: [String: Node] = [:]
+        for (keyNode, valueNode) in mapping {
+            guard let key = keyNode.string, !modeledKeys.contains(key) else { continue }
+            result[key] = valueNode
+        }
+        return result
+    }
+
     private func parseRulesConfig(from rulesDict: [String: Any]) -> [String: RuleConfiguration] {
         var rules: [String: RuleConfiguration] = [:]
         for (ruleId, ruleValue) in rulesDict {

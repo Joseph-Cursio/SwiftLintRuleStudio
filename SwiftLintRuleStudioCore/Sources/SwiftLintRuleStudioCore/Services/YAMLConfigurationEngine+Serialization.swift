@@ -91,6 +91,11 @@ extension YAMLConfigurationEngine {
             result[ruleId] = try Node(value)
         }
 
+        // Re-emit unmodeled top-level keys (custom_rules, etc.) exactly as parsed.
+        for (key, node) in config.passthroughNodes where result[key] == nil {
+            result[key] = node
+        }
+
         return result
     }
 
