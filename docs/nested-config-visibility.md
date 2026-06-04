@@ -126,6 +126,90 @@ config tree."* So the feature is discoverable rather than buried.
 
 ---
 
+## Config Tree — design (sparse tree + resolved inspector)
+
+### The trap to avoid
+
+For ~99% of folders, having **no `.swiftlint.yml` is the normal, healthy state** —
+the folder still inherits the full effective config from its ancestors. So the
+design must never let "no config file" read as "no rules / not covered," which is
+the opposite of true. Optimize not for *"shows that no file exists"* but for
+*"every folder unambiguously shows its **effective** config and **why**."*
+
+### Three states to disambiguate (not two)
+
+| State | Meaning | Treatment |
+|---|---|---|
+| **Defines** | has `.swiftlint.yml` | solid doc icon + "what it changes" badge (`−2 disables`) — the layering points worth attention |
+| **Inherits** | no config file | explicit, calm label **"Inherits from `<ancestor>`"** — never a blank or warning |
+| **Excluded** | matched by `excluded:` | "Excluded — not linted" (a *real* no-rules state, distinct from inherits) |
+
+Edge: a config file that exists but changes nothing → "Config present, no rule
+changes" (often an accidental leftover).
+
+### Structural choice: sparse tree + inspector (do both, split by job)
+
+- **Config Tree = sparse.** Show *only* config-bearing folders (+ excluded). It's
+  the at-a-glance "where does linting differ?" map, and it stays small even in big
+  repos. Config-less folders simply aren't nodes here — there's nothing to
+  misrepresent.
+- **Resolved-config inspector = any folder.** Pick *any* folder/file (path picker,
+  drag-drop, or "Inspect this folder"); it shows the effective merged config — and
+  states the inheritance outright when the folder has no config of its own. This
+  is where you go to ask "is `Sources/Feature/` covered?", and the answer is
+  explicit.
+
+### Layout sketch
+
+A "Config Map" surface — sparse tree on the left, resolved inspector on the right:
+
+```
+┌─ Config Map ───────────────────────────────────────────────────────────────┐
+│ Mode: ( Effective / nested ▾ )          Inspect folder…        [+ Add config]│
+├───────────────────────────┬─────────────────────────────────────────────────┤
+│ CONFIG TREE  (sparse)     │  RESOLVED CONFIG — Tests/                        │
+│                           │  Applies to .swift files under Tests/            │
+│ 📄 .swiftlint.yml   root  │  Layer chain:  root  ▸  Tests/.swiftlint.yml     │
+│    42 rules               │  ───────────────────────────────────────────────│
+│  ├ 📄 Tests/        ◀──┐  │  Rule               State       Set by           │
+│  │   −2 disables       │  │  force_unwrapping   ✗ off       Tests  (was ⚠️)  │
+│  ├ 📄 Sources/Legacy/  │  │  force_try          ✗ off       Tests             │
+│  │   −1 disable        │  │  line_length 120    ⚠️ warning  root              │
+│  └ ⛔ Generated/       │  │  type_body_length   ⚠️ warning  root              │
+│      excluded          │  │  … 40 more inherited from root                   │
+│                        │  │                                                  │
+│  ─ legend ─            │  │  [ Edit Tests/.swiftlint.yml ]   [ Diff vs root ]│
+│  📄 defines  ⛔ excluded│  │                                                  │
+└───────────────────────────┴─────────────────────────────────────────────────┘
+```
+
+When you **inspect a folder that has no config** (the user's concern), the right
+pane is explicit rather than blank:
+
+```
+┌─ RESOLVED CONFIG — Sources/Feature/ ──────────────────────────────────────┐
+│ ⓘ  No config file in this folder — it inherits the root config.           │
+│     Layer chain:  root  (nothing overrides here)                           │
+│ ───────────────────────────────────────────────────────────────────────  │
+│ 42 rules apply, all from root.                          [ + Add config here ]│
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+So "no config" is shown as a clear *inherits* state with the source and the
+"42 rules apply" reassurance — and an **Add config here** affordance makes it
+actionable, not just informational.
+
+### Details worth deciding now
+
+- **Mode selector** (`Effective / nested` vs `This config only`) lives at the top
+  and drives both panes — tying the correctness fix (#1) to the visualization.
+- **Irrelevance filter:** never surface folders with neither a config nor any
+  Swift files.
+- **Accessibility:** the defines/inherits/excluded distinction must be a text
+  label (VoiceOver: "Tests, defines config, disables 2"), not just color/dim.
+- **Root is special:** mark the root node distinctly — it's the base every other
+  layer merges onto.
+
 ## Impact on the freemium tiers (this revises `freemium-paid-tier-features.md`)
 
 The freemium doc listed a **"resolved-config inspector (layering)"** under the
