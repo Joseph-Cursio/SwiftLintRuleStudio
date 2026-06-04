@@ -75,11 +75,14 @@ every repo aligned to it.
   description, version history, and a changelog. An individual edits one file; a
   team needs a *distributed, versioned source of truth*. Free tier: local configs
   only.
-- **Resolved-config inspector (layering).** SwiftLint supports parent/child config
-  chaining. A UI that shows the **resolved** config for a repo and *which layer*
-  contributed each rule/severity (org base → team → repo override), with the
-  ability to manage the layers. Turns "why is this rule on?" from archaeology into
-  a click.
+- **Org-layer resolved-config inspector.** Shows the **resolved** config for a repo
+  and *which org layer* contributed each rule/severity (org base → team → repo
+  override), with the ability to manage those layers. Turns "why is this rule on?"
+  from archaeology into a click.
+  *Scope note:* this is the **cross-repo, org-standard** layer. The **within-repo
+  nested-config** resolved view (a `Tests/.swiftlint.yml` relaxing one repo's own
+  folders) is an individual-correctness concern and is **free** — see
+  `nested-config-visibility.md`.
 - **Locked rules / required baseline.** Admins mark certain rules and severities
   as **locked** (a developer can't disable them locally) or define a **required
   baseline** every repo must include. The config editor renders locked entries
@@ -104,6 +107,11 @@ every repo aligned to it.
   across 18 repos would change," ranked by repo/team — so leads can scope a
   rollout. The free impact simulator answers this for *one* project; the paid one
   answers it for the *org*.
+- **Nested-config drift audit.** "Show me every folder, in every repo, whose
+  nested `.swiftlint.yml` *relaxes* the org standard" — surfacing where the
+  baseline is quietly weakened (a security/lead question). Within-repo nested
+  visibility is free; auditing it *across the fleet against a standard* is the
+  team feature. See `nested-config-visibility.md`.
 
 ### C. Reporting & dashboards (manager-facing)
 
