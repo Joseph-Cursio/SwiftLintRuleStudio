@@ -265,14 +265,23 @@ public class ImpactSimulator {
         return tempConfigPath
     }
 
-    /// Default exclusions must be present so simulations don't count violations
-    /// in build artifacts. The temp config lives outside the workspace, so
-    /// SwiftLint resolves relative excluded paths against the temp directory
-    /// rather than the workspace — convert to absolute paths to compensate.
+    /// Build artifacts must be excluded so simulations don't count violations in
+    /// them. The temp config lives outside the workspace, so relative paths are
+    /// made absolute. Known default dirs (`.build`, …) become a
+    /// `<workspace>/**/<name>` glob — excluded at any depth (nested SPM packages
+    /// too), where a bare `<workspace>/.build` would miss them.
     private func resolveExclusions(_ existing: [String]?, workspace: Workspace) -> [String] {
         let merged = DefaultExclusions.mergedWith(existing: existing)
+        let defaultDirectories = Set(DefaultExclusions.directories)
+        let basePath = workspace.path.path
         return merged.map { entry in
-            entry.hasPrefix("/") ? entry : workspace.path.appendingPathComponent(entry).path
+            if entry.hasPrefix("/") {
+                return entry
+            }
+            if defaultDirectories.contains(entry) {
+                return "\(basePath)/**/\(entry)"
+            }
+            return workspace.path.appendingPathComponent(entry).path
         }
     }
 

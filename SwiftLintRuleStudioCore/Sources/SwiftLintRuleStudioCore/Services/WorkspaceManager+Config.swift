@@ -47,21 +47,26 @@ public extension WorkspaceManager {
 }
 
 private extension WorkspaceManager {
-    // NOTE: Keep the excluded list below aligned with DefaultExclusions.directories
+    // NOTE: excluded paths use a `**/` glob so they match build/metadata dirs at
+    // ANY depth — including nested SPM packages (e.g. Core/.build) — not just the
+    // top-level one. A bare `.build` only excludes the workspace-root `.build`.
+    // (DefaultExclusions.directories stays bare; it filters file enumeration via
+    // `/.build/`-style contains-patterns, which already match nested paths.)
     static let defaultConfigTemplate = """
     # SwiftLint Configuration
     # This configuration follows best practices for excluding third-party code
     # and setting reasonable defaults for a Swift project.
 
-    # Exclude common build and dependency directories
+    # Exclude build artifacts and dependencies at any depth.
+    # (** matches nested packages, e.g. Core/.build; globs must be quoted in YAML.)
     excluded:
-      - .build                    # Swift Package Manager dependencies
-      - Pods                      # CocoaPods dependencies
-      - .git                      # Git metadata
-      - DerivedData               # Xcode build artifacts
-      - .swiftpm                  # Swift Package Manager metadata
-      - xcuserdata                # Xcode user-specific data
-      - .xcode                    # Xcode project files
+      - "**/.build"               # Swift Package Manager build output
+      - "**/Pods"                 # CocoaPods dependencies
+      - "**/.git"                 # Git metadata
+      - "**/DerivedData"          # Xcode build artifacts
+      - "**/.swiftpm"             # Swift Package Manager metadata
+      - "**/xcuserdata"           # Xcode user-specific data
+      - "**/.xcode"               # Xcode project files
 
     # Disable rules that are too strict for development
     disabled_rules:

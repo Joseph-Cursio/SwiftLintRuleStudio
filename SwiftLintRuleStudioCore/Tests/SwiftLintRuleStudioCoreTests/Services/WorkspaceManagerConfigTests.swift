@@ -66,6 +66,26 @@ struct WorkspaceManagerConfigTests {
         #expect(exists)
     }
 
+    @Test("Default config excludes build dirs at any depth via ** globs")
+    func testDefaultConfigGlobsNestedBuildDirs() async throws {
+        let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
+
+        let content = try await WorkspaceManagerTestHelpers.withWorkspaceManager { manager in
+            try manager.openWorkspace(at: workspace)
+            let configPath = try manager.createDefaultConfigFile()
+            return try String(contentsOf: #require(configPath), encoding: .utf8)
+        }
+
+        // Nestable build/metadata dirs use a quoted ** glob so they match nested
+        // SPM packages (e.g. Core/.build), not just the workspace-root dir.
+        #expect(content.contains("\"**/.build\""))
+        #expect(content.contains("\"**/.swiftpm\""))
+        #expect(content.contains("\"**/xcuserdata\""))
+        // A bare top-level-only entry must NOT be present for .build.
+        #expect(content.contains("- .build\n") == false)
+    }
+
     @Test("WorkspaceManager does not overwrite existing config file")
     func testDoesNotOverwriteConfigFile() async throws {
         let workspace = try WorkspaceTestHelpers.createWorkspaceWithConfig()
