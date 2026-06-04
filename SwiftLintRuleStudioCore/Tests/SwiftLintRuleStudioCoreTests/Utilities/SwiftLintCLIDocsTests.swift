@@ -28,9 +28,9 @@ struct SwiftLintCLIDocsTests {
 
         let runner: SwiftLintCommandRunner = { _, arguments in
             if arguments == ["version"] {
-                return (Data("1.0.0\n".utf8), Data())
+                return (Data("1.0.0\n".utf8), Data(), 0)
             }
-            return (Data(), Data())
+            return (Data(), Data(), 0)
         }
 
         let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
@@ -56,9 +56,9 @@ struct SwiftLintCLIDocsTests {
 
         let runner: SwiftLintCommandRunner = { _, arguments in
             if arguments == ["version"] {
-                return (Data("\(version)\n".utf8), Data())
+                return (Data("\(version)\n".utf8), Data(), 0)
             }
-            return (Data(), Data())
+            return (Data(), Data(), 0)
         }
 
         let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
@@ -74,7 +74,7 @@ struct SwiftLintCLIDocsTests {
 
         let runner: SwiftLintCommandRunner = { _, arguments in
             if arguments == ["version"] {
-                return (Data("\(version)\n".utf8), Data())
+                return (Data("\(version)\n".utf8), Data(), 0)
             }
             if let pathIndex = arguments.firstIndex(of: "--path"),
                arguments.contains("generate-docs"),
@@ -84,7 +84,7 @@ struct SwiftLintCLIDocsTests {
                 let docFile = docsDir.appendingPathComponent("\(ruleId).md")
                 try? Data("Generated docs".utf8).write(to: docFile)
             }
-            return (Data(), Data())
+            return (Data(), Data(), 0)
         }
 
         let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)

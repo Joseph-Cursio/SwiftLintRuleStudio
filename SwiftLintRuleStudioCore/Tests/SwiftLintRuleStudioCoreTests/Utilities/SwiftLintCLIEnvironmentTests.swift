@@ -11,30 +11,6 @@ import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 struct SwiftLintCLIEnvironmentTests {
-    @Test("SwiftLintCLIActor buildEnvironment adds Homebrew paths")
-    func testBuildEnvironmentAddsPaths() {
-        let base = ["PATH": "/usr/bin:/bin"]
-        let env = SwiftLintCLIActor.buildEnvironment(base: base)
-        #expect(env["PATH"]?.hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true)
-    }
-
-    @Test("SwiftLintCLIActor buildEnvironment sets default PATH")
-    func testBuildEnvironmentSetsDefault() {
-        let env = SwiftLintCLIActor.buildEnvironment(base: [:])
-        #expect(env["PATH"] == "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin")
-    }
-
-    @Test("SwiftLintCLIActor builds shell command with escaping")
-    func testBuildShellCommandEscaping() {
-        let command = SwiftLintCLIActor.buildShellCommand(
-            command: "swiftlint",
-            arguments: ["rules", "my rule", "path/with space"]
-        )
-        #expect(command.contains("swiftlint"))
-        #expect(command.contains("'my rule'"))
-        #expect(command.contains("'path/with space'"))
-    }
-
     @Test("SwiftLintCLIActor buildLintArguments includes config when present")
     func testBuildLintArgumentsIncludesConfig() async throws {
         let tempDir = FileManager.default.temporaryDirectory

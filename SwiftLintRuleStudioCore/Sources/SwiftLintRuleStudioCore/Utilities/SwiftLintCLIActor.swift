@@ -6,15 +6,15 @@
 //
 
 import Foundation
+import LintStudioCore
 
-/// Closure type for running SwiftLint commands with arguments
-public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async throws -> (Data, Data)
+/// Closure type for running SwiftLint commands. Receives the command name and
+/// arguments, returns `(stdout, stderr, exitCode)`. Injected in tests to return
+/// canned fixtures (including a chosen exit code, which drives the exit-code
+/// policy) without launching a process.
+public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async throws -> (Data, Data, Int32)
 /// Closure type for checking file existence
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
-/// Closure type for running a process directly with environment
-public typealias SwiftLintProcessRunner = @Sendable (URL, [String], [String: String]) async throws -> (Data, Data)
-/// Closure type for running commands through a shell
-public typealias SwiftLintShellRunner = @Sendable (String, [String], [String: String]) async throws -> (Data, Data)
 
 /// Protocol for SwiftLint CLI operations
 public protocol SwiftLintCLIProtocol: Sendable {
@@ -61,72 +61,68 @@ public enum SwiftLintError: LocalizedError, Sendable {
     }
 }
 
-/// Service for executing SwiftLint CLI commands
+/// Service for executing SwiftLint CLI commands.
+///
+/// A thin wrapper over `LintStudioCore.CLIToolActor`: the shared actor owns the
+/// path-detection / run / capture / timeout mechanics and the SwiftLint-modeled
+/// exit-code policy (`successExitCodes` `[0, 2]` — `0` clean, `2` ran and found
+/// serious violations; `127` → not found; anything else → execution failure).
+/// What stays here is the SwiftLint-specific argument building, documentation
+/// generation/caching, version parsing, and the `SwiftLintError` surface that
+/// existing callers and tests expect.
 public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
-    private var cachedSwiftLintPath: URL?
     public let cacheManager: CacheManager
-    public let commandRunner: SwiftLintCommandRunner?
-    public let fileExists: SwiftLintFileExists
-    public let processRunner: SwiftLintProcessRunner?
-    public let shellRunner: SwiftLintShellRunner?
+    private let tool: CLIToolActor
+    private let fileExists: SwiftLintFileExists
 
     public init(
         cacheManager: CacheManagerProtocol? = nil,
         commandRunner: SwiftLintCommandRunner? = nil,
         fileExists: SwiftLintFileExists? = nil,
-        processRunner: SwiftLintProcessRunner? = nil,
-        shellRunner: SwiftLintShellRunner? = nil
+        timeoutSeconds: UInt64 = 300
     ) {
-        // Use provided cache manager or create a default one
-        // Store as concrete CacheManager type to avoid protocol existential isolation issues
-        // CacheManager is a struct (value type) and Sendable, so it can cross actor boundaries
+        // Store as concrete CacheManager (a Sendable value type) to avoid
+        // protocol-existential isolation issues crossing the actor boundary.
         if let provided = cacheManager as? CacheManager {
             self.cacheManager = provided
         } else {
             self.cacheManager = CacheManager()
         }
-        self.commandRunner = commandRunner
         self.fileExists = fileExists ?? { FileManager.default.fileExists(atPath: $0) }
-        self.processRunner = processRunner
-        self.shellRunner = shellRunner
+
+        // Bridge the SwiftLint-local runner seam to CLIToolActor's. The tool
+        // name is fixed to "swiftlint", so it is supplied here for callers
+        // (and recorders) that inspect the command name.
+        var bridgedRunner: CLIToolCommandRunner?
+        if let commandRunner {
+            bridgedRunner = { arguments, _ in
+                try await commandRunner("swiftlint", arguments)
+            }
+        }
+
+        self.tool = CLIToolActor(
+            toolName: "swiftlint",
+            installMessage: SwiftLintError.notFound.errorDescription,
+            timeoutSeconds: timeoutSeconds,
+            allowShellFallback: true,
+            successExitCodes: [0, 2],
+            fileExists: fileExists,
+            commandRunner: bridgedRunner
+        )
     }
 
-    // Actor methods must be async per protocol, but don't need await internally (already isolated)
+    // MARK: - SwiftLintCLIProtocol
+
     public func detectSwiftLintPath() async throws -> URL {
-        // Check cache first (fast path)
-        if let cached = cachedSwiftLintPath, await fileExists(cached.path) {
-            return cached
-        }
-        // Clear stale cache after await returns
-        cachedSwiftLintPath = nil
-
-        // Try common locations - synchronous checks should be instant for local paths
-        // These are standard system paths, not network mounts, so they should be fast
-        let possiblePaths = [
-            "/opt/homebrew/bin/swiftlint",  // Apple Silicon Homebrew (most common)
-            "/usr/local/bin/swiftlint",     // Intel Homebrew
-            "/usr/bin/swiftlint"            // System installation
-        ]
-
-        // Check paths synchronously - these are local paths and should be instant
-        for pathString in possiblePaths where await fileExists(pathString) {
-            let url = URL(fileURLWithPath: pathString)
-            cachedSwiftLintPath = url
-            return url
-        }
-
-        // If we get here, SwiftLint wasn't found in common locations
-        throw SwiftLintError.notFound
+        try await mapping { try await tool.detectPath() }
     }
 
     public func executeRulesCommand() async throws -> Data {
-        // Use "swiftlint" command directly - let shell PATH resolve it
-        // This works better with sandboxed apps
-        try await executeCommandViaShell(command: "swiftlint", arguments: ["rules"])
+        try await runSwiftLint(arguments: ["rules"])
     }
 
     public func executeRuleDetailCommand(ruleId: String) async throws -> Data {
-        try await executeCommandViaShell(command: "swiftlint", arguments: ["rules", ruleId])
+        try await runSwiftLint(arguments: ["rules", ruleId])
     }
 
     public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
@@ -135,15 +131,45 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
             workspacePath: workspacePath,
             fileExists: fileExists
         )
-        return try await executeCommandViaShell(command: "swiftlint", arguments: arguments)
+        return try await runSwiftLint(arguments: arguments)
     }
 
     public func getVersion() async throws -> String {
-        let data = try await executeCommandViaShell(command: "swiftlint", arguments: ["version"])
-        guard let version = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+        let result = try await mapping { try await tool.run(arguments: ["version"]) }
+        // Decode the raw bytes directly (not `stdoutString`, which substitutes an
+        // empty string for undecodable data) so non-UTF-8 output still surfaces
+        // as `.invalidVersion`.
+        guard let version = String(data: result.stdout, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) else {
             throw SwiftLintError.invalidVersion
         }
         return version
     }
 
+    // MARK: - Execution
+
+    /// Runs `swiftlint <arguments>` and returns stdout. Used by the rules,
+    /// rule-detail, lint, and documentation paths.
+    func runSwiftLint(arguments: [String]) async throws -> Data {
+        try await mapping { try await tool.run(arguments: arguments).stdout }
+    }
+
+    /// Translates `CLIToolError` into the `SwiftLintError` surface that callers
+    /// (and existing tests) expect.
+    private func mapping<T>(_ body: () async throws -> T) async throws -> T {
+        do {
+            return try await body()
+        } catch let error as CLIToolError {
+            switch error {
+            case .notFound:
+                throw SwiftLintError.notFound
+            case .timedOut(_, let seconds):
+                throw SwiftLintError.executionFailed(
+                    message: "SwiftLint command timed out after \(seconds) seconds."
+                )
+            case .executionFailed(let message):
+                throw SwiftLintError.executionFailed(message: message)
+            }
+        }
+    }
 }

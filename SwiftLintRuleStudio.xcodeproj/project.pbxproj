@@ -9,15 +9,15 @@
 /* Begin PBXBuildFile section */
 		2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */; };
 		2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */; };
-		AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000230000002AABBCCDD /* LintStudioCore */; };
-		AA10000330000003AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000430000004AABBCCDD /* LintStudioUI */; };
-		AA10000630000006AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000830000008AABBCCDD /* LintStudioCore */; };
-		AA10000730000007AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000930000009AABBCCDD /* LintStudioUI */; };
 		703C936D2F0030E8006A88AE /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 703886762EFC3A3500F2A033 /* Yams */; };
 		703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 703886742EFC3A3500F2A033 /* ViewInspector */; };
 		70C716772F43A97500B0D793 /* Claude Prompt Library.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716712F43A97500B0D793 /* Claude Prompt Library.md */; };
 		70C716782F43A97500B0D793 /* Cursor Prompt Library.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716722F43A97500B0D793 /* Cursor Prompt Library.md */; };
 		70C716792F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md in Resources */ = {isa = PBXBuildFile; fileRef = 70C716732F43A97500B0D793 /* PRD - SwiftLint_Rule_Studio_Expanded.md */; };
+		AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000230000002AABBCCDD /* LintStudioCore */; };
+		AA10000330000003AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000430000004AABBCCDD /* LintStudioUI */; };
+		AA10000630000006AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000830000008AABBCCDD /* LintStudioCore */; };
+		AA10000730000007AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000930000009AABBCCDD /* LintStudioUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */

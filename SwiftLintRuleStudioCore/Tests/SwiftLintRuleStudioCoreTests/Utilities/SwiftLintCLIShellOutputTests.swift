@@ -2,7 +2,9 @@
 //  SwiftLintCLIShellOutputTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  Stderr handling and shell execution tests
+//  Exit-code policy tests for SwiftLintCLIActor (mirrors SwiftLint's
+//  convention via the shared CLIToolActor: 0/2 succeed, 127 → notFound,
+//  anything else → executionFailed — regardless of stderr text).
 //
 
 import Foundation
@@ -11,10 +13,10 @@ import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 struct SwiftLintCLIShellOutputTests {
-    @Test("SwiftLintCLIActor treats command not found as notFound")
+    @Test("SwiftLintCLIActor treats exit 127 as notFound")
     func testCommandNotFoundError() async {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data(), Data("swiftlint: command not found".utf8))
+            (Data(), Data("swiftlint: command not found".utf8), 127)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -35,10 +37,10 @@ struct SwiftLintCLIShellOutputTests {
         }
     }
 
-    @Test("SwiftLintCLIActor treats stderr error as executionFailed")
-    func testExecutionFailedOnErrorStderr() async {
+    @Test("SwiftLintCLIActor treats a non-success exit code as executionFailed")
+    func testExecutionFailedOnNonSuccessExit() async {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data(), Data("error: bad things happened".utf8))
+            (Data(), Data("error: bad things happened".utf8), 70)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -59,21 +61,10 @@ struct SwiftLintCLIShellOutputTests {
         }
     }
 
-    @Test("SwiftLintCLIActor executeCommandViaShell falls back to shell execution")
-    func testExecuteCommandViaShellFallbackUsesShell() async throws {
-        let fileExists: SwiftLintFileExists = { _ in false }
-        let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = SwiftLintCLIActor(cacheManager: cacheManager, fileExists: fileExists)
-
-        let output = try await cli.executeCommandViaShell(command: "echo", arguments: ["hello"])
-        let outputString = String(data: output, encoding: .utf8)
-        #expect(outputString?.contains("hello") == true)
-    }
-
-    @Test("SwiftLintCLIActor ignores warning stderr")
+    @Test("SwiftLintCLIActor treats exit 0 as success regardless of stderr")
     func testWarningStderrDoesNotFail() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data("ok".utf8), Data("warning: something".utf8))
+            (Data("ok".utf8), Data("warning: something".utf8), 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -82,10 +73,10 @@ struct SwiftLintCLIShellOutputTests {
         #expect(String(data: output, encoding: .utf8) == "ok")
     }
 
-    @Test("SwiftLintCLIActor ignores invalid rule identifier stderr")
-    func testInvalidRuleIdentifierDoesNotFail() async throws {
+    @Test("SwiftLintCLIActor treats exit 2 (serious violations) as success")
+    func testExitTwoTreatedAsSuccess() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data("ok".utf8), Data("error: is not a valid rule identifier".utf8))
+            (Data("ok".utf8), Data("error: is not a valid rule identifier".utf8), 2)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }

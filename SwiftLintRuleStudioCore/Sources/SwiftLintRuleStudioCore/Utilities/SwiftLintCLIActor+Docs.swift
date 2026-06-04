@@ -28,7 +28,7 @@ extension SwiftLintCLIActor {
 
         // Generate docs - generate docs for ALL rules (not just enabled ones)
         // This ensures opt-in rules like empty_count have their documentation and examples
-        _ = try await executeCommandViaShell(command: "swiftlint", arguments: [
+        _ = try await runSwiftLint(arguments: [
             "generate-docs",
             "--path", docsDir.path
         ])

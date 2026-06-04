@@ -26,7 +26,7 @@ struct SwiftLintCLIErrorAndVersionTests {
     @Test("SwiftLintCLIActor getVersion uses command runner output")
     func testGetVersionUsesRunner() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data("1.2.3\n".utf8), Data())
+            (Data("1.2.3\n".utf8), Data(), 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -38,7 +38,7 @@ struct SwiftLintCLIErrorAndVersionTests {
     @Test("SwiftLintCLIActor getVersion throws on invalid output")
     func testGetVersionInvalidOutput() async {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data([0xFF, 0xFE]), Data())
+            (Data([0xFF, 0xFE]), Data(), 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }

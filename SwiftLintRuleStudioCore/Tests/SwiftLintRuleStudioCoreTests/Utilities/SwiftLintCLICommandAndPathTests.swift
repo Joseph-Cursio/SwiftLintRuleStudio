@@ -16,7 +16,7 @@ struct SwiftLintCLICommandAndPathTests {
         let recorder = CommandRecorderActor()
         let runner: SwiftLintCommandRunner = { command, arguments in
             await recorder.record(command, arguments)
-            return (Data("[]".utf8), Data())
+            return (Data("[]".utf8), Data(), 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -34,7 +34,7 @@ struct SwiftLintCLICommandAndPathTests {
         let recorder = CommandRecorderActor()
         let runner: SwiftLintCommandRunner = { command, arguments in
             await recorder.record(command, arguments)
-            return (Data("[]".utf8), Data())
+            return (Data("[]".utf8), Data(), 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -69,48 +69,6 @@ struct SwiftLintCLICommandAndPathTests {
         await map.set("/usr/local/bin/swiftlint", true)
         let second = try await cli.detectSwiftLintPath()
         #expect(second.path == "/usr/local/bin/swiftlint")
-    }
-
-    @Test("SwiftLintCLIActor falls back to shell runner when path missing")
-    func testFallbackToShellRunner() async throws {
-        let fileExists: SwiftLintFileExists = { _ in false }
-        let shellRunner: SwiftLintShellRunner = { command, _, _ in
-            #expect(command.contains("swiftlint rules"))
-            return (Data("ok".utf8), Data())
-        }
-
-        let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = SwiftLintCLIActor(
-            cacheManager: cacheManager,
-            fileExists: fileExists,
-            shellRunner: shellRunner
-        )
-
-        let output = try await cli.executeRulesCommand()
-        #expect(String(data: output, encoding: .utf8) == "ok")
-    }
-
-    @Test("SwiftLintCLIActor uses process runner for direct execution")
-    func testProcessRunnerDirectExecution() async throws {
-        let fileExists: SwiftLintFileExists = { path in
-            path == "/opt/homebrew/bin/swiftlint"
-        }
-        let processRunner: SwiftLintProcessRunner = { url, arguments, environment in
-            #expect(url.path == "/opt/homebrew/bin/swiftlint")
-            #expect(arguments.contains("rules"))
-            #expect(environment["PATH"]?.contains("/opt/homebrew/bin") == true)
-            return (Data("ok".utf8), Data("warning: ignore".utf8))
-        }
-
-        let cacheManager = await MainActor.run { CacheManager.createForTesting() }
-        let cli = SwiftLintCLIActor(
-            cacheManager: cacheManager,
-            fileExists: fileExists,
-            processRunner: processRunner
-        )
-
-        let output = try await cli.executeRulesCommand()
-        #expect(String(data: output, encoding: .utf8) == "ok")
     }
 
     @Test("SwiftLintCLIActor detectSwiftLintPath throws when missing")
