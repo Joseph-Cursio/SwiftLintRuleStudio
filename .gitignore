@@ -6,6 +6,7 @@ SwiftLintRuleStudio.xcodeproj/xcuserdata/
 *.xcresult
 SwiftLintRuleStudioCore/.build/
 SwiftLintRuleStudioCore/.swiftpm/
+build/
 .swiftlint.yml.*.backup
 Core.bak/
 add_public.py
