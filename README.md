@@ -9,7 +9,7 @@ A native macOS application that puts a friendly graphical interface on top of th
 **Platform:** macOS 13.0 (Ventura) or later
 **License:** MIT
 **Swift:** 6.0 with strict concurrency checking
-**Latest release:** [v1.2.0 — Editable rule parameters](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.0)
+**Latest release:** [v1.2.1 — Config Map & nested config support](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.1)
 
 ---
 
@@ -37,17 +37,15 @@ SwiftLint's power comes with a learning curve: hundreds of rules, a hand-edited 
 
 ---
 
-## What's New in v1.2.0
+## What's New in v1.2.1
 
-**Editable rule parameters** end-to-end: parameter metadata is now parsed from the SwiftLint CLI, surfaced in the rule detail UI, and persisted to `.swiftlint.yml` as minimal overrides.
+**Nested `.swiftlint.yml` support and safer config editing.**
 
-- Parse rule parameters from `swiftlint rules` CLI output
-- Edit parameters inline with a reset-to-default control
-- Save writes only your overrides — default-equal entries are stripped automatically
-- Comment-preserving YAML save: 2-space indentation, multi-line comment blocks preserved, stale comments for removed keys dropped
-- Impact simulation now honors your in-memory parameter overrides
+- **Config Map** — a new view showing a sparse tree of every nested `.swiftlint.yml` in your project, alongside the effective resolved config for any folder, with per-rule "set by" attribution (which layer turned a rule on/off or set its value).
+- **Correct nested-config analysis** — analysis now respects nested configs the way SwiftLint and CI do, instead of forcing the root config. This fixes over-reported violations in folders that relax rules (e.g. a `Tests/.swiftlint.yml` that disables `force_unwrapping`).
+- **Config editor fidelity** — editing and saving a config no longer drops `custom_rules` or scalar rule shorthands like `line_length: 120`; those values are now understood and preserved exactly.
 
-See the [full release notes](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.0).
+See the [full release notes](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.1).
 
 ---
 
