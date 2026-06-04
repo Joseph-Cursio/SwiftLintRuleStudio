@@ -56,6 +56,12 @@ demo:
 - **Single-report export** (HTML/CSV/JSON) for one project.
 - **Git-branch config diff** for one repo.
 - **Migration assistant** for one project (one SwiftLint version bump at a time).
+- **Nested-config visibility** — the Config Tree (sparse map of every
+  `.swiftlint.yml` in the repo), the per-folder resolved-config inspector
+  ("what actually applies here, and from which layer"), editing any nested
+  config, and the `Effective / This config only` mode toggle. This is
+  *baseline correctness* for one repo, not a premium add-on — see
+  `nested-config-visibility.md`.
 
 Free is local and offline. No account required.
 

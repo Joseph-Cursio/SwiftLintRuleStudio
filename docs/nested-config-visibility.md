@@ -210,6 +210,57 @@ actionable, not just informational.
 - **Root is special:** mark the root node distinctly — it's the base every other
   layer merges onto.
 
+## Resolved-config merge logic (the engine behind the inspector)
+
+The inspector's "what applies here, set by which layer" depends on replicating
+SwiftLint's nested-merge semantics exactly. These are **not** uniform — different
+keys override, accumulate, or are ignored. The table below is grounded in
+SwiftLint 0.5x behavior, verified empirically (a root config + a nested override,
+linted both ways):
+
+| Config key | Nested-merge behavior | Implication for the inspector |
+|---|---|---|
+| **Rule configuration** (severity, params — `line_length: {warning: 120}`, etc.) | **Child overrides** the parent for that rule | "Set by: `<nearest layer that sets it>`"; show the overridden value + what it was |
+| **`only_rules`** (whitelist) | **Child replaces** the active rule set for that subtree | A child `only_rules` is a hard reset — show "only N rules run here," not the inherited 42 |
+| **`disabled_rules` / `opt_in_rules`** | **Accumulate** — child adds to / removes from the inherited sets | `effectiveDisabled = parentDisabled − childOptIn + childDisabled` (and symmetrically for opt-in) |
+| **`custom_rules`** | Merge by name; child overrides a same-named custom rule | Attribute each custom rule to its defining layer |
+| **`analyzer_rules`** | Like opt-in, accumulate | Only relevant for `swiftlint analyze` |
+| **`excluded` / `included`** | ⚠️ **Nested values are IGNORED — only the root/main config's apply** | **Surface this as a warning** (see below) |
+| **`reporter`, `swiftlint_version`, run-level keys** | Taken from the root/main config only | Don't show as per-folder; they're global |
+
+### The `excluded` trap (call it out explicitly)
+
+Because nested `excluded`/`included` are ignored, a developer who writes
+`Tests/.swiftlint.yml` with `excluded: [Generated.swift]` gets **nothing** — the
+file is still linted. This is a common, silent mistake. The inspector/Config Tree
+should detect a nested config that sets `excluded`/`included` and flag it:
+
+> *"`excluded` in a nested config has no effect — SwiftLint only honors it in the
+> root config. Move these paths to the root `.swiftlint.yml`."*
+
+### Two ways to compute the resolved config — and why to do both
+
+1. **Reimplement the merge** (per the table) to drive the UI: fast, lets you
+   attribute each rule to its layer ("Set by: Tests/"), and works offline. This is
+   what the inspector renders.
+2. **Trust SwiftLint as the source of truth.** The merge rules drift across
+   SwiftLint versions, and the whole point of this work is that *the GUI must match
+   the CLI*. So back the reimplementation with a **verification harness**: for the
+   active config tree, lint a set of probe snippets (or the real files) and confirm
+   the rules the inspector claims are active match what SwiftLint actually reports.
+   Any divergence is a bug surfaced loudly — not a silent wrong answer like today.
+
+The reimplementation is the UX; SwiftLint is the oracle. Never ship a resolved
+view that hasn't been reconciled against an actual lint of that subtree.
+
+### Layer attribution
+
+For each rule in the resolved view, walk the layer chain **root → … → folder**
+and record the *last* layer that set its state (enabled/disabled/severity/params).
+That layer is the "Set by" attribution, and the diff ("was ⚠️ warning at root →
+off at Tests/") is the previous layer's value. For `only_rules`, attribution
+collapses to the single layer that declared the whitelist.
+
 ## Impact on the freemium tiers (this revises `freemium-paid-tier-features.md`)
 
 The freemium doc listed a **"resolved-config inspector (layering)"** under the
