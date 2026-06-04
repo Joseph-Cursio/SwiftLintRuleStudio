@@ -1,4 +1,5 @@
 import Foundation
+import LintStudioCore
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
