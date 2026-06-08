@@ -22,7 +22,7 @@ public class DependencyContainer {
     /// Actor-based SQLite storage for violations
     public let violationStorage: ViolationStorageProtocol
     /// Background analysis engine that runs SwiftLint
-    public let workspaceAnalyzer: WorkspaceAnalyzer
+    public let workspaceAnalyzer: any WorkspaceAnalyzerProtocol
     /// Service for workspace selection and recent workspace history
     public let workspaceManager: WorkspaceManager
     /// Manages first-run onboarding flow
@@ -70,6 +70,7 @@ public class DependencyContainer {
         violationStorage: ViolationStorageProtocol? = nil,
         workspaceManager: WorkspaceManager? = nil,
         onboardingManager: OnboardingManager? = nil,
+        workspaceAnalyzer: (any WorkspaceAnalyzerProtocol)? = nil,
         impactSimulator: ImpactSimulator? = nil,
         xcodeIntegrationService: XcodeIntegrationService? = nil,
         configurationValidator: ConfigurationValidatorProtocol? = nil,
@@ -119,7 +120,7 @@ public class DependencyContainer {
         }
 
         // Initialize workspace analyzer with file tracker
-        self.workspaceAnalyzer = WorkspaceAnalyzer(
+        self.workspaceAnalyzer = workspaceAnalyzer ?? WorkspaceAnalyzer(
             swiftLintCLI: cli,
             violationStorage: self.violationStorage,
             fileTracker: nil // Will create default file tracker

@@ -9,15 +9,34 @@ import Combine
 import Foundation
 import LintStudioCore
 
+/// Abstraction over the workspace analysis engine so callers — and tests — can
+/// depend on the analyze capability without binding to the concrete class or
+/// subclassing it to provide a test double.
+@MainActor
+public protocol WorkspaceAnalyzerProtocol: AnyObject {
+    /// Whether an analysis is currently running.
+    var isAnalyzing: Bool { get }
+    /// Publishes changes to `isAnalyzing` so UI can react without observing the
+    /// concrete `@Published` property through an existential.
+    var isAnalyzingPublisher: AnyPublisher<Bool, Never> { get }
+    /// Analyze a workspace for violations.
+    func analyze(workspace: Workspace, configPath: URL?) async throws -> AnalysisResult
+}
+
 /// Service for analyzing workspaces with SwiftLint
 @MainActor
-public class WorkspaceAnalyzer: ObservableObject {
+public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
 
     // MARK: - Properties
 
     @Published public var isAnalyzing: Bool = false
     @Published public var currentProgress: AnalysisProgress?
     @Published public var lastAnalysisResult: AnalysisResult?
+
+    /// Publishes changes to `isAnalyzing` for protocol-based subscribers.
+    public var isAnalyzingPublisher: AnyPublisher<Bool, Never> {
+        $isAnalyzing.eraseToAnyPublisher()
+    }
 
     public let swiftLintCLI: SwiftLintCLIProtocol
     public let violationStorage: ViolationStorageProtocol

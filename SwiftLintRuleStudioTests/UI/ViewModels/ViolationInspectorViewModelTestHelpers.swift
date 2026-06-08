@@ -1,25 +1,24 @@
+import Combine
 import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 
 @MainActor
-class MockWorkspaceAnalyzer: WorkspaceAnalyzer {
+final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
     var mockViolations: [Violation] = []
     var analyzeCallCount = 0
     var shouldFail = false
+    var isAnalyzing = false
+    var isAnalyzingPublisher: AnyPublisher<Bool, Never> { Just(false).eraseToAnyPublisher() }
     private let mockStorage: MockViolationStorageForViewModel
 
     init(mockStorage: MockViolationStorageForViewModel) {
         self.mockStorage = mockStorage
-        let mockCLI = MockSwiftLintCLIActor()
-        super.init(swiftLintCLI: mockCLI, violationStorage: mockStorage)
     }
 
-    override func analyze(
-        workspace: Workspace,
-        configPath _: URL? = nil
-    ) async throws -> AnalysisResult {
+    // swiftlint:disable:next async_without_await
+    func analyze(workspace: Workspace, configPath _: URL?) async throws -> AnalysisResult {
         analyzeCallCount += 1
 
         if shouldFail {
@@ -118,9 +117,10 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
 }
 
 enum ViolationInspectorViewModelTestHelpers {
+    @MainActor
     static func createViolationInspectorViewModel(
         violationStorage: ViolationStorageProtocol,
-        workspaceAnalyzer: WorkspaceAnalyzer? = nil
+        workspaceAnalyzer: (any WorkspaceAnalyzerProtocol)? = nil
     ) async -> ViolationInspectorViewModel {
         await MainActor.run {
             ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: workspaceAnalyzer)

@@ -60,7 +60,7 @@ class ViolationInspectorViewModel {
     // MARK: - Non-observed properties
 
     var violationStorage: ViolationStorageProtocol
-    var workspaceAnalyzer: WorkspaceAnalyzer?
+    var workspaceAnalyzer: (any WorkspaceAnalyzerProtocol)?
     @ObservationIgnored var cancellables = Set<AnyCancellable>()
     var workspaceId: UUID?
     var currentWorkspace: Workspace?
@@ -69,7 +69,7 @@ class ViolationInspectorViewModel {
 
     // MARK: - Initialization
 
-    init(violationStorage: ViolationStorageProtocol, workspaceAnalyzer: WorkspaceAnalyzer? = nil) {
+    init(violationStorage: ViolationStorageProtocol, workspaceAnalyzer: (any WorkspaceAnalyzerProtocol)? = nil) {
         self.violationStorage = violationStorage
         self.workspaceAnalyzer = workspaceAnalyzer
         // Mark as initialized after all properties are set
