@@ -29,15 +29,19 @@ public enum XcodeIntegrationError: LocalizedError, Sendable {
     }
 }
 
+/// Abstraction over Xcode integration so views — and tests — can open files
+/// without binding to the concrete service or relying on test-environment
+/// detection inside it.
+@MainActor
+public protocol XcodeIntegrationServiceProtocol: AnyObject {
+    /// Open a file in Xcode at a specific line and column.
+    func openFile(at path: String, line: Int, column: Int?, in workspace: Workspace) throws -> Bool
+}
+
 /// Service for opening files in Xcode
 @MainActor
-public class XcodeIntegrationService {
+public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
     private var projectCache: [URL: URL] = [:] // Cache workspace -> project mapping
-
-    /// Whether the app is currently running inside a test host
-    nonisolated public static var isRunningTests: Bool {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    }
 
     /// Whether the app is running in UI testing mode
     nonisolated public static var isUITesting: Bool {
@@ -73,7 +77,10 @@ public class XcodeIntegrationService {
         // 3. Find associated Xcode project/workspace
         let projectURL = findXcodeProject(for: fileURL, in: workspace)
 
-        if Self.isRunningTests || Self.isUITesting {
+        // Real app under UI-test automation can't inject a double, so short-circuit
+        // before actually launching Xcode. Unit tests inject a conforming double
+        // instead of relying on test-environment detection here.
+        if Self.isUITesting {
             return true
         }
 

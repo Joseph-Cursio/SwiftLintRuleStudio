@@ -30,7 +30,7 @@ public class DependencyContainer {
     /// Simulates rule impact and discovers zero-violation rules
     public let impactSimulator: any ImpactSimulatorProtocol
     /// Opens violations in Xcode via URL schemes
-    public let xcodeIntegrationService: XcodeIntegrationService
+    public let xcodeIntegrationService: any XcodeIntegrationServiceProtocol
 
     // Phase 1 YAML Configuration Services
     /// Validates SwiftLint configuration files
@@ -72,7 +72,7 @@ public class DependencyContainer {
         onboardingManager: OnboardingManager? = nil,
         workspaceAnalyzer: (any WorkspaceAnalyzerProtocol)? = nil,
         impactSimulator: (any ImpactSimulatorProtocol)? = nil,
-        xcodeIntegrationService: XcodeIntegrationService? = nil,
+        xcodeIntegrationService: (any XcodeIntegrationServiceProtocol)? = nil,
         configurationValidator: ConfigurationValidatorProtocol? = nil,
         configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol? = nil,
         configurationTemplateManager: ConfigurationTemplateManagerProtocol? = nil,
