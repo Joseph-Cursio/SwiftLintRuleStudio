@@ -55,36 +55,7 @@ extension ViolationInspectorView {
     }
 
     func exportToCSV(violations: [Violation], url: URL) throws {
-        let header = [
-            "Rule ID",
-            "File Path",
-            "Line",
-            "Column",
-            "Severity",
-            "Message",
-            "Detected At",
-            "Resolved At",
-            "Suppressed",
-            "Suppression Reason"
-        ].joined(separator: ",")
-        var csv = "\(header)\n"
-
-        for violation in violations {
-            let line = [
-                violation.ruleID,
-                violation.filePath,
-                "\(violation.line)",
-                violation.column.map { "\($0)" } ?? "",
-                violation.severity.rawValue,
-                "\"\(violation.message.replacingOccurrences(of: "\"", with: "\"\""))\"",
-                ISO8601DateFormatter().string(from: violation.detectedAt),
-                violation.resolvedAt.map { ISO8601DateFormatter().string(from: $0) } ?? "",
-                violation.suppressed ? "true" : "false",
-                violation.suppressionReason.map { "\"\($0.replacingOccurrences(of: "\"", with: "\"\""))\"" } ?? ""
-            ].joined(separator: ",")
-            csv += line + "\n"
-        }
-
+        let csv = CSVReportGenerator.generate(violations: violations)
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 }

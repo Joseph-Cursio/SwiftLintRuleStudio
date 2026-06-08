@@ -134,54 +134,7 @@ struct ViolationInspectorNewFeaturesTests {
     }
 
     func exportToCSV(violations: [Violation], url: URL) async throws {
-        let header = [
-            "Rule ID",
-            "File Path",
-            "Line",
-            "Column",
-            "Severity",
-            "Message",
-            "Detected At",
-            "Resolved At",
-            "Suppressed",
-            "Suppression Reason"
-        ].joined(separator: ",")
-        var csv = "\(header)\n"
-
-        // Access violation properties on MainActor
-        let violationData = await MainActor.run {
-            violations.map { violation in
-                (
-                    ruleID: violation.ruleID,
-                    filePath: violation.filePath,
-                    line: violation.line,
-                    column: violation.column,
-                    severity: violation.severity.rawValue,
-                    message: violation.message,
-                    detectedAt: violation.detectedAt,
-                    resolvedAt: violation.resolvedAt,
-                    suppressed: violation.suppressed,
-                    suppressionReason: violation.suppressionReason
-                )
-            }
-        }
-
-        for data in violationData {
-            let line = [
-                data.ruleID,
-                data.filePath,
-                "\(data.line)",
-                data.column.map { "\($0)" } ?? "",
-                data.severity,
-                "\"\(data.message.replacingOccurrences(of: "\"", with: "\"\""))\"",
-                ISO8601DateFormatter().string(from: data.detectedAt),
-                data.resolvedAt.map { ISO8601DateFormatter().string(from: $0) } ?? "",
-                data.suppressed ? "true" : "false",
-                data.suppressionReason.map { "\"\($0.replacingOccurrences(of: "\"", with: "\"\""))\"" } ?? ""
-            ].joined(separator: ",")
-            csv += line + "\n"
-        }
-
+        let csv = CSVReportGenerator.generate(violations: violations)
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 }
