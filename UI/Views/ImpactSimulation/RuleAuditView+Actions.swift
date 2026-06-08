@@ -264,11 +264,11 @@ private extension RuleAuditView {
         ) else { return 0 }
 
         var count = 0
-        let excludedDirs = [".build", "Pods", "DerivedData", "Carthage", ".swiftpm", "Build"]
 
         while let url = enumerator.nextObject() as? URL {
-            let pathComponents = url.pathComponents
-            if excludedDirs.contains(where: { pathComponents.contains($0) }) {
+            let path = url.path
+            if DefaultExclusions.pathPatterns.contains(where: { path.contains($0) }) {
+                enumerator.skipDescendants()
                 continue
             }
             if url.pathExtension == "swift" {
