@@ -229,9 +229,11 @@ struct RuleDetailView: View {
                     ruleId: rule.id,
                     workspace: workspace,
                     baseConfigPath: workspace.configPath,
-                    isOptIn: rule.isOptIn,
-                    isAnalyzer: rule.isAnalyzer,
-                    parameterOverrides: overrides
+                    options: RuleSimulationOptions(
+                        isOptIn: rule.isOptIn,
+                        isAnalyzer: rule.isAnalyzer,
+                        parameterOverrides: overrides
+                    )
                 )
 
                 impactResult = result

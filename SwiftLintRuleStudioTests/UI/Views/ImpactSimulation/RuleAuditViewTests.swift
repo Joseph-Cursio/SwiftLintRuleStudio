@@ -14,8 +14,7 @@ import ViewInspector
 
 // swiftlint:disable function_body_length
 
-@MainActor
-final class MockImpactSimulator: ImpactSimulator {
+final class MockImpactSimulator: ImpactSimulatorProtocol {
     private let safeRuleIds: [String]
     private let results: [String: RuleImpactResult]
     private(set) var findSafeRulesCalls = 0
@@ -24,16 +23,14 @@ final class MockImpactSimulator: ImpactSimulator {
     init(safeRuleIds: [String], results: [String: RuleImpactResult]) {
         self.safeRuleIds = safeRuleIds
         self.results = results
-        super.init(swiftLintCLI: StubSwiftLintCLI())
     }
 
-    override func findSafeRules(
+    func findSafeRules(
         workspace _: Workspace,
         baseConfigPath _: URL?,
         disabledRuleIds _: [String],
-        optInRuleIds _: Set<String>,
-        analyzerRuleIds _: Set<String> = [],
-        progressHandler: ((Int, Int, String) -> Void)? = nil
+        classification _: RuleClassification,
+        progressHandler: ((Int, Int, String) -> Void)?
     ) async throws -> [String] {
         await Task.yield()
         findSafeRulesCalls += 1
@@ -43,13 +40,11 @@ final class MockImpactSimulator: ImpactSimulator {
         return safeRuleIds
     }
 
-    override func simulateRule(
+    func simulateRule(
         ruleId: String,
         workspace _: Workspace,
         baseConfigPath _: URL?,
-        isOptIn _: Bool,
-        isAnalyzer _: Bool = false,
-        parameterOverrides _: [String: AnyCodable]? = nil
+        options _: RuleSimulationOptions
     ) async throws -> RuleImpactResult {
         await Task.yield()
         simulateRuleCalls += 1
@@ -65,13 +60,12 @@ final class MockImpactSimulator: ImpactSimulator {
         )
     }
 
-    override func simulateRules(
+    func simulateRules(
         ruleIds: [String],
         workspace _: Workspace,
         baseConfigPath _: URL?,
-        optInRuleIds _: Set<String> = [],
-        analyzerRuleIds _: Set<String> = [],
-        progressHandler: ((Int, Int, String) -> Void)? = nil
+        classification _: RuleClassification,
+        progressHandler: ((Int, Int, String) -> Void)?
     ) async throws -> BatchSimulationResult {
         await Task.yield()
         var ruleResults: [RuleImpactResult] = []
@@ -92,16 +86,6 @@ final class MockImpactSimulator: ImpactSimulator {
             completedAt: Date.now
         )
     }
-}
-
-@MainActor
-struct StubSwiftLintCLI: SwiftLintCLIProtocol {
-    func detectSwiftLintPath() throws -> URL { throw SwiftLintError.notFound }
-    func executeRulesCommand() throws -> Data { Data() }
-    func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
-    func generateDocsForRule(ruleId _: String) throws -> String { "" }
-    func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
-    func getVersion() throws -> String { "0.0.0" }
 }
 
 @MainActor // swiftlint:disable:next type_body_length

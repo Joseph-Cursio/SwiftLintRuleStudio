@@ -66,8 +66,7 @@ struct ImpactSimulatorRoutingTests {
                 ruleId: "unused_declaration",
                 workspace: workspace,
                 baseConfigPath: nil,
-                isOptIn: false,
-                isAnalyzer: true
+                options: RuleSimulationOptions(isOptIn: false, isAnalyzer: true)
             )
         }
 
@@ -96,8 +95,7 @@ struct ImpactSimulatorRoutingTests {
                 ruleId: "explicit_init",
                 workspace: workspace,
                 baseConfigPath: nil,
-                isOptIn: true,
-                isAnalyzer: false
+                options: RuleSimulationOptions(isOptIn: true, isAnalyzer: false)
             )
         }
 
@@ -157,8 +155,10 @@ struct ImpactSimulatorRoutingTests {
                 ruleIds: ["unused_declaration", "explicit_init", "force_cast"],
                 workspace: workspace,
                 baseConfigPath: nil,
-                optInRuleIds: ["explicit_init"],
-                analyzerRuleIds: ["unused_declaration"]
+                classification: RuleClassification(
+                    optInRuleIds: ["explicit_init"],
+                    analyzerRuleIds: ["unused_declaration"]
+                )
             )
         }
 
@@ -216,8 +216,7 @@ struct ImpactSimulatorRoutingTests {
                 ruleId: "explicit_type_interface",
                 workspace: workspace,
                 baseConfigPath: baseConfigPath,
-                isOptIn: true,
-                isAnalyzer: false
+                options: RuleSimulationOptions(isOptIn: true, isAnalyzer: false)
             )
         }
 
@@ -279,7 +278,7 @@ struct ImpactSimulatorRoutingTests {
                 ruleId: "explicit_init",
                 workspace: workspace,
                 baseConfigPath: baseConfigPath,
-                isOptIn: true
+                options: RuleSimulationOptions(isOptIn: true)
             )
         }
 
@@ -315,8 +314,7 @@ struct ImpactSimulatorRoutingTests {
                 ruleId: "unused_declaration",
                 workspace: workspace,
                 baseConfigPath: baseConfigPath,
-                isOptIn: false,
-                isAnalyzer: true
+                options: RuleSimulationOptions(isOptIn: false, isAnalyzer: true)
             )
         }
 

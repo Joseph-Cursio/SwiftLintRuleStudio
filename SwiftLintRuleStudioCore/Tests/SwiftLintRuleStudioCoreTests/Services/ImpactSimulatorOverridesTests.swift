@@ -57,10 +57,10 @@ struct ImpactSimulatorOverridesTests {
                 ruleId: "cyclomatic_complexity",
                 workspace: workspace,
                 baseConfigPath: workspaceConfigPath,
-                parameterOverrides: [
+                options: RuleSimulationOptions(parameterOverrides: [
                     "warning": AnyCodable(1),
                     "error": AnyCodable(2)
-                ]
+                ])
             )
         }
 

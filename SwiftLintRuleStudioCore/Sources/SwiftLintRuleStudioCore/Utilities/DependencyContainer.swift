@@ -28,7 +28,7 @@ public class DependencyContainer {
     /// Manages first-run onboarding flow
     public let onboardingManager: OnboardingManager
     /// Simulates rule impact and discovers zero-violation rules
-    public let impactSimulator: ImpactSimulator
+    public let impactSimulator: any ImpactSimulatorProtocol
     /// Opens violations in Xcode via URL schemes
     public let xcodeIntegrationService: XcodeIntegrationService
 
@@ -71,7 +71,7 @@ public class DependencyContainer {
         workspaceManager: WorkspaceManager? = nil,
         onboardingManager: OnboardingManager? = nil,
         workspaceAnalyzer: (any WorkspaceAnalyzerProtocol)? = nil,
-        impactSimulator: ImpactSimulator? = nil,
+        impactSimulator: (any ImpactSimulatorProtocol)? = nil,
         xcodeIntegrationService: XcodeIntegrationService? = nil,
         configurationValidator: ConfigurationValidatorProtocol? = nil,
         configurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol? = nil,

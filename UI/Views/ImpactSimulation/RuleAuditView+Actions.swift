@@ -190,8 +190,10 @@ private extension RuleAuditView {
                 ruleIds: disabledRuleIds,
                 workspace: workspace,
                 baseConfigPath: workspace.configPath,
-                optInRuleIds: optInRuleIds,
-                analyzerRuleIds: analyzerRuleIds
+                classification: RuleClassification(
+                    optInRuleIds: optInRuleIds,
+                    analyzerRuleIds: analyzerRuleIds
+                )
             ) { current, total, ruleId in
                 auditProgress = AuditProgress(current: current, total: total, ruleId: ruleId)
             }

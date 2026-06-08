@@ -60,7 +60,7 @@ public extension DependencyContainer {
         violationStorage: ViolationStorageProtocol? = nil,
         workspaceManager: WorkspaceManager? = nil,
         onboardingManager: OnboardingManager? = nil,
-        impactSimulator: ImpactSimulator? = nil
+        impactSimulator: (any ImpactSimulatorProtocol)? = nil
     ) -> DependencyContainer {
         // Create isolated UserDefaults if not provided
         let testUserDefaults = userDefaults

@@ -61,7 +61,7 @@ public struct BatchSimulationResult: Sendable {
 }
 
 /// Service for simulating the impact of enabling rules
-public class ImpactSimulator {
+public class ImpactSimulator: ImpactSimulatorProtocol {
 
     // MARK: - Properties
 
@@ -88,9 +88,7 @@ public class ImpactSimulator {
         ruleId: String,
         workspace: Workspace,
         baseConfigPath: URL?,
-        isOptIn: Bool = false,
-        isAnalyzer: Bool = false,
-        parameterOverrides: [String: AnyCodable]? = nil
+        options: RuleSimulationOptions = RuleSimulationOptions()
     ) async throws -> RuleImpactResult {
         let startTime = Date.now
 
@@ -100,9 +98,9 @@ public class ImpactSimulator {
             enabled: true,
             baseConfigPath: baseConfigPath,
             workspace: workspace,
-            isOptIn: isOptIn,
-            isAnalyzer: isAnalyzer,
-            parameterOverrides: parameterOverrides
+            isOptIn: options.isOptIn,
+            isAnalyzer: options.isAnalyzer,
+            parameterOverrides: options.parameterOverrides
         )
 
         defer {
@@ -149,8 +147,7 @@ public class ImpactSimulator {
         ruleIds: [String],
         workspace: Workspace,
         baseConfigPath: URL?,
-        optInRuleIds: Set<String> = [],
-        analyzerRuleIds: Set<String> = [],
+        classification: RuleClassification = RuleClassification(),
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> BatchSimulationResult {
         let startTime = Date.now
@@ -165,8 +162,10 @@ public class ImpactSimulator {
                     ruleId: ruleId,
                     workspace: workspace,
                     baseConfigPath: baseConfigPath,
-                    isOptIn: optInRuleIds.contains(ruleId),
-                    isAnalyzer: analyzerRuleIds.contains(ruleId)
+                    options: RuleSimulationOptions(
+                        isOptIn: classification.optInRuleIds.contains(ruleId),
+                        isAnalyzer: classification.analyzerRuleIds.contains(ruleId)
+                    )
                 )
                 results.append(result)
             } catch {
@@ -203,16 +202,14 @@ public class ImpactSimulator {
         workspace: Workspace,
         baseConfigPath: URL?,
         disabledRuleIds: [String],
-        optInRuleIds: Set<String> = [],
-        analyzerRuleIds: Set<String> = [],
+        classification: RuleClassification = RuleClassification(),
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> [String] {
         let batchResult = try await simulateRules(
             ruleIds: disabledRuleIds,
             workspace: workspace,
             baseConfigPath: baseConfigPath,
-            optInRuleIds: optInRuleIds,
-            analyzerRuleIds: analyzerRuleIds,
+            classification: classification,
             progressHandler: progressHandler
         )
 
