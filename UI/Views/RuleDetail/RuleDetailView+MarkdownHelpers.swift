@@ -3,62 +3,6 @@ import SwiftLintRuleStudioCore
 import SwiftUI
 
 extension RuleDetailView {
-    private func convertDocumentationToPlainText(markdown: String) -> String {
-        // Strip HTML tags
-        var stripped = markdown.replacingOccurrences(
-            of: #"<[^>]+>"#,
-            with: "",
-            options: .regularExpression
-        )
-
-        // Remove inline styles
-        stripped = stripped.replacingOccurrences(
-            of: #"style\s*=\s*["'][^"']*["']"#,
-            with: "",
-            options: .regularExpression
-        )
-
-        // Convert markdown to plain text
-        let lines = stripped.components(separatedBy: .newlines)
-        var processedLines: [String] = []
-
-        for line in lines {
-            var processedLine = line
-
-            // Remove markdown headers
-            processedLine = processedLine.replacingOccurrences(
-                of: #"^#+\s+"#,
-                with: "",
-                options: [.regularExpression, .anchored]
-            )
-
-            // Remove markdown bold
-            processedLine = processedLine.replacingOccurrences(
-                of: #"\*\*([^*]+)\*\*"#,
-                with: "$1",
-                options: .regularExpression
-            )
-
-            // Remove markdown italic
-            processedLine = processedLine.replacingOccurrences(
-                of: #"(?<!\*)\*([^*\n]+)\*(?!\*)"#,
-                with: "$1",
-                options: .regularExpression
-            )
-
-            // Remove markdown inline code (keep the content)
-            processedLine = processedLine.replacingOccurrences(
-                of: #"`([^`]+)`"#,
-                with: "$1",
-                options: .regularExpression
-            )
-
-            processedLines.append(processedLine)
-        }
-
-        return processedLines.joined(separator: "\n")
-    }
-
     func processContentForDisplay(content: String) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
