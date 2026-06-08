@@ -159,32 +159,7 @@ struct MigrationAssistantView: View {
                     .font(.headline)
 
                 if diff.hasChanges {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if !diff.addedRules.isEmpty {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundStyle(.green)
-                                    .accessibilityHidden(true)
-                                Text("\(diff.addedRules.count) rule(s) to add")
-                            }
-                        }
-                        if !diff.removedRules.isEmpty {
-                            HStack {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
-                                    .accessibilityHidden(true)
-                                Text("\(diff.removedRules.count) rule(s) to remove")
-                            }
-                        }
-                        if !diff.modifiedRules.isEmpty {
-                            HStack {
-                                Image(systemName: "pencil.circle.fill")
-                                    .foregroundStyle(.orange)
-                                    .accessibilityHidden(true)
-                                Text("\(diff.modifiedRules.count) rule(s) to modify")
-                            }
-                        }
-                    }
+                    RuleChangeSummary(diff: diff)
 
                     DisclosureGroup("Full Diff") {
                         VStack(alignment: .leading, spacing: 8) {

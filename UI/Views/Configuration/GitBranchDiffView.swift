@@ -49,7 +49,7 @@ struct GitBranchDiffView: View {
             }
 
             if let error = viewModel.error {
-                errorSection(error)
+                ConfigErrorCard(error: error)
             }
 
             if let result = viewModel.comparisonResult {
@@ -128,20 +128,6 @@ struct GitBranchDiffView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
-    }
-
-    private func errorSection(_ error: Error) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Error", systemImage: "exclamationmark.triangle.fill")
-                .font(.headline)
-                .foregroundStyle(.red)
-            Text(error.localizedDescription)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.red.opacity(0.1))
         .clipShape(.rect(cornerRadius: 8))
     }
 

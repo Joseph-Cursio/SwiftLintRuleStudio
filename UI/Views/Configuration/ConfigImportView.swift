@@ -29,7 +29,7 @@ struct ConfigImportView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                 } else if let error = viewModel.error {
-                    errorSection(error)
+                    ConfigErrorCard(error: error)
                 }
 
                 if viewModel.importComplete {
@@ -85,20 +85,6 @@ struct ConfigImportView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
-    }
-
-    private func errorSection(_ error: Error) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Error", systemImage: "exclamationmark.triangle.fill")
-                .font(.headline)
-                .foregroundStyle(.red)
-            Text(error.localizedDescription)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.red.opacity(0.1))
         .clipShape(.rect(cornerRadius: 8))
     }
 
@@ -167,7 +153,7 @@ struct ConfigImportView: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
 
-                    diffSummary(diff)
+                    RuleChangeSummary(diff: diff)
                 }
             }
 
@@ -183,32 +169,4 @@ struct ConfigImportView: View {
         .clipShape(.rect(cornerRadius: 8))
     }
 
-    private func diffSummary(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !diff.addedRules.isEmpty {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(.green)
-                        .accessibilityHidden(true)
-                    Text("\(diff.addedRules.count) rule(s) to add")
-                }
-            }
-            if !diff.removedRules.isEmpty {
-                HStack {
-                    Image(systemName: "minus.circle.fill")
-                        .foregroundStyle(.red)
-                        .accessibilityHidden(true)
-                    Text("\(diff.removedRules.count) rule(s) to remove")
-                }
-            }
-            if !diff.modifiedRules.isEmpty {
-                HStack {
-                    Image(systemName: "pencil.circle.fill")
-                        .foregroundStyle(.orange)
-                        .accessibilityHidden(true)
-                    Text("\(diff.modifiedRules.count) rule(s) to modify")
-                }
-            }
-        }
-    }
 }
