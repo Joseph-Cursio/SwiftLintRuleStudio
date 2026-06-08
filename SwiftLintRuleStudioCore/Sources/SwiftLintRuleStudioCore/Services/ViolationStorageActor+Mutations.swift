@@ -202,6 +202,42 @@ extension ViolationStorageActor {
         sqlite3_bind_text(statement, index, cString, -1, free)
     }
 
+    /// Binds each violation ID to `statement` (starting at `startIndex`), then
+    /// executes it and verifies completion. IDs are duplicated with `strdup`
+    /// and handed to SQLite, which frees them via the `free` destructor; if
+    /// allocation fails mid-loop, any strings already allocated are freed.
+    private func bindIDsAndExecute(
+        _ statement: OpaquePointer?,
+        handle: OpaquePointer,
+        violationIds: [UUID],
+        startIndex: Int32
+    ) throws {
+        var idCStrings: [UnsafeMutablePointer<CChar>?] = []
+        defer {
+            // Clean up any allocated strings if we fail before binding
+            for cString in idCStrings {
+                if let cString = cString {
+                    free(cString)
+                }
+            }
+        }
+
+        for (index, id) in violationIds.enumerated() {
+            guard let idCString = strdup(id.uuidString) else {
+                throw ViolationStorageError.sqlError("Failed to allocate memory for violation ID")
+            }
+            idCStrings.append(idCString)
+            sqlite3_bind_text(statement, startIndex + Int32(index), idCString, -1, free)
+        }
+
+        // Clear the defer cleanup since SQLite will manage the memory now
+        idCStrings.removeAll()
+
+        guard sqlite3_step(statement) == SQLITE_DONE else {
+            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
+        }
+    }
+
     /// Mark violations as suppressed with the given reason
     public func suppressViolations(_ violationIds: [UUID], reason: String) throws {
         guard let handle = database else {
@@ -228,31 +264,7 @@ extension ViolationStorageActor {
         }
         sqlite3_bind_text(statement, 1, reasonCString, -1, free)
 
-        // Bind violation IDs using strdup
-        var idCStrings: [UnsafeMutablePointer<CChar>?] = []
-        defer {
-            // Clean up any allocated strings if we fail before binding
-            for cString in idCStrings {
-                if let cString = cString {
-                    free(cString)
-                }
-            }
-        }
-
-        for (index, id) in violationIds.enumerated() {
-            guard let idCString = strdup(id.uuidString) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for violation ID")
-            }
-            idCStrings.append(idCString)
-            sqlite3_bind_text(statement, Int32(index + 2), idCString, -1, free)
-        }
-
-        // Clear the defer cleanup since SQLite will manage the memory now
-        idCStrings.removeAll()
-
-        guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
-        }
+        try bindIDsAndExecute(statement, handle: handle, violationIds: violationIds, startIndex: 2)
     }
 
     /// Mark violations as resolved with the current timestamp
@@ -277,31 +289,7 @@ extension ViolationStorageActor {
 
         sqlite3_bind_double(statement, 1, Date.now.timeIntervalSince1970)
 
-        // Bind violation IDs using strdup
-        var idCStrings: [UnsafeMutablePointer<CChar>?] = []
-        defer {
-            // Clean up any allocated strings if we fail before binding
-            for cString in idCStrings {
-                if let cString = cString {
-                    free(cString)
-                }
-            }
-        }
-
-        for (index, id) in violationIds.enumerated() {
-            guard let idCString = strdup(id.uuidString) else {
-                throw ViolationStorageError.sqlError("Failed to allocate memory for violation ID")
-            }
-            idCStrings.append(idCString)
-            sqlite3_bind_text(statement, Int32(index + 2), idCString, -1, free)
-        }
-
-        // Clear the defer cleanup since SQLite will manage the memory now
-        idCStrings.removeAll()
-
-        guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
-        }
+        try bindIDsAndExecute(statement, handle: handle, violationIds: violationIds, startIndex: 2)
     }
 
     /// Delete all violations for a workspace
