@@ -37,9 +37,7 @@ extension ViolationInspectorView {
     }
 
     func exportFileName(scope: ViolationExportScope, format: ViolationExportFormat) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd_HHmmss"
-        let timestamp = formatter.string(from: Date.now)
+        let timestamp = ExportFilename.timestamp()
         let scopeLabel = scope.rawValue.lowercased()
         let extensionLabel = format == .json ? "json" : "csv"
         return "violations_\(scopeLabel)_\(timestamp).\(extensionLabel)"

@@ -1,3 +1,4 @@
+import LintStudioCore
 import SwiftLintRuleStudioCore
 import SwiftUI
 
@@ -232,10 +233,7 @@ extension RuleDetailView {
         }
 
         if inCodeBlock {
-            let escaped = line
-                .replacingOccurrences(of: "&", with: "&amp;")
-                .replacingOccurrences(of: "<", with: "&lt;")
-                .replacingOccurrences(of: ">", with: "&gt;")
+            let escaped = HTMLEscaping.escape(line)
             return [highlightSwiftSyntax(in: escaped, colorScheme: colorScheme)]
         }
 

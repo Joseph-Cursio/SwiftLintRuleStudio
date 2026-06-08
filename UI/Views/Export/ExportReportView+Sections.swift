@@ -130,9 +130,7 @@ extension ExportReportView {
 
     func defaultFileName() -> String {
         let workspaceName = dependencies.workspaceManager.currentWorkspace?.name ?? "workspace"
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd_HHmmss"
-        let timestamp = formatter.string(from: Date.now)
+        let timestamp = ExportFilename.timestamp()
         return "\(workspaceName)-lint-report-\(timestamp).\(selectedFormat.fileExtension)"
     }
 

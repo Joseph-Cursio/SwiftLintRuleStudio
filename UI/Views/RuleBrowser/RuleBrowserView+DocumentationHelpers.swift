@@ -1,3 +1,4 @@
+import LintStudioCore
 import SwiftLintRuleStudioCore
 import SwiftUI
 
@@ -296,10 +297,7 @@ private extension RuleBrowserView {
     }
 
     func escapeCodeLine(_ line: String) -> String {
-        line
-            .replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
+        HTMLEscaping.escape(line)
     }
 
     func shouldPreserveHTML(_ line: String) -> Bool {
