@@ -5,46 +5,16 @@
 //  Subviews for the Rule Audit view: summary cards, rule rows, expanded detail, status bar
 //
 
+import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
 
 // MARK: - Summary Cards
-
-private struct SummaryCard: View {
-    let title: String
-    let count: Int
-    let subtitle: String
-    let color: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption2)
-                .fontWeight(.semibold)
-                .foregroundStyle(color)
-                .tracking(0.5)
-
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(count)")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(color)
-
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(12)
-        .frame(width: 180, height: 70, alignment: .leading)
-        .background(color.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(color.opacity(0.2), lineWidth: 0.5)
-        )
-    }
-}
+//
+// The card view is the shared LintStudioUI.SummaryCard. This screen lays the
+// cards out in a horizontal scroller, so each is pinned to a fixed 180×70 with
+// .frame; the shared card is otherwise flexible (maxWidth: .infinity,
+// minHeight: 60).
 
 extension RuleAuditView {
     var summaryCardsView: some View {
@@ -62,6 +32,7 @@ extension RuleAuditView {
                     subtitle: "0 violations",
                     color: .green
                 )
+                .frame(width: 180, height: 70)
 
                 SummaryCard(
                     title: "LOW EFFORT",
@@ -69,6 +40,7 @@ extension RuleAuditView {
                     subtitle: "1-5 violations",
                     color: .yellow
                 )
+                .frame(width: 180, height: 70)
 
                 SummaryCard(
                     title: "MODERATE EFFORT",
@@ -76,6 +48,7 @@ extension RuleAuditView {
                     subtitle: "6-25 violations",
                     color: .orange
                 )
+                .frame(width: 180, height: 70)
 
                 SummaryCard(
                     title: "HIGH EFFORT",
@@ -83,6 +56,7 @@ extension RuleAuditView {
                     subtitle: "26+ violations",
                     color: .red
                 )
+                .frame(width: 180, height: 70)
 
                 enableAllSafeButton(safeCount: summary.safeCount)
             }
