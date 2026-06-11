@@ -180,6 +180,7 @@ extension ViolationInspectorView {
                 .padding(.horizontal)
             }
             .scrollIndicators(.hidden)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 8)
     }
