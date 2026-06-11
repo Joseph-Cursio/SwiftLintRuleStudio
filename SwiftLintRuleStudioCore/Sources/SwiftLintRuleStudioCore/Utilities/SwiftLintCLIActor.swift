@@ -138,7 +138,12 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
             mode: .effective,
             fileExists: fileExists
         )
-        return try await runSwiftLint(arguments: arguments)
+        // Launch in the workspace directory so SwiftLint discovers its
+        // `.swiftlint.yml` (and the `excluded:` paths within it) from the cwd, as
+        // it does on the command line. Without this the app inherits cwd `/`,
+        // SwiftLint finds no config, and lints excluded trees (e.g. SwiftSyntax
+        // checkouts under .build) — thousands of phantom violations, far slower.
+        return try await runSwiftLint(arguments: arguments, workingDirectory: workspacePath)
     }
 
     public func getVersion() async throws -> String {
@@ -157,8 +162,8 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
 
     /// Runs `swiftlint <arguments>` and returns stdout. Used by the rules,
     /// rule-detail, lint, and documentation paths.
-    func runSwiftLint(arguments: [String]) async throws -> Data {
-        try await mapping { try await tool.run(arguments: arguments).stdout }
+    func runSwiftLint(arguments: [String], workingDirectory: URL? = nil) async throws -> Data {
+        try await mapping { try await tool.run(arguments: arguments, workingDirectory: workingDirectory).stdout }
     }
 
     /// Translates `CLIToolError` into the `SwiftLintError` surface that callers
