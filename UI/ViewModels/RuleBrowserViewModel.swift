@@ -249,7 +249,7 @@ class RuleBrowserViewModel {
 
     // MARK: - Bulk Operations
 
-    func enableSelectedRules(yamlEngine: YAMLConfigurationEngine) {
+    func enableSelectedRules(yamlEngine: any YAMLConfigurationEngineProtocol) {
         guard (try? yamlEngine.load()) != nil else { return }
         var config = yamlEngine.getConfig()
 
@@ -283,7 +283,7 @@ class RuleBrowserViewModel {
         bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
-    func disableSelectedRules(yamlEngine: YAMLConfigurationEngine) {
+    func disableSelectedRules(yamlEngine: any YAMLConfigurationEngineProtocol) {
         guard (try? yamlEngine.load()) != nil else { return }
         var config = yamlEngine.getConfig()
 
@@ -302,7 +302,7 @@ class RuleBrowserViewModel {
         bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
-    func setSeverityForSelected(_ severity: Severity, yamlEngine: YAMLConfigurationEngine) {
+    func setSeverityForSelected(_ severity: Severity, yamlEngine: any YAMLConfigurationEngineProtocol) {
         guard (try? yamlEngine.load()) != nil else { return }
         var config = yamlEngine.getConfig()
 
@@ -316,7 +316,7 @@ class RuleBrowserViewModel {
     }
 
     /// Toggle a single rule's enabled/disabled state and show a diff preview.
-    func toggleRule(_ rule: Rule, yamlEngine: YAMLConfigurationEngine) {
+    func toggleRule(_ rule: Rule, yamlEngine: any YAMLConfigurationEngineProtocol) {
         // Temporarily select just this rule and reuse the existing bulk machinery.
         let previousSelection = selectedRuleIds
         selectedRuleIds = [rule.id]
@@ -328,7 +328,7 @@ class RuleBrowserViewModel {
         selectedRuleIds = previousSelection
     }
 
-    func saveBulkChanges(yamlEngine: YAMLConfigurationEngine) throws {
+    func saveBulkChanges(yamlEngine: any YAMLConfigurationEngineProtocol) throws {
         try yamlEngine.load()
         guard let diff = bulkDiff else { return }
 

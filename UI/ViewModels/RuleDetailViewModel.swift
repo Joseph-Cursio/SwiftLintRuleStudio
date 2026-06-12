@@ -63,7 +63,7 @@ class RuleDetailViewModel {
     // MARK: - Properties
 
     let rule: Rule
-    var yamlEngine: YAMLConfigurationEngine?
+    var yamlEngine: (any YAMLConfigurationEngineProtocol)?
 
     // Track original state to detect changes
     private var originalEnabled: Bool
@@ -77,7 +77,7 @@ class RuleDetailViewModel {
 
     // MARK: - Initialization
 
-    init(rule: Rule, yamlEngine: YAMLConfigurationEngine? = nil) {
+    init(rule: Rule, yamlEngine: (any YAMLConfigurationEngineProtocol)? = nil) {
         self.rule = rule
         self.yamlEngine = yamlEngine
 
