@@ -97,6 +97,22 @@ struct SwiftLintCLICachingTests {
         #expect(dir == nil)
     }
 
+    @Test("SwiftLintCLIActor honors an injected CacheManagerProtocol rather than discarding it")
+    func testInjectedCacheManagerIsHonored() async throws {
+        // Regression: the actor used to downcast the injected cache to the concrete
+        // `CacheManager` and fall back to a fresh instance for anything else, so a
+        // `MockCacheManager` was silently dropped. It must now be stored and used.
+        let mock = MockCacheManager()
+        mock.cachedVersion = "9.9.9"
+
+        let cli = SwiftLintCLIActor(cacheManager: mock)
+
+        let stored = await cli.cacheManager
+        let storedMock = try #require(stored as? MockCacheManager)
+        #expect(storedMock === mock)
+        #expect(try storedMock.getCachedSwiftLintVersion() == "9.9.9")
+    }
+
     @Test("CacheManager clears docs directory when clearing cache")
     func testClearDocsCacheRemovesDirectory() throws {
         let cacheManager = createIsolatedCacheManager()

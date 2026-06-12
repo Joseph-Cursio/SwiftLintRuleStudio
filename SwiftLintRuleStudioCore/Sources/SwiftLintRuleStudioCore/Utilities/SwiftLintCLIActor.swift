@@ -85,7 +85,7 @@ public enum SwiftLintError: LocalizedError, Sendable {
 /// generation/caching, version parsing, and the `SwiftLintError` surface that
 /// existing callers and tests expect.
 public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
-    public let cacheManager: CacheManager
+    public let cacheManager: any CacheManagerProtocol
     private let tool: CLIToolActor
     private let fileExists: SwiftLintFileExists
 
@@ -95,13 +95,11 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         fileExists: SwiftLintFileExists? = nil,
         timeoutSeconds: UInt64 = 300
     ) {
-        // Store as concrete CacheManager (a Sendable value type) to avoid
-        // protocol-existential isolation issues crossing the actor boundary.
-        if let provided = cacheManager as? CacheManager {
-            self.cacheManager = provided
-        } else {
-            self.cacheManager = CacheManager()
-        }
+        // Store the injected cache through its protocol. `CacheManagerProtocol` is
+        // `Sendable`, so the existential crosses the actor boundary safely — and an
+        // injected test double (e.g. `MockCacheManager`) is honored rather than being
+        // discarded in favor of a fresh `CacheManager`.
+        self.cacheManager = cacheManager ?? CacheManager()
         self.fileExists = fileExists ?? { FileManager.default.fileExists(atPath: $0) }
 
         // Bridge the SwiftLint-local runner seam to CLIToolActor's. The tool

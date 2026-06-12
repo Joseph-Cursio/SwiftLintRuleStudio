@@ -11,15 +11,20 @@
 import Foundation
 import LintStudioCore
 
+/// Cache operations are `nonisolated`: they are pure filesystem I/O with no shared
+/// mutable state, so conformers (and `any CacheManagerProtocol`) can be used from any
+/// isolation domain — including `SwiftLintCLIActor`. The requirements are marked
+/// explicitly because the Core layer runs under `defaultIsolation(MainActor.self)`,
+/// which would otherwise pin them to the main actor and force callers off the actor.
 public protocol CacheManagerProtocol: Sendable {
-    func loadCachedRules() throws -> [Rule]
-    func saveCachedRules(_ rules: [Rule]) throws
-    func clearCache() throws
-    func getCachedSwiftLintVersion() throws -> String?
-    func saveSwiftLintVersion(_ version: String) throws
-    func getCachedDocsDirectory() -> URL?
-    func saveDocsDirectory(_ url: URL) throws
-    func clearDocsCache() throws
+    nonisolated func loadCachedRules() throws -> [Rule]
+    nonisolated func saveCachedRules(_ rules: [Rule]) throws
+    nonisolated func clearCache() throws
+    nonisolated func getCachedSwiftLintVersion() throws -> String?
+    nonisolated func saveSwiftLintVersion(_ version: String) throws
+    nonisolated func getCachedDocsDirectory() -> URL?
+    nonisolated func saveDocsDirectory(_ url: URL) throws
+    nonisolated func clearDocsCache() throws
 }
 
 public struct CacheManager: CacheManagerProtocol {

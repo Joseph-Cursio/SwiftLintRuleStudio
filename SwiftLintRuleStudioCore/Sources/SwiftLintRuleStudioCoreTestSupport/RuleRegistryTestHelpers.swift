@@ -252,41 +252,41 @@ public final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
 
     public init() {}
 
-    public func loadCachedRules() throws -> [Rule] {
+    nonisolated public func loadCachedRules() throws -> [Rule] {
         if shouldFailLoad {
             throw NSError(domain: "TestError", code: 1)
         }
         return cachedRules
     }
 
-    public func saveCachedRules(_ rules: [Rule]) throws {
+    nonisolated public func saveCachedRules(_ rules: [Rule]) throws {
         if shouldFailSave {
             throw NSError(domain: "TestError", code: 1)
         }
         cachedRules = rules
     }
 
-    public func clearCache() throws {
+    nonisolated public func clearCache() throws {
         cachedRules = []
     }
 
-    public func getCachedSwiftLintVersion() throws -> String? {
+    nonisolated public func getCachedSwiftLintVersion() throws -> String? {
         cachedVersion
     }
 
-    public func saveSwiftLintVersion(_ version: String) throws {
+    nonisolated public func saveSwiftLintVersion(_ version: String) throws {
         cachedVersion = version
     }
 
-    public func getCachedDocsDirectory() -> URL? {
+    nonisolated public func getCachedDocsDirectory() -> URL? {
         cachedDocsDirectory
     }
 
-    public func saveDocsDirectory(_ url: URL) throws {
+    nonisolated public func saveDocsDirectory(_ url: URL) throws {
         cachedDocsDirectory = url
     }
 
-    public func clearDocsCache() throws {
+    nonisolated public func clearDocsCache() throws {
         cachedDocsDirectory = nil
     }
 }
