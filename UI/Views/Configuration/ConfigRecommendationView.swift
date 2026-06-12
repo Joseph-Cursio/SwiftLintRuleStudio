@@ -27,6 +27,10 @@ private struct ConfigBenefitRow: View {
 
 struct ConfigRecommendationView: View {
     var workspaceManager: WorkspaceManager
+    /// Test-only seam to capture the opened URL without launching a browser.
+    /// Production leaves this nil and uses the environment's `openURL`.
+    var openURLOverride: ((URL) -> Void)?
+    @Environment(\.openURL) private var openURL
     @State private var isCreatingConfig: Bool = false
     @State private var showError: Bool = false
     @State private var errorMessage: String?
@@ -117,7 +121,11 @@ struct ConfigRecommendationView: View {
 
             Button("Learn More") {
                 if let url = URL(string: "https://github.com/realm/SwiftLint#configuration") {
-                    NSWorkspace.shared.open(url)
+                    if let openURLOverride {
+                        openURLOverride(url)
+                    } else {
+                        openURL(url)
+                    }
                 }
             }
             .buttonStyle(.bordered)

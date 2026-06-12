@@ -13,6 +13,13 @@ import SwiftUI
 import Testing
 import ViewInspector
 
+/// Records the URL passed to an injected `OpenURLAction` so tests can assert
+/// which URL a button would open without launching the real browser.
+/// Touched only on the main actor inside the tests.
+private final class OpenedURLRecorder: @unchecked Sendable {
+    var capturedURL: URL?
+}
+
 // Interaction tests for ConfigRecommendationView
 // SwiftUI views are implicitly @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution
@@ -151,19 +158,22 @@ struct ConfigRecommendationViewInteractionTests {
             try workspaceManager.openWorkspace(at: tempDir)
         }
 
-        // Recreate the view after workspace setup so state is reflected
-        let view = await MainActor.run {
-            ConfigRecommendationView(workspaceManager: workspaceManager)
-        }
-
-        // Find and tap Learn More button
-        // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
+        // Inject an openURL override so the tap records the URL instead of
+        // opening the real browser. ViewInspector types and `some View` aren't
+        // Sendable, so the view is created, inspected, and tapped in one
+        // MainActor.run block; only the Sendable recorder crosses the boundary.
+        let recorder = OpenedURLRecorder()
         try await MainActor.run {
+            let view = ConfigRecommendationView(workspaceManager: workspaceManager) { url in
+                recorder.capturedURL = url
+            }
             let button = try findButton(in: view, label: "Learn More")
             try button.tap()
         }
 
-        // Note: Opening URL is a system action, we verify the button is tappable (no crash)
-        #expect(true, "Learn More button should open documentation")
+        #expect(
+            recorder.capturedURL == URL(string: "https://github.com/realm/SwiftLint#configuration"),
+            "Learn More button should open the SwiftLint configuration documentation"
+        )
     }
 }
