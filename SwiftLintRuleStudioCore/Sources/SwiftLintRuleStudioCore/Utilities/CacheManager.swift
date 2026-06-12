@@ -58,7 +58,7 @@ public struct CacheManager: CacheManagerProtocol {
     // MARK: - Documentation Directory Caching
 
     nonisolated public func getCachedDocsDirectory() -> URL? {
-        let pathString = (try? cache.loadString(from: docsDirectoryCacheFile)) ?? nil
+        let pathString = try? cache.loadString(from: docsDirectoryCacheFile)
         guard let pathString,
               !pathString.isEmpty,
               FileManager.default.fileExists(atPath: pathString) else {

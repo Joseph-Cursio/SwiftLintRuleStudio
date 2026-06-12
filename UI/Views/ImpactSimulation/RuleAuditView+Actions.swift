@@ -168,8 +168,8 @@ private extension RuleAuditView {
             let analyzerRuleIds = Set(allRules.filter(\.isAnalyzer).map(\.id))
 
             let config = loadConfiguration(for: workspace)
-            let disabledRules = allRules.filter { !RuleAuditView.isRuleEnabled($0, config: config) }
-            let enabledRules = allRules.filter { RuleAuditView.isRuleEnabled($0, config: config) }
+            let disabledRules = allRules.filter { !Self.isRuleEnabled($0, config: config) }
+            let enabledRules = allRules.filter { Self.isRuleEnabled($0, config: config) }
             let disabledRuleIds = disabledRules.map(\.id)
 
             // Count Swift files in workspace

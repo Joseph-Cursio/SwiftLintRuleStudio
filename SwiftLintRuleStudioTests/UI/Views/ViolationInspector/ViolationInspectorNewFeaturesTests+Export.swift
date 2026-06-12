@@ -61,7 +61,7 @@ extension ViolationInspectorNewFeaturesTests {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test_export_\(UUID().uuidString).csv")
 
-        try await exportToCSV(violations: violations, url: tempURL)
+        try exportToCSV(violations: violations, url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         #expect(FileManager.default.fileExists(atPath: tempURL.path))
@@ -101,7 +101,7 @@ extension ViolationInspectorNewFeaturesTests {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("test_export_\(UUID().uuidString).csv")
 
-        try await exportToCSV(violations: [violationWithSpecialChars], url: tempURL)
+        try exportToCSV(violations: [violationWithSpecialChars], url: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         let csv = try String(contentsOf: tempURL, encoding: .utf8)

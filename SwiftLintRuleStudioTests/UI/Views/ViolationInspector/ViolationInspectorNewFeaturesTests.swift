@@ -133,7 +133,7 @@ struct ViolationInspectorNewFeaturesTests {
         try data.write(to: url)
     }
 
-    func exportToCSV(violations: [Violation], url: URL) async throws {
+    func exportToCSV(violations: [Violation], url: URL) throws {
         let csv = CSVReportGenerator.generate(violations: violations)
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
