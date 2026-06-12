@@ -8,11 +8,25 @@
 import Foundation
 import LintStudioCore
 
+/// Output of a SwiftLint command: standard output, standard error, and the
+/// process exit code (which drives the exit-code policy).
+public struct SwiftLintCommandOutput: Sendable {
+    public let stdout: Data
+    public let stderr: Data
+    public let exitCode: Int32
+
+    nonisolated public init(stdout: Data, stderr: Data, exitCode: Int32) {
+        self.stdout = stdout
+        self.stderr = stderr
+        self.exitCode = exitCode
+    }
+}
+
 /// Closure type for running SwiftLint commands. Receives the command name and
-/// arguments, returns `(stdout, stderr, exitCode)`. Injected in tests to return
-/// canned fixtures (including a chosen exit code, which drives the exit-code
-/// policy) without launching a process.
-public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async throws -> (Data, Data, Int32)
+/// arguments, returns the command output. Injected in tests to return canned
+/// fixtures (including a chosen exit code, which drives the exit-code policy)
+/// without launching a process.
+public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async throws -> SwiftLintCommandOutput
 /// Closure type for checking file existence
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
 
@@ -96,7 +110,8 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         var bridgedRunner: CLIToolCommandRunner?
         if let commandRunner {
             bridgedRunner = { arguments, _ in
-                try await commandRunner("swiftlint", arguments)
+                let output = try await commandRunner("swiftlint", arguments)
+                return (output.stdout, output.stderr, output.exitCode)
             }
         }
 

@@ -16,7 +16,7 @@ struct SwiftLintCLIShellOutputTests {
     @Test("SwiftLintCLIActor treats exit 127 as notFound")
     func testCommandNotFoundError() async {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data(), Data("swiftlint: command not found".utf8), 127)
+            SwiftLintCommandOutput(stdout: Data(), stderr: Data("swiftlint: command not found".utf8), exitCode: 127)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -40,7 +40,7 @@ struct SwiftLintCLIShellOutputTests {
     @Test("SwiftLintCLIActor treats a non-success exit code as executionFailed")
     func testExecutionFailedOnNonSuccessExit() async {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data(), Data("error: bad things happened".utf8), 70)
+            SwiftLintCommandOutput(stdout: Data(), stderr: Data("error: bad things happened".utf8), exitCode: 70)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -64,7 +64,7 @@ struct SwiftLintCLIShellOutputTests {
     @Test("SwiftLintCLIActor treats exit 0 as success regardless of stderr")
     func testWarningStderrDoesNotFail() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data("ok".utf8), Data("warning: something".utf8), 0)
+            SwiftLintCommandOutput(stdout: Data("ok".utf8), stderr: Data("warning: something".utf8), exitCode: 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -76,7 +76,11 @@ struct SwiftLintCLIShellOutputTests {
     @Test("SwiftLintCLIActor treats exit 2 (serious violations) as success")
     func testExitTwoTreatedAsSuccess() async throws {
         let runner: SwiftLintCommandRunner = { _, _ in
-            (Data("ok".utf8), Data("error: is not a valid rule identifier".utf8), 2)
+            SwiftLintCommandOutput(
+                stdout: Data("ok".utf8),
+                stderr: Data("error: is not a valid rule identifier".utf8),
+                exitCode: 2
+            )
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }

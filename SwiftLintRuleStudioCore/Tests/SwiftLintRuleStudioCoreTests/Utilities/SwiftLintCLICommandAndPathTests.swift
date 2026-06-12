@@ -16,7 +16,7 @@ struct SwiftLintCLICommandAndPathTests {
         let recorder = CommandRecorderActor()
         let runner: SwiftLintCommandRunner = { command, arguments in
             await recorder.record(command, arguments)
-            return (Data("[]".utf8), Data(), 0)
+            return SwiftLintCommandOutput(stdout: Data("[]".utf8), stderr: Data(), exitCode: 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
@@ -34,7 +34,7 @@ struct SwiftLintCLICommandAndPathTests {
         let recorder = CommandRecorderActor()
         let runner: SwiftLintCommandRunner = { command, arguments in
             await recorder.record(command, arguments)
-            return (Data("[]".utf8), Data(), 0)
+            return SwiftLintCommandOutput(stdout: Data("[]".utf8), stderr: Data(), exitCode: 0)
         }
 
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
