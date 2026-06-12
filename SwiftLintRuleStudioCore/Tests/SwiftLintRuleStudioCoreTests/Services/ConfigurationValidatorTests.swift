@@ -266,4 +266,61 @@ struct ConfigurationValidatorTests {
         #expect(result.errors.isEmpty)
         #expect(result.warnings.isEmpty)
     }
+
+    // MARK: - Rule registry injection (validate(_:) derives known IDs from the registry)
+
+    @Test("validate(_:) derives known rule IDs from an injected registry stub")
+    func testValidateDerivesKnownRuleIdsFromRegistry() {
+        let registry = StubRuleRegistry(ruleIds: ["force_cast", "line_length"])
+        let validator = ConfigurationValidator(ruleRegistry: registry)
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.rules["force_cast"] = RuleConfiguration(enabled: true)
+        config.rules["unknown_rule"] = RuleConfiguration(enabled: true)
+
+        // Single-arg validate(_:) pulls knownRuleIds from the registry stub.
+        let result = validator.validate(config)
+
+        let unknownWarnings = result.warnings.filter { $0.message.contains("Unknown") }
+        #expect(unknownWarnings.count == 1)
+        #expect(unknownWarnings.first?.field == .rule("unknown_rule"))
+    }
+
+    @Test("validate(_:) with no registry treats every rule ID as known (no unknown warnings)")
+    func testValidateWithoutRegistryEmitsNoUnknownWarnings() {
+        // Control: with no registry the derived knownRuleIds is empty, which the
+        // validator treats as "rule set unknown" and suppresses unknown-rule warnings.
+        // Proves the stub above is what supplies the rule knowledge.
+        let validator = ConfigurationValidator()
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.rules["unknown_rule"] = RuleConfiguration(enabled: true)
+
+        let result = validator.validate(config)
+
+        #expect(result.warnings.contains { $0.message.contains("Unknown") } == false)
+    }
+}
+
+/// A lightweight `RuleRegistryProtocol` stub — possible only because
+/// `ConfigurationValidator` now depends on the protocol rather than the concrete
+/// `@Observable RuleRegistry`. Returns a fixed rule set; the async/lookup members are
+/// unused by the validator and given trivial implementations.
+@MainActor
+private final class StubRuleRegistry: RuleRegistryProtocol {
+    let rules: [Rule]
+
+    init(ruleIds: [String]) {
+        self.rules = ruleIds.map { ruleId in
+            Rule(
+                id: ruleId,
+                name: ruleId,
+                description: "",
+                category: .style,
+                isOptIn: false
+            )
+        }
+    }
+
+    func loadRules() async throws -> [Rule] { rules }
+    func getRule(id: String) -> Rule? { rules.first { $0.id == id } }
+    func refreshRules() async throws {}
 }

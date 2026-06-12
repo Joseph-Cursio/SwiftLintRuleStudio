@@ -99,9 +99,15 @@ public protocol ConfigurationValidatorProtocol {
 
 /// Service for validating SwiftLint configurations in real-time
 public class ConfigurationValidator: ConfigurationValidatorProtocol {
-    private let ruleRegistry: RuleRegistry?
+    /// The rule registry, referenced through its protocol so the validator can be
+    /// exercised with a stub in tests. This is the non-observing consumer of the
+    /// registry — it reads `rules` once per validation and never tracks changes — so
+    /// unlike SwiftUI views it can safely depend on `any RuleRegistryProtocol` rather
+    /// than the concrete `@Observable RuleRegistry` (whose observation tracking only
+    /// works through the concrete type).
+    private let ruleRegistry: (any RuleRegistryProtocol)?
 
-    public init(ruleRegistry: RuleRegistry? = nil) {
+    public init(ruleRegistry: (any RuleRegistryProtocol)? = nil) {
         self.ruleRegistry = ruleRegistry
     }
 
