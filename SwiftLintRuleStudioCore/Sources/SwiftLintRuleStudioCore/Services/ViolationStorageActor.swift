@@ -6,11 +6,6 @@
 //
 
 import Foundation
-import SQLite3
-
-// kSqliteTransient is a function pointer constant that tells SQLite to copy the string
-// In Swift, we need to define it ourselves
-private let kSqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Protocol for violation storage operations
 /// All methods are async, so callers properly await across isolation boundaries
@@ -51,10 +46,9 @@ public actor ViolationStorageActor: ViolationStorageProtocol {
 
     public let databasePath: URL
     public let useInMemory: Bool
-    // nonisolated(unsafe) is required because OpaquePointer is not Sendable.
-    // Mutated only by actor-isolated closeDatabase() and non-isolated deinit
-    // (which runs after all actor tasks complete).
-    nonisolated(unsafe) var database: OpaquePointer?
+    /// The SQLite connection. `SQLiteDatabase` owns the raw handle and closes it when
+    /// released, so the actor needs no manual `deinit` and no `OpaquePointer` of its own.
+    var database: SQLiteDatabase?
 
     // MARK: - Initialization
 
@@ -62,20 +56,8 @@ public actor ViolationStorageActor: ViolationStorageProtocol {
         self.useInMemory = useInMemory
 
         self.databasePath = try Self.resolveDatabasePath(databasePath: databasePath, useInMemory: useInMemory)
-        let databaseHandle = try Self.openDatabase(at: self.databasePath, useInMemory: useInMemory)
-        try Self.createSchema(in: databaseHandle)
-        self.database = databaseHandle
+        let connection = try SQLiteDatabase.open(at: self.databasePath, useInMemory: useInMemory)
+        try Self.createSchema(in: connection)
+        self.database = connection
     }
-
-    deinit {
-        // Use sqlite3_close_v2 which safely defers closing until all outstanding
-        // statements are finalized — avoids "illegal multi-threaded access" when
-        // deinit runs on a thread pool thread while statements are still pending.
-        if let handle = database {
-            sqlite3_close_v2(handle)
-        }
-    }
-
-    // MARK: - ViolationStorageProtocol
-
 }

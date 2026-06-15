@@ -1,5 +1,4 @@
 import Foundation
-import SQLite3
 
 extension ViolationStorageActor {
     /// Resolve the database file path, using in-memory or default location as needed
@@ -17,35 +16,8 @@ extension ViolationStorageActor {
         return dbDir.appendingPathComponent("violations.db")
     }
 
-    /// Open a SQLite database at the given path
-    public static func openDatabase(at path: URL, useInMemory: Bool) throws -> OpaquePointer {
-        let dbPath: String = useInMemory ? ":memory:" : path.path
-        if !useInMemory {
-            let parentDir = path.deletingLastPathComponent()
-            if !FileManager.default.fileExists(atPath: parentDir.path) {
-                throw ViolationStorageError.databaseOpenFailed("Database directory does not exist: \(parentDir.path)")
-            }
-        }
-
-        var dbHandle: OpaquePointer?
-        let result = sqlite3_open(dbPath, &dbHandle)
-        guard result == SQLITE_OK else {
-            let errorMsg = dbHandle != nil
-                ? String(cString: sqlite3_errmsg(dbHandle))
-                : "Unknown error (code: \(result))"
-            if dbHandle != nil {
-                sqlite3_close(dbHandle)
-            }
-            throw ViolationStorageError.databaseOpenFailed("Failed to open database at '\(dbPath)': \(errorMsg)")
-        }
-        guard let databaseHandle = dbHandle else {
-            throw ViolationStorageError.databaseNotOpen
-        }
-        return databaseHandle
-    }
-
     /// Create the violations database schema if it does not already exist
-    public static func createSchema(in databaseHandle: OpaquePointer) throws {
+    static func createSchema(in database: SQLiteDatabase) throws {
         let createViolationsTable = """
         CREATE TABLE IF NOT EXISTS violations (
             id TEXT PRIMARY KEY,
@@ -71,24 +43,7 @@ extension ViolationStorageActor {
         CREATE INDEX IF NOT EXISTS idx_violations_workspace_rule ON violations(workspace_id, rule_id);
         """
 
-        try executeInitSQL(createViolationsTable, on: databaseHandle)
-        try executeInitSQL(createIndexes, on: databaseHandle)
-    }
-
-    private static func executeInitSQL(_ sql: String, on databaseHandle: OpaquePointer) throws {
-        var statement: OpaquePointer?
-        defer {
-            if let stmt = statement {
-                sqlite3_finalize(stmt)
-            }
-        }
-        guard sqlite3_prepare_v2(databaseHandle, sql, -1, &statement, nil) == SQLITE_OK else {
-            let errorMsg = String(cString: sqlite3_errmsg(databaseHandle))
-            throw ViolationStorageError.sqlError(errorMsg)
-        }
-        guard sqlite3_step(statement) == SQLITE_DONE else {
-            let errorMsg = String(cString: sqlite3_errmsg(databaseHandle))
-            throw ViolationStorageError.sqlError(errorMsg)
-        }
+        try database.execute(createViolationsTable)
+        try database.execute(createIndexes)
     }
 }

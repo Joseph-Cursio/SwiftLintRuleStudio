@@ -1,5 +1,4 @@
 import Foundation
-import SQLite3
 
 extension ViolationStorageActor {
     /// Fetch violations matching the given filter criteria
@@ -7,7 +6,7 @@ extension ViolationStorageActor {
         filter: ViolationFilter,
         workspaceId: UUID?
     ) throws -> [Violation] {
-        guard let handle = database else {
+        guard let database else {
             throw ViolationStorageError.databaseNotOpen
         }
         let query = buildFilterQuery(filter: filter, workspaceId: workspaceId)
@@ -18,28 +17,15 @@ extension ViolationStorageActor {
             "ORDER BY detected_at DESC;"
         ].joined(separator: " ")
 
-        var statement: OpaquePointer?
-        defer {
-            if statement != nil {
-                sqlite3_finalize(statement)
-            }
-        }
-
-        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
-        }
-
-        let bindError = "Failed to allocate memory for parameter"
-        try bindParameters(query.parameters, to: statement, errorMessagePrefix: bindError)
+        let statement = try database.prepare(sql)
+        bindParameters(query.parameters, to: statement)
 
         var violations: [Violation] = []
-
-        while sqlite3_step(statement) == SQLITE_ROW {
+        while statement.step() == .row {
             if let violation = parseViolation(from: statement) {
                 violations.append(violation)
             }
         }
-
         return violations
     }
 
@@ -48,31 +34,19 @@ extension ViolationStorageActor {
         filter: ViolationFilter,
         workspaceId: UUID?
     ) throws -> Int {
-        guard let handle = database else {
+        guard let database else {
             throw ViolationStorageError.databaseNotOpen
         }
         let query = buildFilterQuery(filter: filter, workspaceId: workspaceId)
         let sql = "SELECT COUNT(*) FROM violations \(query.whereClause);"
 
-        var statement: OpaquePointer?
-        defer {
-            if statement != nil {
-                sqlite3_finalize(statement)
-            }
+        let statement = try database.prepare(sql)
+        bindParameters(query.parameters, to: statement)
+
+        guard statement.step() == .row else {
+            throw ViolationStorageError.sqlError(database.lastErrorMessage)
         }
-
-        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
-        }
-
-        let countError = "Failed to allocate memory for count parameter"
-        try bindParameters(query.parameters, to: statement, errorMessagePrefix: countError)
-
-        guard sqlite3_step(statement) == SQLITE_ROW else {
-            throw ViolationStorageError.sqlError(String(cString: sqlite3_errmsg(handle)))
-        }
-
-        return Int(sqlite3_column_int(statement, 0))
+        return statement.columnInt(at: 0)
     }
 
     private struct FilterQuery {
@@ -122,22 +96,15 @@ extension ViolationStorageActor {
         return FilterQuery(whereClause: whereClause, parameters: parameters)
     }
 
-    private func bindParameters(
-        _ parameters: [Any],
-        to statement: OpaquePointer?,
-        errorMessagePrefix: String
-    ) throws {
+    private func bindParameters(_ parameters: [Any], to statement: SQLiteStatement) {
         for (index, param) in parameters.enumerated() {
             let bindIndex = Int32(index + 1)
             if let string = param as? String {
-                guard let stringCString = strdup(string) else {
-                    throw ViolationStorageError.sqlError("\(errorMessagePrefix) \(bindIndex)")
-                }
-                sqlite3_bind_text(statement, bindIndex, stringCString, -1, free)
+                statement.bind(string, at: bindIndex)
             } else if let int = param as? Int {
-                sqlite3_bind_int(statement, bindIndex, Int32(int))
+                statement.bind(Int32(int), at: bindIndex)
             } else if let double = param as? Double {
-                sqlite3_bind_double(statement, bindIndex, double)
+                statement.bind(double, at: bindIndex)
             }
         }
     }
@@ -156,36 +123,36 @@ extension ViolationStorageActor {
         static let suppressionReason: Int32 = 11
     }
 
-    private func parseViolation(from statement: OpaquePointer?) -> Violation? {
-        guard let idString = sqlite3_column_text(statement, ColumnIndex.violationId),
-              let id = UUID(uuidString: String(cString: idString)),
-              let ruleID = sqlite3_column_text(statement, ColumnIndex.ruleId),
-              let filePath = sqlite3_column_text(statement, ColumnIndex.filePath),
-              let severityString = sqlite3_column_text(statement, ColumnIndex.severity),
-              let message = sqlite3_column_text(statement, ColumnIndex.message) else {
+    private func parseViolation(from statement: SQLiteStatement) -> Violation? {
+        guard let idString = statement.columnText(at: ColumnIndex.violationId),
+              let id = UUID(uuidString: idString),
+              let ruleID = statement.columnText(at: ColumnIndex.ruleId),
+              let filePath = statement.columnText(at: ColumnIndex.filePath),
+              let severityString = statement.columnText(at: ColumnIndex.severity),
+              let message = statement.columnText(at: ColumnIndex.message) else {
             return nil
         }
 
-        let line = Int(sqlite3_column_int(statement, ColumnIndex.line))
-        let column = sqlite3_column_type(statement, ColumnIndex.column) == SQLITE_NULL
+        let line = statement.columnInt(at: ColumnIndex.line)
+        let column = statement.columnIsNull(at: ColumnIndex.column)
             ? nil
-            : Int(sqlite3_column_int(statement, ColumnIndex.column))
-        let detectedAt = Date(timeIntervalSince1970: sqlite3_column_double(statement, ColumnIndex.detectedAt))
-        let resolvedAt = sqlite3_column_type(statement, ColumnIndex.resolvedAt) == SQLITE_NULL
+            : statement.columnInt(at: ColumnIndex.column)
+        let detectedAt = Date(timeIntervalSince1970: statement.columnDouble(at: ColumnIndex.detectedAt))
+        let resolvedAt = statement.columnIsNull(at: ColumnIndex.resolvedAt)
             ? nil
-            : Date(timeIntervalSince1970: sqlite3_column_double(statement, ColumnIndex.resolvedAt))
-        let suppressed = sqlite3_column_int(statement, ColumnIndex.suppressed) != 0
-        let suppressionReason = sqlite3_column_type(statement, ColumnIndex.suppressionReason) == SQLITE_NULL
+            : Date(timeIntervalSince1970: statement.columnDouble(at: ColumnIndex.resolvedAt))
+        let suppressed = statement.columnInt(at: ColumnIndex.suppressed) != 0
+        let suppressionReason = statement.columnIsNull(at: ColumnIndex.suppressionReason)
             ? nil
-            : String(cString: sqlite3_column_text(statement, ColumnIndex.suppressionReason))
-        let severity = Severity(rawValue: String(cString: severityString)) ?? .warning
+            : statement.columnText(at: ColumnIndex.suppressionReason)
+        let severity = Severity(rawValue: severityString) ?? .warning
 
         return Violation(
-            ruleID: String(cString: ruleID),
-            filePath: String(cString: filePath),
+            ruleID: ruleID,
+            filePath: filePath,
             line: line,
             severity: severity,
-            message: String(cString: message),
+            message: message,
             id: id,
             column: column,
             detectedAt: detectedAt,

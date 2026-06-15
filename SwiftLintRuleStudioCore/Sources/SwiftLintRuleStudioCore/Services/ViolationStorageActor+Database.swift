@@ -1,38 +1,18 @@
 import Foundation
-import SQLite3
 
 public extension ViolationStorageActor {
     /// Closes the SQLite database connection
     func closeDatabase() {
-        if let handle = database {
-            sqlite3_close(handle)
-            database = nil
-        }
+        database?.close()
+        database = nil
     }
 
-    /// Executes a raw SQL statement against the database
-    func executeSQL(_ sql: String, dbHandle: OpaquePointer? = nil) throws {
-        let resolved = dbHandle ?? database
-        guard let handle = resolved else {
+    /// Executes a raw SQL statement against the database, expecting it to complete
+    /// without producing rows.
+    func executeSQL(_ sql: String) throws {
+        guard let database else {
             throw ViolationStorageError.databaseNotOpen
         }
-
-        var statement: OpaquePointer?
-        defer {
-            if statement != nil {
-                sqlite3_finalize(statement)
-            }
-        }
-
-        guard sqlite3_prepare_v2(handle, sql, -1, &statement, nil) == SQLITE_OK else {
-            let errorMsg = String(cString: sqlite3_errmsg(handle))
-            throw ViolationStorageError.sqlError(errorMsg)
-        }
-
-        let stepResult = sqlite3_step(statement)
-        guard stepResult == SQLITE_DONE else {
-            let errorMsg = String(cString: sqlite3_errmsg(handle))
-            throw ViolationStorageError.sqlError(errorMsg)
-        }
+        try database.execute(sql)
     }
 }
