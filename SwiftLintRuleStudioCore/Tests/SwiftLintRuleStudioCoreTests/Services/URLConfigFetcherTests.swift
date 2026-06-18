@@ -64,40 +64,10 @@ struct URLConfigFetcherValidateURLTests {
 }
 
 // MARK: - resolveToRawURL
-
-@Suite("URLConfigFetcher.resolveToRawURL")
-struct URLConfigFetcherResolveURLTests {
-
-    @Test("rewrites github.com /blob/ URLs to raw.githubusercontent.com")
-    func rewritesGithubBlobURL() throws {
-        let blob = try #require(URL(string: "https://github.com/realm/SwiftLint/blob/main/.swiftlint.yml"))
-        let raw = URLConfigFetcher.resolveToRawURL(blob)
-        #expect(raw.host == "raw.githubusercontent.com")
-        #expect(raw.path == "/realm/SwiftLint/main/.swiftlint.yml")
-        #expect(raw.scheme == "https")
-    }
-
-    @Test("rewrites gist.github.com URLs to gist.githubusercontent.com/.../raw")
-    func rewritesGistURL() throws {
-        let gist = try #require(URL(string: "https://gist.github.com/alice/abc123"))
-        let raw = URLConfigFetcher.resolveToRawURL(gist)
-        #expect(raw.host == "gist.githubusercontent.com")
-        #expect(raw.path == "/alice/abc123/raw")
-    }
-
-    @Test("leaves already-raw gist URLs untouched")
-    func leavesRawGistAlone() throws {
-        let alreadyRaw = try #require(URL(string: "https://gist.github.com/alice/abc123/raw"))
-        let resolved = URLConfigFetcher.resolveToRawURL(alreadyRaw)
-        #expect(resolved == alreadyRaw)
-    }
-
-    @Test("leaves unrelated https URLs untouched")
-    func leavesOtherHostsAlone() throws {
-        let url = try #require(URL(string: "https://example.com/path/.swiftlint.yml"))
-        #expect(URLConfigFetcher.resolveToRawURL(url) == url)
-    }
-}
+//
+// The resolveToRawURL suite (including the idempotence property) lives in
+// URLConfigFetcherResolveURLTests.swift — split out to keep this file under
+// the file_length limit.
 
 // MARK: - fetchConfig (stubbed network)
 
