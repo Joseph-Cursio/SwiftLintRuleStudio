@@ -45,8 +45,9 @@ struct ImpactSimulatorOverridesTests {
         // Capture the temp config's contents at lint time, before the simulator
         // deletes it via its `defer` cleanup.
         let captured = CapturedConfig()
-        await mockCLI.setLintCommandHandler { @Sendable configPath, _ in
-            if let configPath, let text = try? String(contentsOf: configPath, encoding: .utf8) {
+        await mockCLI.setLintCommandHandler { @Sendable _, workspacePath in
+            let rootConfigPath = workspacePath.appendingPathComponent(".swiftlint.yml")
+            if let text = try? String(contentsOf: rootConfigPath, encoding: .utf8) {
                 await captured.set(text)
             }
             return Data("[]".utf8)
@@ -93,8 +94,9 @@ struct ImpactSimulatorOverridesTests {
         let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: [])
 
         let captured = CapturedConfig()
-        await mockCLI.setLintCommandHandler { @Sendable configPath, _ in
-            if let configPath, let text = try? String(contentsOf: configPath, encoding: .utf8) {
+        await mockCLI.setLintCommandHandler { @Sendable _, workspacePath in
+            let rootConfigPath = workspacePath.appendingPathComponent(".swiftlint.yml")
+            if let text = try? String(contentsOf: rootConfigPath, encoding: .utf8) {
                 await captured.set(text)
             }
             return Data("[]".utf8)

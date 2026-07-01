@@ -66,14 +66,14 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
     // MARK: - Properties
 
     private let swiftLintCLI: SwiftLintCLIProtocol
-    private let fileManager: FileManager
+    private let workspaceBuilder: SimulationWorkspaceBuilder
 
     // MARK: - Initialization
 
     /// Creates a simulator backed by the given SwiftLint CLI and file manager
     public init(swiftLintCLI: SwiftLintCLIProtocol, fileManager: FileManager = .default) {
         self.swiftLintCLI = swiftLintCLI
-        self.fileManager = fileManager
+        self.workspaceBuilder = SimulationWorkspaceBuilder(fileManager: fileManager)
     }
 
     // MARK: - Single Rule Simulation
@@ -90,47 +90,58 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         baseConfigPath: URL?,
         options: RuleSimulationOptions = RuleSimulationOptions()
     ) async throws -> RuleImpactResult {
-        let startTime = Date.now
+        // Mirror the workspace once, enable the rule everywhere, lint the mirror.
+        let shadow = try workspaceBuilder.makeWorkspace(for: workspace, baseConfigPath: baseConfigPath)
+        defer { shadow.cleanup() }
 
-        // Create temporary config with rule enabled
-        let tempConfigPath = try createTemporaryConfig(
-            ruleId: ruleId,
-            enabled: true,
-            baseConfigPath: baseConfigPath,
-            workspace: workspace,
+        return try await measureRule(
+            ruleId,
+            on: shadow,
             isOptIn: options.isOptIn,
             isAnalyzer: options.isAnalyzer,
             parameterOverrides: options.parameterOverrides
         )
+    }
 
-        defer {
-            // Clean up temporary config
-            try? fileManager.removeItem(at: tempConfigPath)
-        }
+    /// Enables `ruleId` across the mirror's configs, lints it, and tallies the
+    /// violations attributable to that rule. Shared by single and batch paths so
+    /// a batch audit can reuse one mirror across many rules.
+    private func measureRule(
+        _ ruleId: String,
+        on shadow: SimulationWorkspace,
+        isOptIn: Bool,
+        isAnalyzer: Bool,
+        parameterOverrides: [String: AnyCodable]?
+    ) async throws -> RuleImpactResult {
+        let startTime = Date.now
 
-        // Run SwiftLint with temporary config
-        let lintData = try await swiftLintCLI.executeLintCommand(
-            configPath: tempConfigPath,
-            workspacePath: workspace.path
+        try shadow.applyRule(
+            ruleId,
+            isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
+            parameterOverrides: parameterOverrides
         )
 
-        // Parse violations
-        let allViolations = try parseViolations(from: lintData, workspacePath: workspace.path)
+        // `.effective` mode with `cwd` = the mirror root: SwiftLint discovers the
+        // mirror's (rule-enabled) root and nested configs itself. `configPath` is
+        // deliberately nil — passing `--config` would disable nested resolution.
+        let lintData = try await swiftLintCLI.executeLintCommand(
+            configPath: nil,
+            workspacePath: shadow.root
+        )
 
-        // Filter to only violations for this specific rule
+        // Paths come back rooted at the mirror; stripping that prefix yields the
+        // same workspace-relative paths the real workspace would produce.
+        let allViolations = try parseViolations(from: lintData, workspacePath: shadow.root)
         let ruleViolations = allViolations.filter { $0.ruleID == ruleId }
-
-        // Extract affected files
         let affectedFiles = Set(ruleViolations.map(\.filePath))
-
-        let duration = Date.now.timeIntervalSince(startTime)
 
         return RuleImpactResult(
             ruleId: ruleId,
             violationCount: ruleViolations.count,
             violations: ruleViolations,
             affectedFiles: affectedFiles,
-            simulationDuration: duration
+            simulationDuration: Date.now.timeIntervalSince(startTime)
         )
     }
 
@@ -153,19 +164,21 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         let startTime = Date.now
         var results: [RuleImpactResult] = []
 
+        // Mirror the workspace once; each rule only rewrites the mirror's configs.
+        let shadow = try workspaceBuilder.makeWorkspace(for: workspace, baseConfigPath: baseConfigPath)
+        defer { shadow.cleanup() }
+
         for (index, ruleId) in ruleIds.enumerated() {
             // Report progress
             progressHandler?(index, ruleIds.count, ruleId)
 
             do {
-                let result = try await simulateRule(
-                    ruleId: ruleId,
-                    workspace: workspace,
-                    baseConfigPath: baseConfigPath,
-                    options: RuleSimulationOptions(
-                        isOptIn: classification.optInRuleIds.contains(ruleId),
-                        isAnalyzer: classification.analyzerRuleIds.contains(ruleId)
-                    )
+                let result = try await measureRule(
+                    ruleId,
+                    on: shadow,
+                    isOptIn: classification.optInRuleIds.contains(ruleId),
+                    isAnalyzer: classification.analyzerRuleIds.contains(ruleId),
+                    parameterOverrides: nil
                 )
                 results.append(result)
             } catch {
@@ -220,126 +233,6 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
     }
 
     // MARK: - Helper Methods
-
-    /// Create a temporary SwiftLint configuration with a specific rule enabled
-    private func createTemporaryConfig(
-        ruleId: String,
-        enabled _: Bool,
-        baseConfigPath: URL?,
-        workspace: Workspace,
-        isOptIn: Bool,
-        isAnalyzer: Bool = false,
-        parameterOverrides: [String: AnyCodable]? = nil
-    ) throws -> URL {
-        let tempDir = fileManager.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        let tempConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
-
-        let configPathToUse = baseConfigPath
-            ?? workspace.configPath
-            ?? workspace.path.appendingPathComponent(".swiftlint.yml")
-        let yamlEngine = YAMLConfigurationEngine(configPath: configPathToUse)
-        if fileManager.fileExists(atPath: configPathToUse.path) {
-            try yamlEngine.load()
-        }
-
-        var config = yamlEngine.getConfig()
-        config.excluded = resolveExclusions(config.excluded, workspace: workspace)
-        config.included = resolveInclusions(config.included, workspace: workspace)
-        enableRule(
-            ruleId,
-            in: &config,
-            isOptIn: isOptIn,
-            isAnalyzer: isAnalyzer,
-            parameterOverrides: parameterOverrides
-        )
-
-        let tempEngine = YAMLConfigurationEngine(configPath: tempConfigPath)
-        tempEngine.updateConfig(config)
-        try tempEngine.save(config: config, createBackup: false)
-        return tempConfigPath
-    }
-
-    /// Build artifacts must be excluded so simulations don't count violations in
-    /// them. The temp config lives outside the workspace, so relative paths are
-    /// made absolute. Known default dirs (`.build`, …) become a
-    /// `<workspace>/**/<name>` glob — excluded at any depth (nested SPM packages
-    /// too), where a bare `<workspace>/.build` would miss them.
-    private func resolveExclusions(_ existing: [String]?, workspace: Workspace) -> [String] {
-        let merged = DefaultExclusions.mergedWith(existing: existing)
-        let defaultDirectories = Set(DefaultExclusions.directories)
-        let basePath = workspace.path.path
-        return merged.map { entry in
-            if entry.hasPrefix("/") {
-                return entry
-            }
-            if defaultDirectories.contains(entry) {
-                return "\(basePath)/**/\(entry)"
-            }
-            return workspace.path.appendingPathComponent(entry).path
-        }
-    }
-
-    /// Same problem as `resolveExclusions`, but for `included:` — without this,
-    /// relative paths like `Sources` / `Tests` are looked up under the temp
-    /// directory and SwiftLint silently finds nothing to lint, so every
-    /// simulated rule reports zero violations.
-    private func resolveInclusions(_ existing: [String]?, workspace: Workspace) -> [String]? {
-        guard let existing else { return nil }
-        return existing.map { entry in
-            entry.hasPrefix("/") ? entry : workspace.path.appendingPathComponent(entry).path
-        }
-    }
-
-    private func enableRule(
-        _ ruleId: String,
-        in config: inout YAMLConfigurationEngine.YAMLConfig,
-        isOptIn: Bool,
-        isAnalyzer: Bool,
-        parameterOverrides: [String: AnyCodable]? = nil
-    ) {
-        var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
-        ruleConfig.enabled = true
-        // When the caller supplies parameter overrides (e.g. unsaved values
-        // from the rule-detail editor), merge them onto whatever was loaded
-        // from the workspace YAML so SwiftLint lints with the user's current
-        // intent rather than the persisted values.
-        if let overrides = parameterOverrides, !overrides.isEmpty {
-            var merged = ruleConfig.parameters ?? [:]
-            for (key, value) in overrides {
-                merged[key] = value
-            }
-            ruleConfig.parameters = merged
-        }
-        config.rules[ruleId] = ruleConfig
-
-        // SwiftLint only honors analyzer-only rules when listed under
-        // analyzer_rules; opt-in rules need opt_in_rules.
-        if isAnalyzer {
-            appendUnique(ruleId, to: &config.analyzerRules)
-        } else if isOptIn {
-            appendUnique(ruleId, to: &config.optInRules)
-        }
-
-        if config.onlyRules != nil {
-            appendUnique(ruleId, to: &config.onlyRules)
-        }
-
-        if var disabledRules = config.disabledRules {
-            disabledRules.removeAll { $0 == ruleId }
-            config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
-        }
-    }
-
-    private func appendUnique(_ ruleId: String, to list: inout [String]?) {
-        var current = list ?? []
-        if !current.contains(ruleId) {
-            current.append(ruleId)
-            list = current
-        }
-    }
 
     /// Parse violations from SwiftLint JSON output
     private func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {

@@ -12,8 +12,8 @@ import Testing
 
 struct ImpactSimulatorRoutingTests {
 
-    /// Loads the temp YAML config the simulator wrote before its defer-cleanup
-    /// removes it, and stashes the parsed YAMLConfig for assertions.
+    /// Loads the mirror's root YAML config the simulator wrote before its
+    /// defer-cleanup removes it, and stashes the parsed YAMLConfig for assertions.
     private actor LoadedConfigStore {
         private(set) var configs: [YAMLConfigurationEngine.YAMLConfig] = []
 
@@ -22,25 +22,28 @@ struct ImpactSimulatorRoutingTests {
         }
     }
 
-    /// Wire a mock CLI that loads the temp config from disk inside the lint
-    /// handler (before the simulator's defer cleanup runs) and stores it.
+    /// Wire a mock CLI that loads the mirror's root config from disk inside the
+    /// lint handler (before the simulator's defer cleanup runs) and stores it.
+    ///
+    /// The simulator now lints a shadow *workspace* rather than a lone `--config`
+    /// file: it passes `configPath: nil` and hands the mirror root as the
+    /// workspace path, with the rule-enabled config at `<root>/.swiftlint.yml`.
     private static func makeConfigSnapshotCLI() async -> (MockSwiftLintCLIActor, LoadedConfigStore) {
         let store = LoadedConfigStore()
         let mockCLI = MockSwiftLintCLIActor()
-        await mockCLI.setLintCommandHandler { @Sendable configPath, _ in
-            if let path = configPath {
-                let captured = await MainActor.run { () -> YAMLConfigurationEngine.YAMLConfig? in
-                    let engine = YAMLConfigurationEngine(configPath: path)
-                    do {
-                        try engine.load()
-                        return engine.getConfig()
-                    } catch {
-                        return nil
-                    }
+        await mockCLI.setLintCommandHandler { @Sendable _, workspacePath in
+            let rootConfigPath = workspacePath.appendingPathComponent(".swiftlint.yml")
+            let captured = await MainActor.run { () -> YAMLConfigurationEngine.YAMLConfig? in
+                let engine = YAMLConfigurationEngine(configPath: rootConfigPath)
+                do {
+                    try engine.load()
+                    return engine.getConfig()
+                } catch {
+                    return nil
                 }
-                if let captured = captured {
-                    await store.record(captured)
-                }
+            }
+            if let captured = captured {
+                await store.record(captured)
             }
             return Data("[]".utf8)
         }
@@ -190,13 +193,13 @@ struct ImpactSimulatorRoutingTests {
         #expect(plainConfig.analyzerRules?.contains("force_cast") != true)
     }
 
-    @Test("Relative included paths in base config are rewritten to absolute workspace paths")
-    func relativeIncludedPathsRewrittenToAbsolute() async throws {
-        // Regression: when the workspace .swiftlint.yml has relative included
-        // entries (e.g. `Sources`, `Tests`), the temp config — written outside
-        // the workspace — resolved them against the temp directory and
-        // SwiftLint found nothing to lint, so every simulated rule reported
-        // zero violations.
+    @Test("Relative included paths in base config are preserved verbatim in the mirror")
+    func relativeIncludedPathsPreserved() async throws {
+        // The mirror reproduces each config at its real relative location, so
+        // relative `included` entries (e.g. `Sources`, `Tests`) resolve correctly
+        // within the mirror and must be kept exactly as written — no absolutizing
+        // (the old orphan-temp-config approach had to rewrite them to absolute
+        // workspace paths; the shadow workspace no longer does).
         let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
         defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
 
@@ -222,12 +225,7 @@ struct ImpactSimulatorRoutingTests {
 
         let configs = await store.configs
         let captured = try #require(configs.first)
-        let included = try #require(captured.included)
-        let expectedSources = workspace.path.appendingPathComponent("Sources").path
-        let expectedTests = workspace.path.appendingPathComponent("Tests").path
-        #expect(included.contains(expectedSources))
-        #expect(included.contains(expectedTests))
-        #expect(included.allSatisfy { $0.hasPrefix("/") })
+        #expect(captured.included == ["Sources", "Tests"])
     }
 
     @Test("Absolute included paths in base config are preserved as-is")
