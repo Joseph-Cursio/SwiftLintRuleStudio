@@ -22,7 +22,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1"),
-        .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.4.0")
+        .package(url: "https://github.com/Joseph-Cursio/LintStudioUI.git", from: "1.4.0"),
+        // Test-only: property-law checking for the model value types. Wired into
+        // the test target ONLY — the app links the SwiftLintRuleStudioCore product,
+        // which must stay free of PropertyBased/Testing (putting this on the library
+        // target is what broke the app build in 404e6fd; reverted in 1cc635c).
+        .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "3.0.0")
     ],
     targets: [
         .target(
@@ -45,7 +50,8 @@ let package = Package(
             name: "SwiftLintRuleStudioCoreTests",
             dependencies: [
                 "SwiftLintRuleStudioCore",
-                "SwiftLintRuleStudioCoreTestSupport"
+                "SwiftLintRuleStudioCoreTestSupport",
+                .product(name: "PropertyLawKit", package: "SwiftPropertyLaws")
             ],
             swiftSettings: swiftSettings
         )

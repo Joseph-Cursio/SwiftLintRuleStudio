@@ -11,6 +11,15 @@
       }
     },
     {
+      "identity" : "swift-property-based",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/x-sheep/swift-property-based.git",
+      "state" : {
+        "revision" : "edaffedcd90339544fefb2f045f3fa988d94c794",
+        "version" : "1.2.0"
+      }
+    },
+    {
       "identity" : "viewinspector",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nalexn/ViewInspector",

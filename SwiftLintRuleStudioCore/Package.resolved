@@ -1,5 +1,5 @@
 {
-  "originHash" : "379bcdb612548340faac60a9ca70efe7c6728b65ee804d7b3ca4782061ed2d93",
+  "originHash" : "a12233cc41221ea7ec28bc9b52aae6abfe5680b26ad34554b6b9103e19a89d81",
   "pins" : [
     {
       "identity" : "lintstudioui",
@@ -8,6 +8,42 @@
       "state" : {
         "revision" : "2de257dcbda9935a83a7b93abf7a7ef3a5f08408",
         "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics.git",
+      "state" : {
+        "revision" : "0c0290ff6b24942dadb83a929ffaaa1481df04a2",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-property-based",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/x-sheep/swift-property-based.git",
+      "state" : {
+        "revision" : "edaffedcd90339544fefb2f045f3fa988d94c794",
+        "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "4799286537280063c85a32f09884cfbca301b1a1",
+        "version" : "602.0.0"
+      }
+    },
+    {
+      "identity" : "swiftpropertylaws",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git",
+      "state" : {
+        "revision" : "27133ee6cd72bc80a493d89e33bd6a9b6e29c67a",
+        "version" : "3.3.0"
       }
     },
     {

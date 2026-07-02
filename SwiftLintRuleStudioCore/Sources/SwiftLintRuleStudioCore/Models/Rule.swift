@@ -35,7 +35,7 @@ public enum Severity: String, Codable, CaseIterable, Identifiable, Sendable {
 }
 
 /// Parameter for configurable rules
-public struct RuleParameter: Codable, Hashable, Sendable {
+nonisolated public struct RuleParameter: Codable, Hashable, Sendable {
     public let name: String
     public let type: ParameterType
     public let defaultValue: AnyCodable
@@ -49,7 +49,7 @@ public struct RuleParameter: Codable, Hashable, Sendable {
     }
 }
 
-public enum ParameterType: String, Codable, Sendable {
+nonisolated public enum ParameterType: String, Codable, Sendable {
     case integer
     case string
     case boolean
@@ -59,7 +59,7 @@ public enum ParameterType: String, Codable, Sendable {
 // Helper for encoding/decoding Any values
 // Safety invariant: Only stores JSON primitives (Int, String, Bool, Double, arrays thereof)
 // which are all Sendable. The decoder enforces this by only accepting these types.
-public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
+nonisolated public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
     // Safety: Only stores JSON primitives (Int, String, Bool, Double, arrays thereof).
     // `let` prevents mutation after init, and @unchecked Sendable documents this
     // type's thread-safety guarantee.
