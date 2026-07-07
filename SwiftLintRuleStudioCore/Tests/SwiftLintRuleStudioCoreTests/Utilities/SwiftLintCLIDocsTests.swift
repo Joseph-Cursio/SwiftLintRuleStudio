@@ -18,6 +18,7 @@ struct SwiftLintCLIDocsTests {
             .appendingPathComponent("SwiftLintCLITestsDocs", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: docsDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: docsDir) }
 
         let ruleId = "test_rule"
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")
@@ -44,10 +45,14 @@ struct SwiftLintCLIDocsTests {
         let ruleId = "existing_rule"
         let version = "9.9.9"
 
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.temporaryDirectory
-        let docsDir = appSupport
-            .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
+        // Isolated docs root under temp so generation never writes into the real
+        // Application Support folder (the source of the leaked 8.8.8/9.9.9 dirs).
+        let docsRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SwiftLintCLITestsDocs", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: docsRoot) }
+
+        let docsDir = docsRoot
             .appendingPathComponent("rule_docs", isDirectory: true)
             .appendingPathComponent(version, isDirectory: true)
         try FileManager.default.createDirectory(at: docsDir, withIntermediateDirectories: true)
@@ -61,7 +66,11 @@ struct SwiftLintCLIDocsTests {
             return SwiftLintCommandOutput(stdout: Data(), stderr: Data(), exitCode: 0)
         }
 
-        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(
+            cacheManager: cacheManager,
+            commandRunner: runner,
+            docsRootDirectory: docsRoot
+        )
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Existing docs")
     }
@@ -71,6 +80,13 @@ struct SwiftLintCLIDocsTests {
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
         let ruleId = "generated_rule"
         let version = "8.8.8"
+
+        // Isolated docs root: `generate-docs` writes to the `--path` the actor
+        // derives from docsRootDirectory, which is now under temp.
+        let docsRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SwiftLintCLITestsDocs", isDirectory: true)
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: docsRoot) }
 
         let runner: SwiftLintCommandRunner = { _, arguments in
             if arguments == ["version"] {
@@ -87,7 +103,11 @@ struct SwiftLintCLIDocsTests {
             return SwiftLintCommandOutput(stdout: Data(), stderr: Data(), exitCode: 0)
         }
 
-        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+        let cli = SwiftLintCLIActor(
+            cacheManager: cacheManager,
+            commandRunner: runner,
+            docsRootDirectory: docsRoot
+        )
         let content = try await cli.generateDocsForRule(ruleId: ruleId)
         #expect(content == "Generated docs")
     }

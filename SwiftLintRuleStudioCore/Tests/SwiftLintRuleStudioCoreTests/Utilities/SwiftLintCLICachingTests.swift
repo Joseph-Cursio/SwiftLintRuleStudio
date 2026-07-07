@@ -15,14 +15,15 @@ import Testing
 @MainActor
 struct SwiftLintCLICachingTests {
 
-    // Helper to create isolated cache manager
-    private func createIsolatedCacheManager() -> CacheManager {
+    // Helper to create an isolated cache manager. Returns the temp directory too so
+    // callers can `defer`-remove it — otherwise each run leaks a temp cache dir.
+    private func createIsolatedCacheManager() -> (CacheManager, URL) {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         // Workaround for Swift 6 false positive: CacheManager.init incorrectly inferred as @MainActor
-        return CacheManager(cacheDirectory: tempDir)
+        return (CacheManager(cacheDirectory: tempDir), tempDir)
     }
 
     // Helper to create mock SwiftLint CLI that simulates version
@@ -38,7 +39,8 @@ struct SwiftLintCLICachingTests {
     func testVersionCachingAfterGeneration() throws {
         // This test would require actual SwiftLint installation
         // For now, we test the cache manager integration
-        let cacheManager = createIsolatedCacheManager()
+        let (cacheManager, cacheDir) = createIsolatedCacheManager()
+        defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Verify version is saved
         let testVersion = "0.55.0"
@@ -50,7 +52,8 @@ struct SwiftLintCLICachingTests {
 
     @Test("generateDocsForRule saves docs directory to cache")
     func testDocsDirectoryCaching() throws {
-        let cacheManager = createIsolatedCacheManager()
+        let (cacheManager, cacheDir) = createIsolatedCacheManager()
+        defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Create a test docs directory
         let testDocsDir = FileManager.default.temporaryDirectory
@@ -69,7 +72,8 @@ struct SwiftLintCLICachingTests {
 
     @Test("CacheManager handles version change correctly")
     func testVersionChangeDetection() throws {
-        let cacheManager = createIsolatedCacheManager()
+        let (cacheManager, cacheDir) = createIsolatedCacheManager()
+        defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Save initial version
         try cacheManager.saveSwiftLintVersion("0.50.0")
@@ -85,7 +89,8 @@ struct SwiftLintCLICachingTests {
 
     @Test("CacheManager returns nil for docs directory when path is invalid")
     func testInvalidDocsDirectoryPath() throws {
-        let cacheManager = createIsolatedCacheManager()
+        let (cacheManager, cacheDir) = createIsolatedCacheManager()
+        defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Save a non-existent path
         let invalidPath = "/tmp/nonexistent/\(UUID().uuidString)"
@@ -115,7 +120,8 @@ struct SwiftLintCLICachingTests {
 
     @Test("CacheManager clears docs directory when clearing cache")
     func testClearDocsCacheRemovesDirectory() throws {
-        let cacheManager = createIsolatedCacheManager()
+        let (cacheManager, cacheDir) = createIsolatedCacheManager()
+        defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Create and save a test directory
         let testDir = FileManager.default.temporaryDirectory

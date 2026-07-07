@@ -58,10 +58,7 @@ extension SwiftLintCLIActor {
     }
 
     private func docsDirectory(for version: String) -> URL {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? FileManager.default.temporaryDirectory
-        return appSupport
-            .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
+        docsRootDirectory
             .appendingPathComponent("rule_docs", isDirectory: true)
             .appendingPathComponent(version, isDirectory: true)
     }

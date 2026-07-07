@@ -88,11 +88,16 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
     public let cacheManager: any CacheManagerProtocol
     private let tool: CLIToolActor
     private let fileExists: SwiftLintFileExists
+    /// Directory that holds the generated `rule_docs/<version>/` subtree. Injected
+    /// in tests to a temp directory so doc generation doesn't write into the real
+    /// Application Support folder; defaults to `.../SwiftLintRuleStudio` there.
+    let docsRootDirectory: URL
 
     public init(
         cacheManager: CacheManagerProtocol? = nil,
         commandRunner: SwiftLintCommandRunner? = nil,
         fileExists: SwiftLintFileExists? = nil,
+        docsRootDirectory: URL? = nil,
         timeoutSeconds: UInt64 = 300
     ) {
         // Store the injected cache through its protocol. `CacheManagerProtocol` is
@@ -101,6 +106,13 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         // discarded in favor of a fresh `CacheManager`.
         self.cacheManager = cacheManager ?? CacheManager()
         self.fileExists = fileExists ?? { FileManager.default.fileExists(atPath: $0) }
+
+        // Default docs root to the real Application Support location (temp dir as a
+        // last resort). Tests inject a temp directory to stay isolated.
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        self.docsRootDirectory = docsRootDirectory
+            ?? appSupport.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
 
         // Bridge the SwiftLint-local runner seam to CLIToolActor's. The tool
         // name is fixed to "swiftlint", so it is supplied here for callers
