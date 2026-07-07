@@ -7,6 +7,56 @@ stays free.
 
 ---
 
+## Implementation status (2026-07-07)
+
+A macOS **Team-tier client** has been built in a separate repo —
+[`SwiftLintRuleStudioTeam`](https://github.com/Joseph-Cursio/SwiftLintRuleStudioTeam)
+(Tuist + SwiftUI). It is **sample-data-backed**: every dataset sits behind a
+provider protocol (`FleetDataProviding`, `StandardsDataProviding`,
+`HistoryDataProviding`, …), so the synced backend described in §5 can drop in
+without UI changes. Ten sidebar sections cover the bulk of §A–§E. The four
+provider-seam / testing conventions are documented in that repo's README.
+
+Legend: ✅ built (client) · ◐ partial · ○ UI-buildable, not yet built ·
+⏳ needs the backend service (§5) · — Enterprise tier / not a UI surface.
+
+| § | Feature | Status |
+|---|---|:-:|
+| A | Team Standards Library | ✅ |
+| A | Locked rules / required baseline | ✅ |
+| A | Drift detection + Re-align | ✅ |
+| A | Org-layer resolved-config inspector | ○ |
+| B | Fleet dashboard | ✅ |
+| B | Cross-repo config comparison (+ normalize) | ✅ |
+| B | Bulk apply | ✅ |
+| B | Fleet-wide impact simulation | ✅ |
+| B | Nested-config drift audit | ✅ |
+| C | Adoption & trend dashboards | ✅ |
+| C | Compliance reports (Markdown export) | ✅ |
+| C | Hotspot reports | ✅ |
+| D | Config change review (propose → approve, audit trail) | ✅ |
+| D | Rule rationale / annotations | ✅ |
+| D | Shared presets & templates | ○ |
+| E | CI setup (GitHub/GitLab/Bitrise config generation) | ✅ |
+| E | CI *sync* (automated config-sync PR/bot) | ⏳ |
+| E | Chat notifications (Slack/Teams, live "firing now" preview) | ✅ |
+| E | PR annotations | ⏳ |
+| E | Webhooks / API | ⏳ |
+| F | New-repo wizard | ○ |
+| F | Fleet migration assistant | ○ |
+| G | SSO / RBAC / audit log / policy gate / on-prem | — |
+| H | Support / SLA | — |
+
+**Notes.** Verification per section is three-layered: unit (Swift Testing, logic
+~95–100%), ViewInspector (pure view bodies in-process), and XCUITest (navigation
++ the re-align / approve / generate-CI flows). The client passes its own strict
+SwiftLint. The **audit trail** on config-change review (who/when on approve/reject)
+is a local seed of §G's audit log. Remaining UI-buildable Team surfaces are the
+four marked ○; everything ⏳ / — genuinely depends on the backend or is the
+Enterprise tier.
+
+---
+
 ## 1. Guiding principle
 
 > The free tier must be a genuinely great tool for one developer on their own
