@@ -19,10 +19,7 @@ public enum ViolationStorageTestHelpers {
 
     /// Create a temporary database file URL
     public static func createTempDatabase() throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("violation")
 
         return tempDir.appendingPathComponent("test_violations.db")
     }

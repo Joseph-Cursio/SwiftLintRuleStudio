@@ -82,10 +82,7 @@ public enum WorkspaceAnalyzerTestHelpers {
 
     /// Create a temporary workspace directory for testing
     public static func createTempWorkspace() async throws -> Workspace {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("analyzer")
 
         return await MainActor.run {
             Workspace(path: tempDir)

@@ -14,10 +14,7 @@ public enum YAMLConfigurationEngineTestHelpers {
 
     /// Create a temporary `.swiftlint.yml` file with the given content
     public static func createTempConfigFile(content: String) throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("yaml")
 
         let configFile = tempDir.appendingPathComponent(".swiftlint.yml")
         try content.write(to: configFile, atomically: true, encoding: .utf8)

@@ -45,6 +45,41 @@ public enum IsolatedUserDefaults {
     }
 }
 
+// MARK: - Self-cleaning scratch directories
+
+/// A self-cleaning root for test scratch directories under the system temp dir.
+///
+/// Every test-support helper routes its scratch dirs through `make(_:)`. On the
+/// first call within a process, the shared root purges leftovers from *previous*
+/// runs — the purge only touches entries that already existed at process start,
+/// so directories created during this run are never removed (safe under parallel
+/// tests, and `static let` guarantees the purge runs exactly once). Helpers still
+/// remove their own dirs eagerly where a caller passes them back; this bounds
+/// whatever slips through to a single run's worth, reclaimed at the next run's start.
+public enum TestTempDirectory {
+    private static let root: URL = {
+        let base = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
+        if let stale = try? FileManager.default.contentsOfDirectory(
+            at: base, includingPropertiesForKeys: nil
+        ) {
+            for url in stale {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+        return base
+    }()
+
+    /// Creates and returns a fresh, unique scratch directory. `label` prefixes the
+    /// directory name so leftover dirs are traceable to the helper that made them.
+    public static func make(_ label: String = "t") -> URL {
+        let dir = root.appendingPathComponent("\(label)-\(UUID().uuidString)", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+}
+
 // MARK: - File marker (satisfies file_name lint rule)
 
 private enum TestIsolationHelpers {}
@@ -109,11 +144,7 @@ public extension CacheManager {
     /// Creates a CacheManager with isolated cache directory for testing
     /// Uses UUID to ensure complete isolation between tests
     static func createForTesting() -> CacheManager {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        return CacheManager(cacheDirectory: tempDir)
+        CacheManager(cacheDirectory: TestTempDirectory.make("cache"))
     }
 }
 
@@ -124,11 +155,8 @@ public extension FileTracker {
     /// Note: FileTracker is @MainActor, so this must be called from MainActor context
     @MainActor
     static func createForTesting() -> FileTracker {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        let cacheURL = tempDir.appendingPathComponent("file_tracker_cache.json")
+        let cacheURL = TestTempDirectory.make("filetracker")
+            .appendingPathComponent("file_tracker_cache.json")
         return FileTracker(cacheURL: cacheURL)
     }
 }

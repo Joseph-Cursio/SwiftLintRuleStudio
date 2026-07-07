@@ -21,11 +21,7 @@ public enum ImpactSimulatorTestHelpers {
 
     /// Create a temporary directory for workspace testing
     public static func createTempWorkspaceDirectory() throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        return tempDir
+        TestTempDirectory.make("impact")
     }
 
     /// Create a Swift source file in the given directory

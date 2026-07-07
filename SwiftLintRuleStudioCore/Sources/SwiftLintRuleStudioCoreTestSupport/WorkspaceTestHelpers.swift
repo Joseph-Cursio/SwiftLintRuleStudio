@@ -18,12 +18,7 @@ public enum WorkspaceTestHelpers {
         includeXcodeProject: Bool = false,
         swiftFileContent: String? = nil
     ) throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent("WorkspaceTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("workspace")
 
         // Create a Swift file (required for validation)
         let swiftFile = tempDir.appendingPathComponent("TestFile.swift")
