@@ -10,6 +10,34 @@ import Foundation
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
+/// A lightweight `RuleRegistryProtocol` stub — possible only because
+/// `ConfigurationValidator` now depends on the protocol rather than the concrete
+/// `@Observable RuleRegistry`. Returns a fixed rule set; the async/lookup members are
+/// unused by the validator and given trivial implementations.
+@MainActor
+private final class StubRuleRegistry: RuleRegistryProtocol {
+    let rules: [Rule]
+
+    init(ruleIds: [String]) {
+        self.rules = ruleIds.map { ruleId in
+            Rule(
+                id: ruleId,
+                name: ruleId,
+                description: "",
+                category: .style,
+                isOptIn: false
+            )
+        }
+    }
+
+    // `async` satisfies the protocol requirement; these stubs return synchronously.
+    // swiftlint:disable:next async_without_await
+    func loadRules() async throws -> [Rule] { rules }
+    func getRule(id: String) -> Rule? { rules.first { $0.id == id } }
+    // swiftlint:disable:next async_without_await
+    func refreshRules() async throws {}
+}
+
 @MainActor
 struct ConfigurationValidatorTests {
     // MARK: - Valid Configuration Tests
@@ -298,29 +326,4 @@ struct ConfigurationValidatorTests {
 
         #expect(result.warnings.contains { $0.message.contains("Unknown") } == false)
     }
-}
-
-/// A lightweight `RuleRegistryProtocol` stub — possible only because
-/// `ConfigurationValidator` now depends on the protocol rather than the concrete
-/// `@Observable RuleRegistry`. Returns a fixed rule set; the async/lookup members are
-/// unused by the validator and given trivial implementations.
-@MainActor
-private final class StubRuleRegistry: RuleRegistryProtocol {
-    let rules: [Rule]
-
-    init(ruleIds: [String]) {
-        self.rules = ruleIds.map { ruleId in
-            Rule(
-                id: ruleId,
-                name: ruleId,
-                description: "",
-                category: .style,
-                isOptIn: false
-            )
-        }
-    }
-
-    func loadRules() async throws -> [Rule] { rules }
-    func getRule(id: String) -> Rule? { rules.first { $0.id == id } }
-    func refreshRules() async throws {}
 }

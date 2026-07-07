@@ -10,6 +10,11 @@ excluded:
   - xcuserdata
   - .xcode
   - SwiftLintRuleStudio.xcodeproj
+  # swift-infer's transient verify work dir (contains a nested .build/checkouts
+  # of vendored code) and its generated regression tests are machine output, not
+  # hand-written source — don't lint either.
+  - SwiftLintRuleStudioCore/.swiftinfer
+  - SwiftLintRuleStudioCore/Tests/Generated
 opt_in_rules:
   - empty_count
   - empty_string

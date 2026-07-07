@@ -16,8 +16,8 @@
 import Foundation
 import PropertyBased
 import PropertyLawKit
-import Testing
 @testable import SwiftLintRuleStudioCore
+import Testing
 
 @Suite("Rule value-type property laws")
 struct RuleValueTypePropertyLawTests {

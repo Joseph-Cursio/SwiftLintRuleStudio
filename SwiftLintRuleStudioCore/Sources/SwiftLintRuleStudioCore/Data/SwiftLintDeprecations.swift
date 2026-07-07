@@ -60,14 +60,12 @@ public enum SwiftLintDeprecations {
         "inert_defer": "no_empty_block",
         // 0.50.0
         "multiple_closures_with_trailing_closure": "trailing_closure",
-        // 0.53.0
-        "cyclomatic_complexity": "function_body_length",
-        // Legacy rules renamed in various versions
-        "redundant_string_enum_value": "redundant_string_enum_value",
-        // 0.42.0
-        "unused_import": "unused_import",
-        // 0.55.0
-        "no_space_in_method_call": "no_space_in_method_call"
+        // 0.60.0
+        "redundant_optional_initialization": "implicit_optional_initialization",
+        // 0.61.0
+        "operator_whitespace": "function_name_whitespace",
+        // 0.63.0
+        "redundant_self_in_closure": "redundant_self"
     ]
 
     // MARK: - Deprecated Rules (still work but will be removed)
@@ -118,6 +116,21 @@ public enum SwiftLintDeprecations {
             deprecatedInVersion: "0.50.0",
             replacement: "trailing_closure",
             message: "Use 'trailing_closure' instead."
+        ),
+        "redundant_optional_initialization": DeprecationEntry(
+            deprecatedInVersion: "0.60.0",
+            replacement: "implicit_optional_initialization",
+            message: "Use 'implicit_optional_initialization' (style: always mimics the old behavior)."
+        ),
+        "operator_whitespace": DeprecationEntry(
+            deprecatedInVersion: "0.61.0",
+            replacement: "function_name_whitespace",
+            message: "Merged into 'function_name_whitespace'. The old identifier still resolves via alias."
+        ),
+        "redundant_self_in_closure": DeprecationEntry(
+            deprecatedInVersion: "0.63.0",
+            replacement: "redundant_self",
+            message: "Renamed to 'redundant_self' (broader scope). Kept as a deprecated alias."
         )
     ]
 
@@ -149,6 +162,21 @@ public enum SwiftLintDeprecations {
             removedInVersion: "0.35.0",
             replacement: "type_name",
             message: "Configure min_length on 'type_name' instead."
+        ),
+        "anyobject_protocol": RemovalEntry(
+            removedInVersion: "0.57.0",
+            replacement: nil,
+            message: "This rule was removed with no functional replacement."
+        ),
+        "inert_defer": RemovalEntry(
+            removedInVersion: "0.58.0",
+            replacement: "no_empty_block",
+            message: "Removed after being deprecated. Use 'no_empty_block' instead."
+        ),
+        "unused_capture_list": RemovalEntry(
+            removedInVersion: "0.58.0",
+            replacement: "unused_closure_use",
+            message: "Removed after being deprecated. Use 'unused_closure_use' instead."
         )
     ]
 
@@ -173,7 +201,26 @@ public enum SwiftLintDeprecations {
         "0.50.0": ["sorted_enum_cases", "self_binding", "shorthand_optional_binding"],
         "0.52.0": ["superfluous_else"],
         "0.54.0": ["blanket_disable_command"],
-        "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"]
+        "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"],
+        // Additions 0.56.0–0.63.3, verified against the realm/SwiftLint CHANGELOG (2026-07-07).
+        // Not listed: `no_empty_block` (changelog places it here but it is already tracked at
+        // 0.46.0), and `opaque_over_existential` (added in 0.59.0, removed again in 0.59.1 — it
+        // does not exist in 0.65.0). Versions 0.64.0, 0.64.1, and 0.65.0 added no new rules.
+        "0.56.0": ["attribute_name_spacing", "contrasted_opening_brace", "prefer_key_path", "unused_parameter"],
+        "0.57.0": ["optional_data_string_conversion"],
+        "0.58.0": ["async_without_await", "redundant_sendable"],
+        "0.60.0": ["implicit_optional_initialization", "prefer_condition_list"],
+        "0.61.0": ["function_name_whitespace"],
+        "0.62.0": ["prefer_asset_symbols"],
+        "0.62.2": ["incompatible_concurrency_annotation"],
+        "0.63.0": ["multiline_call_arguments", "unneeded_escaping", "unneeded_throws_rethrows"],
+        "0.63.3": [
+            "discouraged_default_parameter",
+            "invisible_character",
+            "legacy_uigraphics_function",
+            "redundant_final",
+            "variable_shadowing"
+        ]
     ]
 
     // MARK: - Helpers

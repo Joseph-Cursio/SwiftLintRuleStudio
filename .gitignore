@@ -6,6 +6,7 @@ SwiftLintRuleStudio.xcodeproj/xcuserdata/
 *.xcresult
 SwiftLintRuleStudioCore/.build/
 SwiftLintRuleStudioCore/.swiftpm/
+SwiftLintRuleStudioCore/.swiftinfer/
 build/
 .swiftlint.yml.*.backup
 Core.bak/

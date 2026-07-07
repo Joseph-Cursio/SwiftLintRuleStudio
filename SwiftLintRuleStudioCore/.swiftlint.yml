@@ -8,3 +8,6 @@ parent_config: ../.swiftlint.yml
 
 excluded:
   - .build
+  # swift-infer working dir + generated regression tests (see root config).
+  - .swiftinfer
+  - Tests/Generated
