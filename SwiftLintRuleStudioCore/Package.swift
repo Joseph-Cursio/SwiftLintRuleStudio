@@ -18,6 +18,13 @@ let package = Package(
         .library(
             name: "SwiftLintRuleStudioCoreTestSupport",
             targets: ["SwiftLintRuleStudioCoreTestSupport"]
+        ),
+        // Subprocess backend: wraps the user-installed `swiftlint` CLI. Linked by
+        // the non-sandboxed (Developer ID) app target only. Kept separate from Core
+        // so the sandboxed App Store target can substitute an in-process backend.
+        .library(
+            name: "SwiftLintCLIBackend",
+            targets: ["SwiftLintCLIBackend"]
         )
     ],
     dependencies: [
@@ -42,6 +49,14 @@ let package = Package(
             ]
         ),
         .target(
+            name: "SwiftLintCLIBackend",
+            dependencies: [
+                "SwiftLintRuleStudioCore",
+                .product(name: "LintStudioCore", package: "LintStudioUI")
+            ],
+            swiftSettings: swiftSettings
+        ),
+        .target(
             name: "SwiftLintRuleStudioCoreTestSupport",
             dependencies: ["SwiftLintRuleStudioCore"],
             swiftSettings: swiftSettings
@@ -50,6 +65,7 @@ let package = Package(
             name: "SwiftLintRuleStudioCoreTests",
             dependencies: [
                 "SwiftLintRuleStudioCore",
+                "SwiftLintCLIBackend",
                 "SwiftLintRuleStudioCoreTestSupport",
                 .product(name: "PropertyLawKit", package: "SwiftPropertyLaws")
             ],

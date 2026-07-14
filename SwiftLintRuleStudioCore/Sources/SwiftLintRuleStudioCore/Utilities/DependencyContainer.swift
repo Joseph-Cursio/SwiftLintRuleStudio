@@ -62,10 +62,13 @@ public class DependencyContainer {
     /// Assists with SwiftLint version migrations
     public let migrationAssistant: MigrationAssistantProtocol
 
-    /// Initialize the dependency container with optional overrides for each service
+    /// Initialize the dependency container. The SwiftLint backend is a **required**
+    /// injection: Core deliberately does not name a concrete backend so that the
+    /// sandboxed (in-process) and non-sandboxed (subprocess `SwiftLintCLIActor`)
+    /// app targets can each supply their own. Tests inject `MockSwiftLintCLIActor`.
     public init(
         ruleRegistry: RuleRegistry? = nil,
-        swiftLintCLI: SwiftLintCLIProtocol? = nil,
+        swiftLintCLI: SwiftLintCLIProtocol,
         cacheManager: CacheManagerProtocol? = nil,
         violationStorage: ViolationStorageProtocol? = nil,
         workspaceManager: WorkspaceManager? = nil,
@@ -88,7 +91,7 @@ public class DependencyContainer {
         userDefaults: UserDefaults? = nil
     ) {
         let cache = cacheManager ?? CacheManager()
-        let cli = swiftLintCLI ?? SwiftLintCLIActor(cacheManager: cache)
+        let cli = swiftLintCLI
         let registry = ruleRegistry ?? RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
 
         self.ruleRegistry = registry

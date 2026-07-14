@@ -6,12 +6,17 @@
 //
 
 import SwiftLintRuleStudioCore
+import SwiftLintCLIBackend
 import SwiftUI
 
 // MARK: - DependencyContainer
 
 private struct DependencyContainerKey: EnvironmentKey {
-    @MainActor static var defaultValue = DependencyContainer()
+    // NOTE (backend split): this environment default hard-codes the subprocess
+    // backend. When the sandboxed (in-process) target is added and this UI is
+    // shared, the default must become backend-agnostic (inject at the app root).
+    @MainActor static var defaultValue = DependencyContainer(
+        swiftLintCLI: SwiftLintCLIActor(cacheManager: CacheManager()))
 }
 
 // MARK: - RuleRegistry

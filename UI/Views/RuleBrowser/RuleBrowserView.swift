@@ -6,6 +6,7 @@
 //
 
 import SwiftLintRuleStudioCore
+import SwiftLintCLIBackend
 import SwiftUI
 
 struct RuleBrowserView: View {

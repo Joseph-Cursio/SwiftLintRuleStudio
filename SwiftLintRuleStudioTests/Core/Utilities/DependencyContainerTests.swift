@@ -72,7 +72,7 @@ struct DependencyContainerTests {
     @Test("DependencyContainer accepts injected violation storage")
     func testInjectedViolationStorage() {
         let mockStorage = MockViolationStorageForViewModel()
-        let container = DependencyContainer(violationStorage: mockStorage)
+        let container = DependencyContainer(swiftLintCLI: MockSwiftLintCLIActor(), violationStorage: mockStorage)
         // If this compiles and runs without fatalError, injection was accepted
         _ = container.violationStorage
     }
@@ -94,6 +94,7 @@ struct DependencyContainerTests {
         defer { customDefaults.removePersistentDomain(forName: suiteName) }
 
         let container = DependencyContainer(
+            swiftLintCLI: MockSwiftLintCLIActor(),
             violationStorage: MockViolationStorageForViewModel(),
             userDefaults: customDefaults
         )
@@ -106,6 +107,6 @@ struct DependencyContainerTests {
     // MARK: - Helpers
 
     private func makeSafeContainer() -> DependencyContainer {
-        DependencyContainer(violationStorage: MockViolationStorageForViewModel())
+        DependencyContainer(swiftLintCLI: MockSwiftLintCLIActor(), violationStorage: MockViolationStorageForViewModel())
     }
 }

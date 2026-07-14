@@ -9,6 +9,7 @@
 
 #if DEBUG
 import SwiftLintRuleStudioCore
+import SwiftLintCLIBackend
 import SwiftUI
 
 extension RuleBrowserView {

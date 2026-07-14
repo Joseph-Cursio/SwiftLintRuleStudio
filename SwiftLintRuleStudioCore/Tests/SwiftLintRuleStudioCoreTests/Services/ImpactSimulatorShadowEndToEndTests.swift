@@ -13,6 +13,7 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
+import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 

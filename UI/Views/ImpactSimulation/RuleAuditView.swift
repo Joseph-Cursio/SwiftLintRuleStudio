@@ -6,6 +6,7 @@
 //
 
 import SwiftLintRuleStudioCore
+import SwiftLintCLIBackend
 import SwiftUI
 
 struct RuleAuditView: View {
@@ -188,5 +189,6 @@ struct RuleAuditView: View {
 
 #Preview {
     RuleAuditView()
-        .environment(\.dependencies, DependencyContainer())
+        .environment(\.dependencies, DependencyContainer(
+            swiftLintCLI: SwiftLintCLIActor(cacheManager: CacheManager())))
 }

@@ -109,7 +109,7 @@ public extension DependencyContainer {
 
         return DependencyContainer(
             ruleRegistry: ruleRegistry,
-            swiftLintCLI: swiftLintCLI,
+            swiftLintCLI: swiftLintCLI ?? MockSwiftLintCLIActor(),
             cacheManager: cacheManager,
             violationStorage: testViolationStorage,
             workspaceManager: workspaceManager,

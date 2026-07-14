@@ -34,7 +34,7 @@ public struct CacheManager: CacheManagerProtocol {
     private let versionCacheFile = "swiftlint_version.txt"
     private let docsDirectoryCacheFile = "docs_directory.txt"
 
-    public init(cacheDirectory: URL? = nil) {
+    nonisolated public init(cacheDirectory: URL? = nil) {
         cache = FileCache(appIdentifier: "SwiftLintRuleStudio", cacheDirectory: cacheDirectory)
     }
 

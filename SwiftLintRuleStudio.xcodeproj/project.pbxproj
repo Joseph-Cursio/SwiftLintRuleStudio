@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */; };
 		2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */; };
+		C0DE0001CAFEBABE00000001 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */; };
+		C0DE0003CAFEBABE00000003 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */; };
 		703C936D2F0030E8006A88AE /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 703886762EFC3A3500F2A033 /* Yams */; };
 		703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 703886742EFC3A3500F2A033 /* ViewInspector */; };
 		AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000230000002AABBCCDD /* LintStudioCore */; };
@@ -70,6 +72,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */,
+				C0DE0001CAFEBABE00000001 /* SwiftLintCLIBackend in Frameworks */,
 				703C936D2F0030E8006A88AE /* Yams in Frameworks */,
 				AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */,
 				AA10000330000003AABBCCDD /* LintStudioUI in Frameworks */,
@@ -81,6 +84,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */,
+				C0DE0003CAFEBABE00000003 /* SwiftLintCLIBackend in Frameworks */,
 				703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */,
 				AA10000630000006AABBCCDD /* LintStudioCore in Frameworks */,
 				AA10000730000007AABBCCDD /* LintStudioUI in Frameworks */,
@@ -158,6 +162,7 @@
 			packageProductDependencies = (
 				703886762EFC3A3500F2A033 /* Yams */,
 				2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */,
+				C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */,
 				AA10000230000002AABBCCDD /* LintStudioCore */,
 				AA10000430000004AABBCCDD /* LintStudioUI */,
 			);
@@ -185,6 +190,7 @@
 			packageProductDependencies = (
 				703886742EFC3A3500F2A033 /* ViewInspector */,
 				2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */,
+				C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */,
 				AA10000830000008AABBCCDD /* LintStudioCore */,
 				AA10000930000009AABBCCDD /* LintStudioUI */,
 			);
@@ -709,6 +715,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
 			productName = SwiftLintRuleStudioCoreTestSupport;
+		};
+		C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
+			productName = SwiftLintCLIBackend;
+		};
+		C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
+			productName = SwiftLintCLIBackend;
 		};
 		703886742EFC3A3500F2A033 /* ViewInspector */ = {
 			isa = XCSwiftPackageProductDependency;
