@@ -73,18 +73,67 @@ public class WorkspaceManager {
     /// The UserDefaults instance used for persistence
     public let userDefaults: UserDefaults
 
+    /// Optional security-scoped bookmark store. Injected by the sandboxed target
+    /// so folders can be reopened across launches; `nil` in the non-sandboxed
+    /// target, where plain paths suffice.
+    private let bookmarkStore: (any SecurityScopedBookmarkStoring)?
+    /// The folder whose security scope is currently held open (so it can be
+    /// released when the workspace changes or closes).
+    private var activeScopedURL: URL?
+
     // MARK: - Initialization
 
-    /// Initialize the workspace manager with the specified user defaults
-    public init(userDefaults: UserDefaults = .standard) {
+    /// Initialize the workspace manager with the specified user defaults and an
+    /// optional security-scoped bookmark store (sandboxed target only).
+    public init(
+        userDefaults: UserDefaults = .standard,
+        bookmarkStore: (any SecurityScopedBookmarkStoring)? = nil
+    ) {
         self.userDefaults = userDefaults
+        self.bookmarkStore = bookmarkStore
         loadRecentWorkspaces()
+    }
+
+    // MARK: - Security-Scoped Access
+
+    /// Regain (from a stored bookmark) or establish (for a freshly picked folder)
+    /// sandbox access to the folder at `url`. A no-op when no bookmark store is
+    /// configured (non-sandboxed target).
+    ///
+    /// The workspace's *identity* stays `url` (the caller keeps using it): a
+    /// resolved bookmark may report a symlink-canonicalized path
+    /// (`/var` → `/private/var`), but the security scope is granted to the folder
+    /// itself, so reads via the original path succeed once the scope is held.
+    private func beginAccess(to url: URL) {
+        guard let bookmarkStore else { return }
+        endAccess()
+        if let resolved = bookmarkStore.resolveURL(forPath: url.path) {
+            _ = resolved.startAccessingSecurityScopedResource()
+            activeScopedURL = resolved
+            return
+        }
+        // Freshly granted URL (e.g. from NSOpenPanel): hold the scope and persist
+        // a bookmark, keyed by this path, so the folder can be reopened next launch.
+        _ = url.startAccessingSecurityScopedResource()
+        activeScopedURL = url
+        bookmarkStore.saveBookmark(for: url)
+    }
+
+    /// Release the currently held security scope, if any.
+    private func endAccess() {
+        activeScopedURL?.stopAccessingSecurityScopedResource()
+        activeScopedURL = nil
     }
 
     // MARK: - Workspace Selection
 
     /// Open a workspace from a file URL
     public func openWorkspace(at url: URL) throws {
+        // Resolve sandbox access first (regain via bookmark for a recents reopen,
+        // or persist one for a fresh pick). Identity stays `url`; the scope is held
+        // on the folder so reads via this path succeed.
+        beginAccess(to: url)
+
         // Validate that the URL is a directory
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
@@ -116,6 +165,7 @@ public class WorkspaceManager {
 
     /// Close the current workspace
     public func closeWorkspace() {
+        endAccess()
         currentWorkspace = nil
         configFileMissing = false
     }
