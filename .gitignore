@@ -11,3 +11,6 @@ build/
 .swiftlint.yml.*.backup
 Core.bak/
 add_public.py
+
+# In-process backend package build artifacts
+SwiftLintInProcessBackend/.build/
