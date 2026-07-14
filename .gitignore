@@ -14,3 +14,8 @@ add_public.py
 
 # In-process backend package build artifacts
 SwiftLintInProcessBackend/.build/
+
+# Coverage dumps written by `swift test --enable-code-coverage`. Regenerated on every
+# run, never source.
+*.profraw
+*.profdata
