@@ -9,7 +9,6 @@
 
 #if DEBUG
 import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftUI
 
 extension RuleBrowserView {
@@ -17,7 +16,7 @@ extension RuleBrowserView {
     /// These methods do not use the registry or viewModel, so any registry suffices.
     @MainActor private static func makeTestingInstance() -> RuleBrowserView {
         let cacheManager = CacheManager()
-        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
+        let swiftLintCLI = UnconfiguredSwiftLintBackend()
         let registry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         return RuleBrowserView(ruleRegistry: registry)
     }

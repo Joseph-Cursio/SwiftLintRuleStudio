@@ -6,7 +6,6 @@
 //
 
 import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftUI
 
 struct RuleBrowserView: View {
@@ -139,7 +138,7 @@ struct RuleBrowserView: View {
 
 #Preview {
     let cacheManager = CacheManager()
-    let swiftLintCLI = SwiftLintCLIActor(cacheManager: CacheManager())
+    let swiftLintCLI = UnconfiguredSwiftLintBackend()
     let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
     let container = DependencyContainer(
         ruleRegistry: ruleRegistry,

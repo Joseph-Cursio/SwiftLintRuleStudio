@@ -6,7 +6,6 @@
 //
 
 import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -232,7 +231,7 @@ struct ContentView: View {
 
 #Preview {
     let cacheManager = CacheManager()
-    let swiftLintCLI = SwiftLintCLIActor(cacheManager: CacheManager())
+    let swiftLintCLI = UnconfiguredSwiftLintBackend()
     let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
     let container = DependencyContainer(
         ruleRegistry: ruleRegistry,

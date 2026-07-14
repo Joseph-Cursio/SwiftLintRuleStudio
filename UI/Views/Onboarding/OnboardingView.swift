@@ -6,7 +6,6 @@
 //
 
 import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftUI
 
 struct OnboardingView: View {
@@ -90,7 +89,7 @@ struct OnboardingView: View {
 #Preview {
     let onboardingManager = OnboardingManager()
     let workspaceManager = WorkspaceManager()
-    let swiftLintCLI: SwiftLintCLIProtocol = SwiftLintCLIActor(cacheManager: CacheManager())
+    let swiftLintCLI: SwiftLintCLIProtocol = UnconfiguredSwiftLintBackend()
 
     return OnboardingView(
         onboardingManager: onboardingManager,

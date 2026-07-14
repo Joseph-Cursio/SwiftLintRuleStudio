@@ -6,17 +6,16 @@
 //
 
 import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftUI
 
 // MARK: - DependencyContainer
 
 private struct DependencyContainerKey: EnvironmentKey {
-    // NOTE (backend split): this environment default hard-codes the subprocess
-    // backend. When the sandboxed (in-process) target is added and this UI is
-    // shared, the default must become backend-agnostic (inject at the app root).
+    // Backend-agnostic default: real app targets inject a concrete backend at the
+    // app root (subprocess for Studio, in-process for Explorer). This no-op default
+    // exists only so the shared UI compiles in either target without naming one.
     @MainActor static var defaultValue = DependencyContainer(
-        swiftLintCLI: SwiftLintCLIActor(cacheManager: CacheManager()))
+        swiftLintCLI: UnconfiguredSwiftLintBackend())
 }
 
 // MARK: - RuleRegistry
@@ -24,7 +23,7 @@ private struct DependencyContainerKey: EnvironmentKey {
 private struct RuleRegistryKey: EnvironmentKey {
     @MainActor static var defaultValue: RuleRegistry = {
         let cache = CacheManager()
-        let cli = SwiftLintCLIActor(cacheManager: cache)
+        let cli = UnconfiguredSwiftLintBackend()
         return RuleRegistry(swiftLintCLI: cli, cacheManager: cache)
     }()
 }
