@@ -28,6 +28,14 @@ private struct RuleRegistryKey: EnvironmentKey {
     }()
 }
 
+// MARK: - App Capabilities
+
+private struct AppCapabilitiesKey: EnvironmentKey {
+    // Default to the full set (Studio). The sandboxed Explorer target injects a
+    // reduced set (empty) at its app root.
+    nonisolated static let defaultValue: Set<AppCapability> = Set(AppCapability.allCases)
+}
+
 // MARK: - File marker (satisfies file_name lint rule)
 
 private enum EnvironmentKeys {}
@@ -43,5 +51,12 @@ extension EnvironmentValues {
     var ruleRegistry: RuleRegistry {
         get { self[RuleRegistryKey.self] }
         set { self[RuleRegistryKey.self] = newValue }
+    }
+
+    /// Edition-specific capabilities (full in Studio, reduced in the sandboxed
+    /// Explorer). Shared UI conditions external-tool features on these.
+    var appCapabilities: Set<AppCapability> {
+        get { self[AppCapabilitiesKey.self] }
+        set { self[AppCapabilitiesKey.self] = newValue }
     }
 }

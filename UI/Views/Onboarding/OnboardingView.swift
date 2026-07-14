@@ -13,6 +13,8 @@ struct OnboardingView: View {
     var workspaceManager: WorkspaceManager
     let swiftLintCLI: SwiftLintCLIProtocol
 
+    @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
+
     @ScaledMetric(relativeTo: .largeTitle) var iconSizeLarge: CGFloat = 80
     @ScaledMetric(relativeTo: .title) var iconSizeMedium: CGFloat = 48
     @ScaledMetric(relativeTo: .largeTitle) var iconSizeStandard: CGFloat = 64

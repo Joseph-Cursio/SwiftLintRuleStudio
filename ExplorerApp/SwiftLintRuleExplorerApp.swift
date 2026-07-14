@@ -43,6 +43,9 @@ struct SwiftLintRuleExplorerApp: App {
             ContentView()
                 .environment(\.ruleRegistry, ruleRegistry)
                 .environment(\.dependencies, dependencyContainer)
+                // Sandboxed edition: no external-tool capabilities (no swiftlint
+                // binary to detect, no `xed` to launch under the sandbox).
+                .environment(\.appCapabilities, [])
         }
         .defaultSize(width: 1_100, height: 700)
         .windowResizability(.contentMinSize)

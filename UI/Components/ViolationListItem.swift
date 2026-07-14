@@ -14,6 +14,7 @@ struct ViolationListItem: View {
     var onOpenInXcode: (() -> Void)?
 
     @Environment(\.dependencies) var dependencies: DependencyContainer
+    @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
 
     var body: some View {
         HStack(spacing: 12) {
@@ -70,7 +71,7 @@ struct ViolationListItem: View {
 
     @ViewBuilder
     private var openInXcodeButton: some View {
-        if let onOpenInXcode = onOpenInXcode {
+        if capabilities.contains(.openInXcode), let onOpenInXcode = onOpenInXcode {
             Button {
                 onOpenInXcode()
             } label: {
@@ -85,7 +86,8 @@ struct ViolationListItem: View {
 
     @ViewBuilder
     private var contextMenuItems: some View {
-        if let workspace = dependencies.workspaceManager.currentWorkspace {
+        if capabilities.contains(.openInXcode),
+           let workspace = dependencies.workspaceManager.currentWorkspace {
             Button {
                 Task {
                     await openInXcode(workspace: workspace)

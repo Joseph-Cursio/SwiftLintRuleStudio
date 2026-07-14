@@ -110,6 +110,15 @@ extension OnboardingView {
     func checkSwiftLintInstallation() async {
         swiftLintStatus = .checking
 
+        // Sandboxed / in-process edition: SwiftLint is linked in, not detected on
+        // disk. There is no external binary to find, so report it as ready and skip
+        // the path probing (which the sandbox would block anyway).
+        if !capabilities.contains(.detectInstalledSwiftLint) {
+            swiftLintVersion = "Built in"
+            swiftLintStatus = .installed(URL(fileURLWithPath: "in-process"), "Built in")
+            return
+        }
+
         // Run file checks in background to avoid blocking UI
         let result: URL? = await Task.detached(priority: .userInitiated) { @Sendable () -> URL? in
             // Check common paths directly - no actor, no async, just file checks
