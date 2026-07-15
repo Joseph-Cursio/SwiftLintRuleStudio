@@ -19,3 +19,6 @@ SwiftLintInProcessBackend/.build/
 # run, never source.
 *.profraw
 *.profdata
+
+# Any nested package's per-user SwiftPM state
+**/.swiftpm/
