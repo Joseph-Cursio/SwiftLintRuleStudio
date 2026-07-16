@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */; };
+		C0DE0011CAFEBABE00000011 /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */; };
 		2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */; };
 		C0DE0001CAFEBABE00000001 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */; };
 		E00000000000000000000012 /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000011 /* SwiftLintRuleStudioCore */; };
@@ -94,6 +95,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0DE0011CAFEBABE00000011 /* SwiftLintRuleStudioCore in Frameworks */,
 				2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */,
 				C0DE0003CAFEBABE00000003 /* SwiftLintCLIBackend in Frameworks */,
 				703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */,
@@ -214,6 +216,7 @@
 			name = SwiftLintRuleStudioTests;
 			packageProductDependencies = (
 				703886742EFC3A3500F2A033 /* ViewInspector */,
+				C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */,
 				2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */,
 				C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */,
 				AA10000830000008AABBCCDD /* LintStudioCore */,
@@ -868,6 +871,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
+			productName = SwiftLintRuleStudioCore;
+		};
+		C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
 			productName = SwiftLintRuleStudioCore;
