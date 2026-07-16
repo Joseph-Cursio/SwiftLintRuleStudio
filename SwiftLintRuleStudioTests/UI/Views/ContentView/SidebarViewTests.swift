@@ -148,28 +148,11 @@ struct SidebarViewTests {
 
     // MARK: - Navigation Links Tests
 
-    @Test("SidebarView displays Rules navigation link")
-    func testDisplaysRulesLink() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createSidebarView() }.value
-        let view = result.view
-
-        // `.badge()` on the Rules label puts it out of ViewInspector 0.10.3's reach: SwiftUI
-        // wraps the row in an internal BadgedView the inspector cannot traverse, so the row is
-        // absent from the inspected tree entirely — every other sidebar row is found by text.
-        // Searching by accessibility identifier is no escape hatch: accessibilityIdentifier()
-        // reads back nil for every Label here, badged or not.
-        // Runtime coverage lives in SwiftLintRuleStudioUITests, which finds and taps
-        // SidebarRulesLink for real. Drop this wrapper if ViewInspector learns `.badge()` —
-        // Swift Testing will flag the known issue as unexpectedly fixed.
-        // ViewInspector types aren't Sendable, so resolve the search before #expect.
-        let hasRulesText = await MainActor.run {
-            (try? view.inspect().find(text: "Rules")) != nil
-        }
-        withKnownIssue("ViewInspector 0.10.3 cannot traverse SwiftUI's .badge() wrapper") {
-            #expect(hasRulesText, "SidebarView should display Rules navigation link")
-        }
-    }
+    // The Rules row has no test here: its `.badge()` makes SwiftUI wrap it in an internal
+    // BadgedView that ViewInspector 0.10.3 cannot traverse, so the row is absent from the
+    // inspected tree and no search reaches it (accessibilityIdentifier() reads back nil on
+    // every Label, so that is no escape hatch either). SwiftLintRuleStudioUITests covers it
+    // by finding and tapping SidebarRulesLink.
 
     @Test("SidebarView displays Violations navigation link")
     func testDisplaysViolationsLink() async throws {
