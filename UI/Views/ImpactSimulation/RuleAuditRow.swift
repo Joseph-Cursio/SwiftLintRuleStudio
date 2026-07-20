@@ -18,9 +18,14 @@ struct RuleAuditRow: View {
     let onToggleExpand: () -> Void
     let onToggleSelect: () -> Void
     let onEnable: () -> Void
+    @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
 
     private var isExpandable: Bool {
         !entry.isCurrentlyEnabled && entry.violationCount > 0
+    }
+
+    private var isUnavailable: Bool {
+        entry.rule.isUnavailableForLinting(capabilities: capabilities)
     }
 
     var body: some View {
@@ -73,10 +78,20 @@ struct RuleAuditRow: View {
 
             // Rule name + description (flexible column)
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.rule.id)
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(entry.rule.id)
+                        .font(.system(.body, design: .monospaced))
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    if isUnavailable {
+                        Image(systemName: "nosign")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .help("Relies on SourceKit — not evaluated in this edition. "
+                                + "Still writable to your configuration.")
+                            .accessibilityLabel("Not available in this edition")
+                    }
+                }
                 Text(entry.rule.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)

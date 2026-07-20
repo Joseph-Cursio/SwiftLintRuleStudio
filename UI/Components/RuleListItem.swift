@@ -12,6 +12,11 @@ import SwiftUI
 
 struct RuleListItem: View {
     let rule: Rule
+    @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
+
+    private var isUnavailable: Bool {
+        rule.isUnavailableForLinting(capabilities: capabilities)
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -56,6 +61,15 @@ struct RuleListItem: View {
                         Label("Enabled", systemImage: "checkmark.circle.fill")
                             .font(.caption2)
                             .foregroundStyle(.green)
+                    }
+
+                    if isUnavailable {
+                        Label("Not available in this edition", systemImage: "nosign")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .help("This rule relies on SourceKit, which the Mac App Store "
+                                + "edition can't run. You can still add it to your "
+                                + "configuration, but it won't be checked here.")
                     }
                 }
             }

@@ -74,6 +74,7 @@ struct RuleDetailView: View {
     @State var viewModel: RuleDetailViewModel
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dependencies) var dependencies: DependencyContainer
+    @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
     @State private var showSaveConfirmation = false
     @State private var showError = false
     @State private var errorMessage: String?

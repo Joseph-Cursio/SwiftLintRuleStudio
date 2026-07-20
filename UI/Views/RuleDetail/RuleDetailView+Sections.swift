@@ -27,6 +27,24 @@ extension RuleDetailView {
                 }
                 .frame(maxWidth: .infinity)
 
+                // Honest disclosure: in the sandboxed edition, SourceKit rules can
+                // still be written to .swiftlint.yml (the toggle stays live so the
+                // config remains portable) but won't be evaluated by the in-app
+                // linter here.
+                if rule.isUnavailableForLinting(capabilities: capabilities) {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "nosign")
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                        Text("This rule relies on SourceKit, which this edition can't "
+                            + "run, so it won't be checked here. You can still add it to "
+                            + "your configuration for use with SwiftLint elsewhere.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityIdentifier("RuleDetailSourceKitUnavailableNotice")
+                }
+
                 if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
                     Divider()
 
