@@ -55,6 +55,7 @@ nonisolated private func makeBackgroundBatch(count: Int, startingIndex: Int = 0)
             category: .style,
             isOptIn: false,
             isAnalyzer: false,
+            usesSourceKit: false,
             index: startingIndex + offset
         )
     }

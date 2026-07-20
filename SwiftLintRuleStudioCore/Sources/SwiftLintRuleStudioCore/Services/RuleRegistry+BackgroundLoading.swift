@@ -39,6 +39,7 @@ extension RuleRegistry {
                 category: rule.category,
                 isOptIn: rule.isOptIn,
                 isAnalyzer: rule.isAnalyzer,
+                usesSourceKit: rule.usesSourceKit,
                 index: currentIndex
             )
         }
@@ -51,6 +52,7 @@ extension RuleRegistry {
         let category: RuleCategory
         let isOptIn: Bool
         let isAnalyzer: Bool
+        let usesSourceKit: Bool
         let index: Int
     }
 
@@ -90,7 +92,8 @@ extension RuleRegistry {
                         category: data.category,
                         isOptIn: data.isOptIn,
                         swiftLintCLI: swiftLintCLI,
-                        isAnalyzer: data.isAnalyzer
+                        isAnalyzer: data.isAnalyzer,
+                        usesSourceKit: data.usesSourceKit
                     )
                     return (data.index, rule)
                 }
@@ -107,7 +110,8 @@ extension RuleRegistry {
         category: RuleCategory,
         isOptIn: Bool,
         swiftLintCLI: SwiftLintCLIProtocol,
-        isAnalyzer: Bool = false
+        isAnalyzer: Bool = false,
+        usesSourceKit: Bool = false
     ) async -> Rule {
         do {
             return try await withTimeout(
@@ -119,7 +123,8 @@ extension RuleRegistry {
                     category: category,
                     isOptIn: isOptIn,
                     swiftLintCLI: swiftLintCLI,
-                    isAnalyzer: isAnalyzer
+                    isAnalyzer: isAnalyzer,
+                    usesSourceKit: usesSourceKit
                 )
             }
         } catch {
@@ -130,6 +135,7 @@ extension RuleRegistry {
                 category: category,
                 isOptIn: isOptIn,
                 isAnalyzer: isAnalyzer,
+                usesSourceKit: usesSourceKit,
                 parameters: nil,
                 triggeringExamples: [],
                 nonTriggeringExamples: [],

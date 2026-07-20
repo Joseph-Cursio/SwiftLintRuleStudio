@@ -121,6 +121,10 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
     public let category: RuleCategory
     public let isOptIn: Bool
     public let isAnalyzer: Bool
+    /// Whether this rule relies on SourceKit. The sandboxed (Mac App Store)
+    /// edition disables SourceKit, so these rules cannot be evaluated there —
+    /// see `isUnavailableForLinting(capabilities:)`.
+    public let usesSourceKit: Bool
     public var severity: Severity?
     public let parameters: [RuleParameter]?
     public let triggeringExamples: [String]
@@ -145,6 +149,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
         category: RuleCategory,
         isOptIn: Bool,
         isAnalyzer: Bool = false,
+        usesSourceKit: Bool = false,
         severity: Severity? = nil,
         parameters: [RuleParameter]? = nil,
         triggeringExamples: [String] = [],
@@ -164,6 +169,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
         self.category = category
         self.isOptIn = isOptIn
         self.isAnalyzer = isAnalyzer
+        self.usesSourceKit = usesSourceKit
         self.severity = severity
         self.parameters = parameters
         self.triggeringExamples = triggeringExamples
@@ -176,5 +182,18 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
         self.minimumSwiftVersion = minimumSwiftVersion
         self.defaultSeverity = defaultSeverity
         self.markdownDocumentation = markdownDocumentation
+    }
+}
+
+public extension Rule {
+    /// Whether the current app edition's in-app linter cannot evaluate this rule.
+    ///
+    /// The sandboxed (Mac App Store) edition disables SourceKit, so SourceKit-backed
+    /// rules produce no violations there. This does not prevent the rule from being
+    /// written to `.swiftlint.yml` — the generated config stays portable and a
+    /// full command-line SwiftLint elsewhere will still honor it — it only signals
+    /// that *this* edition won't check it, so the UI can say so honestly.
+    func isUnavailableForLinting(capabilities: Set<AppCapability>) -> Bool {
+        usesSourceKit && !capabilities.contains(.sourceKitRules)
     }
 }

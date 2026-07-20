@@ -94,7 +94,8 @@ public class RuleRegistry: RuleRegistryProtocol {
             identifier: rule.id,
             category: rule.category,
             isOptIn: rule.isOptIn,
-            isAnalyzer: rule.isAnalyzer
+            isAnalyzer: rule.isAnalyzer,
+            usesSourceKit: rule.usesSourceKit
         ) else { return }
 
         // Update the rule in the rules array

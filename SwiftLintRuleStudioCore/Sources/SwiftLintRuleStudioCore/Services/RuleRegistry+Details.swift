@@ -38,7 +38,8 @@ extension RuleRegistry {
                     identifier: rule.id,
                     category: rule.category,
                     isOptIn: rule.isOptIn,
-                    isAnalyzer: rule.isAnalyzer
+                    isAnalyzer: rule.isAnalyzer,
+                    usesSourceKit: rule.usesSourceKit
                 )
             }
             timeoutGroup.addTask {
@@ -67,14 +68,16 @@ extension RuleRegistry {
         identifier: String,
         category: RuleCategory,
         isOptIn: Bool,
-        isAnalyzer: Bool = false
+        isAnalyzer: Bool = false,
+        usesSourceKit: Bool = false
     ) async throws -> Rule {
         try await Self.fetchRuleDetailsHelper(
             identifier: identifier,
             category: category,
             isOptIn: isOptIn,
             swiftLintCLI: swiftLintCLI,
-            isAnalyzer: isAnalyzer
+            isAnalyzer: isAnalyzer,
+            usesSourceKit: usesSourceKit
         )
     }
 
@@ -84,12 +87,14 @@ extension RuleRegistry {
         category: RuleCategory,
         isOptIn: Bool,
         swiftLintCLI: SwiftLintCLIProtocol,
-        isAnalyzer: Bool = false
+        isAnalyzer: Bool = false,
+        usesSourceKit: Bool = false
     ) async throws -> Rule {
         var state = RuleDetailsState(
             identifier: identifier,
             isOptIn: isOptIn,
             isAnalyzer: isAnalyzer,
+            usesSourceKit: usesSourceKit,
             name: identifier.replacingOccurrences(of: "_", with: " ").capitalized
         )
         await populateFromDocs(ruleId: identifier, swiftLintCLI: swiftLintCLI, state: &state)
@@ -104,6 +109,7 @@ extension RuleRegistry {
         let identifier: String
         let isOptIn: Bool
         let isAnalyzer: Bool
+        let usesSourceKit: Bool
         var name: String
         var description: String = "No description available"
         var triggeringExamples: [String] = []
@@ -136,6 +142,7 @@ extension RuleRegistry {
                 category: category,
                 isOptIn: isOptIn,
                 isAnalyzer: isAnalyzer,
+                usesSourceKit: usesSourceKit,
                 severity: defaultSeverity,
                 parameters: parameters,
                 triggeringExamples: triggeringExamples,

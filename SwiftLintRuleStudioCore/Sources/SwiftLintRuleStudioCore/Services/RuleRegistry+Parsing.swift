@@ -70,6 +70,11 @@ extension RuleRegistry {
         let category = mapCategory(kindStr)
         let analyzerStr = columns.count > 5 ? columns[5].lowercased() : "no"
         let isAnalyzer = analyzerStr == "yes"
+        // Column 6 is "uses sourcekit". Both backends always populate every cell
+        // (never blank), so positional indexing is stable here. Default to `false`
+        // if a future/rules-table variant omits the column.
+        let sourceKitStr = columns.count > 6 ? columns[6].lowercased() : "no"
+        let usesSourceKit = sourceKitStr == "yes"
 
         return Rule(
             id: identifier,
@@ -78,6 +83,7 @@ extension RuleRegistry {
             category: category,
             isOptIn: isOptIn,
             isAnalyzer: isAnalyzer,
+            usesSourceKit: usesSourceKit,
             severity: nil,
             parameters: nil,
             triggeringExamples: [],

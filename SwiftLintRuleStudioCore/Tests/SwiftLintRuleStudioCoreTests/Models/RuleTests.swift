@@ -103,4 +103,51 @@ struct RuleTests {
             _ = try encoder.encode(AnyCodable(Date.now))
         }
     }
+
+    // MARK: - Edition availability (isUnavailableForLinting)
+
+    private func makeRule(usesSourceKit: Bool) -> Rule {
+        Rule(
+            id: "some_rule",
+            name: "Some Rule",
+            description: "",
+            category: .lint,
+            isOptIn: false,
+            usesSourceKit: usesSourceKit
+        )
+    }
+
+    @Test("SourceKit rule is unavailable when the sourceKitRules capability is absent")
+    func testSourceKitRuleUnavailableWithoutCapability() {
+        let rule = makeRule(usesSourceKit: true)
+        // Sandboxed (Explorer) edition injects an empty capability set.
+        #expect(rule.isUnavailableForLinting(capabilities: []))
+    }
+
+    @Test("SourceKit rule is available when the sourceKitRules capability is present")
+    func testSourceKitRuleAvailableWithCapability() {
+        let rule = makeRule(usesSourceKit: true)
+        // Non-sandboxed (Studio) edition has all capabilities.
+        #expect(rule.isUnavailableForLinting(capabilities: Set(AppCapability.allCases)) == false)
+        #expect(rule.isUnavailableForLinting(capabilities: [.sourceKitRules]) == false)
+    }
+
+    @Test("Non-SourceKit rule is always available, regardless of capabilities")
+    func testNonSourceKitRuleAlwaysAvailable() {
+        let rule = makeRule(usesSourceKit: false)
+        #expect(rule.isUnavailableForLinting(capabilities: []) == false)
+        #expect(rule.isUnavailableForLinting(capabilities: Set(AppCapability.allCases)) == false)
+    }
+
+    @Test("usesSourceKit defaults to false")
+    func testUsesSourceKitDefaultsFalse() {
+        let rule = Rule(
+            id: "force_cast",
+            name: "Force Cast",
+            description: "",
+            category: .lint,
+            isOptIn: false
+        )
+        #expect(rule.usesSourceKit == false)
+    }
 }

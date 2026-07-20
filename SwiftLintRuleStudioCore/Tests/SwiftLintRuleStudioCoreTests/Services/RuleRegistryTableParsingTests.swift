@@ -137,6 +137,28 @@ struct RuleRegistryTableParsingTests {
         #expect(rules[2].id == "rule3")
     }
 
+    @Test("RuleRegistry captures the 'uses sourcekit' column")
+    @MainActor
+    func testParseUsesSourceKitColumn() async throws {
+        let tableData = makeRulesTableData(rows: [
+            "| sourcekit_rule | no | no | yes | lint | no | yes | |",
+            "| plain_rule | no | no | yes | lint | no | no | |"
+        ])
+
+        let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
+        let mockCache = MockCacheManager()
+        let registry = RuleRegistry(swiftLintCLI: mockCLI, cacheManager: mockCache)
+
+        let rules = try await registry.loadRules()
+
+        let sourceKitRule = try #require(rules.first { $0.id == "sourcekit_rule" })
+        let plainRule = try #require(rules.first { $0.id == "plain_rule" })
+        // Also confirms the flag survives the detail-enrichment pass, which
+        // reconstructs each Rule.
+        #expect(sourceKitRule.usesSourceKit)
+        #expect(plainRule.usesSourceKit == false)
+    }
+
     @Test("RuleRegistry handles empty table")
     @MainActor
     func testParseEmptyTable() async {
