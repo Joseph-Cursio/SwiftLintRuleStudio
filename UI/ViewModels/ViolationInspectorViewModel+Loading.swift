@@ -65,6 +65,20 @@ extension ViolationInspectorViewModel {
         NSApp.dockTile.badgeLabel = nil
 #endif
     }
+
+    /// Repaint the violation list from storage without re-running analysis. Used
+    /// after suppress/resolve — those are pure DB mutations, so re-linting the whole
+    /// workspace just to reflect them would be wasteful (and, before the storage
+    /// upsert, actively discarded the change).
+    func reloadViolationsFromStorage() async throws {
+        guard let workspaceId = workspaceId else { return }
+        let fetched = try await violationStorage.fetchViolations(
+            filter: ViolationFilter(),
+            workspaceId: workspaceId
+        )
+        violations = fetched
+        updateFilteredViolations()
+    }
 }
 
 private extension ViolationInspectorViewModel {
@@ -75,16 +89,6 @@ private extension ViolationInspectorViewModel {
                 self?.isAnalyzing = analyzing
             }
             .store(in: &cancellables)
-    }
-
-    func reloadViolationsFromStorage() async throws {
-        guard let workspaceId = workspaceId else { return }
-        let fetched = try await violationStorage.fetchViolations(
-            filter: ViolationFilter(),
-            workspaceId: workspaceId
-        )
-        violations = fetched
-        updateFilteredViolations()
     }
 
 #if os(macOS)

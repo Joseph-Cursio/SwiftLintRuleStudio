@@ -43,7 +43,8 @@ extension ViolationInspectorViewModel {
         guard workspaceId != nil else { return }
         let ids = Array(selectedViolationIds)
         try await violationStorage.suppressViolations(ids, reason: reason)
-        try await refreshViolations()
+        // Suppression is a DB mutation — repaint from storage rather than re-linting.
+        try await reloadViolationsFromStorage()
         selectedViolationIds.removeAll()
     }
 
@@ -51,7 +52,8 @@ extension ViolationInspectorViewModel {
         guard workspaceId != nil else { return }
         let ids = Array(selectedViolationIds)
         try await violationStorage.resolveViolations(ids)
-        try await refreshViolations()
+        // Resolution is a DB mutation — repaint from storage rather than re-linting.
+        try await reloadViolationsFromStorage()
         selectedViolationIds.removeAll()
     }
 }
