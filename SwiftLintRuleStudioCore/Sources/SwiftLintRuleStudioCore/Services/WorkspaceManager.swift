@@ -152,6 +152,9 @@ public class WorkspaceManager {
             updated.lastAnalyzed = Date.now
             recentWorkspaces.insert(updated, at: 0)
             currentWorkspace = updated
+            // Persist the reordered list so the "most recent" order survives relaunch;
+            // the new-workspace branch persists via addToRecentWorkspaces below.
+            saveRecentWorkspaces()
         } else {
             // Create new workspace
             let workspace = Workspace(path: url)

@@ -49,6 +49,41 @@ struct WorkspaceManagerRecentTests {
         #expect(count <= 10)
     }
 
+    // Regression for P1.2: the in-memory reorder above is not enough — reopening a
+    // workspace already in the recents list must also PERSIST the new order, or the
+    // stale order loads back on the next launch. A second manager reading the same
+    // UserDefaults stands in for that relaunch.
+    @Test("Reopening an already-recent workspace persists the reordered list")
+    func testReopenPersistsRecentOrder() async throws {
+        let workspaceA = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        let workspaceB = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        let workspaceC = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer {
+            WorkspaceTestHelpers.cleanupWorkspace(workspaceA)
+            WorkspaceTestHelpers.cleanupWorkspace(workspaceB)
+            WorkspaceTestHelpers.cleanupWorkspace(workspaceC)
+        }
+
+        let defaults = IsolatedUserDefaults.create(for: #function)
+
+        let reloadedFirst = try await MainActor.run { () -> URL? in
+            let manager = WorkspaceManager(userDefaults: defaults)
+            try manager.openWorkspace(at: workspaceA)
+            try manager.openWorkspace(at: workspaceB)
+            try manager.openWorkspace(at: workspaceC)  // persisted order: [C, B, A]
+            try manager.openWorkspace(at: workspaceA)  // reopen existing -> [A, C, B]
+
+            // A fresh manager loads from the same store, as on the next app launch.
+            let relaunched = WorkspaceManager(userDefaults: defaults)
+            return relaunched.recentWorkspaces.first?.path
+        }
+
+        #expect(
+            reloadedFirst == workspaceA,
+            "reopening a recent workspace must persist it to the top for the next launch"
+        )
+    }
+
     @Test("WorkspaceManager moves existing workspace to top of recent list")
     func testMoveExistingToTop() async throws {
         let workspace1 = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
