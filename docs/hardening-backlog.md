@@ -15,7 +15,9 @@ All findings were verified against live source.
 | **P0.1** Suppression undone by re-analysis | ✅ **Done** — `9ea2e90` (storage upsert) + `b06494e` (repaint from DB) |
 | **P0.2** "Disable Rule" no-op | ✅ **Done** — `93edd2e` (serialize `disabled_rules`) |
 | **P1.1** Sort direction ignored | ✅ **Done** — `c23a306` (uniform `sortOrder` in the comparator) |
-| P1.2–P1.5, P2.x, P3.x | ⬜ open |
+| **P1.2** Recent-workspace order not persisted | ✅ **Done** — `d323833` (save after reorder) |
+| **P2.1** ImpactSimulator column always 0 | ✅ **Done** — `11dcfcc` (read `character` field) |
+| P1.3–P1.5, P2.2–P2.5, P3.x | ⬜ open |
 | PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
 
 Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
@@ -80,10 +82,15 @@ Every analysis calls `storeViolations`, which does `DELETE FROM violations WHERE
 - **Fix:** compute a `ComparisonResult` in each case and fall through to the single `sortOrder`-aware return.
 </details>
 
-### P1.2 Reopening an already-recent workspace never persists the new order
+### P1.2 Reopening an already-recent workspace never persists the new order — ✅ Done (`d323833`)
+**Shipped:** the existing-recent branch now calls `saveRecentWorkspaces()` after the in-memory reorder. Regression test constructs a second `WorkspaceManager` sharing the same `UserDefaults` (standing in for a relaunch) and asserts the reopened workspace loads first — the existing move-to-top test only checked the in-memory reorder within one instance.
+
+<details><summary>Original finding</summary>
+
 The "already in recentWorkspaces" branch reorders in memory and bumps `lastAnalyzed` but never calls `saveRecentWorkspaces()`; only the brand-new-workspace branch persists. Recency ordering is silently lost on every reopen.
 - `Core/Services/WorkspaceManager.swift:147-160`
 - **Fix:** call `saveRecentWorkspaces()` (or route through `addToRecentWorkspaces`) in the existing-recent branch too.
+</details>
 
 ### P1.3 [a11y] "Remove from recent workspaces" unreachable by VoiceOver
 An interactive `Button` sits inside another `Button`'s label in the Recent Workspaces row; SwiftUI/AppKit doesn't reliably expose two focusable controls here, so VoiceOver users likely can't reach "Remove."
@@ -106,9 +113,14 @@ An interactive `Button` sits inside another `Button`'s label in the Recent Works
 
 ## P2 — Medium
 
-### P2.1 ⚙️ ImpactSimulator always reports column 0
+### P2.1 ⚙️ ImpactSimulator always reports column 0 — ✅ Done (`11dcfcc`)
+**Shipped:** `parseViolations` now reads `item["character"]` (optional — nil for line-level violations), matching the canonical parser and `Violation.column`. Regression test asserts a simulated violation's column round-trips from the reporter's `character` field.
+
+<details><summary>Original finding</summary>
+
 Reads `item["column"]`, but SwiftLint's JSON reporter uses `"character"` (as `WorkspaceAnalyzer+Helpers.swift:206` correctly does). Every simulated violation's `column` is silently `0`.
 - `Core/Services/ImpactSimulator.swift:255` — **Fix:** read `item["character"]`.
+</details>
 
 ### P2.2 Quick workspace switching can show the wrong workspace's violations
 `loadViolations(for:workspace:)` `await`s a slow analyze, then unconditionally assigns `violations = fetched` with no check that `self.workspaceId` still matches the parameter. The view fires an uncancelled `Task` per switch.
