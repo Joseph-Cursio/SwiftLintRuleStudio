@@ -64,34 +64,49 @@ extension ViolationInspectorViewModel {
 
     func sortViolations(_ violations: [Violation]) -> [Violation] {
         violations.sorted { lhs, rhs in
-            let comparison: ComparisonResult
-
-            switch sortOption {
-            case .file:
-                comparison = lhs.filePath.localizedCaseInsensitiveCompare(rhs.filePath)
-                if comparison == .orderedSame {
-                    return lhs.line < rhs.line
-                }
-            case .rule:
-                comparison = lhs.ruleID.localizedCaseInsensitiveCompare(rhs.ruleID)
-                if comparison == .orderedSame {
-                    return lhs.filePath.localizedCaseInsensitiveCompare(rhs.filePath) == .orderedAscending
-                }
-            case .severity:
-                if lhs.severity != rhs.severity {
-                    return lhs.severity == .error && rhs.severity == .warning
-                }
-                return lhs.filePath.localizedCaseInsensitiveCompare(rhs.filePath) == .orderedAscending
-            case .date:
-                return lhs.detectedAt > rhs.detectedAt
-            case .line:
-                if lhs.filePath != rhs.filePath {
-                    return lhs.filePath.localizedCaseInsensitiveCompare(rhs.filePath) == .orderedAscending
-                }
-                return lhs.line < rhs.line
-            }
-
+            let comparison = orderedComparison(lhs, rhs)
             return sortOrder == .ascending ? comparison == .orderedAscending : comparison == .orderedDescending
+        }
+    }
+
+    /// The full ordering for the current `sortOption` as a single `ComparisonResult`
+    /// (primary key, then a file/line tiebreak). `sortViolations` flips it for a
+    /// descending sort, so every option honors the direction toggle uniformly.
+    private func orderedComparison(_ lhs: Violation, _ rhs: Violation) -> ComparisonResult {
+        let fileOrder = { lhs.filePath.localizedCaseInsensitiveCompare(rhs.filePath) }
+        switch sortOption {
+        case .file:
+            let primary = fileOrder()
+            return primary == .orderedSame ? Self.compare(lhs.line, rhs.line) : primary
+        case .rule:
+            let primary = lhs.ruleID.localizedCaseInsensitiveCompare(rhs.ruleID)
+            return primary == .orderedSame ? fileOrder() : primary
+        case .severity:
+            // Errors (rank 0) order ahead of warnings (rank 1) when ascending.
+            let primary = Self.compare(Self.severityRank(lhs.severity), Self.severityRank(rhs.severity))
+            return primary == .orderedSame ? fileOrder() : primary
+        case .date:
+            // Ascending shows newest first (compare with operands swapped).
+            let primary = Self.compare(rhs.detectedAt, lhs.detectedAt)
+            return primary == .orderedSame ? fileOrder() : primary
+        case .line:
+            let primary = fileOrder()
+            return primary == .orderedSame ? Self.compare(lhs.line, rhs.line) : primary
+        }
+    }
+
+    /// `ComparisonResult` for two `Comparable` values (ascending sense).
+    private static func compare<Value: Comparable>(_ lhs: Value, _ rhs: Value) -> ComparisonResult {
+        if lhs < rhs { return .orderedAscending }
+        if lhs > rhs { return .orderedDescending }
+        return .orderedSame
+    }
+
+    /// Sort rank for severity: errors (0) order ahead of warnings (1) when ascending.
+    private static func severityRank(_ severity: Severity) -> Int {
+        switch severity {
+        case .error: return 0
+        case .warning: return 1
         }
     }
 }
