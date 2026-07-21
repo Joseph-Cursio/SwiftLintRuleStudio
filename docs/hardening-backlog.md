@@ -6,7 +6,18 @@ _Generated 2026-07-21 from three sweeps of the free edition:_
 2. **Accessibility audit** — `accessibility-reviewer` agent over `UI/Views` + `UI/Components`.
 3. **PBT readiness** — `SwiftProjectLint --format pbt-seeds` over `SwiftLintRuleStudioCore` (83 seeds).
 
-All findings were verified against live source. This doc is planning only — nothing here is committed.
+All findings were verified against live source.
+
+## Status (updated 2026-07-21)
+
+| Item | State |
+|---|---|
+| **P0.1** Suppression undone by re-analysis | ✅ **Done** — `9ea2e90` (storage upsert) + `b06494e` (repaint from DB) |
+| **P0.2** "Disable Rule" no-op | ✅ **Done** — `93edd2e` (serialize `disabled_rules`) |
+| P1.1–P1.5, P2.x, P3.x | ⬜ open |
+| PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
+
+Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
 
 ## Priority legend
 
@@ -23,7 +34,11 @@ A ⚙️ marker means **a property-based test would have caught this** (or would
 
 ## P0 — Ship-blockers / data integrity
 
-### P0.1 ⚙️ Suppressing or resolving a violation is undone by the next analysis
+### P0.1 ⚙️ Suppressing or resolving a violation is undone by the next analysis — ✅ Done (`9ea2e90`, `b06494e`)
+**Shipped:** `storeViolations` now snapshots per-finding state by content key (rule + file + line + message) before deleting and carries `suppressed`/`suppressionReason`/`resolvedAt`/first-seen `detectedAt` forward; suppress/resolve repaint from the DB (`reloadViolationsFromStorage`) instead of re-linting. Regression tests: 5 Core (`ViolationStorageReanalysisTests`) + 2 app-level spy-analyzer (`ViolationInspectorViewModelSuppressionRefreshTests`). The unreachable incremental-analysis path (`analyzeFiles/analyzeChangedFiles`) shares the same root cause and is now safe against the wipe.
+
+<details><summary>Original finding</summary>
+
 Every analysis calls `storeViolations`, which does `DELETE FROM violations WHERE workspace_id = ?` then reinserts freshly-parsed rows with **new random UUIDs** and `suppressed:false`, `resolvedAt:nil`. Nothing carries prior identity or suppression state forward. Worse, the suppress/resolve UI actions call `refreshViolations()` immediately afterward, which re-runs analysis — so the suppression is wiped by its *own* action, and every ordinary "Analyze" silently discards all suppression/resolution history.
 
 - `Core/Services/ViolationStorageActor+Mutations.swift:5-37` (delete-then-reinsert)
@@ -33,7 +48,13 @@ Every analysis calls `storeViolations`, which does `DELETE FROM violations WHERE
 
 **Fix:** give a violation a stable identity derived from its content (`workspace + file + rule + line + reason`, not a random UUID), and have `storeViolations` upsert — preserving `suppressed`/`resolvedAt` for rows that still match — instead of delete-and-reinsert. Same root cause blocks the currently-unreachable incremental-analysis path (`WorkspaceAnalyzer.analyzeFiles/analyzeChangedFiles`, `WorkspaceAnalyzer.swift:125-180`), which would wipe every file it didn't just re-lint — fix before wiring any incremental-analysis UI.
 
-### P0.2 ⚙️ "Disable Rule" is a silent no-op for ordinary rules
+</details>
+
+### P0.2 ⚙️ "Disable Rule" is a silent no-op for ordinary rules — ✅ Done (`93edd2e`)
+**Shipped:** fixed at the serialization boundary (not the ViewModel, as originally proposed) — `disabled_rules` now merges `config.disabledRules` with any `enabled=false` rule (explicit order preserved, new entries appended sorted), and a disabled rule no longer also emits a contradictory config mapping. Symmetric with the existing parse-side migration, so bulk-disable and the single-rule toggle both work. Regression tests: 4 Core (`YAMLConfigDisabledRulesRoundTripTests`) + 1 app-level (`RuleBrowserViewModelBulkTests`, the plain-default case the old test missed).
+
+<details><summary>Original finding</summary>
+
 `disableSelectedRules` sets `ruleConfig.enabled = false` but never adds the rule to `config.disabledRules` (contrast `enableSelectedRules`, which maintains `disabledRules`). And the serializer never writes `enabled` at all: `topLevelRuleValue` returns `nil` (omitting the rule) when it has no custom severity/parameters. Net: disabling a plain default rule writes an unchanged `.swiftlint.yml` while the diff preview and save both report success.
 
 - `UI/ViewModels/RuleBrowserViewModel.swift:286-303` (disable path)
@@ -41,6 +62,8 @@ Every analysis calls `storeViolations`, which does `DELETE FROM violations WHERE
 - `UI/ViewModels/RuleBrowserViewModel.swift:318-329` (single-toggle funnels through same path)
 
 **Fix:** add the rule to `disabledRules` on disable (mirror the enable path), and ensure the serializer emits a disabling form. Covers both the context-menu single toggle and bulk "Disable Selected."
+
+</details>
 
 ---
 
@@ -137,9 +160,9 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 
 ## Suggested sequencing
 
-1. **P0.1 + P0.2** — the two silent-data-loss bugs. Highest user impact, both in the app's primary flows.
-2. **P1.1–P1.2** (quick correctness wins) then **P1.3–P1.5** (a11y blockers).
-3. **Stand up PBT** on the config-merge + YAML round-trip kernels — locks P0.1/P2.1 shut and road-tests the toolchain on a real repo (the actual reason this thread started).
+1. ~~**P0.1 + P0.2** — the two silent-data-loss bugs.~~ ✅ Done (`9ea2e90`, `b06494e`, `93edd2e`).
+2. **P1.1–P1.2** (quick correctness wins) then **P1.3–P1.5** (a11y blockers). ← next
+3. **Stand up PBT** on the config-merge + YAML round-trip kernels — locks P2.1 shut and road-tests the toolchain on a real repo (the actual reason this thread started).
 4. **P2**, then **P3** as robustness passes.
 
 Per repo convention: one logical change per commit, each building green, unrelated changes never bundled.
