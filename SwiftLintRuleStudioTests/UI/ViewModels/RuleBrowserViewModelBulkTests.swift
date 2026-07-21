@@ -6,11 +6,12 @@
 //
 
 import Foundation
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
+import Yams
 
 private struct RuleListSnapshot {
     let analyzer: [String]?
@@ -164,6 +165,32 @@ struct RuleBrowserViewModelBulkTests {
             let diff = viewModel.bulkDiff
             #expect(diff != nil)
             #expect(diff?.hasChanges == true)
+        }
+    }
+
+    // Regression for P0.2: disabling a plain default rule that is NOT already in the
+    // config must actually disable it (write it into disabled_rules). The older test
+    // above only disabled rules already present as `enabled: true`, which masked the
+    // no-op bug for default rules.
+    @Test("Disabling a plain default rule absent from the config writes disabled_rules")
+    func testDisablePlainDefaultRuleWritesDisabledRules() async throws {
+        let configContent = "excluded:\n  - .build\n"
+        let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(content: configContent)
+        defer { RuleDetailViewModelTestHelpers.cleanupTempFile(configPath) }
+
+        try await MainActor.run {
+            let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+            let viewModel = Self.createTestViewModel()
+            viewModel.selectedRuleIds = ["trailing_whitespace"]
+            viewModel.disableSelectedRules(yamlEngine: yamlEngine)
+
+            let after = try #require(viewModel.bulkDiff?.after)
+            let parsed = try #require(try Yams.load(yaml: after) as? [String: Any])
+            let disabled = try #require(
+                parsed["disabled_rules"] as? [String],
+                "disabling a plain default rule must write disabled_rules"
+            )
+            #expect(disabled.contains("trailing_whitespace"))
         }
     }
 
