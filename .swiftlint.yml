@@ -3,6 +3,7 @@ disabled_rules:
 excluded:
   - .build
   - SwiftLintRuleStudioCore/.build
+  - SwiftLintInProcessBackend/.build
   - Pods
   - .git
   - DerivedData
