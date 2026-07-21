@@ -11,6 +11,9 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
     var shouldFail = false
     var isAnalyzing = false
     var isAnalyzingPublisher: AnyPublisher<Bool, Never> { Just(false).eraseToAnyPublisher() }
+    /// Fires during `analyze`, letting a test simulate work that happens while an
+    /// analysis is in flight (e.g. the user switching to another workspace).
+    var onAnalyze: (@MainActor () -> Void)?
     private let mockStorage: MockViolationStorageForViewModel
 
     init(mockStorage: MockViolationStorageForViewModel) {
@@ -26,6 +29,7 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
         }
 
         try mockStorage.storeViolations(mockViolations, for: workspace.id)
+        onAnalyze?()
 
         return AnalysisResult(
             violations: mockViolations,

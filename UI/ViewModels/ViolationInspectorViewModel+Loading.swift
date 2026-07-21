@@ -30,6 +30,9 @@ extension ViolationInspectorViewModel {
             filter: ViolationFilter(),
             workspaceId: workspaceId
         )
+        // A newer load may have switched the active workspace while we awaited
+        // analysis and the fetch; don't clobber its results with this stale load.
+        guard self.workspaceId == workspaceId else { return }
         violations = fetched
         updateFilteredViolations()
 #if os(macOS)

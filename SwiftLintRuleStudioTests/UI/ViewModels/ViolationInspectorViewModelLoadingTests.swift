@@ -200,4 +200,45 @@ struct ViolationInspectorViewModelLoadingTests {
         #expect(violationsCount == 1)
         #expect(ruleID == "existing")
     }
+
+    // Regression for P2.2: a load whose analysis is slow can finish AFTER a newer
+    // load already switched the active workspace, clobbering the newer results.
+    // The guard on self.workspaceId must drop the stale load.
+    @Test("A load superseded mid-analysis does not overwrite newer results")
+    func testSupersededLoadDoesNotClobber() async throws {
+        let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
+        let mockAnalyzer = await MainActor.run {
+            MockWorkspaceAnalyzer(mockStorage: mockStorage)
+        }
+        let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(
+            violationStorage: mockStorage,
+            workspaceAnalyzer: mockAnalyzer
+        )
+
+        let workspace = await MainActor.run {
+            let tempPath = FileManager.default.temporaryDirectory
+                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            return Workspace(path: tempPath)
+        }
+        let newerWorkspaceId = UUID()
+
+        await MainActor.run {
+            mockAnalyzer.mockViolations = [
+                ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "stale")
+            ]
+            // Simulate a newer load switching the active workspace mid-analysis.
+            mockAnalyzer.onAnalyze = { viewModel.workspaceId = newerWorkspaceId }
+        }
+
+        try await Task { @MainActor in
+            try await viewModel.loadViolations(for: workspace.id, workspace: workspace)
+        }.value
+
+        let (violationsEmpty, currentId) = await MainActor.run {
+            (viewModel.violations.isEmpty, viewModel.workspaceId)
+        }
+        #expect(violationsEmpty, "a superseded load must not overwrite newer results")
+        #expect(currentId == newerWorkspaceId)
+    }
 }
