@@ -14,7 +14,8 @@ All findings were verified against live source.
 |---|---|
 | **P0.1** Suppression undone by re-analysis | ✅ **Done** — `9ea2e90` (storage upsert) + `b06494e` (repaint from DB) |
 | **P0.2** "Disable Rule" no-op | ✅ **Done** — `93edd2e` (serialize `disabled_rules`) |
-| P1.1–P1.5, P2.x, P3.x | ⬜ open |
+| **P1.1** Sort direction ignored | ✅ **Done** — `c23a306` (uniform `sortOrder` in the comparator) |
+| P1.2–P1.5, P2.x, P3.x | ⬜ open |
 | PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
 
 Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
@@ -69,10 +70,15 @@ Every analysis calls `storeViolations`, which does `DELETE FROM violations WHERE
 
 ## P1 — Important correctness + accessibility blockers
 
-### P1.1 Sort-direction toggle ignored for Severity, Date, and Line
+### P1.1 Sort-direction toggle ignored for Severity, Date, and Line — ✅ Done (`c23a306`)
+**Shipped:** extracted `orderedComparison` — one `ComparisonResult` per sort option (primary + file/line tiebreak); `sortViolations` applies `sortOrder` uniformly, so every option (and the `.file`/`.rule` tiebreaks) honors the toggle. Ascending behavior preserved; descending is the clean reverse. Regression tests: 3 descending cases in `ViolationInspectorViewModelSortingTests` (the direction the ascending-only tests never exercised).
+
+<details><summary>Original finding</summary>
+
 `.severity`/`.date`/`.line` cases `return` directly from inside the `switch`, bypassing the trailing line that consults `sortOrder`. Only `.file`/`.rule` honor ascending/descending.
 - `UI/ViewModels/ViolationInspectorViewModel+Filtering.swift:80-94`
 - **Fix:** compute a `ComparisonResult` in each case and fall through to the single `sortOrder`-aware return.
+</details>
 
 ### P1.2 Reopening an already-recent workspace never persists the new order
 The "already in recentWorkspaces" branch reorders in memory and bumps `lastAnalyzed` but never calls `saveRecentWorkspaces()`; only the brand-new-workspace branch persists. Recency ordering is silently lost on every reopen.
@@ -161,7 +167,7 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 ## Suggested sequencing
 
 1. ~~**P0.1 + P0.2** — the two silent-data-loss bugs.~~ ✅ Done (`9ea2e90`, `b06494e`, `93edd2e`).
-2. **P1.1–P1.2** (quick correctness wins) then **P1.3–P1.5** (a11y blockers). ← next
+2. ~~P1.1~~ ✅ (`c23a306`); **P1.2** (recent-workspace persistence) ← next, then **P1.3–P1.5** (a11y blockers).
 3. **Stand up PBT** on the config-merge + YAML round-trip kernels — locks P2.1 shut and road-tests the toolchain on a real repo (the actual reason this thread started).
 4. **P2**, then **P3** as robustness passes.
 
