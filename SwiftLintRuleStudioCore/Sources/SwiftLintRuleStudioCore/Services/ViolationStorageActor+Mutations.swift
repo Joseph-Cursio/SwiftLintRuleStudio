@@ -1,7 +1,27 @@
 import Foundation
 
+/// A finding's cross-run identity, used to carry suppression/resolution state
+/// forward when a re-analysis re-reports the same issue. Two violations are "the
+/// same finding" when they share rule, file, line, and message — deliberately
+/// excluding `id` (regenerated every parse), `column`, and `severity`, none of
+/// which identify the underlying issue.
+private extension Violation {
+    nonisolated var contentKey: String {
+        Self.contentKey(ruleID: ruleID, filePath: filePath, line: line, message: message)
+    }
+
+    nonisolated static func contentKey(ruleID: String, filePath: String, line: Int, message: String) -> String {
+        [ruleID, filePath, String(line), message].joined(separator: "\u{1}")
+    }
+}
+
 extension ViolationStorageActor {
-    /// Store violations for a workspace, replacing any existing violations
+    /// Store violations for a workspace, reconciling against any existing rows.
+    ///
+    /// Findings the analysis no longer reports are removed, and suppression/
+    /// resolution state (plus first-seen `detectedAt`) is carried forward for
+    /// findings that are still reported — so re-running analysis never silently
+    /// discards a user's suppress/resolve decisions.
     public func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
         guard let database else {
             throw ViolationStorageError.databaseNotOpen
@@ -18,22 +38,101 @@ extension ViolationStorageActor {
             }
         }
 
+        // Read the prior state *before* deleting, then carry it forward onto the
+        // freshly-reported findings that match by content.
+        let preservedState = try existingStateByContentKey(for: workspaceId, in: database)
+        let reconciled = violations.map { carryingForwardState($0, from: preservedState) }
+
         let deleted = try deleteExistingViolations(for: workspaceId, in: database)
         logDeletedViolations(deleted)
 
         let statement = try prepareInsertStatement(in: database)
 
         let insertionResult = try insertViolations(
-            violations,
+            reconciled,
             workspaceId: workspaceId,
             in: database,
             statement: statement
         )
-        logDuplicateViolations(insertionResult, total: violations.count)
+        logDuplicateViolations(insertionResult, total: reconciled.count)
 
         // Commit transaction
         try executeSQL("COMMIT")
         transactionCommitted = true
+    }
+
+    /// The suppression/resolution state of a finding as it currently stands in storage.
+    private struct PreservedViolationState {
+        let detectedAt: Date
+        let resolvedAt: Date?
+        let suppressed: Bool
+        let suppressionReason: String?
+    }
+
+    /// Snapshot the current per-finding state for a workspace, keyed by content, so
+    /// it can be reapplied to the next analysis's freshly-reported findings.
+    private func existingStateByContentKey(
+        for workspaceId: UUID,
+        in database: SQLiteDatabase
+    ) throws -> [String: PreservedViolationState] {
+        let sql = """
+        SELECT rule_id, file_path, line, message, detected_at, resolved_at, suppressed, suppression_reason
+        FROM violations WHERE workspace_id = ?;
+        """
+        let statement = try database.prepare(sql)
+        statement.bind(workspaceId.uuidString, at: 1)
+
+        var stateByKey: [String: PreservedViolationState] = [:]
+        while statement.step() == .row {
+            guard let ruleID = statement.columnText(at: 0),
+                  let filePath = statement.columnText(at: 1),
+                  let message = statement.columnText(at: 3) else {
+                continue
+            }
+            let line = statement.columnInt(at: 2)
+            let key = Violation.contentKey(ruleID: ruleID, filePath: filePath, line: line, message: message)
+            // Duplicate findings (same content, different column) are indistinguishable;
+            // the first one's state is representative.
+            guard stateByKey[key] == nil else { continue }
+
+            let detectedAt = Date(timeIntervalSince1970: statement.columnDouble(at: 4))
+            let resolvedAt = statement.columnIsNull(at: 5)
+                ? nil
+                : Date(timeIntervalSince1970: statement.columnDouble(at: 5))
+            let suppressed = statement.columnInt(at: 6) != 0
+            let reason = statement.columnIsNull(at: 7) ? nil : statement.columnText(at: 7)
+            stateByKey[key] = PreservedViolationState(
+                detectedAt: detectedAt,
+                resolvedAt: resolvedAt,
+                suppressed: suppressed,
+                suppressionReason: reason
+            )
+        }
+        return stateByKey
+    }
+
+    /// Reapply preserved state to a freshly-reported finding. A finding with no prior
+    /// match is stored as-is (a genuinely new, unsuppressed violation).
+    private func carryingForwardState(
+        _ violation: Violation,
+        from preservedState: [String: PreservedViolationState]
+    ) -> Violation {
+        guard let state = preservedState[violation.contentKey] else {
+            return violation
+        }
+        return Violation(
+            ruleID: violation.ruleID,
+            filePath: violation.filePath,
+            line: violation.line,
+            severity: violation.severity,
+            message: violation.message,
+            id: violation.id,
+            column: violation.column,
+            detectedAt: state.detectedAt,
+            resolvedAt: state.resolvedAt,
+            suppressed: state.suppressed,
+            suppressionReason: state.suppressionReason
+        )
     }
 
     private struct InsertionResult {
