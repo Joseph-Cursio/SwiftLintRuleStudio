@@ -250,9 +250,11 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
                 continue
             }
 
-            // Parse line and column
+            // Parse line and column. SwiftLint's JSON reporter names the column
+            // "character" (matching WorkspaceAnalyzer); a nil means a line-level
+            // violation with no column.
             let line = item["line"] as? Int ?? 0
-            let column = item["column"] as? Int ?? 0
+            let column = item["character"] as? Int
 
             // Parse severity
             let severity = Severity(rawValue: severityString.lowercased()) ?? .warning

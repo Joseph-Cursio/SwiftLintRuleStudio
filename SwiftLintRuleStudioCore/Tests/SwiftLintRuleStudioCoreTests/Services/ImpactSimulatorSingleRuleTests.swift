@@ -80,6 +80,47 @@ struct ImpactSimulatorSingleRuleTests {
         #expect(result.affectedFiles.count == 1)
     }
 
+    // Regression for P2.1: the parser read item["column"], but SwiftLint's JSON
+    // reporter names the column "character" (as WorkspaceAnalyzer already does), so
+    // every simulated violation's column was silently 0.
+    @Test("Simulated violation column comes from SwiftLint's character field")
+    func testSimulatedViolationPreservesColumn() async throws {
+        let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
+        defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
+
+        _ = try ImpactSimulatorTestHelpers.createSwiftFile(
+            in: tempDir,
+            name: "Test.swift",
+            content: "let x = 1\n"
+        )
+
+        let violations = [
+            Violation(
+                ruleID: "test_rule",
+                filePath: "Test.swift",
+                line: 12,
+                severity: .warning,
+                message: "col test",
+                column: 42
+            )
+        ]
+
+        let workspace = Workspace(path: tempDir)
+        let mockCLI = await ImpactSimulatorTestHelpers.createMockSwiftLintCLIActor(violations: violations)
+
+        let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+            try await simulator.simulateRule(
+                ruleId: "test_rule",
+                workspace: workspace,
+                baseConfigPath: nil
+            )
+        }
+
+        let violation = try #require(result.violations.first)
+        #expect(violation.column == 42, "column must come from the `character` field, not default to 0")
+        #expect(violation.line == 12)
+    }
+
     @Test("ImpactSimulator filters violations by rule ID")
     func testFilterViolationsByRuleID() async throws {
         let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
