@@ -17,7 +17,8 @@ All findings were verified against live source.
 | **P1.1** Sort direction ignored | ✅ **Done** — `c23a306` (uniform `sortOrder` in the comparator) |
 | **P1.2** Recent-workspace order not persisted | ✅ **Done** — `d323833` (save after reorder) |
 | **P2.1** ImpactSimulator column always 0 | ✅ **Done** — `11dcfcc` (read `character` field) |
-| P1.3–P1.5, P2.2–P2.5, P3.x | ⬜ open |
+| **P2.2** Workspace-switch race | ✅ **Done** — `29a5c88` (`workspaceId` guard on apply) |
+| P1.3–P1.5, P2.3–P2.5, P3.x | ⬜ open |
 | PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
 
 Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
@@ -122,10 +123,15 @@ Reads `item["column"]`, but SwiftLint's JSON reporter uses `"character"` (as `Wo
 - `Core/Services/ImpactSimulator.swift:255` — **Fix:** read `item["character"]`.
 </details>
 
-### P2.2 Quick workspace switching can show the wrong workspace's violations
+### P2.2 Quick workspace switching can show the wrong workspace's violations — ✅ Done (`29a5c88`)
+**Shipped:** `loadViolations` now guards the apply on `self.workspaceId == workspaceId` after the fetch, so a load whose workspace was superseded mid-flight drops its stale results. Regression test uses an `onAnalyze` hook on the mock analyzer to switch the active workspace mid-analysis and asserts the stale violations are not applied.
+
+<details><summary>Original finding</summary>
+
 `loadViolations(for:workspace:)` `await`s a slow analyze, then unconditionally assigns `violations = fetched` with no check that `self.workspaceId` still matches the parameter. The view fires an uncancelled `Task` per switch.
 - `UI/ViewModels/ViolationInspectorViewModel+Loading.swift:17-39`
 - **Fix:** guard the assignment on `self.workspaceId == workspace.id`, or store & cancel the prior task on switch.
+</details>
 
 ### P2.3 Bulk rule ops silently swallow config-load failures
 Each begins `guard (try? yamlEngine.load()) != nil else { return }`; `RuleBrowserViewModel` has no error published property, so a malformed `.swiftlint.yml` makes Enable/Disable/Set-Severity do nothing with zero feedback.
