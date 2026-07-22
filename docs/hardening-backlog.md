@@ -23,7 +23,8 @@ All findings were verified against live source.
 | **P1.5** Color-only status indicators | ✅ **Done** — `d8cb50c` ("Disabled" text + hidden dots) |
 | **P2.4** Impact-audit rows fragmented | ✅ **Done** — `623a82b` (combined element + actions) |
 | **P2.5** Onboarding clipping + silent progress | ✅ **Done** — `623a82b` (ScrollView + step label) |
-| P1.3 (needs manual VoiceOver), P3.x | ⬜ open |
+| **P1.3** Nested Remove button unreachable | ✅ **Done** — `e395148` (un-nested siblings; verify on device) |
+| P3.x | ⬜ open |
 
 **PBT track:** step 1 (seeds) + step 2 (`swift-infer discover`) done. Follow-on: 7 property-based laws shipped (`cf7036c`), and three toolchain improvements landed in `SwiftInferProperties` — recognize `(T?) -> T` idempotence (`628b3ae`), correct the stale "M3 prerequisite" message (`687ffd7`), and ship a generator recipe for String-collection idempotence carriers (`4853341`). Discover now renders `mergedWith` as a Likely idempotence candidate with a runnable generator.
 | PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
@@ -100,10 +101,15 @@ The "already in recentWorkspaces" branch reorders in memory and bumps `lastAnaly
 - **Fix:** call `saveRecentWorkspaces()` (or route through `addToRecentWorkspaces`) in the existing-recent branch too.
 </details>
 
-### P1.3 [a11y] "Remove from recent workspaces" unreachable by VoiceOver
+### P1.3 [a11y] "Remove from recent workspaces" unreachable by VoiceOver — ✅ Done (`e395148`)
+**Shipped:** the row is no longer an outer `Button`; it's an `HStack` of two siblings — an openable content region (open via `.onTapGesture` + `.accessibilityAction`, `.isButton` trait, "Opens this workspace" hint, `accessibilityIdentifier` for tests) and the Remove `Button` as its own element. Structural regression asserts the name is no longer wrapped in a `Button`; the tap-to-open / tap-to-remove interaction tests were updated. **Runtime VoiceOver reachability still wants on-device confirmation.**
+
+<details><summary>Original finding</summary>
+
 An interactive `Button` sits inside another `Button`'s label in the Recent Workspaces row; SwiftUI/AppKit doesn't reliably expose two focusable controls here, so VoiceOver users likely can't reach "Remove."
 - `UI/Views/WorkspaceSelection/WorkspaceSelectionView.swift:181-227`
 - **Fix:** drop the outer `Button`; use an `HStack` with `.contentShape` + `.onTapGesture` + `.accessibilityAddTraits(.isButton)` + `.accessibilityAction` for "open," leaving the `xmark.circle.fill` as the only real `Button` (or move "remove" to a `.contextMenu`). _Needs live VoiceOver confirmation._
+</details>
 
 ### P1.4 [a11y] Rule parameter controls have no accessible name — ✅ Done (`d8cb50c`)
 **Shipped:** added `.accessibilityLabel(param.name)` to the Slider/Stepper/Toggle (plus `.accessibilityValue` on the numeric controls). ViewInspector tests assert each control's `accessibilityLabel()`.
@@ -218,7 +224,7 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 
 1. ~~P0.x, P1.1/1.2/1.4/1.5, P2.1–P2.5~~ ✅ — **11 shipped test-first.**
 2. ~~PBT steps 1 + 2~~ ✅ — plus 7 property laws and 3 `SwiftInferProperties` toolchain fixes.
-3. **P1.3** (nested-button VoiceOver — implement + verify on device) ← remaining a11y.
-4. **P3.x** robustness polish ← the testable Core track.
+3. ~~P1.3~~ ✅ (`e395148`) — structure fixed; verify VoiceOver on device.
+4. **P3.x** robustness polish ← the last open track (all Core, unit-testable).
 
 Per repo convention: one logical change per commit, each building green, unrelated changes never bundled.
