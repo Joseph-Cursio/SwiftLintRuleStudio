@@ -71,6 +71,9 @@ class RuleBrowserViewModel {
     var isMultiSelectMode: Bool = false
     var selectedRuleIds: Set<String> = Set()
     var bulkDiff: YAMLConfigurationEngine.ConfigDiff?
+    /// User-facing message when a bulk operation can't proceed (e.g. the
+    /// `.swiftlint.yml` failed to load). `nil` when the last operation was clean.
+    var bulkOperationError: String?
 
     init(ruleRegistry: RuleRegistry) {
         self.ruleRegistry = ruleRegistry
@@ -249,8 +252,22 @@ class RuleBrowserViewModel {
 
     // MARK: - Bulk Operations
 
+    /// Loads the config for a bulk operation. On success clears `bulkOperationError`
+    /// and returns true; on failure records a user-facing message and returns false
+    /// so the caller aborts instead of silently doing nothing.
+    private func loadConfig(_ yamlEngine: any YAMLConfigurationEngineProtocol) -> Bool {
+        do {
+            try yamlEngine.load()
+            bulkOperationError = nil
+            return true
+        } catch {
+            bulkOperationError = "Couldn't read the SwiftLint configuration. \(error.localizedDescription)"
+            return false
+        }
+    }
+
     func enableSelectedRules(yamlEngine: any YAMLConfigurationEngineProtocol) {
-        guard (try? yamlEngine.load()) != nil else { return }
+        guard loadConfig(yamlEngine) else { return }
         var config = yamlEngine.getConfig()
 
         for ruleId in selectedRuleIds {
@@ -284,7 +301,7 @@ class RuleBrowserViewModel {
     }
 
     func disableSelectedRules(yamlEngine: any YAMLConfigurationEngineProtocol) {
-        guard (try? yamlEngine.load()) != nil else { return }
+        guard loadConfig(yamlEngine) else { return }
         var config = yamlEngine.getConfig()
 
         for ruleId in selectedRuleIds {
@@ -303,7 +320,7 @@ class RuleBrowserViewModel {
     }
 
     func setSeverityForSelected(_ severity: Severity, yamlEngine: any YAMLConfigurationEngineProtocol) {
-        guard (try? yamlEngine.load()) != nil else { return }
+        guard loadConfig(yamlEngine) else { return }
         var config = yamlEngine.getConfig()
 
         for ruleId in selectedRuleIds {
