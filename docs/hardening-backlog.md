@@ -24,10 +24,10 @@ All findings were verified against live source.
 | **P2.4** Impact-audit rows fragmented | ✅ **Done** — `623a82b` (combined element + actions) |
 | **P2.5** Onboarding clipping + silent progress | ✅ **Done** — `623a82b` (ScrollView + step label) |
 | **P1.3** Nested Remove button unreachable | ✅ **Done** — `e395148` (un-nested siblings; verify on device) |
-| P3.x | ⬜ open |
+| **P3.x** Robustness polish | ◐ 4 of 5 done — `fetchViolations` throw (`0a19343`), selection-clear (`0bcf437`), `.merge` union (`f120008`), `analyze()` reentrancy (`ae3ec71`); fire-and-forget `Task {}` cancellation still open |
 
 **PBT track:** step 1 (seeds) + step 2 (`swift-infer discover`) done. Follow-on: 7 property-based laws shipped (`cf7036c`), and three toolchain improvements landed in `SwiftInferProperties` — recognize `(T?) -> T` idempotence (`628b3ae`), correct the stale "M3 prerequisite" message (`687ffd7`), and ship a generator recipe for String-collection idempotence carriers (`4853341`). Discover now renders `mergedWith` as a Likely idempotence candidate with a runnable generator.
-| PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
+| PBT track | ✅ steps 1 + 2 done — 7 property laws (`cf7036c`) + 3 `SwiftInferProperties` toolchain fixes (`628b3ae`, `687ffd7`, `4853341`) |
 
 Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
 
@@ -190,11 +190,11 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 
 ## P3 — Robustness + polish
 
-- **⚙️ `fetchViolations` treats a SQL `.error` step like `.done`** — returns partial/empty instead of throwing (contrast `getViolationCount`). `Core/Services/ViolationStorageActor+Queries.swift`.
-- **Suppress/resolve clears live selection, not processed ids** — changing selection mid-flight wipes the new selection. `ViolationInspectorViewModel+Selection.swift:42-56`.
-- **`analyze()` reentrancy** — `currentAnalysisTask` is never assigned (dead `cancel()`), and the task body never checks `Task.isCancelled` before `storeViolations`; a superseded run can overwrite a newer one. `Core/Services/WorkspaceAnalyzer.swift:44, 77-121, 183-190`. _Lower confidence — depends on whether the CLI backend honors cancellation._
-- **Fire-and-forget `Task {}` with no cancellation** in `GitBranchDiffViewModel`, `ConfigImportViewModel`, `MigrationAssistantViewModel`, `VersionCompatibilityViewModel` — rapid re-invocation lets a stale result overwrite a fresh one.
-- **`ConfigImportService.applyImport` `.merge` mode drops** imported `included`/`analyzerRules`/`onlyRules`/`reporter` instead of merging/warning.
+- **⚙️ `fetchViolations` treats a SQL `.error` step like `.done`** — ✅ **Done** (`0a19343`). Extracted `collectRows` behind injectable `step`/`parse`/`lastError` closures; a `.error` step now throws `sqlError` instead of returning a truncated result. 5 Core tests (`ViolationStorageCollectRowsTests`) drive the loop with a scripted step sequence.
+- **Suppress/resolve clears live selection, not processed ids** — ✅ **Done** (`0bcf437`). `removeAll()` → `subtract(ids)`, so a selection made mid-flight survives the repaint. 2 app-level regression tests (`ViolationInspectorViewModelSelectionClearingTests`).
+- **`analyze()` reentrancy** — ✅ **Done** (`ae3ec71`). Removed the dead `currentAnalysisTask` field; the task body now checks `Task.checkCancellation()` before storing and before finalizing, and a `CancellationError` is a clean no-op, so a superseded run can't overwrite the newer one's results. Regression test gates the mock lint call to cancel mid-flight and asserts nothing was stored.
+- **`ConfigImportService.applyImport` `.merge` mode drops** imported list fields — ✅ **Done** (`f120008`). `.merge` now unions `disabledRules`/`optInRules`/`excluded`/`analyzerRules`/`onlyRules`/`included` and overrides scalar `rules`/`reporter`.
+- **Fire-and-forget `Task {}` with no cancellation** in `GitBranchDiffViewModel`, `ConfigImportViewModel`, `MigrationAssistantViewModel`, `VersionCompatibilityViewModel` — rapid re-invocation lets a stale result overwrite a fresh one. ⬜ open.
 - **[a11y] Draggable panel divider has no keyboard/Switch-Control equivalent.** `UI/Views/RuleBrowser/RuleBrowserView.swift:68-89` — add `.accessibilityAdjustableAction`, or `.accessibilityHidden(true)` if intentionally mouse-only.
 
 ---
@@ -225,6 +225,6 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 1. ~~P0.x, P1.1/1.2/1.4/1.5, P2.1–P2.5~~ ✅ — **11 shipped test-first.**
 2. ~~PBT steps 1 + 2~~ ✅ — plus 7 property laws and 3 `SwiftInferProperties` toolchain fixes.
 3. ~~P1.3~~ ✅ (`e395148`) — structure fixed; verify VoiceOver on device.
-4. **P3.x** robustness polish ← the last open track (all Core, unit-testable).
+4. **P3.x** robustness polish — 4 of 5 shipped (`0a19343`, `0bcf437`, `f120008`, `ae3ec71`); only the fire-and-forget `Task {}` cancellation item remains (timing-dependent, view-model layer).
 
 Per repo convention: one logical change per commit, each building green, unrelated changes never bundled.
