@@ -45,6 +45,9 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
 class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sendable {
     var storedViolations: [Violation] = []
     var storedWorkspaceIds: [UUID] = []
+    /// Fires at the start of `fetchViolations`, letting a test mutate state (e.g.
+    /// the view model's selection) during a repaint-from-storage.
+    var onFetch: (() -> Void)?
 
     func storeViolations(_ violations: [Violation], for workspaceId: UUID) throws {
         storedViolations.append(contentsOf: violations)
@@ -52,6 +55,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
     }
 
     func fetchViolations(filter: ViolationFilter, workspaceId _: UUID?) throws -> [Violation] {
+        onFetch?()
         var filtered = storedViolations
 
         if let ruleIDs = filter.ruleIDs {

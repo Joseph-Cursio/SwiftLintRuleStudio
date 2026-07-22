@@ -45,7 +45,9 @@ extension ViolationInspectorViewModel {
         try await violationStorage.suppressViolations(ids, reason: reason)
         // Suppression is a DB mutation — repaint from storage rather than re-linting.
         try await reloadViolationsFromStorage()
-        selectedViolationIds.removeAll()
+        // Clear only the ids we processed — a selection the user made while this was
+        // in flight must survive.
+        selectedViolationIds.subtract(ids)
     }
 
     func resolveSelectedViolations() async throws {
@@ -54,7 +56,8 @@ extension ViolationInspectorViewModel {
         try await violationStorage.resolveViolations(ids)
         // Resolution is a DB mutation — repaint from storage rather than re-linting.
         try await reloadViolationsFromStorage()
-        selectedViolationIds.removeAll()
+        // Clear only the ids we processed (see suppressSelectedViolations).
+        selectedViolationIds.subtract(ids)
     }
 }
 
