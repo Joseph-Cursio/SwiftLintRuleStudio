@@ -114,6 +114,38 @@ struct ConfigImportServiceTests {
         #expect(config.rules["force_cast"] != nil)
     }
 
+    // Regression for P3: merge mode dropped analyzer_rules, only_rules, included,
+    // and reporter — importing a config carrying any of them silently lost them.
+    @Test("Merge mode preserves analyzer_rules, only_rules, included, and reporter")
+    func testMergePreservesRemainingFields() throws {
+        let existingConfig = try createTempConfig(content: "force_cast:\n  severity: warning\n")
+        defer { cleanup(existingConfig) }
+
+        var importedConfig = YAMLConfigurationEngine.YAMLConfig()
+        importedConfig.analyzerRules = ["unused_import"]
+        importedConfig.onlyRules = ["line_length"]
+        importedConfig.included = ["Sources"]
+        importedConfig.reporter = "json"
+
+        let preview = ConfigImportPreview(
+            sourceURL: try #require(URL(string: "https://example.com/.swiftlint.yml")),
+            fetchedYAML: "analyzer_rules:\n  - unused_import\n",
+            parsedConfig: importedConfig,
+            diff: nil,
+            validationErrors: []
+        )
+
+        try ConfigImportService().applyImport(preview: preview, mode: .merge, to: existingConfig)
+
+        let engine = YAMLConfigurationEngine(configPath: existingConfig)
+        try engine.load()
+        let config = engine.getConfig()
+        #expect(config.analyzerRules?.contains("unused_import") == true)
+        #expect(config.onlyRules?.contains("line_length") == true)
+        #expect(config.included?.contains("Sources") == true)
+        #expect(config.reporter == "json")
+    }
+
     // MARK: - Merge Override
 
     @Test("Merge mode: imported rules override conflicts")

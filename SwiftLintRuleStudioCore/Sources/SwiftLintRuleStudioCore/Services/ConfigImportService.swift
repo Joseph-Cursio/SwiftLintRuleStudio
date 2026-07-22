@@ -129,38 +129,44 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
             try engine.save(config: preview.parsedConfig, createBackup: true)
 
         case .merge:
-            // Load existing config and merge
+            // Load existing config and merge, or save the import as-is if none exists.
             if FileManager.default.fileExists(atPath: configPath.path) {
                 try engine.load()
-                var merged = engine.getConfig()
-
-                // Merge rules (imported overrides conflicts)
-                for (ruleId, ruleConfig) in preview.parsedConfig.rules {
-                    merged.rules[ruleId] = ruleConfig
-                }
-
-                // Merge list fields (union)
-                if let importedDisabled = preview.parsedConfig.disabledRules {
-                    var existing = Set(merged.disabledRules ?? [])
-                    existing.formUnion(importedDisabled)
-                    merged.disabledRules = Array(existing).sorted()
-                }
-                if let importedOptIn = preview.parsedConfig.optInRules {
-                    var existing = Set(merged.optInRules ?? [])
-                    existing.formUnion(importedOptIn)
-                    merged.optInRules = Array(existing).sorted()
-                }
-                if let importedExcluded = preview.parsedConfig.excluded {
-                    var existing = Set(merged.excluded ?? [])
-                    existing.formUnion(importedExcluded)
-                    merged.excluded = Array(existing).sorted()
-                }
-
+                let merged = Self.merge(existing: engine.getConfig(), imported: preview.parsedConfig)
                 try engine.save(config: merged, createBackup: true)
             } else {
-                // No existing config, just save as-is
                 try engine.save(config: preview.parsedConfig, createBackup: false)
             }
         }
+    }
+
+    /// Merge `imported` onto `existing`: imported rule configs override conflicts,
+    /// every list field unions, and the scalar `reporter` is overridden when the
+    /// import provides one.
+    private static func merge(
+        existing: YAMLConfigurationEngine.YAMLConfig,
+        imported: YAMLConfigurationEngine.YAMLConfig
+    ) -> YAMLConfigurationEngine.YAMLConfig {
+        var merged = existing
+        for (ruleId, ruleConfig) in imported.rules {
+            merged.rules[ruleId] = ruleConfig
+        }
+        merged.disabledRules = unioned(merged.disabledRules, imported.disabledRules)
+        merged.optInRules = unioned(merged.optInRules, imported.optInRules)
+        merged.excluded = unioned(merged.excluded, imported.excluded)
+        merged.analyzerRules = unioned(merged.analyzerRules, imported.analyzerRules)
+        merged.onlyRules = unioned(merged.onlyRules, imported.onlyRules)
+        merged.included = unioned(merged.included, imported.included)
+        if let reporter = imported.reporter {
+            merged.reporter = reporter
+        }
+        return merged
+    }
+
+    /// The sorted union of two optional string lists, or `existing` unchanged when
+    /// `imported` is nil.
+    private static func unioned(_ existing: [String]?, _ imported: [String]?) -> [String]? {
+        guard let imported else { return existing }
+        return Array(Set(existing ?? []).union(imported)).sorted()
     }
 }
