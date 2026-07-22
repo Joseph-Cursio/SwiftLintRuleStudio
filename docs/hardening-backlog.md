@@ -21,7 +21,11 @@ All findings were verified against live source.
 | **P2.3** Bulk ops swallow config-load failure | ✅ **Done** — `8299436` (`bulkOperationError` surface) |
 | **P1.4** Rule-parameter controls unlabeled | ✅ **Done** — `d8cb50c` (accessibility labels) |
 | **P1.5** Color-only status indicators | ✅ **Done** — `d8cb50c` ("Disabled" text + hidden dots) |
-| P1.3 (needs manual VoiceOver), P2.4–P2.5, P3.x | ⬜ open |
+| **P2.4** Impact-audit rows fragmented | ✅ **Done** — `623a82b` (combined element + actions) |
+| **P2.5** Onboarding clipping + silent progress | ✅ **Done** — `623a82b` (ScrollView + step label) |
+| P1.3 (needs manual VoiceOver), P3.x | ⬜ open |
+
+**PBT track:** step 1 (seeds) + step 2 (`swift-infer discover`) done. Follow-on: 7 property-based laws shipped (`cf7036c`), and three toolchain improvements landed in `SwiftInferProperties` — recognize `(T?) -> T` idempotence (`628b3ae`), correct the stale "M3 prerequisite" message (`687ffd7`), and ship a generator recipe for String-collection idempotence carriers (`4853341`). Discover now renders `mergedWith` as a Likely idempotence candidate with a runnable generator.
 | PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
 
 Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
@@ -156,15 +160,25 @@ Each begins `guard (try? yamlEngine.load()) != nil else { return }`; `RuleBrowse
 - **Fix:** surface the load error to the user (add a `saveError`/`error` published property and present it).
 </details>
 
-### P2.4 [a11y] Impact-audit rows are fragmented and mislabeled
+### P2.4 [a11y] Impact-audit rows are fragmented and mislabeled — ✅ Done (`623a82b`)
+**Shipped:** `RuleAuditRow` collapses to one element via `.accessibilityElement(children: .ignore)` + a composed label (rule id, description, violation count, effort, availability); the expand/select/Enable columns are preserved as named `.accessibilityActions`; the proportional bars (row + expanded breakdown) are hidden. ViewInspector test asserts the composed label. VoiceOver *interaction* (double-tap / rotor actions) still wants manual on-device confirmation.
+
+<details><summary>Original finding</summary>
+
 `RuleAuditRow` applies `.isButton` to a 9-element uncombined `HStack`, so VoiceOver gives ~9 stops per row, and the proportional bar is exposed as an unlabeled image.
 - `UI/Views/ImpactSimulation/RuleAuditRow.swift:32-39, 47-122, 169-186`; `RuleAuditRow+ExpandedDetail.swift:45-62`
 - **Fix:** follow the `ConfigTreeRowView.swift:38-39` model — `.accessibilityElement(children: .ignore)` + a composed `.accessibilityLabel`, `.isButton` only when expandable, `.accessibilityHidden(true)` on the bars (numeric text already conveys the value).
+</details>
 
-### P2.5 [a11y] Onboarding clips at large Dynamic Type; progress dots not announced
+### P2.5 [a11y] Onboarding clips at large Dynamic Type; progress dots not announced — ✅ Done (`623a82b`)
+**Shipped:** step content is wrapped in a `ScrollView`, and the color-only progress dots get an `.accessibilityElement(children: .ignore)` + "Step N of M" label. ViewInspector tests assert the ScrollView and the "Step 1 of 3" announcement.
+
+<details><summary>Original finding</summary>
+
 The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Found" branch overflows (including "Check Again") at AX-large sizes. Progress dots have no "step N of M" cue.
 - `UI/Views/Onboarding/OnboardingView.swift:43`; `OnboardingView+Steps.swift:6-17, 102-155`
 - **Fix:** wrap step content in a `ScrollView` (as `ImpactSimulationView`/`ConfigDiffPreviewView` already do); add a step-count `.accessibilityLabel` to the progress `HStack`.
+</details>
 
 ---
 
@@ -202,9 +216,9 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 
 ## Suggested sequencing
 
-1. ~~P0.1, P0.2~~ ✅ · ~~P1.1, P1.2, P1.4, P1.5~~ ✅ · ~~P2.1, P2.2, P2.3~~ ✅ — nine shipped test-first.
-2. **PBT step 2** — `swift-infer discover` on the config-merge + YAML round-trip kernels ← in progress (the original thread).
-3. **P1.3** (nested-button VoiceOver — needs manual verification), **P2.4–P2.5** (remaining a11y).
-4. **P3.x** robustness polish.
+1. ~~P0.x, P1.1/1.2/1.4/1.5, P2.1–P2.5~~ ✅ — **11 shipped test-first.**
+2. ~~PBT steps 1 + 2~~ ✅ — plus 7 property laws and 3 `SwiftInferProperties` toolchain fixes.
+3. **P1.3** (nested-button VoiceOver — implement + verify on device) ← remaining a11y.
+4. **P3.x** robustness polish ← the testable Core track.
 
 Per repo convention: one logical change per commit, each building green, unrelated changes never bundled.
