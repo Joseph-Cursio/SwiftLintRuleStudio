@@ -20,13 +20,36 @@ extension ViolationStorageActor {
         let statement = try database.prepare(sql)
         bindParameters(query.parameters, to: statement)
 
+        return try Self.collectRows(
+            step: statement.step,
+            parse: { parseViolation(from: statement) },
+            lastError: { database.lastErrorMessage }
+        )
+    }
+
+    /// Drive a prepared statement to completion, collecting a parsed value per row.
+    /// A `.error` step surfaces as a thrown `sqlError` rather than a silently
+    /// truncated result (the bug this replaced) — matching `getViolationCount`.
+    /// The SQLite calls are injected so the loop's control flow is unit-testable
+    /// without a live database.
+    nonisolated static func collectRows(
+        step: () -> SQLiteStepResult,
+        parse: () -> Violation?,
+        lastError: () -> String
+    ) throws -> [Violation] {
         var violations: [Violation] = []
-        while statement.step() == .row {
-            if let violation = parseViolation(from: statement) {
-                violations.append(violation)
+        while true {
+            switch step() {
+            case .row:
+                if let violation = parse() {
+                    violations.append(violation)
+                }
+            case .done:
+                return violations
+            case .error:
+                throw ViolationStorageError.sqlError(lastError())
             }
         }
-        return violations
     }
 
     /// Get the count of violations matching the given filter criteria
