@@ -17,6 +17,10 @@ class VersionCompatibilityViewModel {
     var error: Error?
     var currentVersion: String?
 
+    /// The in-flight compatibility check, if any. Cancelled and replaced on
+    /// re-invocation so a superseded run cannot overwrite the newer one's result.
+    @ObservationIgnored private(set) var checkTask: Task<Void, Never>?
+
     private let checker: VersionCompatibilityCheckerProtocol
     private let swiftLintCLI: SwiftLintCLIProtocol
     private let configPath: URL?
@@ -37,14 +41,16 @@ class VersionCompatibilityViewModel {
             return
         }
 
+        checkTask?.cancel()
         isChecking = true
         error = nil
         report = nil
 
-        Task {
+        checkTask = Task {
             do {
                 let version = try await swiftLintCLI.getVersion()
-                currentVersion = version
+                // Superseded by a newer check — leave the newer run's state alone.
+                guard !Task.isCancelled else { return }
 
                 // NOTE: YAMLConfigurationEngine is @MainActor so we must use it here.
                 // engine.load() does synchronous file I/O but that is an existing design
@@ -53,10 +59,13 @@ class VersionCompatibilityViewModel {
                 try engine.load()
                 let config = engine.getConfig()
 
+                currentVersion = version
                 report = checker.checkCompatibility(config: config, swiftLintVersion: version)
             } catch {
+                guard !Task.isCancelled else { return }
                 self.error = error
             }
+            guard !Task.isCancelled else { return }
             isChecking = false
         }
     }

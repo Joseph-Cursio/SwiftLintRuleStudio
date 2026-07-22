@@ -61,6 +61,34 @@ private final class SpyGitBranchDiffService: GitBranchDiffServiceProtocol, @unch
     }
 }
 
+/// A service whose first `listAvailableRefs` parks on a gate and returns `refs[0]`;
+/// later calls return the corresponding later element immediately.
+private final class GatedGitBranchDiffService: GitBranchDiffServiceProtocol, @unchecked Sendable {
+    private let gate: SupersededTaskGate
+    private let refs: [GitRefs]
+
+    init(gate: SupersededTaskGate, refs: [GitRefs]) {
+        self.gate = gate
+        self.refs = refs
+    }
+
+    func listAvailableRefs(at _: URL) async throws -> GitRefs {
+        let index = await gate.arrive()
+        return refs[min(index, refs.count - 1)]
+    }
+
+    func compareConfigWithBranch(
+        repoPath _: URL, branch _: String, configRelativePath _: String
+    ) throws -> ConfigComparisonResult {
+        ConfigComparisonResult(
+            onlyInFirst: [], onlyInSecond: [], inBothDifferent: [], inBothSame: [],
+            diff: YAMLConfigurationEngine.ConfigDiff(
+                addedRules: [], removedRules: [], modifiedRules: [], before: "", after: ""
+            )
+        )
+    }
+}
+
 @MainActor
 struct GitBranchDiffViewModelTests {
 
@@ -179,6 +207,26 @@ struct GitBranchDiffViewModelTests {
         viewModel.loadRefs()
         try await Task.sleep(nanoseconds: 50_000_000)
 
+        #expect(viewModel.isLoading == false)
+    }
+
+    @Test("A superseded loadRefs does not overwrite the newer run's result")
+    func testSupersededLoadRefsDoesNotOverwrite() async throws {
+        let gate = SupersededTaskGate()
+        let staleRefs = makeRefs(currentBranch: "stale", branches: ["stale"], tags: [])
+        let freshRefs = makeRefs(currentBranch: "fresh", branches: ["fresh"], tags: [])
+        let service = GatedGitBranchDiffService(gate: gate, refs: [staleRefs, freshRefs])
+        let viewModel = GitBranchDiffViewModel(service: service, workspacePath: Self.workspacePath)
+
+        viewModel.loadRefs()                    // run 1 parks in listAvailableRefs (would yield "stale")
+        let staleTask = viewModel.loadRefsTask
+        await gate.awaitFirstEntered()
+        viewModel.loadRefs()                    // run 2 supersedes run 1 (yields "fresh")
+        await viewModel.loadRefsTask?.value     // run 2 completes and applies its result
+        await gate.release()                    // run 1 resumes — but was cancelled
+        await staleTask?.value
+
+        #expect(viewModel.availableRefs?.currentBranch == "fresh", "the superseded load must not overwrite refs")
         #expect(viewModel.isLoading == false)
     }
 

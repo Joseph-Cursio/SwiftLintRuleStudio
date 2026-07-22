@@ -54,6 +54,25 @@ private final class SpyConfigImportService: ConfigImportServiceProtocol, @unchec
     }
 }
 
+/// A service whose first `fetchAndPreview` parks on a gate and returns `previews[0]`;
+/// later calls return the corresponding later element immediately.
+private final class GatedImportService: ConfigImportServiceProtocol, @unchecked Sendable {
+    private let gate: SupersededTaskGate
+    private let previews: [ConfigImportPreview]
+
+    init(gate: SupersededTaskGate, previews: [ConfigImportPreview]) {
+        self.gate = gate
+        self.previews = previews
+    }
+
+    func fetchAndPreview(from _: URL, currentConfigPath _: URL?) async throws -> ConfigImportPreview {
+        let index = await gate.arrive()
+        return previews[min(index, previews.count - 1)]
+    }
+
+    func applyImport(preview _: ConfigImportPreview, mode _: ImportMode, to _: URL) throws {}
+}
+
 @MainActor
 struct ConfigImportViewModelTests {
 
@@ -185,6 +204,34 @@ struct ConfigImportViewModelTests {
         try await Task.sleep(nanoseconds: 50_000_000)
 
         #expect(viewModel.importComplete == false)
+    }
+
+    @Test("A superseded fetchPreview does not overwrite the newer run's result")
+    func testSupersededFetchDoesNotOverwrite() async throws {
+        let url = Self.previewSourceURL
+        let previewV1 = ConfigImportPreview(
+            sourceURL: url, fetchedYAML: "v1",
+            parsedConfig: YAMLConfigurationEngine.YAMLConfig(), diff: nil, validationErrors: []
+        )
+        let previewV2 = ConfigImportPreview(
+            sourceURL: url, fetchedYAML: "v2",
+            parsedConfig: YAMLConfigurationEngine.YAMLConfig(), diff: nil, validationErrors: []
+        )
+        let gate = SupersededTaskGate()
+        let service = GatedImportService(gate: gate, previews: [previewV1, previewV2])
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
+
+        viewModel.fetchPreview()                // run 1 parks in fetch (would yield v1)
+        let staleTask = viewModel.fetchTask
+        await gate.awaitFirstEntered()
+        viewModel.fetchPreview()                // run 2 supersedes run 1 (yields v2)
+        await viewModel.fetchTask?.value        // run 2 completes and applies its result
+        await gate.release()                    // run 1 resumes — but was cancelled
+        await staleTask?.value
+
+        #expect(viewModel.preview?.fetchedYAML == "v2", "the superseded fetch must not overwrite the preview")
+        #expect(viewModel.isFetching == false)
     }
 
     // MARK: - applyImport()

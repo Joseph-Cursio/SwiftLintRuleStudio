@@ -23,6 +23,12 @@ class GitBranchDiffViewModel {
     var isNotGitRepo: Bool = false
     var error: Error?
 
+    /// The in-flight ref listing / branch comparison, if any. Each is cancelled
+    /// and replaced on re-invocation so a superseded run cannot overwrite the
+    /// newer one's result.
+    @ObservationIgnored private(set) var loadRefsTask: Task<Void, Never>?
+    @ObservationIgnored private(set) var compareTask: Task<Void, Never>?
+
     private let service: GitBranchDiffServiceProtocol
     private let workspacePath: URL?
     private let configRelativePath: String
@@ -43,18 +49,25 @@ class GitBranchDiffViewModel {
             return
         }
 
+        loadRefsTask?.cancel()
         isLoading = true
         error = nil
         isNotGitRepo = false
 
-        Task {
+        loadRefsTask = Task {
             do {
-                availableRefs = try await service.listAvailableRefs(at: workspacePath)
+                let refs = try await service.listAvailableRefs(at: workspacePath)
+                // Superseded by a newer load — leave the newer run's state alone.
+                guard !Task.isCancelled else { return }
+                availableRefs = refs
             } catch is GitBranchDiffError {
+                guard !Task.isCancelled else { return }
                 isNotGitRepo = true
             } catch {
+                guard !Task.isCancelled else { return }
                 self.error = error
             }
+            guard !Task.isCancelled else { return }
             isLoading = false
         }
     }
@@ -63,20 +76,26 @@ class GitBranchDiffViewModel {
         guard let workspacePath = workspacePath,
               let selectedRef = selectedRef else { return }
 
+        compareTask?.cancel()
         isLoading = true
         error = nil
         comparisonResult = nil
 
-        Task {
+        compareTask = Task {
             do {
-                comparisonResult = try await service.compareConfigWithBranch(
+                let result = try await service.compareConfigWithBranch(
                     repoPath: workspacePath,
                     branch: selectedRef,
                     configRelativePath: configRelativePath
                 )
+                // Superseded by a newer comparison — leave the newer run's state alone.
+                guard !Task.isCancelled else { return }
+                comparisonResult = result
             } catch {
+                guard !Task.isCancelled else { return }
                 self.error = error
             }
+            guard !Task.isCancelled else { return }
             isLoading = false
         }
     }

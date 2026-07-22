@@ -32,6 +32,10 @@ class MigrationAssistantViewModel {
     var error: Error?
     var migrationComplete: Bool = false
 
+    /// The in-flight migration detection, if any. Cancelled and replaced on
+    /// re-invocation so a superseded run cannot overwrite the newer one's result.
+    @ObservationIgnored private(set) var detectTask: Task<Void, Never>?
+
     private let assistant: MigrationAssistantProtocol
     private let swiftLintCLI: SwiftLintCLIProtocol
     private let configPath: URL?
@@ -56,29 +60,34 @@ class MigrationAssistantViewModel {
             return
         }
 
+        detectTask?.cancel()
         isDetecting = true
         error = nil
         migrationPlan = nil
         previewDiff = nil
         migrationComplete = false
 
-        Task {
+        detectTask = Task {
             do {
                 let version = try await swiftLintCLI.getVersion()
-                currentVersion = version
+                // Superseded by a newer detection — leave the newer run's state alone.
+                guard !Task.isCancelled else { return }
 
                 let engine = YAMLConfigurationEngine(configPath: configPath)
                 try engine.load()
                 let config = engine.getConfig()
 
+                currentVersion = version
                 migrationPlan = assistant.detectMigrations(
                     config: config,
                     fromVersion: previousVersion,
                     toVersion: version
                 )
             } catch {
+                guard !Task.isCancelled else { return }
                 self.error = error
             }
+            guard !Task.isCancelled else { return }
             isDetecting = false
         }
     }

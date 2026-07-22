@@ -20,6 +20,10 @@ class ConfigImportViewModel {
     var error: Error?
     var importComplete: Bool = false
 
+    /// The in-flight preview fetch, if any. Cancelled and replaced on
+    /// re-invocation so a superseded fetch cannot overwrite the newer one's result.
+    @ObservationIgnored private(set) var fetchTask: Task<Void, Never>?
+
     private let importService: ConfigImportServiceProtocol
     private let configPath: URL?
 
@@ -34,17 +38,23 @@ class ConfigImportViewModel {
             return
         }
 
+        fetchTask?.cancel()
         isFetching = true
         error = nil
         preview = nil
         importComplete = false
 
-        Task {
+        fetchTask = Task {
             do {
-                preview = try await importService.fetchAndPreview(from: url, currentConfigPath: configPath)
+                let fetched = try await importService.fetchAndPreview(from: url, currentConfigPath: configPath)
+                // Superseded by a newer fetch — leave the newer run's state alone.
+                guard !Task.isCancelled else { return }
+                preview = fetched
             } catch {
+                guard !Task.isCancelled else { return }
                 self.error = error
             }
+            guard !Task.isCancelled else { return }
             isFetching = false
         }
     }

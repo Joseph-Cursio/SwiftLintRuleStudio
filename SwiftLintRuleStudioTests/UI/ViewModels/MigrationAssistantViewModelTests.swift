@@ -58,6 +58,29 @@ private final class SpyMigrationCLI: SwiftLintCLIProtocol, @unchecked Sendable {
     func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
 }
 
+/// A CLI whose first `getVersion()` parks on a gate and returns `versions[0]`;
+/// later calls return the corresponding later element immediately.
+private final class GatedMigrationCLI: SwiftLintCLIProtocol, @unchecked Sendable {
+    private let gate: SupersededTaskGate
+    private let versions: [String]
+
+    init(gate: SupersededTaskGate, versions: [String]) {
+        self.gate = gate
+        self.versions = versions
+    }
+
+    func getVersion() async throws -> String {
+        let index = await gate.arrive()
+        return versions[min(index, versions.count - 1)]
+    }
+
+    func detectSwiftLintPath() throws -> URL { URL(fileURLWithPath: "/usr/bin/swiftlint") }
+    func executeRulesCommand() throws -> Data { Data() }
+    func executeRuleDetailCommand(ruleId _: String) throws -> Data { Data() }
+    func generateDocsForRule(ruleId _: String) throws -> String { "" }
+    func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data { Data() }
+}
+
 @MainActor
 struct MigrationAssistantViewModelTests {
 
@@ -214,6 +237,30 @@ struct MigrationAssistantViewModelTests {
         viewModel.detectMigrations()
         try await Task.sleep(nanoseconds: 50_000_000)
 
+        #expect(viewModel.isDetecting == false)
+    }
+
+    @Test("A superseded detectMigrations does not overwrite the newer run's result")
+    func testSupersededDetectDoesNotOverwrite() async throws {
+        let (configPath, tempDir) = try makeTempConfigURL()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let gate = SupersededTaskGate()
+        let cli = GatedMigrationCLI(gate: gate, versions: ["5.9.0", "6.0.0"])
+        let spy = SpyMigrationAssistant()
+        let viewModel = MigrationAssistantViewModel(assistant: spy, swiftLintCLI: cli, configPath: configPath)
+        viewModel.previousVersion = "5.0"
+
+        viewModel.detectMigrations()            // run 1 parks in getVersion (would yield 5.9.0)
+        let staleTask = viewModel.detectTask
+        await gate.awaitFirstEntered()
+        viewModel.detectMigrations()            // run 2 supersedes run 1 (yields 6.0.0)
+        await viewModel.detectTask?.value       // run 2 completes and applies its result
+        await gate.release()                    // run 1 resumes — but was cancelled
+        await staleTask?.value
+
+        #expect(viewModel.currentVersion == "6.0.0")
+        #expect(spy.detectCallCount == 1, "the superseded run must not reach the assistant")
         #expect(viewModel.isDetecting == false)
     }
 
