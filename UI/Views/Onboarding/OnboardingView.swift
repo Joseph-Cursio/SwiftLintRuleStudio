@@ -35,9 +35,15 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             progressIndicator
-            stepContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .animation(.easeInOut, value: onboardingManager.currentStep)
+            // Scrollable so the step content (notably the "SwiftLint Not Found"
+            // branch) stays reachable at large Dynamic Type sizes instead of
+            // clipping against the fixed window height.
+            ScrollView {
+                stepContent
+                    .frame(maxWidth: .infinity)
+                    .animation(.easeInOut, value: onboardingManager.currentStep)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             navigationButtons
         }
         .frame(width: 700, height: 500)

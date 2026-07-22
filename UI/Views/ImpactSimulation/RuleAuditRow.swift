@@ -31,10 +31,25 @@ struct RuleAuditRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             mainRow
-                .accessibilityAddTraits(.isButton)
                 .onTapGesture {
                     if isExpandable {
                         onToggleExpand()
+                    }
+                }
+                // Collapse the ~9 columns into one VoiceOver element with a composed
+                // summary; expose the interactive columns as named actions instead of
+                // separate stops. `.isButton` only when the row can be expanded.
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(rowAccessibilityLabel)
+                .accessibilityHint(isExpandable ? "Double tap to expand the file breakdown" : "")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityActions {
+                    if isExpandable {
+                        Button(isExpanded ? "Collapse details" : "Expand details", action: onToggleExpand)
+                    }
+                    if !entry.isCurrentlyEnabled {
+                        Button(isSelected ? "Deselect rule" : "Select rule", action: onToggleSelect)
+                        Button("Enable rule", action: onEnable)
                     }
                 }
             if isExpanded && isExpandable {
@@ -42,6 +57,20 @@ struct RuleAuditRow: View {
             }
         }
         .opacity(entry.isCurrentlyEnabled ? 0.5 : 1.0)
+    }
+
+    private var rowAccessibilityLabel: String {
+        var parts = [entry.rule.id, entry.rule.description]
+        if entry.isCurrentlyEnabled {
+            parts.append("already enabled")
+        } else {
+            parts.append("\(entry.violationCount) violations")
+            parts.append(entry.effortCategory.label)
+        }
+        if isUnavailable {
+            parts.append("not available in this edition")
+        }
+        return parts.joined(separator: ", ")
     }
 
     private var mainRow: some View {
@@ -184,6 +213,7 @@ struct RuleAuditRow: View {
                 .frame(height: geometry.size.height)
             }
             .frame(width: 60, height: 16)
+            .accessibilityHidden(true)
         }
         .frame(width: AuditColumnWidths.violations)
     }

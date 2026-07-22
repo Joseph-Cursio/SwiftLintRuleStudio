@@ -14,6 +14,15 @@ extension OnboardingView {
         }
         .padding(.horizontal, 24)
         .padding(.top, 16)
+        // The dots are color-only; give VoiceOver the step count instead.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(progressAccessibilityLabel)
+    }
+
+    private var progressAccessibilityLabel: String {
+        let steps = OnboardingManager.OnboardingStep.allCases.filter { $0 != .complete }
+        let current = min(onboardingManager.currentStep.rawValue + 1, steps.count)
+        return "Step \(current) of \(steps.count)"
     }
 
     // MARK: - Steps

@@ -61,6 +61,7 @@ extension RuleAuditRow {
                         .frame(height: geometry.size.height)
                     }
                     .frame(width: 80, height: 10)
+                    .accessibilityHidden(true)
 
                     Text("\(item.count)")
                         .font(.caption)
