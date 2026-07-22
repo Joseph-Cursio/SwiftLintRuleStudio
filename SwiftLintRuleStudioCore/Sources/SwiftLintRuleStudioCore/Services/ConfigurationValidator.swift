@@ -327,7 +327,7 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
     }
 
     /// Calculate Levenshtein edit distance between two strings
-    private func levenshteinDistance(_ source: String, _ target: String) -> Int {
+    func levenshteinDistance(_ source: String, _ target: String) -> Int {
         let sourceChars = Array(source)
         let targetChars = Array(target)
         let rows = sourceChars.count

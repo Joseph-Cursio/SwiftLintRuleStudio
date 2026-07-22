@@ -88,7 +88,7 @@ public enum RuleParameterParser {
     }
 
     /// Strips the smallest common leading-whitespace prefix from every line.
-    private static func deindent(_ lines: [String]) -> [String] {
+    static func deindent(_ lines: [String]) -> [String] {
         let nonEmpty = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
         let leadingCounts = nonEmpty.map { line -> Int in
             line.prefix { $0 == " " }.count
