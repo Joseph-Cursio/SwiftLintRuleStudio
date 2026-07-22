@@ -20,10 +20,12 @@ struct RuleListItem: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Status indicator
+            // Status indicator (decorative — status is also conveyed by the text
+            // labels below, so it's hidden from assistive technologies).
             Circle()
                 .fill(statusColor)
                 .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 // Rule name and identifier
@@ -61,6 +63,14 @@ struct RuleListItem: View {
                         Label("Enabled", systemImage: "checkmark.circle.fill")
                             .font(.caption2)
                             .foregroundStyle(.green)
+                    }
+
+                    // A rule that is neither enabled nor opt-in would otherwise show
+                    // only the (now-hidden) gray dot — give its state text too.
+                    if !rule.isEnabled && !rule.isOptIn {
+                        Label("Disabled", systemImage: "circle")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
 
                     if isUnavailable {

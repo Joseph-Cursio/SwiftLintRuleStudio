@@ -18,9 +18,11 @@ struct ViolationListItem: View {
 
     var body: some View {
         HStack(spacing: 12) {
+            // Decorative — severity is also shown by the SeverityBadge text.
             Circle()
                 .fill(severityColor)
                 .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 ruleHeaderRow

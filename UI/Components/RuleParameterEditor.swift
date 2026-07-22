@@ -37,6 +37,8 @@ private struct IntegerParameterRow: View {
                     in: 1...500
                 )
                 .frame(maxWidth: 200)
+                .accessibilityLabel(param.name)
+                .accessibilityValue("\(value)")
 
                 TextField(
                     "Value",
@@ -48,6 +50,8 @@ private struct IntegerParameterRow: View {
 
                 Stepper("", value: $value, in: 1...10_000)
                     .labelsHidden()
+                    .accessibilityLabel(param.name)
+                    .accessibilityValue("\(value)")
 
                 Spacer()
 
@@ -86,6 +90,7 @@ private struct BooleanParameterRow: View {
 
             Toggle("", isOn: $value)
                 .labelsHidden()
+                .accessibilityLabel(param.name)
 
             Spacer()
 

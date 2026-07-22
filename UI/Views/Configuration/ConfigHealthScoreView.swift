@@ -197,6 +197,11 @@ private struct ConfigHealthPopover: View {
                             Circle()
                                 .fill(priorityColor(for: recommendation))
                                 .frame(width: 6, height: 6)
+                                .accessibilityHidden(true)
+
+                            Text(recommendation.priority.displayName)
+                                .font(.caption2)
+                                .foregroundStyle(priorityColor(for: recommendation))
 
                             Text(recommendation.title)
                                 .font(.caption)

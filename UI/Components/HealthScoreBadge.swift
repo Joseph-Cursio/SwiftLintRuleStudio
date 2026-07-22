@@ -72,6 +72,7 @@ private struct HealthScoreIndicator: View {
             Circle()
                 .fill(gradeColor)
                 .frame(width: 8, height: 8)
+                .accessibilityHidden(true)
 
             Text(grade.displayName)
                 .font(.caption2)
@@ -109,6 +110,7 @@ private struct HealthScoreBadge: View {
                     Circle()
                         .stroke(gradeColor.opacity(0.3), lineWidth: 2)
                 )
+                .accessibilityHidden(true)
 
             if showGrade {
                 Text(report.grade.rawValue)
