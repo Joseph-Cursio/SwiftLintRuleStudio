@@ -41,7 +41,6 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
     public let swiftLintCLI: SwiftLintCLIProtocol
     public let violationStorage: ViolationStorageProtocol
     public let fileTracker: FileTracker
-    private var currentAnalysisTask: Task<Void, Never>?
     // Stores a cancel action for the in-flight analyze() call so that
     // cancelAnalysis() can reach it even though analyze() returns a value.
     private var pendingAnalysisCancellation: (@Sendable () -> Void)?
@@ -91,8 +90,12 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
                     configPath: actualConfigPath,
                     workspacePath: workspace.path
                 )
+                // A run superseded by a newer analyze() (which cancels this one)
+                // must not overwrite the newer run's stored results or UI state.
+                try Task.checkCancellation()
                 let configHash = try self.calculateConfigHash(configPath: configPath ?? workspace.configPath)
                 try await self.violationStorage.storeViolations(violations, for: workspace.id)
+                try Task.checkCancellation()
 
                 let result = self.makeResult(
                     violations: violations,
@@ -102,6 +105,9 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
                 )
                 self.finalizeAnalysisSuccess(result: result, violationsCount: violations.count)
                 return result
+            } catch is CancellationError {
+                // Superseded — leave the newer run's state and results untouched.
+                throw CancellationError()
             } catch {
                 self.finalizeAnalysisFailure()
                 throw WorkspaceAnalyzerError.analysisFailed(error.localizedDescription)
@@ -181,8 +187,6 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
 
     /// Cancel current analysis
     public func cancelAnalysis() {
-        currentAnalysisTask?.cancel()
-        currentAnalysisTask = nil
         pendingAnalysisCancellation?()
         pendingAnalysisCancellation = nil
         isAnalyzing = false
