@@ -18,7 +18,10 @@ All findings were verified against live source.
 | **P1.2** Recent-workspace order not persisted | ✅ **Done** — `d323833` (save after reorder) |
 | **P2.1** ImpactSimulator column always 0 | ✅ **Done** — `11dcfcc` (read `character` field) |
 | **P2.2** Workspace-switch race | ✅ **Done** — `29a5c88` (`workspaceId` guard on apply) |
-| P1.3–P1.5, P2.3–P2.5, P3.x | ⬜ open |
+| **P2.3** Bulk ops swallow config-load failure | ✅ **Done** — `8299436` (`bulkOperationError` surface) |
+| **P1.4** Rule-parameter controls unlabeled | ✅ **Done** — `d8cb50c` (accessibility labels) |
+| **P1.5** Color-only status indicators | ✅ **Done** — `d8cb50c` ("Disabled" text + hidden dots) |
+| P1.3 (needs manual VoiceOver), P2.4–P2.5, P3.x | ⬜ open |
 | PBT track | ◐ step 1 done (seed manifest); step 2 (`swift-infer discover`) pending |
 
 Each fix shipped test-first (regression tests written red, then driven green). Remaining items below are unstarted unless marked otherwise.
@@ -98,17 +101,27 @@ An interactive `Button` sits inside another `Button`'s label in the Recent Works
 - `UI/Views/WorkspaceSelection/WorkspaceSelectionView.swift:181-227`
 - **Fix:** drop the outer `Button`; use an `HStack` with `.contentShape` + `.onTapGesture` + `.accessibilityAddTraits(.isButton)` + `.accessibilityAction` for "open," leaving the `xmark.circle.fill` as the only real `Button` (or move "remove" to a `.contextMenu`). _Needs live VoiceOver confirmation._
 
-### P1.4 [a11y] Rule parameter controls have no accessible name
+### P1.4 [a11y] Rule parameter controls have no accessible name — ✅ Done (`d8cb50c`)
+**Shipped:** added `.accessibilityLabel(param.name)` to the Slider/Stepper/Toggle (plus `.accessibilityValue` on the numeric controls). ViewInspector tests assert each control's `accessibilityLabel()`.
+
+<details><summary>Original finding</summary>
+
 `Slider`, `Stepper("")`, and `Toggle("").labelsHidden()` sit next to a sibling `Text(param.name)` but aren't linked — VoiceOver announces bare "Slider/Stepper/Switch" with no indication of which rule parameter they edit.
 - `UI/Components/RuleParameterEditor.swift:32-39, 49, 87`
 - **Fix:** add `.accessibilityLabel(param.name)` to each; add `.accessibilityValue("\(value)")` to the Slider/Stepper (their value shows in an adjacent `TextField`, not the control).
+</details>
 
-### P1.5 [a11y] Color-only status dots with no text fallback
+### P1.5 [a11y] Color-only status dots with no text fallback — ✅ Done (`d8cb50c`)
+**Shipped:** `RuleListItem` now shows a "Disabled" text label for the neither-enabled-nor-opt-in state, and `ConfigHealthPopover` pairs its priority dot with the priority text — the two genuine info-loss cases. Redundant dots (RuleListItem, ViolationListItem, HealthScoreBadge, HealthScoreIndicator) are `accessibilityHidden`. Tested: the "Disabled"/"Opt-In"/"Enabled" text branches in `RuleListItemTests`; the hidden-dot changes are applied-and-reviewed (not robustly assertable via ViewInspector).
+
+<details><summary>Original finding</summary>
+
 `RuleListItem`'s status `Circle` (green/orange/gray) has no text in the gray "disabled" state — color is the only signal, and it isn't hidden. `ConfigHealthPopover`'s recommendation rows convey priority (high/med/low) by dot color alone.
 - `UI/Components/RuleListItem.swift:24-26`
 - `UI/Views/Configuration/ConfigHealthScoreView.swift:197-199`
 - (redundant-but-unhidden dots: `UI/Components/ViolationListItem.swift:21-23`, `UI/Components/HealthScoreBadge.swift:72-74, 105-107`)
 - **Fix:** pair each meaningful dot with text (or fold status into a row-level `.accessibilityLabel`); `.accessibilityHidden(true)` the purely-redundant ones.
+</details>
 
 ---
 
@@ -133,10 +146,15 @@ Reads `item["column"]`, but SwiftLint's JSON reporter uses `"character"` (as `Wo
 - **Fix:** guard the assignment on `self.workspaceId == workspace.id`, or store & cancel the prior task on switch.
 </details>
 
-### P2.3 Bulk rule ops silently swallow config-load failures
+### P2.3 Bulk rule ops silently swallow config-load failures — ✅ Done (`8299436`)
+**Shipped:** added a `bulkOperationError` observable property and a `loadConfig` helper that records a user-facing message on load failure (and clears it on success); all three bulk ops route through it. Regression tests: a malformed config surfaces the error and produces no diff; a clean op clears any prior error.
+
+<details><summary>Original finding</summary>
+
 Each begins `guard (try? yamlEngine.load()) != nil else { return }`; `RuleBrowserViewModel` has no error published property, so a malformed `.swiftlint.yml` makes Enable/Disable/Set-Severity do nothing with zero feedback.
 - `UI/ViewModels/RuleBrowserViewModel.swift:253, 287, 306`
 - **Fix:** surface the load error to the user (add a `saveError`/`error` published property and present it).
+</details>
 
 ### P2.4 [a11y] Impact-audit rows are fragmented and mislabeled
 `RuleAuditRow` applies `.isButton` to a 9-element uncombined `HStack`, so VoiceOver gives ~9 stops per row, and the proportional bar is exposed as an unlabeled image.
@@ -184,9 +202,9 @@ The 700×500 fixed onboarding frame has no `ScrollView`; the "SwiftLint Not Foun
 
 ## Suggested sequencing
 
-1. ~~**P0.1 + P0.2** — the two silent-data-loss bugs.~~ ✅ Done (`9ea2e90`, `b06494e`, `93edd2e`).
-2. ~~P1.1~~ ✅ (`c23a306`); **P1.2** (recent-workspace persistence) ← next, then **P1.3–P1.5** (a11y blockers).
-3. **Stand up PBT** on the config-merge + YAML round-trip kernels — locks P2.1 shut and road-tests the toolchain on a real repo (the actual reason this thread started).
-4. **P2**, then **P3** as robustness passes.
+1. ~~P0.1, P0.2~~ ✅ · ~~P1.1, P1.2, P1.4, P1.5~~ ✅ · ~~P2.1, P2.2, P2.3~~ ✅ — nine shipped test-first.
+2. **PBT step 2** — `swift-infer discover` on the config-merge + YAML round-trip kernels ← in progress (the original thread).
+3. **P1.3** (nested-button VoiceOver — needs manual verification), **P2.4–P2.5** (remaining a11y).
+4. **P3.x** robustness polish.
 
 Per repo convention: one logical change per commit, each building green, unrelated changes never bundled.
