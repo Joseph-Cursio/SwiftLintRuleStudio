@@ -178,21 +178,35 @@ struct WorkspaceSelectionView: View {
     }
 
     private func recentWorkspaceRow(_ workspace: Workspace) -> some View {
-        Button {
-            do {
-                try workspaceManager.openWorkspace(at: workspace.path)
-            } catch let error as WorkspaceError {
-                var message = error.localizedDescription
-                if let suggestion = error.recoverySuggestion {
-                    message += "\n\n\(suggestion)"
-                }
-                errorMessage = message
-                showError = true
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
+        // The row is NOT a Button: the "Remove" control used to be a Button nested
+        // inside the outer open-Button's label, which VoiceOver can't reliably reach.
+        // Instead the openable region is a tappable element carrying the open action,
+        // and Remove is its own sibling Button.
+        HStack {
+            openableContent(workspace)
+                .contentShape(Rectangle())
+                .onTapGesture { openWorkspace(workspace) }
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint("Opens this workspace")
+                .accessibilityAction { openWorkspace(workspace) }
+                .accessibilityIdentifier("RecentWorkspaceOpen")
+
+            Button {
+                workspaceManager.removeFromRecentWorkspaces(workspace)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Remove from recent workspaces")
             }
-        } label: {
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
+    }
+
+    private func openableContent(_ workspace: Workspace) -> some View {
         HStack {
             Image(systemName: "folder")
                 .foregroundStyle(.secondary)
@@ -216,22 +230,23 @@ struct WorkspaceSelectionView: View {
                     .foregroundStyle(.green)
                     .accessibilityHidden(true)
             }
+        }
+    }
 
-            Button {
-                workspaceManager.removeFromRecentWorkspaces(workspace)
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("Remove from recent workspaces")
+    private func openWorkspace(_ workspace: Workspace) {
+        do {
+            try workspaceManager.openWorkspace(at: workspace.path)
+        } catch let error as WorkspaceError {
+            var message = error.localizedDescription
+            if let suggestion = error.recoverySuggestion {
+                message += "\n\n\(suggestion)"
             }
-            .buttonStyle(.plain)
+            errorMessage = message
+            showError = true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
-        .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 
     private func handleFilePickerResult(_ result: Result<[URL], Error>) {

@@ -168,11 +168,10 @@ struct WorkspaceSelectionViewInteractionTests {
             ViewHosting.host(view: view)
             defer { ViewHosting.expel() }
             let inspector = try view.inspect()
-            // recentWorkspaceRow is now a Button (changed from onTapGesture in commit 840de33)
-            let button = try inspector.find(ViewType.Button.self) { button in
-                (try? button.find(text: tempDir.lastPathComponent)) != nil
-            }
-            try button.tap()
+            // P1.3: the open action is a tap gesture on the openable content (no
+            // longer an outer Button), so Remove isn't nested inside it.
+            let openableContent = try inspector.find(viewWithAccessibilityIdentifier: "RecentWorkspaceOpen")
+            try openableContent.callOnTapGesture()
         }
 
         let didOpenWorkspace = await waitForWorkspace(workspaceManager, exists: true)
@@ -271,7 +270,8 @@ struct WorkspaceSelectionViewInteractionTests {
             defer { ViewHosting.expel() }
             let inspector = try view.inspect()
             let nameText = try inspector.find(text: tempDir.lastPathComponent)
-            let row = try nameText.parent().parent()
+            // P1.3: Remove is now a sibling of the openable content in the outer row.
+            let row = try nameText.parent().parent().parent()
             let removeButton = try row.find(ViewType.Button.self)
             try removeButton.tap()
         }
