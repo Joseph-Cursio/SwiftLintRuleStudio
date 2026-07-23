@@ -162,6 +162,13 @@ extension YAMLConfigurationEngine {
     ]
 
     /// Reserved top-level keys the engine actively models (parses *and* emits).
+    //
+    // This set and `defaultTopLevelKeyOrder` (Serialization) overlap heavily but legitimately
+    // diverge — they are related lists, not one list maintained twice — so SwiftProjectLint's
+    // cross-file Parallel List Drift rule reports a false positive. `rules` belongs here (it is
+    // parsed and migrated) but is intentionally never emitted, so it is absent from the emission
+    // order; the passthrough keys (strict/lenient/warning_threshold) are the mirror case.
+    // swiftprojectlint:disable:next parallel-list-drift
     static let modeledReservedKeys: Set<String> = [
         "rules", "included", "excluded", "reporter",
         "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules"

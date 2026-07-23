@@ -132,6 +132,12 @@ extension YAMLConfigurationEngine {
 
     /// Conventional emission order for reserved top-level SwiftLint keys when
     /// the loaded file didn't already provide an ordering for them.
+    //
+    // Mirror of the suppression on `modeledReservedKeys` (Parsing): the two lists overlap but
+    // legitimately diverge, so Parallel List Drift reports a false positive. This list holds
+    // passthrough keys (strict/lenient/warning_threshold) that get an emission position without
+    // being modeled, and omits `rules`, which is migrated but never emitted.
+    // swiftprojectlint:disable:next parallel-list-drift
     private static let defaultTopLevelKeyOrder: [String] = [
         "included",
         "excluded",
