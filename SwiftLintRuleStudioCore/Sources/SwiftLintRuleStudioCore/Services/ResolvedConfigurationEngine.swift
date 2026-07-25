@@ -130,13 +130,24 @@ public struct ResolvedConfigurationEngine {
 
     /// disabled_rules / opt_in_rules accumulate symmetrically (opting a rule in
     /// removes it from disabled and vice versa); analyzer_rules accumulate.
+    ///
+    /// A single config that lists the same rule in *both* keys is contradicting
+    /// itself, and SwiftLint resolves that in favour of `disabled_rules` — the
+    /// rule does not run. Verified against SwiftLint 0.65.0: with a config naming
+    /// `force_unwrapping` in both keys the rule stays silent on code that
+    /// violates it, while the same file under `opt_in_rules` alone reports it;
+    /// a default rule (`todo`) behaves the same way. No warning is emitted, so
+    /// the contradiction is resolved silently rather than rejected. Dropping the
+    /// opt-in side up front is what keeps a rule from landing in both resolved
+    /// sets — the mutual-exclusion invariant the property laws pin.
     private static func mergeMembership(
         config: YAMLConfig,
         layer: ConfigLayer,
         into accumulator: inout Accumulator
     ) {
         let childDisabled = config.disabledRules ?? []
-        let childOptIn = config.optInRules ?? []
+        let disabledHere = Set(childDisabled)
+        let childOptIn = (config.optInRules ?? []).filter { !disabledHere.contains($0) }
 
         for rule in childOptIn { accumulator.disabled.remove(rule) }
         for rule in childDisabled { accumulator.optIn.remove(rule) }
