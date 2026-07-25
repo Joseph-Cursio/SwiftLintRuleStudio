@@ -2,28 +2,29 @@ import Foundation
 import LintStudioCore
 
 public extension YAMLConfigurationEngine {
-    /// Extract and preserve comments from YAML content using the shared YAMLCommentPreserver.
+    /// Comments preserved from YAML content, keyed by the top-level key each
+    /// block sits above.
     ///
     /// A multi-line comment block above a key arrives from the preserver as
     /// several `CommentEntry` values that share one `followingKey`. They are
-    /// accumulated in file order and stored as a single newline-joined block
+    /// accumulated in file order and returned as a single newline-joined block
     /// so the whole block survives a round-trip — not just its last line.
-    func extractComments(from content: String) {
+    ///
+    /// Pure: derives entirely from `content`, so ``parse(_:)`` can call it
+    /// without touching engine state.
+    static func comments(in content: String) -> [String: String] {
         let preserver = YAMLCommentPreserver(yamlContent: content)
         var blocks: [String: [String]] = [:]
         for entry in preserver.comments {
             guard let key = entry.followingKey else { continue }
             blocks[key, default: []].append(entry.line)
         }
-        for (key, block) in blocks {
-            currentConfig.comments[key] = block.joined(separator: "\n")
-        }
+        return blocks.mapValues { $0.joined(separator: "\n") }
     }
 
-    /// Extract and preserve the ordering of top-level YAML keys using the shared preserver.
-    func extractKeyOrder(from content: String) {
-        let preserver = YAMLCommentPreserver(yamlContent: content)
-        currentConfig.keyOrder = preserver.keyOrder
+    /// The order of top-level YAML keys as they appear in `content`.
+    static func keyOrder(in content: String) -> [String] {
+        YAMLCommentPreserver(yamlContent: content).keyOrder
     }
 
     /// Reinsert preserved comments into serialized YAML output.

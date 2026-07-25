@@ -2,6 +2,59 @@ import Foundation
 import Yams
 
 extension YAMLConfigurationEngine {
+
+    /// Parse `.swiftlint.yml` text into a ``YAMLConfig``.
+    ///
+    /// The inverse half of ``serialize(_:)``, and the whole of what ``load()``
+    /// does once the file has been read. Pure: it reads no engine state and
+    /// mutates none, so `parse(serialize(config))` can be exercised without
+    /// touching the filesystem.
+    ///
+    /// Everything the config carries is derived here — the modeled fields from
+    /// the YAML tree, and `comments` / `keyOrder` from the raw text, which the
+    /// tree has already discarded.
+    ///
+    /// - Parameter yaml: The contents of a `.swiftlint.yml`.
+    /// - Returns: The parsed configuration.
+    /// - Throws: ``YAMLConfigError/parseError(_:)`` if the text is not a YAML
+    ///   mapping. An empty document throws rather than yielding an empty config
+    ///   — ``load()`` has always behaved this way, and callers that want the
+    ///   lenient reading should check for empty input themselves.
+    public func parse(_ yaml: String) throws -> YAMLConfig {
+        do {
+            guard let node = try Yams.compose(yaml: yaml) else {
+                throw YAMLConfigError.parseError("Empty YAML document")
+            }
+
+            let dict = try nodeToDictionary(node)
+            let parsed = try parseDictionaryToConfig(dict)
+
+            var config = YAMLConfig()
+            config.rules = parsed.rules
+            config.included = parsed.included
+            config.excluded = parsed.excluded
+            config.reporter = parsed.reporter
+            config.disabledRules = parsed.disabledRules
+            config.optInRules = parsed.optInRules
+            config.analyzerRules = parsed.analyzerRules
+            config.onlyRules = parsed.onlyRules
+
+            // Preserve any top-level keys the modeled path won't re-emit
+            // (custom_rules, scalar rule shorthands like `line_length: 120`, …).
+            let modeledKeys = Self.modeledReservedKeys.union(config.rules.keys)
+            config.passthroughNodes = Self.passthroughNodes(from: node, modeledKeys: modeledKeys)
+            config.scalarShorthandRules = Self.scalarShorthandRuleKeys(in: dict)
+
+            // Layout, recovered from the raw text rather than the tree.
+            config.comments = Self.comments(in: yaml)
+            config.keyOrder = Self.keyOrder(in: yaml)
+
+            return config
+        } catch {
+            throw YAMLConfigError.parseError(error.localizedDescription)
+        }
+    }
+
     /// Convert a YAML node into a Swift dictionary
     public func nodeToDictionary(_ node: Node) throws -> [String: Any] {
         guard case .mapping(let mapping) = node else {

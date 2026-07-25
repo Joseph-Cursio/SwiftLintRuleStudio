@@ -156,46 +156,8 @@ public class YAMLConfigurationEngine {
         // Read raw content for comment preservation
         originalContent = try String(contentsOf: configPath, encoding: .utf8)
 
-        // Parse YAML (this loses comments)
-        // Yams uses Node-based API, so we'll parse to dictionary first
-        guard let yamlString = try? String(contentsOf: configPath, encoding: .utf8) else {
-            throw YAMLConfigError.parseError("Could not read file")
-        }
-
-        do {
-            // Parse YAML to Node, then convert to our model
-            let node = try Yams.compose(yaml: yamlString)
-            guard let node = node else {
-                throw YAMLConfigError.parseError("Empty YAML document")
-            }
-
-            // Convert Node to dictionary for easier parsing
-            let dict = try nodeToDictionary(node)
-            let parsed = try parseDictionaryToConfig(dict)
-
-            // Convert to our config model
-            currentConfig = YAMLConfig()
-            currentConfig.rules = parsed.rules
-            currentConfig.included = parsed.included
-            currentConfig.excluded = parsed.excluded
-            currentConfig.reporter = parsed.reporter
-            currentConfig.disabledRules = parsed.disabledRules
-            currentConfig.optInRules = parsed.optInRules
-            currentConfig.analyzerRules = parsed.analyzerRules
-            currentConfig.onlyRules = parsed.onlyRules
-
-            // Preserve any top-level keys the modeled path won't re-emit
-            // (custom_rules, scalar rule shorthands like `line_length: 120`, …).
-            let modeledKeys = Self.modeledReservedKeys.union(currentConfig.rules.keys)
-            currentConfig.passthroughNodes = Self.passthroughNodes(from: node, modeledKeys: modeledKeys)
-            currentConfig.scalarShorthandRules = Self.scalarShorthandRuleKeys(in: dict)
-
-            // Extract comments from original content
-            extractComments(from: originalContent)
-            extractKeyOrder(from: originalContent)
-        } catch {
-            throw YAMLConfigError.parseError(error.localizedDescription)
-        }
+        // Everything past reading the file is pure — see `parse(_:)`.
+        currentConfig = try parse(originalContent)
     }
 
     /// Get current configuration
