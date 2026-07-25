@@ -32,8 +32,15 @@ public enum DefaultExclusions {
     /// Merge default exclusions with an existing exclusion list.
     /// Preserves the order and entries of `existing`, then appends any
     /// defaults that are not already present (case-sensitive comparison).
+    ///
+    /// Deduplication happens only *across the seam*: a default already named in
+    /// `existing` is not appended a second time. `existing` itself is copied
+    /// verbatim, so any repeats the caller passed in survive — the result is not
+    /// a deduplicated list, and cannot be one without breaking the guarantee that
+    /// `existing` is preserved as a prefix.
     /// - Parameter existing: The user's current exclusion list (may be nil or empty).
-    /// - Returns: A deduplicated list containing all existing entries followed by missing defaults.
+    /// - Returns: `existing` verbatim, followed by the defaults it does not
+    ///   already contain. Empty or `nil` input yields ``directories``.
     public static func mergedWith(existing: [String]?) -> [String] {
         guard let existing = existing, !existing.isEmpty else {
             return directories
