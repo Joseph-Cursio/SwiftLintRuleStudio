@@ -27,6 +27,25 @@ private actor UpdateRecorder {
     }
 }
 
+/// Actor that records how many CLI calls were in flight simultaneously.
+///
+/// Concurrency is what "runs in parallel" actually means, and unlike elapsed
+/// time it does not depend on how busy the machine is. Every handler brackets
+/// its work with `enter()` / `leave()`; `peak` is the high-water mark.
+private actor ConcurrencyTracker {
+    private var inFlight = 0
+    private(set) var peak = 0
+
+    func enter() {
+        inFlight += 1
+        peak = max(peak, inFlight)
+    }
+
+    func leave() {
+        inFlight -= 1
+    }
+}
+
 /// Build a fake rule details body the parser will accept (`Name (id): description`)
 /// with non-empty triggering and non-triggering example sections.
 nonisolated private func makeDetailsBody(ruleId: String) -> String {
@@ -150,37 +169,45 @@ struct RuleRegistryBackgroundLoadingTests {
         #expect(count == 0)
     }
 
-    @Test("loadBatch runs rules in parallel — elapsed time roughly one per-rule delay")
+    @Test("loadBatch runs its rules concurrently, not one after another")
     func loadBatchRunsInParallel() async throws {
-        let perCallDelayNanoseconds: UInt64 = 200_000_000 // 200ms
+        // This used to assert `elapsed < 5 × the per-call delay`, which made a
+        // structural property depend on how loaded the machine was — it failed at
+        // 1.16s against a 1.0s budget while another build was running, and would
+        // be worse on a shared CI runner. Elapsed time was only ever a proxy;
+        // the property is that the calls OVERLAP, so measure that directly.
         let mockCLI = MockSwiftLintCLIActor()
+        let tracker = ConcurrencyTracker()
         await mockCLI.setGenerateDocsHandler { ruleId in emptyDocs(forRuleId: ruleId) }
         await mockCLI.setRuleDetailCommandHandler { ruleId in
-            try? await Task.sleep(nanoseconds: perCallDelayNanoseconds)
+            await tracker.enter()
+            // Hold the slot long enough that every sibling call has started
+            // before any of them finishes. This is not a timing assertion: the
+            // sleep only has to outlast spawning ten tasks, which is microseconds,
+            // so the margin here is ~1000× rather than the old 5×.
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            await tracker.leave()
             return Data(makeDetailsBody(ruleId: ruleId).utf8)
         }
 
         let batch = makeBackgroundBatch(count: 10)
         let recorder = UpdateRecorder()
 
-        let start = ContinuousClock.now
         await RuleRegistry.loadBatch(
             batch,
             swiftLintCLI: mockCLI
         ) { index, rule in
             await recorder.append(index, rule.id)
         }
-        let elapsed = ContinuousClock.now - start
 
-        let count = await recorder.count()
-        #expect(count == 10)
+        #expect(await recorder.count() == 10)
 
-        // Sequential would be ~2.0s; parallel should be ~0.2s. Allow a wide margin (< 5x single delay).
-        let singleDelay = Duration.nanoseconds(perCallDelayNanoseconds)
-        #expect(
-            elapsed < singleDelay * 5,
-            "Expected parallel execution; elapsed=\(elapsed) singleDelay=\(singleDelay)"
-        )
+        // `loadBatch` adds every rule to one unbounded TaskGroup, so all ten are
+        // in flight together. Sequential execution would peak at 1. If a
+        // concurrency cap is ever introduced deliberately, this is the test that
+        // should be updated to the new bound.
+        let peak = await tracker.peak
+        #expect(peak == 10, "Expected all ten calls in flight at once; peak was \(peak)")
     }
 
     @Test("fetchDetailedRule success path returns merged details from CLI")
