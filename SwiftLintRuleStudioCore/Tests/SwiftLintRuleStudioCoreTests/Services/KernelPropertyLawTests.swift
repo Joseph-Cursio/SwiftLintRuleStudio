@@ -86,6 +86,103 @@ struct KernelPropertyLawTests {
         #expect(DefaultExclusions.mergedWith(existing: []) == DefaultExclusions.directories)
     }
 
+    // MARK: - mergedWith — associativity of the union underneath it
+
+    /// The binary operation `mergedWith(existing:)` is a section of: an
+    /// order-preserving, left-biased union. `lhs` survives verbatim; `rhs`
+    /// contributes only what `lhs` does not already contain.
+    ///
+    /// Stated here rather than in production because the app never needs the
+    /// binary form — but the *laws* are about the binary operation, and a unary
+    /// function has no associativity to test. This is the reference definition
+    /// the law checks `mergedWith` against.
+    nonisolated private static func merge(_ lhs: [String], _ rhs: [String]) -> [String] {
+        let seen = Set(lhs)
+        return lhs + rhs.filter { !seen.contains($0) }
+    }
+
+    @Test("the union under mergedWith is associative and idempotent")
+    func mergeIsAssociative() async {
+        await propertyCheck(
+            input: Self.exclusionListGenerator(),
+            Self.exclusionListGenerator(),
+            Self.exclusionListGenerator()
+        ) { first, second, third in
+            // Associativity — the law §8 asks for. Both groupings emit
+            // `first`, then second-minus-first, then third-minus-either.
+            #expect(
+                Self.merge(Self.merge(first, second), third)
+                    == Self.merge(first, Self.merge(second, third))
+            )
+
+            // Idempotence — merging a list with itself adds nothing.
+            #expect(Self.merge(first, first) == first)
+
+            // Left identity. (There is no right identity that is also a left
+            // one: `merge([], x)` is `x`, but `merge(x, [])` is `x` too, so
+            // `[]` is two-sided — assert both rather than assume.)
+            #expect(Self.merge([], first) == first)
+            #expect(Self.merge(first, []) == first)
+        }
+    }
+
+    @Test("mergedWith is exactly the union against the defaults, guard included")
+    func mergedWithIsASectionOfMerge() async {
+        await propertyCheck(input: Self.exclusionListGenerator()) { list in
+            // The `guard existing.isEmpty` branch is a fast path, not a different
+            // answer: the general formula already yields the defaults for an
+            // empty input. A future edit that makes the two disagree fails here.
+            #expect(
+                DefaultExclusions.mergedWith(existing: list)
+                    == Self.merge(list, DefaultExclusions.directories)
+            )
+        }
+        #expect(DefaultExclusions.mergedWith(existing: nil) == Self.merge([], DefaultExclusions.directories))
+    }
+
+    @Test("the union commutes as a set, but not as a list")
+    func mergeCommutesOnlyAsASet() async {
+        await propertyCheck(input: Self.exclusionListGenerator(), Self.exclusionListGenerator()) { first, second in
+            let forward = Self.merge(first, second)
+            let backward = Self.merge(second, first)
+
+            // Commutative on membership...
+            #expect(Set(forward) == Set(first).union(Set(second)))
+            #expect(Set(forward) == Set(backward))
+
+            // ...but the left operand keeps its position and its order, which is
+            // what makes the operation order-preserving rather than a set union.
+            #expect(Array(forward.prefix(first.count)) == first)
+            #expect(Array(backward.prefix(second.count)) == second)
+        }
+    }
+
+    @Test("each element keeps the multiplicity of whichever side supplied it")
+    func mergePreservesMultiplicityFromItsSource() async {
+        await propertyCheck(input: Self.exclusionListGenerator(), Self.exclusionListGenerator()) { first, second in
+            let merged = Self.merge(first, second)
+
+            // NOT "the result is deduplicated" — `mergedWith`'s docstring claims
+            // that and it is false. Repeats survive from *whichever side supplied
+            // the element*: the left operand is copied verbatim, and an element the
+            // left lacks arrives with all of the right's copies. Deduplicating
+            // would contradict the shipped prefix law, so the true statement is
+            // about multiplicity, not distinctness.
+            let inFirst = Set(first)
+            for value in Set(merged) {
+                let expected = inFirst.contains(value)
+                    ? first.filter { $0 == value }.count
+                    : second.filter { $0 == value }.count
+                #expect(merged.filter { $0 == value }.count == expected)
+            }
+
+            // The contributed tail is disjoint from the left operand — that part
+            // of "deduplicated" does hold, and it is what dedupes across the seam.
+            let tail = Array(merged.dropFirst(first.count))
+            #expect(Set(tail).isDisjoint(with: inFirst))
+        }
+    }
+
     // MARK: - levenshteinDistance — metric laws
 
     @Test("levenshtein distance is symmetric, non-negative, and zero iff equal")
