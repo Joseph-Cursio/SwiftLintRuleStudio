@@ -61,10 +61,14 @@ public class YAMLConfigurationEngine {
         public var analyzerRules: [String]?
         /// Only these rules will be active
         public var onlyRules: [String]?
-        /// Warning threshold count
-        public var warningThreshold: Int?
-        /// Whether strict mode is enabled (nil = not specified in YAML)
-        public var strict: Bool? // swiftlint:disable:this discouraged_optional_boolean
+
+        // `warning_threshold`, `strict` and `lenient` are deliberately absent
+        // from the model. The engine neither parses nor emits them: they ride
+        // through ``passthroughNodes`` verbatim, which is what preserves them in
+        // a user's file. They were once declared here and were dead on both
+        // paths — always nil after a parse, never written by a serialize — so
+        // setting one was a silent no-op. Read them from `passthroughNodes` if
+        // they are ever needed.
 
         // Comment preservation
         /// Preserved comments mapped by YAML key path
@@ -93,8 +97,6 @@ public class YAMLConfigurationEngine {
             self.optInRules = nil
             self.analyzerRules = nil
             self.onlyRules = nil
-            self.warningThreshold = nil
-            self.strict = nil
         }
     }
 

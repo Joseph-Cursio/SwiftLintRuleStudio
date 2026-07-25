@@ -75,8 +75,9 @@ records the mutant that proves the law has teeth.
 |---|---|---|---|---|
 | — | `apply(diff(a,b), a) == b` | round-trip | ❌ **needs an inverse built first** | see §3 |
 
-Plus two decisions rather than laws: `YAMLConfig.warningThreshold` / `.strict`
-(dead on both paths — §1), and whether `apply` gets built at all.
+Plus one decision rather than a law: whether `apply` gets built at all.
+(`YAMLConfig.warningThreshold` / `.strict` — the other open decision — was
+resolved by deleting them; see §1.)
 
 ---
 
@@ -145,13 +146,21 @@ than it looks; pin it against text a human wrote.**
 string parameters stay quoted, since unquoting one makes SwiftLint reject the
 file.
 
-> **Finding, unaddressed by design.** `YAMLConfig.warningThreshold` and
-> `.strict` are dead on *both* paths: `parse` never populates them (those keys
-> route to `passthroughNodes`), and `serialize` never emits them — a config with
-> `warningThreshold = 10` and nothing else serializes to `{}`. No user data is
-> lost, because text-loaded configs carry the keys through passthrough, but any
-> code setting the two properties programmatically is a silent no-op. Removing
-> them is an API change and was left alone.
+> **Finding, now resolved — the properties were deleted.**
+> `YAMLConfig.warningThreshold` and `.strict` were dead on *both* paths: `parse`
+> never populated them (those keys route to `passthroughNodes`), and `serialize`
+> never emitted them — a config with `warningThreshold = 10` and nothing else
+> serialized to `{}`. No user data was at risk, because text-loaded configs carry
+> the keys through passthrough, but setting either property was a silent no-op.
+>
+> They had **zero readers and zero writers** across Core, the app target and the
+> tests, and nothing outside the repo consumes the package, so the API break was
+> free. Deleting beat wiring them into the modeled path: passthrough already
+> preserves the keys correctly, so modelling them would duplicate a working
+> mechanism and risk double-emission. A comment where they used to be points at
+> `passthroughNodes` for anyone who comes looking. The §1 passthrough test still
+> pins that `warning_threshold` and `strict` survive a round-trip — as YAML keys,
+> which is the level that was ever true.
 
 **The remaining gotchas from the original sketch all held**, and are now pinned
 rather than merely hoped for: scalar shorthand, disabled-rule folding, int vs
@@ -428,17 +437,16 @@ count and not the test count:
 ## Next
 
 1. **Decide on `apply(ConfigDiff, YAMLConfig)`** (§3) — PBT-driven feature work,
-   or close the item as won't-do.
-2. **Decide on `YAMLConfig.warningThreshold` / `.strict`** (§1) — dead on both
-   the parse and serialize paths. Either delete them or route them through the
-   modeled path; leaving them is a trap for the next caller.
+   or close the item as won't-do. This is the last open item on the list.
 
 Then a `SwiftIdempotency` pass on the actor mutations — `storeViolations`'s
 upsert (`9ea2e90`) is the natural `#assertIdempotent` target.
 
-Unrelated to this list, but found while running it: `RuleRegistryBackgroundLoadingTests`
-asserts a wall-clock `elapsed < 1.0s` and fails intermittently under CPU load.
-It will be flaky on a loaded CI runner.
+Unrelated to this list but found while running it, and since fixed
+(`9e5b3ca`): `RuleRegistryBackgroundLoadingTests` asserted a wall-clock
+`elapsed < 1.0s` as a proxy for parallelism and failed under CPU load. It now
+tracks peak in-flight concurrency instead — a structural property that does not
+care how busy the machine is.
 
 ### Housekeeping surfaced by the toolchain re-run
 
