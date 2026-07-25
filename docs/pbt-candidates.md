@@ -9,9 +9,10 @@ Toolchain: `swift-property-based` (`propertyCheck(input:)` + `Gen`/`Generator`)
 and `PropertyLawKit`. Pipeline (pbt-book Appendix C): `SwiftProjectLint` →
 `swift-infer discover` → `SwiftPropertyLaws` → `SwiftIdempotency`.
 
-**Status: 6 of 8 closed.** §1, §2, §3, §4, §5 and §8 are shipped; §6 and §7
-remain, each blocked on something specific and named below. The suite is
-**35 property-law tests across 7 suites** (`swift test --filter PropertyLaw`).
+**Status: 8 of 8 closed.** Every candidate on this list is shipped. The suite is
+**47 property-law tests across 9 suites** (`swift test --filter PropertyLaw`).
+What remains is the one item that was never on the list as a law —
+`apply(ConfigDiff, YAMLConfig)`, which needs a feature built first (§3).
 
 ---
 
@@ -27,6 +28,8 @@ remain, each blocked on something specific and named below. The suite is
 | 8 | the union under `mergedWith` — associativity + section | `Services/KernelPropertyLawTests` | `5e1e9b3` |
 | 5 | `resolve` mutual exclusion / deeper-wins / root-only | `Services/ResolveInvariantPropertyLawTests` | `c6f70d0` |
 | 1 | `serialize` ↔ `parse` round-trip + text fixed point | `Services/ConfigRoundTripPropertyLawTests` | `439cf79` (refactor `127351f`) |
+| 6 | top-level key ordering — insertion-order independence | `Services/OrderingStabilityPropertyLawTests` | `958abba` |
+| 7 | `parseParameters` metamorphic laws | `Services/ParseParametersPropertyLawTests` | `450832d` |
 
 **Two production bugs came out of writing these**, neither of which any
 algebraic law over the function would have surfaced on its own:
@@ -66,13 +69,14 @@ Equally worth recording, from a full pipeline re-run (`swiftprojectlint`
 **Every shipped suite is mutation-verified**, not merely green. Each entry below
 records the mutant that proves the law has teeth.
 
-## Priority — what's left
+## What's left
 
 | # | Candidate | Law shape | Testable today? | Value |
 |---|---|---|---|---|
-| 6 | `orderedTopLevelPairs/Keys` | permutation-stability + idempotence | ⚠️ subjects are `private` | ★ |
-| 7 | `parseParameters` | metamorphic (comment/order insensitivity) + ordering | ✅ yes | ★ |
 | — | `apply(diff(a,b), a) == b` | round-trip | ❌ **needs an inverse built first** | see §3 |
+
+Plus two decisions rather than laws: `YAMLConfig.warningThreshold` / `.strict`
+(dead on both paths — §1), and whether `apply` gets built at all.
 
 ---
 
@@ -285,62 +289,81 @@ design (deeper-wins) and `mergeRootOnlyKeys` treats the root specially, so
 
 ---
 
-## 6. `orderedTopLevelPairs` / `orderedTopLevelKeys` — ordering stability
-
-**Status: OPEN. Blocked on visibility, not on the laws.**
+## 6. `orderedTopLevelPairs` / `orderedTopLevelKeys` — ordering stability ✅ SHIPPED (`958abba`)
 
 `YAMLConfigurationEngine.orderedTopLevelPairs(for:)` orders keys by: (1)
 `config.keyOrder`, then (2) `defaultTopLevelKeyOrder` for reserved keys, then
 (3) remaining keys sorted alphabetically.
 
-**Laws:**
-- **Permutation-stability:** the emitted order depends only on `keyOrder` and the
-  key *set*, not on dictionary iteration order — building the same config twice
-  (dictionaries are unordered) yields identical output order.
-- **Key-set preservation:** `keys(output) == keys(intended emission)` (no key
-  dropped or invented).
-- **Idempotence via round-trip:** feeding a serialized config's recovered
-  `keyOrder` back through produces the same order (ties into §1).
+The hazard it defends against is that `config.rules` is a **dictionary** —
+unordered — so a naive emission reorders a user's `.swiftlint.yml` differently
+on different runs and produces noisy diffs from an unchanged file.
 
-`RuleParameterParser.orderedTopLevelKeys(in:under:)` has a parallel law: it
-returns the wrapper's child keys **in source order**, skipping list items and
-deeper-nested keys.
+**Laws shipped:**
+- **Insertion-order independence:** the config is built twice with its rules
+  inserted in opposite orders, and the two serializations must be *byte*-identical.
+- **`keyOrder` honored** as a relative order, over the keys that survive emission
+  — `keyOrder` may name keys the config no longer carries.
+- **No key emitted twice.**
+- **The unnamed tail is alphabetical** — the branch that makes output stable
+  rather than hash-dependent.
+- **The recovered order is a fixed point** under re-serialization.
 
-**The blocker.** `orderedTopLevelKeys`, `keyName`, `buildParameter`, `isYAMLBool`,
-`warningOnlyInt` and `topLevelRuleValue` are all `private` — not reachable from a
-test even with `@testable import`. A seeded `discover` run flags **35 seeded
-functions as unreachable**, 33 of them `private`/`fileprivate` (the other two are
-`internal`, which `@testable import` does reach). §6 and §7 are where this
-actually bites. Widen to `internal`, or lift the logic into a type of its own,
-before writing these.
+> **The visibility blocker was a phantom, and this is the correction.** Earlier
+> revisions of this doc listed §6 (and §7) as blocked on widening `private`
+> helpers, on the strength of `swift-infer` emitting *"seeded function is not
+> reachable from a test"* for 35 functions. That note is about **the tool wanting
+> to call each seeded function directly** — which is not the same as a law needing
+> to. The emitted order is observable as `parse(serialize(config)).keyOrder`,
+> because `parse` recovers order from the text. **Nothing was widened**, and the
+> laws bind at the public boundary. Taking a tool's reachability complaint as a
+> design constraint would have cost real encapsulation for nothing.
+
+**One law had to be corrected while writing it.** Permuting the source is only a
+permutation when the names are distinct: with repeats, reversing changes which
+entry wins dedup, so the surviving key set legitimately differs.
+
+**Mutants caught:** reverse-sorting the unnamed tail, and ignoring
+`config.keyOrder` entirely — each by its own law.
 
 ---
 
-## 7. `parseParameters` — metamorphic, no inverse
-
-**Status: OPEN. Out of catalog by design — hand-written only.**
+## 7. `parseParameters` — metamorphic, no inverse ✅ SHIPPED (`450832d`)
 
 `RuleParameterParser.parseParameters(from cliOutput:String, ruleId:) ->
 [RuleParameter]?` parses the `Configuration (YAML):` block of `swiftlint rules
-<id>` output. There is **no serializer** back to CLI output, so there's no
-round-trip — the laws are metamorphic:
+<id>` output. There is **no serializer** back to CLI output, so there is no
+round-trip and the laws are metamorphic: change the input in a way that should
+not matter, and demand the output not move.
 
-- **Comment/blank-line insensitivity:** inserting `#` comment lines or blank
-  lines into the block doesn't change the parsed parameter set.
-- **Order preservation:** parameters come back in source order
-  (`orderedTopLevelKeys`); permuting the source lines permutes the output the
-  same way.
-- **Placeholder rejection:** any block with a `{Placeholder}:` line returns `nil`
-  (`looksLikePlaceholderYAML`) — a good adversarial generator seam.
-- **`severity` and nested mappings are dropped** (`buildParameter` returns nil).
-- **Bool-before-Int classification:** `true`/`false` never classify as integer
-  `0/1` (the `isYAMLBool` CFBoolean check) — a targeted generator of boolean
-  params guards this subtle bridging bug.
+**Laws shipped:** comment-line insensitivity; source-order preservation with
+`severity` and nested mappings dropped; permuting the source permutes the
+output; boolean classification; placeholder rejection; the blank-line
+terminator; and a missing `Configuration` block yielding nil.
 
-`deindent` idempotence is already shipped; these build on the same parser.
-`parseParameters` is seeded as `pure-function` but matches no template, so the
-pipeline offers only the `f(x) == f(x)` tautology — this section is the whole
-value here, and it partly overlaps §6's visibility blocker.
+Also stated at the public boundary — `parseParameters` is already `public`, so
+`buildParameter` / `isYAMLBool` / `keyName` stayed private. See the note in §6.
+
+**The law this doc stated was wrong, and writing it is what showed that.** The
+claim was *"inserting `#` comment lines **or blank lines** doesn't change the
+parsed parameter set."* The blank-line half is false: `extractYAMLBlock` treats
+a blank line after content as the **end of the section**, because that is how
+SwiftLint separates `Configuration (YAML):` from `Triggering Examples:`.
+Everything after it is invisible. Now pinned as its own test, since a plausible
+"skip blank lines" tidy-up would silently swallow the next section as
+configuration.
+
+> **A guard that is not doing work.** Reordering `buildParameter` to check `Int`
+> before `Bool` — the exact bug `isYAMLBool`'s CFBoolean probe was written
+> against — leaves the suite **green**. Probing directly: on Yams 6.2.1 with this
+> toolchain `Yams.load` returns a genuine Swift `Bool`, for which `as? Int` is
+> `nil`, so the Foundation number-bridging hazard the guard describes does not
+> manifest here. The guard is correct and cheap and stays as insurance against a
+> Yams change — but the test records that a green run is **not** evidence it is
+> load-bearing. This is the failure mode the whole exercise exists to catch,
+> found in our own defensive code rather than someone else's.
+
+**Mutant caught:** dropping the `severity` skip in `buildParameter`.
 
 ---
 
@@ -383,19 +406,39 @@ against it.
 
 ---
 
-## Suggested order of attack
+## What this list produced
 
-1. **Widen the `private` parser helpers to `internal`**, then §6 and §7 together
-   — they share the blocker and the parser. This is the only thing standing
-   between the list and 8 of 8.
-2. **Decide on `apply(ConfigDiff, YAMLConfig)`** (§3) — PBT-driven feature work,
+Eight candidates, all closed. The output that mattered was not the suggestion
+count and not the test count:
+
+- **Two production bugs**, neither reachable by any template in the catalog: the
+  same-layer `disabled_rules`/`opt_in_rules` contradiction (§5) and the
+  `mergedWith` docstring drift (§8). Both were found by reading a sentence — a
+  merge semantic and a docstring — and checking the code against it.
+- **Three laws in this doc were wrong**, and writing them is what showed it: §8
+  asked for associativity of a unary function, §7 claimed blank lines were
+  insignificant, and §6's permutation law was not a permutation.
+- **Two guards that do not guard.** Law B in §1 could not see a layout
+  regression, and `isYAMLBool` (§7) survives the mutation it exists to prevent.
+  Both are now documented as such rather than trusted.
+- **One phantom blocker.** §6 and §7 were listed as needing `private` helpers
+  widened, on the strength of a tool's reachability note. They needed nothing;
+  the laws bind at the public boundary.
+
+## Next
+
+1. **Decide on `apply(ConfigDiff, YAMLConfig)`** (§3) — PBT-driven feature work,
    or close the item as won't-do.
-3. **Decide on `YAMLConfig.warningThreshold` / `.strict`** (§1) — dead on both
+2. **Decide on `YAMLConfig.warningThreshold` / `.strict`** (§1) — dead on both
    the parse and serialize paths. Either delete them or route them through the
    modeled path; leaving them is a trap for the next caller.
 
 Then a `SwiftIdempotency` pass on the actor mutations — `storeViolations`'s
 upsert (`9ea2e90`) is the natural `#assertIdempotent` target.
+
+Unrelated to this list, but found while running it: `RuleRegistryBackgroundLoadingTests`
+asserts a wall-clock `elapsed < 1.0s` and fails intermittently under CPU load.
+It will be flaky on a loaded CI runner.
 
 ### Housekeeping surfaced by the toolchain re-run
 
