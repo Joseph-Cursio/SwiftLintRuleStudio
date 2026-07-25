@@ -9,9 +9,9 @@ Toolchain: `swift-property-based` (`propertyCheck(input:)` + `Gen`/`Generator`)
 and `PropertyLawKit`. Pipeline (pbt-book Appendix C): `SwiftProjectLint` →
 `swift-infer discover` → `SwiftPropertyLaws` → `SwiftIdempotency`.
 
-**Status: 5 of 8 closed.** §2, §3, §4, §5 and §8 are shipped; §1, §6 and §7
+**Status: 6 of 8 closed.** §1, §2, §3, §4, §5 and §8 are shipped; §6 and §7
 remain, each blocked on something specific and named below. The suite is
-**29 property-law tests across 6 suites** (`swift test --filter PropertyLaw`).
+**35 property-law tests across 7 suites** (`swift test --filter PropertyLaw`).
 
 ---
 
@@ -26,6 +26,7 @@ remain, each blocked on something specific and named below. The suite is
 | 3 | `generateDiff` disjointness / set algebra / swap | `Services/DiffCharacterizationPropertyLawTests` | `3d58747` |
 | 8 | the union under `mergedWith` — associativity + section | `Services/KernelPropertyLawTests` | `5e1e9b3` |
 | 5 | `resolve` mutual exclusion / deeper-wins / root-only | `Services/ResolveInvariantPropertyLawTests` | `c6f70d0` |
+| 1 | `serialize` ↔ `parse` round-trip + text fixed point | `Services/ConfigRoundTripPropertyLawTests` | `439cf79` (refactor `127351f`) |
 
 **Two production bugs came out of writing these**, neither of which any
 algebraic law over the function would have surfaced on its own:
@@ -69,103 +70,89 @@ records the mutant that proves the law has teeth.
 
 | # | Candidate | Law shape | Testable today? | Value |
 |---|---|---|---|---|
-| 1 | Config **parse ↔ serialize** round-trip | round-trip | ❌ **needs `parse` extracted first** | ★★★ highest |
 | 6 | `orderedTopLevelPairs/Keys` | permutation-stability + idempotence | ⚠️ subjects are `private` | ★ |
 | 7 | `parseParameters` | metamorphic (comment/order insensitivity) + ordering | ✅ yes | ★ |
 | — | `apply(diff(a,b), a) == b` | round-trip | ❌ **needs an inverse built first** | see §3 |
 
 ---
 
-## 1. Config parse ↔ serialize round-trip — the real round-trip
-
-**Status: OPEN, and blocked on a refactor rather than on effort.**
+## 1. Config parse ↔ serialize round-trip — the real round-trip ✅ SHIPPED (`439cf79`)
 
 `YAMLConfigurationEngine.serialize(_ config: YAMLConfig) throws -> String` and
-the load path (`load()` → `nodeToDictionary` → `parseDictionaryToConfig` →
-`getConfig()`). This is the round-trip the seed manifest was pointing at — **not**
-`generateDiff`.
+`parse(_ yaml: String) throws -> YAMLConfig`.
 
-**Law (semantic idempotence of a save/reload):**
+**This was the PBT-driven-development case, and it played out as advertised.**
+The law was blocked on a refactor, not on effort: there was no app-side
+`parse`, because `load()` read from disk and wrote its results into `self`. The
+property specified the extraction — `parse(_:)` (`127351f`) now holds everything
+past reading the file and is pure, so `parse(serialize(config))` needs no
+filesystem. `load()` is two lines. `extractComments`/`extractKeyOrder` became
+pure statics in the same change.
+
+**Laws shipped — two, and the second is stronger:**
 
 ```
-parse(serialize(config)) ≈ config
+A.  parse(serialize(config)) ≈ config          — on the modeled fields
+B.  serialize(parse(serialize(config))) == serialize(config)
 ```
 
-where `≈` compares the *modeled* fields — `rules`, `included`, `excluded`,
-`reporter`, `disabledRules`, `optInRules`, `analyzerRules`, `onlyRules` — and
-ignores comments and `keyOrder` (which are layout, not semantics).
+B carries no field model, so nothing can be quietly dropped from the comparison,
+and it covers the layout A's `≈` deliberately ignores.
 
-**The blocker, stated precisely.** There is no app-side
-`parse(String) -> YAMLConfig`: `load()` reads from disk and mutates `self`. The
-law as sketched below works around that with temp files, which is why it has not
-been written — the honest move is to extract a pure `parse` first and let the
-property drive that refactor.
+**`≈` is not equality, and every gap is a real emission rule.** Two of the three
+had to be derived by probing the engine; both were guessed wrong on the first
+attempt, which is worth recording because they are exactly the kind of rule a
+round-trip law is assumed to be able to skip:
 
-The same absence is why the toolchain is silent here, and the diagnosis is
-worth keeping because it was wrong twice before it was right. `serialize` is not
-seeded by `swiftprojectlint` for **two independent reasons**: its throwing is
-entirely propagated (`try orderedTopLevelPairs`, `try Yams.serialize`), and it
-calls sibling methods on `self` that `SelfAccessAnalyzer` will not resolve — a
-non-throwing probe of the same shape is refused identically. An earlier reading
-blamed `throws` alone; removing that gate did not reach `serialize`. A refuter
-that fires first hides the ones behind it.
+- A rule with `enabled == false` is emitted only via `disabled_rules` (SwiftLint
+  has no per-rule disable), so it returns in `disabledRules` and absent from
+  `rules`.
+- **A rule with neither a severity nor parameters emits nothing at all** — there
+  is no YAML to write for it — so it does not survive a round-trip in any form.
+- **The scalar shorthand survives only when the rule actually qualifies**: no
+  severity, and a lone integer `warning`. A config that asks for the shorthand on
+  any other shape degrades to a mapping, and the parser correctly does not mark
+  it. The generator is allowed to ask for it anyway, so that degradation is
+  exercised.
 
-**Sketch:**
+The last two are stated as reference definitions (`emitsScalarShorthand`,
+`emittedRuleKeys`) rather than buried in expectations.
 
-```swift
-@Test("a config survives serialize → load unchanged (modeled fields)")
-func configRoundTrips() async {
-    await propertyCheck(input: Self.configGenerator()) { config in
-        let dir = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)  // note: Date/UUID caveat, see below
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let path = dir.appendingPathComponent(".swiftlint.yml")
+**The mutation run found a blind spot in law B itself.** Three mutants:
 
-        let engine = YAMLConfigurationEngine(configPath: path)
-        engine.updateConfig(config)
-        let yaml = try engine.serialize(config)
-        try yaml.write(to: path, atomically: true, encoding: .utf8)
+| Mutant | Caught by |
+|---|---|
+| Drop the `enabled == false → disabled_rules` migration | A |
+| `parse` forgets scalar shorthands | **both** — B fails because `line_length: 120` re-emits as a mapping |
+| Drop `indentBlockSequences` | **nothing** |
 
-        let reload = YAMLConfigurationEngine(configPath: path)
-        try reload.load()
-        let back = reload.getConfig()
+The third **survived**, and the reason generalises: law B ranges only over the
+*image* of `serialize`, so a layout regression that changes every emission
+equally still round-trips against itself. Closed by
+`handWrittenConfigIsAFixedPoint`, which parses a conventionally formatted
+`.swiftlint.yml` and asserts the re-emitted text is byte-identical — the
+user-facing statement anyway ("open and save must not rewrite my file"), and it
+catches that mutant. **A fixed-point law over a function's own output is weaker
+than it looks; pin it against text a human wrote.**
 
-        #expect(Set(back.rules.keys) == Set(config.rules.keys))
-        #expect((back.disabledRules ?? []).sorted() == (config.disabledRules ?? []).sorted())
-        // …included/excluded/optInRules/analyzerRules/onlyRules/reporter…
-    }
-}
-```
+**Also pinned:** the empty config is the identity element (`serialize` emits
+`{}\n`, which parses back to empty); passthrough keys (`custom_rules`,
+`warning_threshold`, `strict`) and their comments survive; and numeric-looking
+string parameters stay quoted, since unquoting one makes SwiftLint reject the
+file.
 
-**Gotchas (each is a place a counterexample could hide — that's the point):**
-- **Scalar shorthand.** `line_length: 120` parses into `rules` *and* records
-  `scalarShorthandRules` so it re-emits as a scalar, not `{warning: 120}`. A
-  config the generator builds with a shorthand rule must round-trip through the
-  shorthand path (`warningOnlyInt`).
-- **Disabled-rule folding.** A rule with `enabled == false` is emitted only via
-  `disabled_rules`, never as a mapping (`disabledRulesNode`). So a generated
-  config with a disabled rule that *also* has parameters should come back with
-  the rule in `disabledRules` and dropped from `rules` mappings — the equality
-  has to model that migration, not demand byte-identity.
-- **Int vs String scalar resolution.** `parseScalarValue` re-resolves plain
-  scalars so `120` returns `Int`, not `"120"` (or re-serialization quotes it and
-  SwiftLint rejects it). A generator that emits numeric-looking string params is
-  a good adversary here.
-- **Block-sequence indentation** (`indentBlockSequences`) and comment
-  reinsertion are layout-only; the `≈` must ignore them.
-- **Empty config** is the identity element: `serialize(YAMLConfig())` then load
-  yields an empty config.
-- **`passthroughNodes`** carries unmodeled top-level keys as Yams `Node`s. A
-  generator for them exists (`Tests/.../Utilities/Node+Generator.swift`).
+> **Finding, unaddressed by design.** `YAMLConfig.warningThreshold` and
+> `.strict` are dead on *both* paths: `parse` never populates them (those keys
+> route to `passthroughNodes`), and `serialize` never emits them — a config with
+> `warningThreshold = 10` and nothing else serializes to `{}`. No user data is
+> lost, because text-loaded configs carry the keys through passthrough, but any
+> code setting the two properties programmatically is a silent no-op. Removing
+> them is an API change and was left alone.
 
-**Verdict:** still the highest value — it exercises the parse and serialize
-hotspots (the two densest seed clusters) at once and pins the save/reload path
-the whole app depends on. Extract `parse` first.
+**The remaining gotchas from the original sketch all held**, and are now pinned
+rather than merely hoped for: scalar shorthand, disabled-rule folding, int vs
+string scalar resolution, block-sequence indentation, and the empty config.
 
-> Toolchain caveat: `propertyCheck` bodies must avoid `Date()`/`UUID()` if the
-> suite is ever replayed deterministically — thread a per-case counter from the
-> generator instead of `UUID()` for the temp dir.
 
 ---
 
@@ -398,13 +385,14 @@ against it.
 
 ## Suggested order of attack
 
-1. **Extract `parse(String) -> YAMLConfig`** and write §1. Highest value left by
-   a wide margin, and the property specifies the refactor rather than waiting on
-   it.
-2. **Widen the `private` parser helpers to `internal`**, then §6 and §7 together
-   — they share the blocker and the parser.
-3. **Decide on `apply(ConfigDiff, YAMLConfig)`** (§3) — PBT-driven feature work,
+1. **Widen the `private` parser helpers to `internal`**, then §6 and §7 together
+   — they share the blocker and the parser. This is the only thing standing
+   between the list and 8 of 8.
+2. **Decide on `apply(ConfigDiff, YAMLConfig)`** (§3) — PBT-driven feature work,
    or close the item as won't-do.
+3. **Decide on `YAMLConfig.warningThreshold` / `.strict`** (§1) — dead on both
+   the parse and serialize paths. Either delete them or route them through the
+   modeled path; leaving them is a trap for the next caller.
 
 Then a `SwiftIdempotency` pass on the actor mutations — `storeViolations`'s
 upsert (`9ea2e90`) is the natural `#assertIdempotent` target.
