@@ -314,6 +314,18 @@ class RuleBrowserViewModel {
             if config.optInRules?.isEmpty == true { config.optInRules = nil }
             config.analyzerRules?.removeAll { $0 == ruleId }
             if config.analyzerRules?.isEmpty == true { config.analyzerRules = nil }
+
+            // Only default rules go into disabled_rules — opt-in and analyzer rules
+            // are disabled by the removals above. Mirrors
+            // RuleDetailViewModel.addDisabledRuleIfNeeded. A rule missing from the
+            // registry is treated as a default rule, so disabling still takes effect.
+            let rule = ruleRegistry.rules.first { $0.id == ruleId }
+            guard !(rule?.isOptIn ?? false), !(rule?.isAnalyzer ?? false) else { continue }
+            var disabledRules = config.disabledRules ?? []
+            if !disabledRules.contains(ruleId) {
+                disabledRules.append(ruleId)
+                config.disabledRules = disabledRules
+            }
         }
 
         bulkDiff = yamlEngine.generateDiff(proposedConfig: config)

@@ -182,8 +182,10 @@ struct ConfigRoundTripPropertyLawTests {
 
     /// The rule keys that survive as `rules` entries. A rule emits nothing at
     /// all when it carries neither a severity nor parameters — there is no YAML
-    /// to write for it — so it is absent after a round-trip. Disabled rules
-    /// migrate to `disabled_rules` instead.
+    /// to write for it — so it is absent after a round-trip. A rule marked
+    /// `enabled == false` emits nothing either: SwiftLint 0.65.0 warns when a
+    /// rule in `disabled_rules` also carries a config mapping, so its severity
+    /// and parameters are deliberately dropped.
     private static func emittedRuleKeys(
         in config: YAMLConfigurationEngine.YAMLConfig
     ) -> Set<String> {
@@ -203,11 +205,14 @@ struct ConfigRoundTripPropertyLawTests {
             let config = makeConfig(from: spec)
             let back = try engine.parse(try engine.serialize(config))
 
-            // A rule marked `enabled == false` migrates into `disabled_rules`:
-            // SwiftLint has no per-rule disable, so that is the only way to say
-            // it. Everything still enabled stays a rule mapping.
-            let disabledByFlag = Set(config.rules.filter { !$0.value.enabled }.keys)
-            let expectedDisabled = Set(config.disabledRules ?? []).union(disabledByFlag)
+            // `disabled_rules` round-trips verbatim. A rule marked
+            // `enabled == false` is NOT folded in here: the serializer cannot tell
+            // a default rule (disabled via `disabled_rules`) from an opt-in or
+            // analyzer rule (disabled by absence from its own list), so the
+            // kind-aware view models own that decision. Such a rule simply emits
+            // nothing — it vanishes from `rules` without appearing in
+            // `disabled_rules`, which is why `emittedRuleKeys` gates on `enabled`.
+            let expectedDisabled = Set(config.disabledRules ?? [])
             let expectedRuleKeys = Self.emittedRuleKeys(in: config)
 
             #expect(Set(back.disabledRules ?? []) == expectedDisabled)

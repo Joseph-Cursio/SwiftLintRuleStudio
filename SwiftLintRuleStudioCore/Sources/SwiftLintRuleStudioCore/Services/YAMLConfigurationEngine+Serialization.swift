@@ -81,14 +81,27 @@ extension YAMLConfigurationEngine {
         if let included = config.included { result["included"] = try Node(included) }
         if let excluded = config.excluded { result["excluded"] = try Node(excluded) }
         if let reporter = config.reporter { result["reporter"] = Node(reporter) }
-        if let disabledRules = try disabledRulesNode(from: config) { result["disabled_rules"] = disabledRules }
+        if let disabledRules = config.disabledRules, !disabledRules.isEmpty {
+            result["disabled_rules"] = try Node(disabledRules)
+        }
         if let optInRules = config.optInRules { result["opt_in_rules"] = try Node(optInRules) }
         if let analyzerRules = config.analyzerRules { result["analyzer_rules"] = try Node(analyzerRules) }
         if let onlyRules = config.onlyRules { result["only_rules"] = try Node(onlyRules) }
 
-        // A disabled rule is expressed only via `disabled_rules` (above), never as a
-        // config mapping — emitting `foo: {severity: …}` for a disabled rule would
-        // contradict its presence in `disabled_rules`.
+        // A disabled rule is expressed only via `disabled_rules`, never as a config
+        // mapping. Verified against SwiftLint 0.65.0: a config carrying both emits
+        // "Found a configuration for 'line_length' rule, but it is disabled in
+        // 'disabled_rules'." in the user's own lint output. Note this means a rule's
+        // severity/parameter overrides are dropped when it is disabled — that is the
+        // cost of not provoking the warning, not an oversight.
+        //
+        // `disabled_rules` itself is emitted verbatim from `config.disabledRules`.
+        // Do NOT fold `config.rules` entries with `enabled == false` into it: only
+        // *default* rules are disabled that way. Opt-in and analyzer rules are
+        // disabled by absence from `opt_in_rules` / `analyzer_rules`, and this layer
+        // cannot tell which kind a rule is — `YAMLConfig` carries no rule metadata.
+        // The callers that know the kind (RuleDetailViewModel.addDisabledRuleIfNeeded,
+        // RuleBrowserViewModel.disableSelectedRules) own that decision.
         for (ruleId, ruleConfig) in config.rules where ruleConfig.enabled {
             if let node = try ruleNode(ruleId: ruleId, ruleConfig: ruleConfig, config: config) {
                 result[ruleId] = node
@@ -150,24 +163,6 @@ extension YAMLConfigurationEngine {
         "lenient",
         "reporter"
     ]
-
-    /// The `disabled_rules` Node: the explicit `disabledRules` list plus any rule
-    /// marked `enabled == false` in `config.rules`. SwiftLint has no per-rule
-    /// `enabled: false` key, so this is the only place a disabled rule can be
-    /// expressed on save — mirroring the parse-side migration that folds a loaded
-    /// `rules:` block's `enabled: false` entries into `disabledRules`. The explicit
-    /// order is preserved; newly-disabled rules are appended sorted for a
-    /// deterministic diff. Returns nil when nothing is disabled.
-    private func disabledRulesNode(from config: YAMLConfig) throws -> Node? {
-        var disabled = config.disabledRules ?? []
-        let fromRules = config.rules
-            .filter { !$0.value.enabled && !disabled.contains($0.key) }
-            .map(\.key)
-            .sorted()
-        disabled.append(contentsOf: fromRules)
-        guard !disabled.isEmpty else { return nil }
-        return try Node(disabled)
-    }
 
     private func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> [String: Any]? {
         let hasSeverity = ruleConfig.severity != nil

@@ -207,38 +207,14 @@ class RuleDetailViewModel {
 
         do {
             try yamlEngine.load()
-            let currentConfig = yamlEngine.getConfig()
-            var proposedConfig = currentConfig
+            var proposedConfig = yamlEngine.getConfig()
 
-            // Apply current state changes — emit only entries that override the
-            // parameter's default so we don't write redundant values into YAML.
-            let persistable = parametersToPersist()
-            let params = persistable.isEmpty ? nil : persistable
-            if isEnabled {
-                // Enable rule
-                if var existing = proposedConfig.rules[rule.id] {
-                    existing.enabled = true
-                    existing.severity = severity
-                    existing.parameters = params
-                    proposedConfig.rules[rule.id] = existing
-                } else {
-                    // New rule configuration
-                    proposedConfig.rules[rule.id] = RuleConfiguration(
-                        enabled: true,
-                        severity: severity,
-                        parameters: params
-                    )
-                }
-            } else {
-                // Disable rule
-                if var existing = proposedConfig.rules[rule.id] {
-                    existing.enabled = false
-                    proposedConfig.rules[rule.id] = existing
-                } else {
-                    // Rule not in config, add it as disabled
-                    proposedConfig.rules[rule.id] = RuleConfiguration(enabled: false)
-                }
-            }
+            // Delegate to the same mutation saveConfiguration() applies, so the
+            // preview can't diverge from what actually gets written. This used to
+            // duplicate the logic and omitted the disabled_rules / opt_in_rules /
+            // analyzer_rules routing, so the preview of a disabled default rule
+            // showed no change at all.
+            applyRuleChanges(to: &proposedConfig)
 
             return yamlEngine.generateDiff(proposedConfig: proposedConfig)
         } catch {

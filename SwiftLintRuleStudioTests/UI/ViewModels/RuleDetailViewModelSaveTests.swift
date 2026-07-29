@@ -95,8 +95,13 @@ struct RuleDetailViewModelSaveTests {
             )
         }
 
-        #expect(hasRule)
+        // A default rule is disabled by landing in `disabled_rules` — and by
+        // nothing else. Its old `severity: warning` mapping is deliberately not
+        // re-emitted: SwiftLint 0.65.0 warns "Found a configuration for
+        // 'test_rule' rule, but it is disabled in 'disabled_rules'." when a
+        // config carries both, so the severity override is dropped on disable.
         #expect(isDisabled)
+        #expect(!hasRule, "a disabled rule must not also survive as a config mapping")
     }
 
     @Test("RuleDetailViewModel saves severity change")
