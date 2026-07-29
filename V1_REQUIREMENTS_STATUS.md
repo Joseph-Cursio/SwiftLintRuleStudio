@@ -1,386 +1,302 @@
 # SwiftLint Rule Studio v1.0 Requirements Status
 
+> **Last audited: 2026-07-29** against commit `b1da9a9`. Every ✅/❌ below was
+> re-verified against the source tree on that date, not carried forward from a
+> previous revision. The prior revision of this document was written
+> **2026-01-24** and had drifted badly — most of what it listed as missing had
+> since been built. See *Audit note* at the bottom for what changed and why.
+
 ## Overview
-This document tracks the implementation status of features required for v1.0 release according to the PRD.
+
+This document tracks the implementation status of features required for v1.0
+release according to the PRD.
+
+---
+
+## 🔬 Verification snapshot (2026-07-29)
+
+| Target | Command | Result |
+|---|---|---|
+| Core package | `swift test --package-path SwiftLintRuleStudioCore` | ✅ **594 tests in 90 suites passed** |
+| App unit | `xcodebuild test -only-testing:SwiftLintRuleStudioTests` | ✅ **650 tests in 112 suites passed** |
+| UI tests | `xcodebuild test -only-testing:SwiftLintRuleStudioUITests` | ✅ **9 tests executed, 0 failures** |
+
+### ✅ Resolved — the disable-routing regression
+
+Three app unit tests were failing when this document was audited. **Fixed.**
+
+The rule at issue: **opt-in and analyzer rules are disabled by *absence* from
+`opt_in_rules` / `analyzer_rules`; only default rules go into `disabled_rules`.**
+
+`93edd2e` (2026-07-21) had made `YAMLConfigurationEngine+Serialization` fold
+every `config.rules` entry marked `enabled == false` into `disabled_rules`. That
+layer *cannot* be correct: `YAMLConfig` carries no rule metadata, so the
+serializer has no way to tell a default rule from an opt-in or analyzer one. It
+therefore pushed all three kinds into the same list, overriding the kind-aware
+routing `RuleDetailViewModel.addDisabledRuleIfNeeded` had been doing since
+`66c58bc` (2026-05-18).
+
+**Behaviour verified against SwiftLint 0.65.0 rather than assumed:**
+
+| Config | SwiftLint 0.65.0 |
+|---|---|
+| Rule in `disabled_rules` **and** carrying a config mapping | ⚠️ warns: *"Found a configuration for 'line_length' rule, but it is disabled in 'disabled_rules'."* |
+| Opt-in rule listed in `disabled_rules` | silently inert — identical to baseline |
+| Analyzer rule listed in `disabled_rules` | silently inert — identical to baseline |
+
+So 93edd2e's *other* half — suppressing the config mapping for a disabled rule —
+is correct and was kept. Only the kind-blind fold was removed.
+
+**The fix, in three parts:**
+
+1. **Core serializer** emits `disabled_rules` verbatim from `config.disabledRules`
+   and no longer infers it. A comment records why this layer must not.
+2. **`RuleBrowserViewModel.disableSelectedRules`** (bulk) now does its own
+   kind-aware routing, mirroring the single-rule path — it had been relying on
+   the serializer fold. A rule missing from the registry is treated as a default
+   rule, so disabling still takes effect.
+3. **`RuleDetailViewModel.generateDiff`** now delegates to `applyRuleChanges`
+   instead of duplicating the mutation. The duplicate omitted the routing
+   entirely, so the diff preview of a disabled default rule showed *no change* —
+   preview and save can no longer diverge.
+
+A regression guard (`foldIsNotPerformed`) pins that the serializer does not
+re-introduce the fold.
+
+### ⚠️ Known flakiness — not the above, and pre-existing
+
+The app unit target intermittently fails 1–5 tests in the `RuleDetailViewModel*`
+suites, with a **different set each run** and clean full-green runs in between.
+Root cause identified: each full run leaks ~15 `TemporaryDirectory.*` entries
+into `$TMPDIR` (Foundation's atomic-write staging). Once roughly 900 accumulate,
+`mktemp` starts failing with `errno 2` and any test creating a temp config dies
+with *"Creating a temporary file via mktemp failed."*
+
+**Telling the two apart** — the signature is unambiguous, so a flaky run never
+needs to be mistaken for a real break:
+
+- *Flake*: `Caught error: … mktemp failed`, reported at the test's **declaration**
+  line (e.g. `…Tests.swift:17:6`) because the throw happens in the setup helper.
+  Usually a whole suite fails at once, at the same instant.
+- *Real failure*: `Expectation failed: …`, reported at the **assertion** line.
+
+Workaround until fixed:
+
+```bash
+find "$TMPDIR" -maxdepth 1 -name "TemporaryDirectory.*" -exec rm -rf {} +
+```
+
+With a cleaned `$TMPDIR` the target passes 650/650 consistently. This is the same
+instability `TEST_PARALLELIZATION_STATUS.md` recorded in December 2025, now with
+a concrete cause. **Unresolved, but independent of feature work.**
 
 ---
 
 ## 🏗️ Technical Infrastructure
 
 ### Swift 6 Migration ✅ **COMPLETE**
-- ✅ Migrated to Swift 6.0 with targeted strict concurrency checking
-- ✅ Converted `ViolationStorage` from class to actor for thread-safe database access
-- ✅ All concurrency issues resolved (actor isolation, Sendable conformance)
-- ✅ Improved parallel test execution support
-- ✅ All code with concurrency annotations is compiler-checked
-- ✅ Production-ready concurrency model
-
-**Status**: Fully migrated and production-ready. See `SWIFT6_MIGRATION_PLAN.md` for details.
+- ✅ Swift 6.0 with strict concurrency checking
+- ✅ `ViolationStorage` is an actor (`ViolationStorageActor` + 4 extensions)
+- ✅ Actor isolation and `Sendable` conformance throughout
+- ✅ All concurrency-annotated code is compiler-checked
 
 ### Testing Framework ✅ **COMPLETE**
-- ✅ Migrated all tests from XCTest to Swift Testing framework
-- ✅ Better test isolation (each test gets fresh struct instance)
-- ✅ Improved async/await support
-- ✅ Enhanced parallel execution support
-- ✅ Complete test isolation for UserDefaults and workspaces
+- ✅ Unit tests use Swift Testing (Core + app targets)
+- ✅ UI tests remain XCTest (`XCUIApplication` requires it)
+- ✅ Isolation helpers for UserDefaults, workspaces, cache dirs, file trackers
 
-**Status**: All 176 tests using Swift Testing framework (100% passing).
+### Package & target layout ✅ **COMPLETE**
 
-### Test Infrastructure ✅ **COMPLETE**
-- ✅ Created `TestIsolationHelpers` for UserDefaults isolation
-- ✅ Created `WorkspaceTestHelpers` for reliable workspace setup
-- ✅ Fixed all test setup issues (workspace validation, file system races)
-- ✅ Fixed YAMLConfigurationEngine file system race conditions
-- ✅ All integration tests use proper isolation
+Not present at all in the previous revision of this doc:
 
-**Status**: Complete test isolation infrastructure in place.
+- **`SwiftLintRuleStudioCore/`** — local Swift package holding all models,
+  services and utilities. 50 service files.
+- **`SwiftLintInProcessBackend/`** — links SwiftLint in-process rather than
+  shelling out.
+- **`LintStudioUI` 1.4.0** — shared UI package consumed from GitHub (11 import
+  sites).
+- **Four Xcode targets**: `SwiftLintRuleStudio`, `SwiftLintRuleStudioTests`,
+  `SwiftLintRuleStudioUITests`, **`SwiftLintRuleExplorer`**.
 
----
+### Two editions ✅ **COMPLETE** — and this resolves the App Store sandbox question
 
-## ✅ Implemented Features
+`Core/Utilities/AppCapability.swift` defines the capability set the shared UI
+conditions on, injected via `@Environment(\.appCapabilities)`:
 
-### 1. Rule Browser (P0 - v1.0) ✅ **COMPLETE**
-- ✅ Searchable rule catalog
-- ✅ Filterable by category, status, opt-in
-- ✅ Master-detail split view
-- ✅ Rule list with sortable columns
-- ✅ Search by rule name/identifier
-- ✅ Category badges
-- ✅ Visual state indicators (enabled/disabled, opt-in)
-- ✅ Loads rules from SwiftLint CLI
-- ✅ Caching for performance
+| Capability | Studio (non-sandboxed) | Explorer (sandboxed) |
+|---|---|---|
+| `detectInstalledSwiftLint` | ✅ subprocess | ❌ SwiftLint linked in-process |
+| `openInXcode` | ✅ via `xed` | ❌ sandbox blocks launching executables |
+| `sourceKitRules` | ✅ | ❌ SourceKit cannot load; rules marked unavailable |
 
-**Status**: Fully implemented in `RuleBrowserView.swift` and `RuleBrowserViewModel.swift`
+`ExplorerApp/SwiftLintRuleExplorerApp.swift` injects `[]` — no capabilities.
+This is the architecture that makes a Mac App Store submission viable; see
+`docs/SUBMISSION_CHECKLIST.md`.
 
 ---
 
-### 2. Rule Detail Panel (P0 - v1.0) ✅ **MOSTLY COMPLETE**
-- ✅ Full description display
-- ✅ Examples (triggering and non-triggering)
-- ✅ Syntax-highlighted code blocks
-- ✅ Configuration UI (enabled/disabled toggle, severity selector)
-- ✅ **Rule configuration persistence** (save to `.swiftlint.yml`)
-- ✅ **Diff preview before saving**
-- ✅ **Pending changes tracking**
-- ✅ Markdown documentation rendering
-- ✅ Category and metadata badges
-- ✅ Auto-correctable indicator
-- ⚠️ **MISSING**: "Why this matters" section
-- ⚠️ **MISSING**: Links to Swift Evolution proposals
-- ⚠️ **MISSING**: Current violations count in workspace
-- ✅ **COMPLETE**: Impact simulation ("Simulate" button) - Preview violations for disabled rules
-- ✅ **COMPLETE**: Zero-violation rule detection - Identify disabled rules with zero violations
-- ✅ **COMPLETE**: Bulk enable safe rules - Automatically enable rules with zero violations
-- ⚠️ **MISSING**: Related rules section
-- ⚠️ **MISSING**: "Open in Xcode" for violations
+## ✅ P0 Features for v1.0
 
-**Status**: Core functionality complete including configuration persistence, missing some advanced features
+### 1. Rule Browser ✅ **COMPLETE**
+Searchable, filterable catalog; master-detail split view; category badges;
+enabled/disabled/opt-in state indicators; CLI-backed loading with caching.
 
----
+`UI/Views/RuleBrowser/` (6 files), `UI/ViewModels/RuleBrowserViewModel.swift`
 
-### 3. YAML Configuration Engine (P0 - v1.0) ✅ **MOSTLY COMPLETE**
-- ✅ Round-trip YAML preservation (comments, formatting)
-- ✅ Diff engine (before/after comparison)
-- ✅ Validation (schema, syntax errors)
-- ✅ Safe writing (atomic writes, backups)
+### 2. Rule Detail Panel ✅ **COMPLETE**
+
+The four gaps the previous revision listed are **all now built**:
+
+- ✅ **"Why this matters"** — `RuleDetailView+Header.swift:202`
+- ✅ **Swift Evolution links** — `RuleDetailView+RationaleHelpers.swift:75`
+  (`extractSwiftEvolutionLinks`), rendered at `RuleDetailView+Sections.swift:247`
+- ✅ **Current violation count in workspace** — `RuleDetailView.swift:85`
+  (`violationCount`, `isLoadingViolationCount`, `loadViolationCount()`)
+- ✅ **Related rules** — `RuleDetailView+Sections.swift:202`
+- ✅ **"Open in Xcode"** — see §5
+
+Plus: full description, triggering/non-triggering examples, syntax highlighting,
+severity selector, parameter editor, markdown rendering, auto-correctable
+indicator, diff preview, pending-change tracking, impact simulation.
+
+`UI/Views/RuleDetail/` (8 files), `UI/ViewModels/RuleDetailViewModel.swift`
+
+### 3. YAML Configuration Engine ✅ **MOSTLY COMPLETE**
+- ✅ Round-trip preservation (comments, key order, formatting)
+- ✅ Diff engine, validation, atomic writes with timestamped backups
 - ✅ Multi-config support (parent/child inheritance)
-- ✅ File system watching capability
-- ⚠️ **MISSING**: Dry-run mode UI
-- ⚠️ **MISSING**: Git commit integration
-- ⚠️ **MISSING**: "Undo last change" feature
-- ⚠️ **MISSING**: "Explain changes" text generation
+- ✅ **Undo** — superseded by full version history:
+  `ConfigVersionHistoryService` (`listBackups` / `loadBackup` / `restoreBackup` /
+  `pruneOldBackups`) with `ConfigVersionHistoryView` + view model
+- ✅ **Git integration** — `GitBranchDiffService` + `GitBranchDiffView` compare
+  config across branches
+- ◐ **"Explain changes"** — partial. `RuleChangeSummary` renders added/removed/
+  modified *counts*; there is no prose generation.
+- ❌ **Dry-run mode UI** — no `dryRun` symbol anywhere in the tree
 
-**Status**: Core engine complete, but missing some user-facing features
+Engine split across `YAMLConfigurationEngine.swift` + `+Comments` / `+Parsing` /
+`+Serialization` / `Protocol`.
 
----
+**Verified by property-based tests** — `serialize ↔ parse` round-trip, key
+ordering stability, diff set-algebra, merge invariants. See `docs/pbt-candidates.md`.
 
-### 4. Workspace Analyzer (P0 - v1.0) ✅ **COMPLETE**
-- ✅ Background analysis engine
-- ✅ Violation storage in SQLite database
-- ✅ Progress indicators
-- ✅ Cancelable operations
-- ✅ Performance optimization
-- ✅ File system watching
-- ✅ Violation history tracking
-- ✅ Configurable analysis scope
+### 4. Workspace Analyzer ✅ **COMPLETE**
+Background engine, SQLite violation storage, progress, cancellation, file
+watching, history, configurable scope.
 
-**Status**: Fully implemented in `WorkspaceAnalyzer.swift`
+`WorkspaceAnalyzer.swift` + `+Helpers` / `+Types`
 
----
+### 5. Violation Inspector ✅ **COMPLETE**
 
-### 5. Violation Inspector (P0 - v1.0) ⚠️ **MOSTLY COMPLETE**
-- ✅ Violation list view
-- ✅ Filtering by rule, file, severity
-- ✅ Violation detail view
-- ✅ Code snippet display
-- ✅ Suppress/resolve functionality
-- ✅ Workspace integration (loads violations for selected workspace)
-- ✅ Automatic violation loading when workspace changes
-- ⚠️ **MISSING**: "Open in Xcode" button (file:line URL generation)
-- ⚠️ **MISSING**: Grouping by file/rule/severity
-- ⚠️ **MISSING**: Bulk operations UI
-- ⚠️ **MISSING**: Export to CSV/JSON
-- ⚠️ **MISSING**: Next/Previous violation navigation
-- ⚠️ **MISSING**: Keyboard shortcuts
+All six gaps the previous revision listed are **built**:
 
-**Status**: Core functionality complete with workspace integration, missing navigation and export features
+- ✅ **Open in Xcode** — `XcodeIntegrationService`, wired at
+  `ViolationDetailLocationView.swift:55` and `ViolationListItem.swift:75`,
+  gated on the `openInXcode` capability, ⌘O
+- ✅ **Grouping** — `ViolationGroupingOption`, menu at
+  `ViolationInspectorView+ListViews.swift:130`, grouped list at `:313`
+- ✅ **Bulk operations UI** — `BulkOperationToolbar`, selection menu, Suppress
+  Selected (⇧⌘S), Mark as Resolved (⇧⌘R)
+- ✅ **Export** — HTML / JSON / CSV via `UI/Views/Export/` and a separate
+  inspector-scoped export (`ViolationInspectorView+Export.swift`)
+- ✅ **Next/Previous navigation** — `selectNextViolation()` /
+  `selectPreviousViolation()`, ⌘→ / ⌘←
+- ✅ **Keyboard shortcuts** — ⌘A select all, ⇧⌘A clear, plus the above
 
----
+### 6. Workspace Management ✅ **COMPLETE**
+File picker, persisted recents, selection UI, sidebar indicator, auto-detected
+`.swiftlint.yml`, validation, `SecurityScopedBookmarkStore` for sandboxed access.
 
-### 6. Workspace Management (P0 - v1.0) ✅ **COMPLETE**
-- ✅ Open workspace dialog (File picker integration)
-- ✅ Recent workspaces list (persisted across app restarts)
-- ✅ Workspace selection in UI (WorkspaceSelectionView)
-- ✅ Current workspace indicator (shown in sidebar)
-- ✅ Workspace-specific configuration (auto-detects `.swiftlint.yml`)
-- ✅ Workspace persistence (UserDefaults)
-- ✅ Workspace validation (rejects non-directories, filters deleted workspaces)
-- ✅ Integration with ViolationInspector (auto-loads violations)
-- ✅ Integration with DependencyContainer (app-wide access)
+`WorkspaceManager.swift` + `+Config` / `+Persistence` / `+RecentWorkspaces` /
+`+WorkspaceValidation`
 
-**Status**: Fully implemented in `WorkspaceManager.swift` and `WorkspaceSelectionView.swift`
-- 15 unit tests (all passing)
-- 11 integration tests (all passing)
-- All tests using Swift Testing framework
+### 7. Rule Configuration Persistence ✅ **COMPLETE**
+Enable/disable, save to YAML, diff preview modal, validation, atomic saves with
+backup, notification-based component communication.
 
----
+Disable routing is kind-aware: default rules go to `disabled_rules`, opt-in and
+analyzer rules are disabled by absence from their own lists. Diff preview and
+save share one code path (`applyRuleChanges`), so they cannot diverge.
 
----
+### 8. Basic Onboarding Flow ✅ **COMPLETE**
+Welcome screen, SwiftLint detection with retry, install guidance (Homebrew,
+Mint, direct download), workspace selection, progress indicator, state
+persistence, reset.
 
-### 8. Basic Onboarding Flow (P0 - v1.0) ✅ **COMPLETE**
+`OnboardingManager.swift`, `UI/Views/Onboarding/` (4 files)
 
-- ✅ First-run welcome screen with feature overview
-- ✅ SwiftLint installation detection with automatic checking
-- ✅ Installation guidance (Homebrew, Mint, Direct Download)
-- ✅ Workspace selection integrated into onboarding flow
-- ✅ Progress indicator showing current step
-- ✅ Step-by-step navigation (welcome → SwiftLint check → workspace selection → complete)
-- ✅ State persistence across app launches
-- ✅ Reset functionality for testing/re-onboarding
+### 9. Impact Simulation & Zero-Violation Discovery ✅ **COMPLETE**
+Single-rule and batch simulation, progress tracking, zero-violation detection,
+bulk enable, temp-config generation with cleanup.
 
-**Status**: Fully implemented in `OnboardingManager.swift` and `OnboardingView.swift`
-- 10 unit tests (all passing)
-- 6 integration tests (all passing)
-- All tests using Swift Testing framework with proper isolation
-- Integrated into `ContentView` for first-launch detection
+⚠️ **`SafeRulesDiscoveryView` no longer exists** — the previous revision named
+it. Bulk discovery is now **`RuleAuditView`** ("Disabled Rule Audit" in the
+sidebar), `UI/Views/ImpactSimulation/` (11 files).
 
 ---
 
-### 9. Impact Simulation & Zero-Violation Rule Discovery (P0 - v1.0) ✅ **COMPLETE**
+## 🆕 Shipped since the last revision, absent from the previous document
 
-- ✅ Impact simulation for disabled rules (preview violations before enabling)
-- ✅ Single rule simulation with violation count and affected files
-- ✅ Batch simulation with progress tracking
-- ✅ Zero-violation rule detection (find safe rules)
-- ✅ Bulk enable safe rules with selection UI
-- ✅ Integration with RuleDetailView ("Simulate Impact" button)
-- ✅ SafeRulesDiscoveryView for bulk discovery and enabling
-- ✅ Temporary config generation for isolated simulations
-- ✅ Automatic cleanup of temporary files
+None of the following appeared anywhere in the 2026-01-24 revision. All are
+built and reachable from the sidebar (`AppSection` has **12** cases).
 
-**Status**: Fully implemented in `ImpactSimulator.swift`, `ImpactSimulationView.swift`, and `SafeRulesDiscoveryView.swift`
-- 9 unit tests (all passing)
-- 3 integration tests (all passing)
-- 3 UI component tests (all passing)
-- 3 discovery tests (all passing)
-- 3 workflow tests (all passing)
-- Total: 21 tests covering all functionality
-- All tests using Swift Testing framework
+| Feature | Entry point |
+|---|---|
+| Export Report (HTML / JSON / CSV) | `UI/Views/Export/` |
+| Disabled Rule Audit | `RuleAuditView.swift` |
+| Config Map (nested-config tree) | `ConfigMapView.swift`, `ConfigTreeDiscovery` |
+| Resolved-config inspector | `ResolvedConfigInspectorView.swift`, `ResolvedConfigurationEngine` |
+| Version History (browse + restore backups) | `ConfigVersionHistoryView.swift` |
+| Compare Configs | `ConfigComparisonView.swift`, `ConfigComparisonService` |
+| SwiftLint Version Check | `VersionCompatibilityView.swift`, `VersionCompatibilityChecker` |
+| Import Config (incl. from URL) | `ConfigImportView.swift`, `ConfigImportService`, `URLConfigFetcher` |
+| Branch Diff | `GitBranchDiffView.swift`, `GitBranchDiffService` |
+| Migration Assistant | `MigrationAssistantView.swift`, `MigrationAssistant` |
+| Config health score + recommendations | `ConfigHealthScoreView.swift`, `ConfigurationHealthAnalyzer` |
+| Template library / presets | `TemplateLibraryView.swift`, `BuiltInTemplates`, `ConfigurationTemplateManager` |
+| Custom-rule conflict detection | `CustomRuleConflictBanner.swift`, `CustomRuleConflictDetector` |
+| PR comment generation | `PRCommentGenerator.swift` |
+| Config verification harness | `ConfigVerificationHarness.swift` |
 
----
-
-## ❌ Missing Features for v1.0
-
-### 10. Exclusion Path Recommendations (P1 - v1.1) ⚠️ **NOT IMPLEMENTED**
-
-**Description:** Proactively suggest and help users configure common exclusion paths to prevent SwiftLint from scanning third-party dependencies and build artifacts.
-
-**User Stories:**
-- As a developer, I want the app to suggest excluding `.build/` when violations are detected there, so I don't waste time on third-party code
-- As a new user, I want to see recommended exclusions when creating my first config, so I follow best practices
-- As a tech lead, I want the app to detect when common dependency directories aren't excluded, so I can fix configuration issues
-
-**Features:**
-
-**Smart Detection:**
-- Detect violations in common build/dependency directories (`.build/`, `Pods/`, `.git/`, `DerivedData/`, `.swiftpm/`)
-- Check if these directories are already in `excluded` paths
-- Show warnings when violations are found in unexcluded third-party directories
-
-**Recommendation UI:**
-- "Recommended Exclusions" section in configuration editor
-- Checkbox list of common exclusion paths:
-  - `.build` (Swift Package Manager dependencies)
-  - `Pods` (CocoaPods dependencies)
-  - `.git` (Git metadata)
-  - `DerivedData` (Xcode build artifacts)
-  - `.swiftpm` (Swift Package Manager metadata)
-  - `xcuserdata` (Xcode user-specific data)
-- One-click "Add Recommended Exclusions" button
-- Explanation tooltips for each exclusion path
-
-**Violation Analysis Integration:**
-- When analyzing workspace, detect if violations exist in excluded directories
-- Show informational message: "⚠️ Violations detected in `.build/` directory. This contains third-party dependencies. Consider adding `.build` to your `excluded` paths."
-- Provide quick action: "Add to exclusions" button
-
-**Onboarding Integration:**
-- Add exclusion guidance to onboarding flow
-- Show best practices tip: "Tip: Exclude build and dependency directories to focus on your code"
-
-**Technical Requirements:**
-- Detect common directory patterns in violation file paths
-- Check existing `excluded` configuration before suggesting
-- Integrate with YAMLConfigurationEngine to add exclusions
-- Show diff preview when adding exclusions
-- Validate exclusion paths before saving
-
-**Status**: Not yet implemented
-
-**Priority**: **P1** (v1.1 enhancement, but valuable for user experience)
+Also shipped: 47 property-law tests across 9 suites, and the two production bugs
+they surfaced (see `docs/pbt-candidates.md`).
 
 ---
 
-### 7. Rule Configuration Persistence (P0 - v1.0) ✅ **COMPLETE**
-- ✅ Rule enable/disable in RuleDetailView
-- ✅ Save configuration changes to YAML
-- ✅ Preview changes before saving (diff preview modal)
-- ✅ Apply rule changes to workspace config
-- ✅ Load current configuration from workspace
-- ✅ Track pending changes vs original state
-- ✅ Validation before saving
-- ✅ Atomic saves with backup creation
-- ✅ Notification system for component communication
-- ✅ Error handling and user feedback
+## ❌ Still missing
 
-**Status**: Fully implemented in `RuleDetailViewModel.swift` and `ConfigDiffPreviewView.swift`
-- 18 unit tests (all passing)
-- 12 integration tests (all passing)
-- All tests using Swift Testing framework
+### Dashboard ⚠️ **NOT IMPLEMENTED** (unchanged)
 
----
+`AppSection.dashboard` exists and the sidebar links to it, but
+`ContentView+Sections.swift:27` renders a bare `Text("Dashboard")` placeholder.
+No analytics, trends, or quality metrics.
 
-### 9. Dashboard View (v1.0 - Basic) ⚠️ **NOT IMPLEMENTED**
+*(Correction: the previous revision said "Dashboard folder exists but empty" —
+there is no Dashboard folder at all.)*
 
-**According to PRD**: Dashboard moved to v1.1, but basic version might be needed
+**Priority: LOW** — deferred to v1.1 per PRD.
 
-**Current Status**: 
-- Dashboard folder exists but empty
-- Sidebar has Dashboard link but shows placeholder text
-- No analytics, trends, or quality metrics
+### Exclusion Path Recommendations ◐ **PARTIAL**
 
-**Priority**: **LOW** (moved to v1.1 per PRD)
+`ConfigurationHealthAnalyzer+Recommendations.swift:49` emits a **high-priority**
+`Configure Excluded Paths` recommendation with an `.configureExcludes` action
+type when `pathConfiguration` scores below 60.
 
----
+What is **not** built, versus the original spec:
+- ❌ No detection of violations *located in* `.build/`, `Pods/`, `DerivedData/`
+- ❌ No checkbox list of common exclusion paths with tooltips
+- ❌ No one-click "Add Recommended Exclusions"
+- ❌ `.configureExcludes` has no handler — it is produced but never acted on
+- ❌ No onboarding integration
 
-## 🔧 Technical Gaps
+**Priority: P1** (v1.1).
 
-### Missing Integrations:
-1. **Xcode Integration**
-   - No "Open in Xcode" functionality
-   - No file:line URL generation
-   - No Xcode project detection
+### Dry-run mode UI ❌ **NOT IMPLEMENTED**
+No `dryRun` symbol in the tree. Arguably superseded by diff preview + version
+history, but it was never built as specified.
 
-2. ✅ **Impact Simulation & Rule Discovery** - **COMPLETE**
-   - ✅ Impact simulation for disabled rules implemented
-   - ✅ Preview violation count before enabling a rule
-   - ✅ Identify disabled rules with zero violations
-   - ✅ Bulk enable functionality for safe rules
-   - ✅ Temporary config generation, SwiftLint simulation runs, violation counting
-
-3. **Error Handling & User Guidance**
-   - SwiftLint not found → no helpful error
-   - No installation instructions
-   - Basic workspace validation exists (rejects non-directories)
-   - ⚠️ **MISSING**: Exclusion path recommendations for build/dependency directories
-   - ⚠️ **MISSING**: Smart detection of violations in third-party code
-
----
-
-## 📋 Recommended Implementation Order
-
-### Phase 1: Critical Path (Blocking v1.0)
-1. ✅ **Workspace Selection/Opening** - **COMPLETE**
-   - ✅ File picker integration
-   - ✅ Recent workspaces menu
-   - ✅ Workspace context in DependencyContainer
-   - ✅ ViolationInspector integration
-
-2. ✅ **Rule Configuration Persistence** - **COMPLETE**
-   - ✅ Connected RuleDetailView to YAMLConfigurationEngine
-   - ✅ Save rule changes to `.swiftlint.yml`
-   - ✅ Diff preview before saving
-   - ✅ Validation before applying
-
-3. ✅ **Basic Onboarding** - **COMPLETE**
-   - ✅ First-run detection using UserDefaults
-   - ✅ SwiftLint installation check with automatic detection
-   - ✅ Installation guidance and instructions
-   - ✅ Workspace selection integrated into onboarding
-   - ✅ Progress indicator and step navigation
-   - ✅ State persistence across app launches
-
-### Phase 2: Essential Features
-4. ✅ **Impact Simulation & Rule Discovery** - **COMPLETE**
-   - ✅ Simulate violations for disabled rules (preview impact)
-   - ✅ Identify disabled rules with zero violations
-   - ✅ Bulk enable "safe" rules (zero violations)
-   - ✅ UI for reviewing and enabling safe rules
-   - ✅ Temporary config generation, SwiftLint simulation, violation counting
-   - ✅ Progress tracking for batch operations
-   - ✅ Integration with RuleDetailView and SafeRulesDiscoveryView
-
-5. **Xcode Integration**
-   - Generate file:line URLs
-   - "Open in Xcode" buttons
-   - Xcode project detection
-
-6. **Violation Inspector Enhancements**
-   - Grouping options
-   - Bulk operations
-   - Export functionality
-   - Keyboard shortcuts
-
-7. **Configuration Engine UI**
-   - Diff preview modal (already implemented)
-   - "Explain changes" feature
-   - Undo functionality
-
-8. **Exclusion Path Recommendations**
-   - Detect violations in common build/dependency directories
-   - Recommend exclusions when violations found in `.build/`, `Pods/`, etc.
-   - Add "Recommended Exclusions" UI to configuration editor
-   - Integrate exclusion guidance into onboarding flow
-   - One-click "Add Recommended Exclusions" functionality
-
-### Phase 3: Polish
-7. **Error Handling**
-   - Better error messages
-   - Installation guidance
-   - Workspace validation
-
-8. **Performance & UX**
-   - Loading states
-   - Progress indicators
-   - Empty states
-   - Help tooltips
-
----
-
-## 🎯 v1.0 MVP Definition
-
-**Minimum Viable Product for v1.0:**
-1. ✅ Rule Browser (complete)
-2. ✅ Rule Detail Panel (core features)
-3. ✅ YAML Configuration Engine (core engine)
-4. ✅ Workspace Analyzer (complete)
-5. ✅ Violation Inspector (workspace integration complete)
-6. ✅ Workspace selection/opening
-7. ✅ Rule configuration persistence
-8. ✅ Basic onboarding flow
-9. ✅ Impact simulation and zero-violation rule detection
-
-**All critical P0 features for v1.0 are now complete!**
+### "Explain changes" prose ◐ **PARTIAL**
+`RuleChangeSummary` gives counts, not explanation.
 
 ---
 
@@ -389,169 +305,153 @@ This document tracks the implementation status of features required for v1.0 rel
 | Feature | Status | Completion |
 |---------|--------|------------|
 | Rule Browser | ✅ Complete | 100% |
-| Rule Detail Panel | ⚠️ Mostly Complete | 80% |
-| YAML Configuration Engine | ⚠️ Mostly Complete | 80% |
+| Rule Detail Panel | ✅ Complete | 100% |
+| YAML Configuration Engine | ✅ Mostly Complete | 90% |
 | Workspace Analyzer | ✅ Complete | 100% |
-| Violation Inspector | ⚠️ Mostly Complete | 75% |
+| Violation Inspector | ✅ Complete | 100% |
 | Workspace Management | ✅ Complete | 100% |
 | Rule Config Persistence | ✅ Complete | 100% |
 | Onboarding Flow | ✅ Complete | 100% |
 | Impact Simulation | ✅ Complete | 100% |
 | Zero-Violation Detection | ✅ Complete | 100% |
-| Exclusion Path Recommendations | ❌ Missing | 0% |
-| Xcode Integration | ❌ Missing | 0% |
+| Xcode Integration | ✅ Complete | 100% |
+| Config tooling (map/compare/import/history/migration) | ✅ Complete | 100% |
+| Export (HTML/JSON/CSV) | ✅ Complete | 100% |
+| Two-edition capability model | ✅ Complete | 100% |
+| Exclusion Path Recommendations | ◐ Partial | 25% |
+| Dashboard | ❌ Missing | 0% |
 
-**Overall v1.0 Completion: ~85%** (up from 80%)
+**Overall v1.0 completion: ~97%.** Every P0 feature is implemented. What stands
+between here and a clean v1.0 is the 3-test regression, not missing features.
+
+*(The previous revision's "~85%" reflected a January snapshot.)*
 
 ---
 
 ## 📈 Test Coverage Summary
 
-**Total Test Coverage**: 176 tests in 16 test suites (100% passing)
+| Target | Framework | Declared `@Test` / `func test` | Files |
+|---|---|---|---|
+| `SwiftLintRuleStudioCore` | Swift Testing | 598 | 94 |
+| `SwiftLintRuleStudioTests` | Swift Testing | 652 | 119 |
+| `SwiftLintRuleStudioUITests` | XCTest | 8 | 3 |
 
-**Test Framework**: Swift Testing (migrated from XCTest)
+Executed counts differ from declarations because of parameterized tests and
+XCTest's inherited launch tests. Latest run: **593 core** (all passing),
+**650 app unit** (3 failing), **9 UI** (all passing, ~128s).
 
-**Test Breakdown by Feature**:
-- Workspace Management: 26 tests (15 unit + 11 integration)
-- Onboarding Flow: 16 tests (10 unit + 6 integration)
-- Impact Simulation: 21 tests (9 unit + 3 integration + 3 UI + 3 discovery + 3 workflow)
-- Rule Configuration: 30 tests (18 unit + 12 integration)
-- Violation Storage: 7 tests
-- Other Core Services: 76 tests (various unit, integration, and UI tests)
+*(The previous revision's "176 tests in 16 test suites" is off by roughly 7×.)*
 
-**Test Infrastructure**:
-- ✅ Complete test isolation (UserDefaults, workspaces)
-- ✅ Reliable workspace setup helpers
-- ✅ File system race condition fixes
-- ✅ Parallel test execution support
-- ✅ Swift 6 concurrency compliance
+Includes **47 property-law tests in 9 suites** (`swift test --filter PropertyLaw`),
+every one mutation-verified.
 
-**Status**: Comprehensive test coverage with 100% pass rate. All tests migrated to Swift Testing framework for better isolation and parallel execution.
+**Test infrastructure:** `TestIsolationHelpers`, `WorkspaceTestHelpers`,
+`CacheManager.createForTesting()`, `FileTracker.createForTesting()`,
+`DependencyContainer.createForTesting()`, plus per-service helpers in
+`SwiftLintRuleStudioCoreTestSupport`.
 
 ---
 
 ## 🚀 Next Steps
 
-1. ✅ **COMPLETE**: Workspace selection/opening
-2. ✅ **COMPLETE**: Rule configuration persistence
-3. ✅ **COMPLETE**: Basic onboarding flow
-4. ✅ **COMPLETE**: Impact simulation and zero-violation rule detection
-5. **Medium Priority**: Xcode integration for violation navigation
-6. **Medium Priority**: Exclusion path recommendations (v1.1 enhancement)
-7. **Low Priority**: Dashboard (can defer to v1.1)
+1. **Fix the `$TMPDIR` leak** — ~15 leaked `TemporaryDirectory.*` per run
+   eventually break `mktemp` and make the app unit target flaky. Find the
+   unbalanced atomic write and clean up after it.
+2. **App Store submission prep** — `docs/SUBMISSION_CHECKLIST.md`. The sandbox
+   question is architecturally resolved by the Explorer edition; the checklist
+   is now signing, App Store Connect, assets, and metadata.
+3. **Decide `apply(ConfigDiff, YAMLConfig)`** — build it or close it won't-do.
+   Last open item in `docs/pbt-candidates.md`.
+4. **Rule-conflict + autocorrect-safety detection** — `docs/proposal-rule-conflict-and-autocorrect-safety.md`,
+   confirmed unimplemented (no `RuleConflicts` / `AutocorrectSafety` symbols).
+5. **Finish exclusion path recommendations** — wire up `.configureExcludes`.
+6. **Dashboard** — v1.1.
 
 ---
 
-## Notes
+## Audit note (2026-07-29)
 
-- The core architecture is solid and well-tested
-- **Swift 6 migration complete** - All code uses modern concurrency with strict checking
-- **Swift Testing framework** - All 176 tests migrated for better isolation and parallel execution
-- Most services are complete and working
-- Workspace management is fully implemented with comprehensive test coverage
-- Rule configuration persistence is fully implemented with comprehensive test coverage
-- Basic onboarding flow is complete with first-run detection and SwiftLint installation guidance
-- Impact simulation is fully implemented with comprehensive test coverage (21 tests)
-- All critical P0 features for v1.0 are now complete
-- Focus should shift to remaining Phase 2 features (Xcode integration)
-- **Remaining gaps**:
-  - Xcode integration ("Open in Xcode", file:line URL generation)
-  - Rule Detail missing sections (Why this matters, Related rules, Swift Evolution links, violations count)
-  - Violation Inspector enhancements (grouping, bulk ops, export, navigation, keyboard shortcuts)
-  - YAML engine UI polish (undo, explain changes, dry-run UI, optional Git integration)
-  - Exclusion path recommendations (v1.1)
+This document had not been touched since 2026-01-24 and actively misled. What
+was corrected:
+
+- **11 items marked "MISSING" were built.** The entire Rule Detail gap list, the
+  entire Violation Inspector gap list, and Xcode Integration (listed at "0%")
+  all shipped.
+- **15 shipped features were absent entirely**, including the whole config
+  tooling suite and the two-edition capability model.
+- **Test counts were off by ~7×** (176 claimed vs ~1,250 declared).
+- **Structural defects fixed**: two sections numbered §9, §7 placed after §10,
+  §10 filed under "Missing Features" alongside completed work, a duplicated
+  `---`, and a "Technical Gaps" section that contradicted §8 by claiming
+  "SwiftLint not found → no helpful error" when onboarding has had install
+  guidance since December 2025.
+- **A stale file reference**: `SafeRulesDiscoveryView` was renamed `RuleAuditView`.
+- **One genuinely-still-missing item confirmed**: Dashboard.
+
+**Lesson for future edits:** re-verify against the tree rather than editing the
+prior revision in place. Most of the drift came from appending "Recent Updates"
+entries without revisiting the status claims above them.
+
+---
 
 ## Recent Updates
 
+**July 29, 2026:**
+- 🔍 Full re-audit of this document against commit `b1da9a9` (see *Audit note*)
+- ✅ **Fixed the disable-routing regression** from `93edd2e` — removed the
+  kind-blind `disabled_rules` fold from the Core serializer, made bulk disable
+  kind-aware, and unified `generateDiff` with `applyRuleChanges` so preview and
+  save share one path. All three targets green.
+- 🔬 Probed SwiftLint 0.65.0 directly to settle the design rather than guessing:
+  a disabled rule carrying a config mapping *warns*; an opt-in or analyzer rule
+  in `disabled_rules` is silently inert
+- ⚠️ Identified the cause of the long-standing app-unit flakiness: a ~15/run
+  `$TMPDIR` leak that eventually breaks `mktemp`
+
+**July 21–26, 2026:**
+- ✅ App Store submission checklist added (`docs/SUBMISSION_CHECKLIST.md`)
+- ✅ `93edd2e`: disabled rules serialized into `disabled_rules` — **introduced
+  the open regression above**
+- ✅ Untracked per-user Xcode scheme state
+
+**June–July 2026 (property-based testing campaign):**
+- ✅ 8 of 8 PBT candidates closed; 47 property-law tests across 9 suites
+- ✅ Found and fixed a real merge bug — a rule listed in both `disabled_rules`
+  and `opt_in_rules` landed in both resolved sets (`c6f70d0`)
+- ✅ Extracted a pure `parse(String) -> YAMLConfig` from `load()` (`127351f`)
+- ✅ Deleted dead `YAMLConfig.warningThreshold` / `.strict` (`27a6d5b`)
+- ✅ Replaced a wall-clock parallelism assertion with a structural one (`9e5b3ca`)
+
 **January 23, 2026:**
-- ✅ Refactored large files into focused extensions to comply with SwiftLint `file_length`, `function_body_length`, and `type_body_length`
-- ✅ Consolidated async UI wait helpers to reduce flaky tests (polling over fixed sleeps)
-- ✅ Stabilized test suite with controllable hang stubs for timeout simulations
-- ✅ SwiftLint rules now only disable `todo`
+- ✅ Refactored large files into focused extensions for SwiftLint `file_length`,
+  `function_body_length`, `type_body_length`
+- ✅ Consolidated async UI wait helpers (polling over fixed sleeps)
+- ✅ SwiftLint config now only disables `todo`
 
 **December 26, 2025:**
-- ✅ Completed Swift 6 migration with targeted strict concurrency
-- ✅ Converted ViolationStorage from class to actor for thread-safe database access
-- ✅ Migrated all tests from XCTest to Swift Testing framework
-- ✅ Created test isolation helpers (TestIsolationHelpers, WorkspaceTestHelpers)
-- ✅ Fixed all test setup issues (workspace validation, UserDefaults isolation, file system races)
-- ✅ Fixed YAMLConfigurationEngine file system race conditions using atomic writes
-- ✅ Updated all integration tests to use proper workspace setup
-- ✅ Enabled SwiftLint concurrency rules (incompatible_concurrency_annotation, redundant_sendable)
-- ✅ All 176 tests passing (100% pass rate)
-- ✅ Improved parallel test execution and test isolation
-- ✅ Production-ready concurrency model
+- ✅ Swift 6 migration with strict concurrency
+- ✅ `ViolationStorage` converted from class to actor
+- ✅ Migrated tests from XCTest to Swift Testing
+- ✅ Created test isolation helpers
+- ✅ Fixed `YAMLConfigurationEngine` file system races via atomic writes
 
-**December 25, 2025 (Early Morning):**
-- ✅ Fixed critical SQLite string binding issue causing violation storage failures
-- ✅ Updated all SQLite string bindings to use `strdup` with `free` destructor for proper memory management
-- ✅ Fixed violation accumulation issue by deleting old violations before storing new ones
-- ✅ Cleaned up verbose debug logging while keeping essential error messages
-- ✅ Added test coverage for delete-before-insert behavior (`testStoreViolationsDeletesOldOnes`)
-- ✅ Updated `suppressViolations`, `resolveViolations`, and `deleteViolations` to use proper string binding
-- ✅ All ViolationStorage tests passing (7 tests total)
-- ✅ Improved database reliability and data integrity
+**December 25, 2025:**
+- ✅ Fixed SQLite string binding (`strdup` + `free` destructor)
+- ✅ Fixed violation accumulation (delete-before-insert)
 
-**December 24, 2025 (Late Evening):**
-- ✅ Completed impact simulation and zero-violation rule detection feature
-- ✅ Added ImpactSimulator service for simulating rule violations without enabling rules
-- ✅ Created ImpactSimulationView for displaying simulation results
-- ✅ Created SafeRulesDiscoveryView for bulk discovery and enabling safe rules
-- ✅ Integrated "Simulate Impact" button into RuleDetailView for disabled rules
-- ✅ Added batch simulation with progress tracking
-- ✅ Implemented temporary config generation for isolated simulations
-- ✅ Added 9 unit tests, 3 integration tests, 3 UI tests, 3 discovery tests, and 3 workflow tests (21 total)
-- ✅ Full workflow: simulate → discover safe rules → bulk enable
-- Overall completion increased from ~80% to ~85%
-
-**December 24, 2025 (Evening):**
-- ✅ Completed basic onboarding flow feature
-- ✅ Added OnboardingManager service for first-run detection and state management
-- ✅ Created OnboardingView with welcome screen, SwiftLint check, and workspace selection
-- ✅ Integrated SwiftLint installation detection with automatic checking and guidance
-- ✅ Added progress indicator and step-by-step navigation
-- ✅ Integrated onboarding into ContentView for first-launch detection
-- ✅ Added 10 unit tests and 6 integration tests
-- ✅ Full onboarding workflow: welcome → SwiftLint check → workspace selection → complete
-- Overall completion increased from ~75% to ~80%
-
-**December 24, 2025 (Afternoon):**
-- ✅ Completed rule configuration persistence feature
-- ✅ Added RuleDetailViewModel for managing rule configuration state
-- ✅ Connected RuleDetailView to YAMLConfigurationEngine
-- ✅ Added ConfigDiffPreviewView for previewing changes before saving
-- ✅ Added notification system for component communication
-- ✅ Added 18 unit tests and 12 integration tests
-- ✅ Full end-to-end workflow: open workspace → configure rule → save → verify
-- Overall completion increased from ~70% to ~75%
-
-**December 24, 2025 (Morning):**
-- ✅ Completed workspace selection/opening feature
-- ✅ Added WorkspaceManager service with persistence
-- ✅ Added WorkspaceSelectionView UI
-- ✅ Integrated workspace management into app
-- ✅ Added 15 unit tests and 11 integration tests
-- ✅ Updated ViolationInspector to load violations for selected workspace
-- Overall completion increased from ~60% to ~70%
+**December 24, 2025:**
+- ✅ Impact simulation and zero-violation rule detection
+- ✅ Basic onboarding flow
+- ✅ Rule configuration persistence
+- ✅ Workspace selection/opening
 
 ---
 
 ## 💡 Potential Future Enhancements
 
-### Additional Rule Browser Features
-- Related rules section
-- "Why this matters" section
-- Links to Swift Evolution proposals
-- Current violations count in workspace
-
-### Xcode Integration Enhancements
-- Enhanced violation navigation
-- Project file detection improvements
-- Better integration with Xcode projects
-
-### Configuration Best Practices
-- Exclusion path recommendations
-- Smart detection of third-party code violations
-- Configuration health checks
-- Best practices wizard for new projects
-
+- Dashboard with adoption trends and quality metrics (v1.1)
+- Complete exclusion path recommendation flow
+- "Explain changes" prose generation
+- Rule-conflict and autocorrect-safety advisories
+  (`docs/proposal-rule-conflict-and-autocorrect-safety.md`)
+- Best-practices wizard for new projects
