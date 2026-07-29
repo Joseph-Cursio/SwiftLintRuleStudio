@@ -63,32 +63,77 @@ is correct and was kept. Only the kind-blind fold was removed.
 A regression guard (`foldIsNotPerformed`) pins that the serializer does not
 re-introduce the fold.
 
-### ⚠️ Known flakiness — not the above, and pre-existing
+### ✅ Resolved — the app-unit test flakiness
 
-The app unit target intermittently fails 1–5 tests in the `RuleDetailViewModel*`
-suites, with a **different set each run** and clean full-green runs in between.
-Root cause identified: each full run leaks ~15 `TemporaryDirectory.*` entries
-into `$TMPDIR` (Foundation's atomic-write staging). Once roughly 900 accumulate,
-`mktemp` starts failing with `errno 2` and any test creating a temp config dies
-with *"Creating a temporary file via mktemp failed."*
+The app unit target used to fail 1–5 tests per run in the `RuleDetailViewModel*`
+and `RuleBrowserViewModel*` suites, with a **different set each run** and clean
+green runs in between — roughly **one full-suite run in three**. Fixed.
 
-**Telling the two apart** — the signature is unambiguous, so a flaky run never
-needs to be mistaken for a real break:
+**Root cause: a scratch-directory race in the test helpers**, not the app, and
+not (as first suspected) `$TMPDIR` exhaustion. The tell was the errno:
+`mktemp` was failing with **errno 2, ENOENT** — *"parent directory is gone"* —
+which is a deletion, not exhaustion.
 
-- *Flake*: `Caught error: … mktemp failed`, reported at the test's **declaration**
-  line (e.g. `…Tests.swift:17:6`) because the throw happens in the setup helper.
-  Usually a whole suite fails at once, at the same instant.
-- *Real failure*: `Expectation failed: …`, reported at the **assertion** line.
+`TestTempDirectory.root` was a `static let` whose initializer deleted **everything**
+inside the shared `$TMPDIR/SwiftLintRuleStudioTests`. Its docstring argued this was
+safe. Both of its premises were false:
 
-Workaround until fixed:
+1. **`static let` is lazy.** The initializer runs on first *access*, not at process
+   start. Under Swift Testing's parallel execution, a lot has already happened by
+   then — so "leftovers from previous runs" routinely meant "directories created
+   seconds ago by tests that are still running."
+2. **Not every helper routed through `make(_:)`**, as the docstring claimed. Twenty
+   call sites across both test targets built `$TMPDIR/SwiftLintRuleStudioTests/<UUID>`
+   by hand, landing in the blast radius without ever calling in.
 
-```bash
-find "$TMPDIR" -maxdepth 1 -name "TemporaryDirectory.*" -exec rm -rf {} +
-```
+So a live directory got deleted mid-test and the victim's next atomic write failed
+with ENOENT, usually taking its whole suite down at once.
 
-With a cleaned `$TMPDIR` the target passes 650/650 consistently. This is the same
-instability `TEST_PARALLELIZATION_STATUS.md` recorded in December 2025, now with
-a concrete cause. **Unresolved, but independent of feature work.**
+**Confirmed before fixing:** neutralising the purge made the suite pass 8/8.
+
+**The fix:**
+
+- Each process now gets its own `run-<pid>-<uuid>` root, so one run's cleanup and
+  another run's live directories cannot overlap.
+- Leftovers are still reclaimed, but only once older than one hour — far longer
+  than any run (~6s), so no live process is ever eligible.
+- All 20 hand-built paths now route through `TestTempDirectory.make(_:)`, making
+  the docstring's claim true. Two sites needed care and kept their semantics: one
+  asserts a path *is a file*, another that a path *does not exist*.
+- `TestTempDirectory` is `nonisolated` — the package sets
+  `.defaultIsolation(MainActor.self)`, and creating a directory has no business
+  being main-actor-bound.
+
+**Result: 10/10 consecutive full-suite runs green**, and the shared root now holds
+exactly one entry per run instead of ~1,150 loose directories.
+
+This is the instability `TEST_PARALLELIZATION_STATUS.md` recorded in December 2025
+and attributed to "Swift Testing framework limitations." That attribution was
+wrong — it was our own helper.
+
+### Housekeeping — a separate, benign toolchain leak
+
+While investigating, a real but unrelated leak turned up: **SwiftPM leaks one
+`$TMPDIR/TemporaryDirectory.XXXXXX` per resolved package on every package-graph
+load** (Xcode 26.5 / Darwin 25.5).
+
+| Invocation | Leaked | Note |
+|---|---|---|
+| `xcodebuild -list` | +14 | 15 resolved packages, no build at all |
+| `xcodebuild build-for-testing` | +15 | no-op build, nothing to compile |
+| `swift build --build-tests` | +6 | Core's 6 resolved dependencies |
+| `swift <file>.swift` | +1 | per invocation |
+| `swiftc <file>.swift` | 0 | — |
+
+Fixed overhead per invocation, not per test — 3 tests and 650 tests both leak 14.
+Nothing here creates them, and atomic writes were probed directly and leak none.
+**It never caused the flakiness above.** `scripts/prune_leaked_tempdirs.sh` clears
+them and `scripts/ci_test.sh` calls it, purely to stop unbounded accumulation.
+
+**Diagnostic signature, worth keeping:** a `Caught error: … mktemp failed` at a
+test's **declaration** line means a directory vanished underneath it — a real bug
+of the kind fixed above. `Expectation failed:` at an **assertion** line is an
+ordinary test failure. Neither is ever a reason to reach for the prune script.
 
 ---
 
@@ -354,18 +399,15 @@ every one mutation-verified.
 
 ## 🚀 Next Steps
 
-1. **Fix the `$TMPDIR` leak** — ~15 leaked `TemporaryDirectory.*` per run
-   eventually break `mktemp` and make the app unit target flaky. Find the
-   unbalanced atomic write and clean up after it.
-2. **App Store submission prep** — `docs/SUBMISSION_CHECKLIST.md`. The sandbox
+1. **App Store submission prep** — `docs/SUBMISSION_CHECKLIST.md`. The sandbox
    question is architecturally resolved by the Explorer edition; the checklist
    is now signing, App Store Connect, assets, and metadata.
-3. **Decide `apply(ConfigDiff, YAMLConfig)`** — build it or close it won't-do.
+2. **Decide `apply(ConfigDiff, YAMLConfig)`** — build it or close it won't-do.
    Last open item in `docs/pbt-candidates.md`.
-4. **Rule-conflict + autocorrect-safety detection** — `docs/proposal-rule-conflict-and-autocorrect-safety.md`,
+3. **Rule-conflict + autocorrect-safety detection** — `docs/proposal-rule-conflict-and-autocorrect-safety.md`,
    confirmed unimplemented (no `RuleConflicts` / `AutocorrectSafety` symbols).
-5. **Finish exclusion path recommendations** — wire up `.configureExcludes`.
-6. **Dashboard** — v1.1.
+4. **Finish exclusion path recommendations** — wire up `.configureExcludes`.
+5. **Dashboard** — v1.1.
 
 ---
 
@@ -405,8 +447,17 @@ entries without revisiting the status claims above them.
 - 🔬 Probed SwiftLint 0.65.0 directly to settle the design rather than guessing:
   a disabled rule carrying a config mapping *warns*; an opt-in or analyzer rule
   in `disabled_rules` is silently inert
-- ⚠️ Identified the cause of the long-standing app-unit flakiness: a ~15/run
-  `$TMPDIR` leak that eventually breaks `mktemp`
+- ✅ **Fixed the long-standing app-unit flakiness** (~1 run in 3). `TestTempDirectory`
+  was deleting the shared scratch root while parallel tests were still using it —
+  its `static let` purge is lazy, so "leftovers from previous runs" often meant
+  "directories created seconds ago." Each process now gets its own run root, stale
+  cleanup is age-gated, and all 20 hand-built scratch paths route through
+  `make(_:)`. Verified 10/10 consecutive green.
+- 📌 Two earlier guesses in this file were wrong and are corrected above: the leak
+  was blamed first on an unbalanced atomic write, then on SwiftPM exhausting
+  `mktemp`. The errno settled it — 2 is ENOENT (deletion), not exhaustion. The
+  SwiftPM leak is real but benign; `scripts/prune_leaked_tempdirs.sh` handles it
+  as housekeeping only.
 
 **July 21–26, 2026:**
 - ✅ App Store submission checklist added (`docs/SUBMISSION_CHECKLIST.md`)
