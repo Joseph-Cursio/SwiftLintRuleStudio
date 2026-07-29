@@ -202,9 +202,7 @@ struct RuleDetailViewModelSaveTests {
 
     @Test("RuleDetailViewModel handles save errors gracefully")
     func testSaveConfigurationErrorHandling() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let tempDir = TestTempDirectory.make("saveerror")
         let invalidPath = tempDir
             .appendingPathComponent("nonexistent")
             .appendingPathComponent(".swiftlint.yml")

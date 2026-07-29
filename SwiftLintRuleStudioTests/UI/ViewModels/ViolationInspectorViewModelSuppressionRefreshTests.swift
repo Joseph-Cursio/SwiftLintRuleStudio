@@ -17,9 +17,7 @@ import Testing
 @MainActor
 struct ViolationInspectorViewModelSuppressionRefreshTests {
     private static func makeWorkspace() -> Workspace {
-        let tempPath = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let tempPath = TestTempDirectory.make("suppression-workspace")
         return Workspace(path: tempPath)
     }
 

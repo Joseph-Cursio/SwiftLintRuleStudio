@@ -34,11 +34,7 @@ struct ImpactSimulatorIntegrationTests {
     // MARK: - Test Helpers
 
     private func createTempWorkspaceDirectory() throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        return tempDir
+        TestTempDirectory.make("impact-integration")
     }
 
     private func createSwiftFile(in directory: URL, name: String, content: String) throws -> URL {

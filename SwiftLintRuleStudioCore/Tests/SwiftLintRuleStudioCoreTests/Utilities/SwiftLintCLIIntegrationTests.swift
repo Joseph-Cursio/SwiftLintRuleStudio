@@ -30,11 +30,7 @@ struct SwiftLintCLIIntegrationTests {
     // Helper to create isolated cache manager for test isolation
     // Each test gets its own cache directory to prevent race conditions and state leakage
     private func createIsolatedCacheManager() -> (CacheManager, URL) {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent("SwiftLintCLIIntegrationTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("cli-integration")
         return (CacheManager(cacheDirectory: tempDir), tempDir)
     }
 

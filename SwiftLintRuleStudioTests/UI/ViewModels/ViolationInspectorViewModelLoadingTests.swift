@@ -92,9 +92,7 @@ struct ViolationInspectorViewModelLoadingTests {
 
         let workspaceId = UUID()
         let workspace = await MainActor.run {
-            let tempPath = FileManager.default.temporaryDirectory
-                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            let tempPath = TestTempDirectory.make("violation-workspace")
             return Workspace(path: tempPath)
         }
 
@@ -140,9 +138,7 @@ struct ViolationInspectorViewModelLoadingTests {
 
         let workspaceId = UUID()
         let workspace = await MainActor.run {
-            let tempPath = FileManager.default.temporaryDirectory
-                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            let tempPath = TestTempDirectory.make("violation-workspace")
             return Workspace(path: tempPath)
         }
 
@@ -181,9 +177,7 @@ struct ViolationInspectorViewModelLoadingTests {
 
         let workspaceId = UUID()
         let workspace = await MainActor.run {
-            let tempPath = FileManager.default.temporaryDirectory
-                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            let tempPath = TestTempDirectory.make("violation-workspace")
             return Workspace(path: tempPath)
         }
 
@@ -216,9 +210,7 @@ struct ViolationInspectorViewModelLoadingTests {
         )
 
         let workspace = await MainActor.run {
-            let tempPath = FileManager.default.temporaryDirectory
-                .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            let tempPath = TestTempDirectory.make("violation-workspace")
             return Workspace(path: tempPath)
         }
         let newerWorkspaceId = UUID()

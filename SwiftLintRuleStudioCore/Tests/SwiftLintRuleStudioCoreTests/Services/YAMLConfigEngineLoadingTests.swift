@@ -57,10 +57,7 @@ struct YAMLConfigEngineLoadingTests {
 
     @Test("YAMLConfigurationEngine handles non-existent file")
     func testLoadNonExistentFile() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("yamlloading")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let configFile = tempDir.appendingPathComponent(".swiftlint.yml")

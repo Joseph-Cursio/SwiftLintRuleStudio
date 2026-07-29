@@ -19,10 +19,7 @@ struct SwiftLintCLICachingTests {
     // Helper to create an isolated cache manager. Returns the temp directory too so
     // callers can `defer`-remove it — otherwise each run leaks a temp cache dir.
     private func createIsolatedCacheManager() -> (CacheManager, URL) {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("clicache")
         // Workaround for Swift 6 false positive: CacheManager.init incorrectly inferred as @MainActor
         return (CacheManager(cacheDirectory: tempDir), tempDir)
     }
@@ -57,10 +54,7 @@ struct SwiftLintCLICachingTests {
         defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Create a test docs directory
-        let testDocsDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent("docs_test", isDirectory: true)
-        try FileManager.default.createDirectory(at: testDocsDir, withIntermediateDirectories: true)
+        let testDocsDir = TestTempDirectory.make("docs-test")
         defer { try? FileManager.default.removeItem(at: testDocsDir) }
 
         // Save directory
@@ -125,10 +119,7 @@ struct SwiftLintCLICachingTests {
         defer { try? FileManager.default.removeItem(at: cacheDir) }
 
         // Create and save a test directory
-        let testDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: testDir, withIntermediateDirectories: true)
+        let testDir = TestTempDirectory.make("clicache")
 
         // Create a test file in the directory
         let testFile = testDir.appendingPathComponent("test.md")

@@ -94,10 +94,7 @@ struct WorkspaceManagerPersistenceTests {
 
     @Test("WorkspaceManager handles workspace with special characters in path")
     func testWorkspaceWithSpecialCharacters() async throws {
-        let tempBase = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempBase, withIntermediateDirectories: true)
+        let tempBase = TestTempDirectory.make("wspersistence")
 
         let tempDir = tempBase.appendingPathComponent("Test Workspace (v1.0)", isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)

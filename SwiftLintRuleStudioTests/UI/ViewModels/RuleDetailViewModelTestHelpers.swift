@@ -27,10 +27,10 @@ enum RuleDetailViewModelTestHelpers {
     }
 
     static func createTempConfigFile(content: String) throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        // Must go through TestTempDirectory rather than building a path under the
+        // shared root by hand: only dirs inside this process's run root are safe
+        // from another run's cleanup. See TestTempDirectory for the race this had.
+        let tempDir = TestTempDirectory.make("ruledetail")
 
         let configFile = tempDir.appendingPathComponent(".swiftlint.yml")
         if !content.isEmpty {

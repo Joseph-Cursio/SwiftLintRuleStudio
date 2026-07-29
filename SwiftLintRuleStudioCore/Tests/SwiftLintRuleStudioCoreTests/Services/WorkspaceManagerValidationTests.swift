@@ -13,10 +13,7 @@ import Testing
 struct WorkspaceManagerValidationTests {
     @Test("WorkspaceManager accepts workspace with deep Swift file")
     func testWorkspaceWithDeepSwiftFile() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("wsvalidation")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let nestedDir = tempDir.appendingPathComponent("Sources", isDirectory: true)
@@ -34,10 +31,7 @@ struct WorkspaceManagerValidationTests {
 
     @Test("WorkspaceManager ignores .build Swift files when validating")
     func testWorkspaceIgnoresBuildDirectory() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("wsvalidation")
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let buildDir = tempDir.appendingPathComponent(".build", isDirectory: true)

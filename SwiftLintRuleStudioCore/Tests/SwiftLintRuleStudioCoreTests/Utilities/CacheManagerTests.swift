@@ -16,10 +16,7 @@ struct CacheManagerTests {
 
     // Helper to create isolated cache directory for each test
     private func createIsolatedCacheManager() -> CacheManager {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let tempDir = TestTempDirectory.make("cachemanager")
         return CacheManager(cacheDirectory: tempDir)
     }
 
@@ -171,10 +168,7 @@ struct CacheManagerTests {
         let cacheManager = createIsolatedCacheManager()
 
         // Create a test directory
-        let testDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: testDir, withIntermediateDirectories: true)
+        let testDir = TestTempDirectory.make("cachemanager")
         defer { try? FileManager.default.removeItem(at: testDir) }
 
         // Initially should be nil
@@ -216,10 +210,7 @@ struct CacheManagerTests {
         let cacheManager = createIsolatedCacheManager()
 
         // Create and save a test directory
-        let testDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudioTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: testDir, withIntermediateDirectories: true)
+        let testDir = TestTempDirectory.make("cachemanager")
 
         try cacheManager.saveDocsDirectory(testDir)
         #expect(cacheManager.getCachedDocsDirectory() != nil)
