@@ -111,34 +111,18 @@ class RuleDetailViewModel {
         try yamlEngine.load()
         let config = yamlEngine.getConfig()
 
-        // Update local state from config
+        // Update local state from config. Enablement follows SwiftLint's own
+        // precedence — see RuleEnablementResolver, which the rule browser and
+        // the audit share so all three surfaces agree.
+        self.isEnabled = RuleEnablementResolver.isRuleEnabled(rule, config: config)
+
+        // Severity comes from the rule's own entry when it has one; a rule with
+        // no entry falls back to its default. An entry with no explicit severity
+        // deliberately yields nil rather than the default, so saving does not
+        // emit a severity the user never set.
         if let ruleConfig = config.rules[rule.id] {
             self.severity = ruleConfig.severity
-            if rule.isOptIn {
-                self.isEnabled = ruleConfig.enabled
-                    && (config.optInRules?.contains(rule.id) ?? false)
-            } else {
-                self.isEnabled = ruleConfig.enabled
-            }
-        } else if let onlyRules = config.onlyRules {
-            self.isEnabled = onlyRules.contains(rule.id)
-            self.severity = rule.defaultSeverity
-        } else if config.disabledRules?.contains(rule.id) == true {
-            self.isEnabled = false
-            self.severity = rule.defaultSeverity
-        } else if rule.isOptIn {
-            if let optInRules = config.optInRules {
-                self.isEnabled = optInRules.contains(rule.id)
-            } else {
-                self.isEnabled = false
-            }
-            self.severity = rule.defaultSeverity
         } else {
-            // Rule not in config - check if it's opt-in or default
-            // Default rules are enabled by default, opt-in rules are disabled
-            self.isEnabled = !rule.isOptIn
-            // Don't set severity if rule is not in config - keep it as nil
-            // Only set default severity if rule has one
             self.severity = rule.defaultSeverity
         }
 

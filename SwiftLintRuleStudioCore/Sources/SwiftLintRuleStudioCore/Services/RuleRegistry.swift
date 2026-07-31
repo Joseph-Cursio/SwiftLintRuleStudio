@@ -124,26 +124,7 @@ public class RuleRegistry: RuleRegistryProtocol {
         _ rule: Rule,
         config: YAMLConfigurationEngine.YAMLConfig
     ) -> Bool {
-        if let onlyRules = config.onlyRules {
-            return onlyRules.contains(rule.id)
-        }
-        if rule.isOptIn {
-            if let ruleConfig = config.rules[rule.id],
-               ruleConfig.enabled == false {
-                return false
-            }
-            if let optInRules = config.optInRules {
-                return optInRules.contains(rule.id)
-            }
-            return false
-        }
-        if config.disabledRules?.contains(rule.id) == true {
-            return false
-        }
-        if let ruleConfig = config.rules[rule.id] {
-            return ruleConfig.enabled
-        }
-        return true
+        RuleEnablementResolver.isRuleEnabled(rule, config: config)
     }
 
 #if DEBUG

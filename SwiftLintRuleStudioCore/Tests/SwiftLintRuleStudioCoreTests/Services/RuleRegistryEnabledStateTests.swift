@@ -19,6 +19,7 @@ struct RuleRegistryEnabledStateTests {
     private func makeRule(
         id ruleId: String,
         isOptIn: Bool = false,
+        isAnalyzer: Bool = false,
         markdownDocumentation: String? = nil
     ) -> Rule {
         Rule(
@@ -27,6 +28,7 @@ struct RuleRegistryEnabledStateTests {
             description: "desc",
             category: .style,
             isOptIn: isOptIn,
+            isAnalyzer: isAnalyzer,
             markdownDocumentation: markdownDocumentation
         )
     }
@@ -106,6 +108,118 @@ struct RuleRegistryEnabledStateTests {
         registry.syncEnabledStates(with: config)
 
         #expect(registry.getRule(id: "opt_rule")?.isEnabled == false)
+    }
+
+    // MARK: - syncEnabledStates: analyzer rules
+
+    // Regression: enablement logic lived in three copies — RuleRegistry,
+    // RuleAuditView and RuleDetailViewModel — and only the audit copy learned
+    // to handle analyzer rules. RuleRegistry therefore fell through to the
+    // default `return true`, so the rule browser showed every analyzer rule as
+    // enabled even when `analyzer_rules:` did not list it. All three now share
+    // RuleEnablementResolver; these tests pin the analyzer contract on the
+    // syncEnabledStates path the browser actually uses.
+
+    @Test("analyzer rule absent from analyzer_rules is disabled")
+    func testAnalyzerRuleAbsentIsDisabled() {
+        let registry = makeRegistry(rules: [
+            makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        ])
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.analyzerRules = ["unused_declaration"]
+
+        registry.syncEnabledStates(with: config)
+
+        #expect(registry.getRule(id: "explicit_self")?.isEnabled == false)
+    }
+
+    @Test("analyzer rule with no analyzer_rules section at all is disabled")
+    func testAnalyzerRuleWithNoAnalyzerSectionIsDisabled() {
+        let registry = makeRegistry(rules: [
+            makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        ])
+        let config = YAMLConfigurationEngine.YAMLConfig()
+
+        registry.syncEnabledStates(with: config)
+
+        #expect(registry.getRule(id: "explicit_self")?.isEnabled == false)
+    }
+
+    @Test("analyzer rule not reported as opt-in still requires analyzer_rules")
+    func testAnalyzerRuleNotOptInStillRequiresAnalyzerList() {
+        // The sharpest form of the pre-fix bug. SwiftLint reports most analyzer
+        // rules as opt-in, and the old opt-in branch happened to return false
+        // for them — masking the defect. An analyzer rule *not* flagged opt-in
+        // fell through every branch to the default `return true`, so the
+        // browser showed it enabled while SwiftLint would never run it.
+        let registry = makeRegistry(rules: [
+            makeRule(id: "unused_declaration", isOptIn: false, isAnalyzer: true)
+        ])
+        let config = YAMLConfigurationEngine.YAMLConfig()
+
+        registry.syncEnabledStates(with: config)
+
+        #expect(registry.getRule(id: "unused_declaration")?.isEnabled == false)
+    }
+
+    @Test("analyzer rule listed in analyzer_rules is enabled")
+    func testAnalyzerRuleListedIsEnabled() {
+        let registry = makeRegistry(rules: [
+            makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        ])
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.analyzerRules = ["explicit_self"]
+
+        registry.syncEnabledStates(with: config)
+
+        #expect(registry.getRule(id: "explicit_self")?.isEnabled == true)
+    }
+
+    @Test("analyzer rule listed only in opt_in_rules stays disabled")
+    func testAnalyzerRuleNotEnabledByOptInRulesList() {
+        // SwiftLint honors analyzer rules only via `analyzer_rules:`, and it
+        // also reports them as opt-in — so the analyzer branch has to be
+        // checked before the opt-in branch or a stray entry would enable them.
+        let registry = makeRegistry(rules: [
+            makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        ])
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.optInRules = ["explicit_self"]
+
+        registry.syncEnabledStates(with: config)
+
+        #expect(registry.getRule(id: "explicit_self")?.isEnabled == false)
+    }
+
+    @Test("analyzer rule explicitly disabled via rules dict wins over analyzer_rules")
+    func testAnalyzerRuleExplicitlyDisabledWins() {
+        let registry = makeRegistry(rules: [
+            makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        ])
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.analyzerRules = ["explicit_self"]
+        config.rules = ["explicit_self": RuleConfiguration(enabled: false)]
+
+        registry.syncEnabledStates(with: config)
+
+        #expect(registry.getRule(id: "explicit_self")?.isEnabled == false)
+    }
+
+    @Test("only_rules outranks analyzer_rules")
+    func testOnlyRulesOutranksAnalyzerRules() {
+        let registry = makeRegistry(rules: [
+            makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true),
+            makeRule(id: "force_cast")
+        ])
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = ["force_cast"]
+        config.analyzerRules = ["explicit_self"]
+
+        registry.syncEnabledStates(with: config)
+
+        let map = enabledMap(registry)
+        #expect(map["explicit_self"] == false)
+        #expect(map["force_cast"] == true)
     }
 
     // MARK: - syncEnabledStates: default (non-opt-in) rules
