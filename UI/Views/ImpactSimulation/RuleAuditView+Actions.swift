@@ -2,13 +2,14 @@
 //  RuleAuditView+Actions.swift
 //  SwiftLintRuleStudio
 //
-//  Actions for the Rule Audit view: audit execution, enable rules, file counting
+//  Enabling rules from the audit: selection, configuration writes, and the
+//  view state that goes with them. Running the audit lives in +Audit.
 //
 
 import SwiftLintRuleStudioCore
 import SwiftUI
 
-// MARK: - Audit Execution
+// MARK: - Enabling Rules
 
 extension RuleAuditView {
     func resetAuditState() {
@@ -22,21 +23,6 @@ extension RuleAuditView {
         isEnabling = false
         errorMessage = nil
         showError = false
-    }
-
-    func runAudit() {
-        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
-            return
-        }
-
-        isAuditing = true
-        auditEntries = []
-        selectedRules.removeAll()
-        expandedRuleId = nil
-
-        Task {
-            await executeAudit(for: workspace)
-        }
     }
 
     func selectAndEnableAllSafeRules() {
@@ -58,41 +44,22 @@ extension RuleAuditView {
     }
 
     func enableSelectedRules() {
-        guard let workspace = dependencies.workspaceManager.currentWorkspace,
-              let configPath = workspace.configPath else {
+        guard let configPath = Self.enableConfigPath(
+            for: dependencies.workspaceManager.currentWorkspace
+        ) else {
             return
         }
 
         isEnabling = true
+        let ruleIds = selectedRules
+        let knownRules = dependencies.ruleRegistry.rules
 
         Task {
             do {
-                let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
-                try yamlEngine.load()
-                var config = yamlEngine.getConfig()
-                let optInRuleIds = Set(
-                    dependencies.ruleRegistry.rules
-                        .filter { $0.isOptIn && !$0.isAnalyzer }
-                        .map(\.id)
-                )
-                let analyzerRuleIds = Set(
-                    dependencies.ruleRegistry.rules
-                        .filter(\.isAnalyzer)
-                        .map(\.id)
-                )
-
-                Self.applyEnableRules(
-                    config: &config,
-                    ruleIds: Array(selectedRules),
-                    optInRuleIds: optInRuleIds,
-                    analyzerRuleIds: analyzerRuleIds
-                )
-
-                try yamlEngine.save(config: config, createBackup: true)
-                Self.postRuleChangeNotification(ruleIds: Array(selectedRules))
+                try Self.enableRules(ruleIds, configPath: configPath, rules: knownRules)
 
                 // Update entries to reflect newly enabled rules
-                auditEntries = Self.markEntriesEnabled(in: auditEntries, ruleIds: selectedRules)
+                auditEntries = Self.markEntriesEnabled(in: auditEntries, ruleIds: ruleIds)
 
                 selectedRules.removeAll()
                 isEnabling = false
@@ -102,6 +69,47 @@ extension RuleAuditView {
                 isEnabling = false
             }
         }
+    }
+
+    /// The configuration file an enable action would write to: nil when there is
+    /// no current workspace, or the workspace has no configuration file, in
+    /// which case there is nothing to enable a rule in.
+    static func enableConfigPath(for workspace: Workspace?) -> URL? {
+        workspace?.configPath
+    }
+
+    /// Turns `ruleIds` on in the configuration at `configPath`, routing each by
+    /// its classification in `rules`, backing the file up first, and announcing
+    /// the change so the rest of the app re-reads the configuration.
+    static func enableRules(
+        _ ruleIds: Set<String>,
+        configPath: URL,
+        rules: [Rule]
+    ) throws {
+        let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
+        try yamlEngine.load()
+        var config = yamlEngine.getConfig()
+        let classification = ruleClassification(from: rules)
+
+        applyEnableRules(
+            config: &config,
+            ruleIds: Array(ruleIds),
+            optInRuleIds: classification.optInRuleIds,
+            analyzerRuleIds: classification.analyzerRuleIds
+        )
+
+        try yamlEngine.save(config: config, createBackup: true)
+        postRuleChangeNotification(ruleIds: Array(ruleIds))
+    }
+
+    /// Splits `rules` into the opt-in and analyzer id sets that both the enable
+    /// path and the simulator need. Analyzer rules are kept out of the opt-in
+    /// set so every rule is routed to exactly one list.
+    static func ruleClassification(from rules: [Rule]) -> RuleClassification {
+        RuleClassification(
+            optInRuleIds: Set(rules.filter { $0.isOptIn && !$0.isAnalyzer }.map(\.id)),
+            analyzerRuleIds: Set(rules.filter(\.isAnalyzer).map(\.id))
+        )
     }
 
     static func applyEnableRules(
@@ -163,148 +171,6 @@ extension RuleAuditView {
             )
         }
     }
-}
-
-// MARK: - Helpers
-
-extension RuleAuditView {
-    func executeAudit(for workspace: Workspace) async {
-        do {
-            var allRules = dependencies.ruleRegistry.rules
-            if allRules.isEmpty {
-                allRules = try await dependencies.ruleRegistry.loadRules()
-            }
-            let optInRuleIds = Set(allRules.filter { $0.isOptIn && !$0.isAnalyzer }.map(\.id))
-            let analyzerRuleIds = Set(allRules.filter(\.isAnalyzer).map(\.id))
-
-            let config = Self.loadConfiguration(for: workspace)
-            let disabledRules = allRules.filter { !Self.isRuleEnabled($0, config: config) }
-            let enabledRules = allRules.filter { Self.isRuleEnabled($0, config: config) }
-            let disabledRuleIds = disabledRules.map(\.id)
-
-            // Count Swift files in workspace
-            let swiftFileCount = Self.countSwiftFiles(in: workspace)
-
-            guard !disabledRuleIds.isEmpty else {
-                finishAudit(
-                    disabledResults: [],
-                    enabledRules: enabledRules,
-                    allRules: allRules,
-                    swiftFileCount: swiftFileCount,
-                    duration: 0
-                )
-                return
-            }
-
-            let batchResult = try await dependencies.impactSimulator.simulateRules(
-                ruleIds: disabledRuleIds,
-                workspace: workspace,
-                baseConfigPath: workspace.configPath,
-                classification: RuleClassification(
-                    optInRuleIds: optInRuleIds,
-                    analyzerRuleIds: analyzerRuleIds
-                )
-            ) { current, total, ruleId in
-                auditProgress = AuditProgress(current: current, total: total, ruleId: ruleId)
-            }
-
-            finishAudit(
-                disabledResults: batchResult.results,
-                enabledRules: enabledRules,
-                allRules: allRules,
-                swiftFileCount: swiftFileCount,
-                duration: batchResult.totalDuration
-            )
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
-            isAuditing = false
-            auditProgress = nil
-        }
-    }
-
-    func finishAudit(
-        disabledResults: [RuleImpactResult],
-        enabledRules: [Rule],
-        allRules: [Rule],
-        swiftFileCount: Int,
-        duration: TimeInterval
-    ) {
-        auditEntries = Self.buildAuditEntries(
-            disabledResults: disabledResults,
-            enabledRules: enabledRules,
-            allRules: allRules
-        )
-        totalSwiftFiles = swiftFileCount
-        auditDuration = duration
-        isAuditing = false
-        auditProgress = nil
-    }
-
-    /// Builds the audit's display rows: one tested entry per simulated disabled rule,
-    /// plus a greyed-out entry per already-enabled rule, ordered disabled-first and
-    /// then by ascending violation count. Results naming a rule absent from
-    /// `allRules` are dropped.
-    static func buildAuditEntries(
-        disabledResults: [RuleImpactResult],
-        enabledRules: [Rule],
-        allRules: [Rule]
-    ) -> [RuleAuditEntry] {
-        let ruleMap = Dictionary(allRules.map { ($0.id, $0) }) { first, _ in first }
-
-        // Build entries for disabled rules (tested)
-        var entries: [RuleAuditEntry] = disabledResults.compactMap { result in
-            guard let rule = ruleMap[result.ruleId] else { return nil }
-            return RuleAuditEntry(
-                rule: rule,
-                impactResult: result,
-                isCurrentlyEnabled: false
-            )
-        }
-
-        // Add entries for enabled rules (greyed out, not tested)
-        let enabledEntries = enabledRules.map { rule in
-            RuleAuditEntry(
-                rule: rule,
-                impactResult: nil,
-                isCurrentlyEnabled: true
-            )
-        }
-        entries.append(contentsOf: enabledEntries)
-
-        // Sort: safe first, then by violation count ascending
-        entries.sort { lhs, rhs in
-            if lhs.isCurrentlyEnabled != rhs.isCurrentlyEnabled {
-                return !lhs.isCurrentlyEnabled
-            }
-            return lhs.violationCount < rhs.violationCount
-        }
-
-        return entries
-    }
-
-    static func countSwiftFiles(in workspace: Workspace) -> Int {
-        let fileManager = FileManager.default
-        guard let enumerator = fileManager.enumerator(
-            at: workspace.path,
-            includingPropertiesForKeys: [.isRegularFileKey],
-            options: [.skipsHiddenFiles]
-        ) else { return 0 }
-
-        var count = 0
-
-        while let url = enumerator.nextObject() as? URL {
-            let path = url.path
-            if DefaultExclusions.pathPatterns.contains(where: { path.contains($0) }) {
-                enumerator.skipDescendants()
-                continue
-            }
-            if url.pathExtension == "swift" {
-                count += 1
-            }
-        }
-        return count
-    }
 
     static func postRuleChangeNotification(ruleIds: [String]) {
         NotificationCenter.default.post(
@@ -312,48 +178,5 @@ extension RuleAuditView {
             object: nil,
             userInfo: ["ruleIds": ruleIds]
         )
-    }
-
-    static func loadConfiguration(for workspace: Workspace) -> YAMLConfigurationEngine.YAMLConfig {
-        let configPath = workspace.configPath
-            ?? workspace.path.appendingPathComponent(".swiftlint.yml")
-        let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
-        do {
-            try yamlEngine.load()
-            return yamlEngine.getConfig()
-        } catch {
-            return YAMLConfigurationEngine.YAMLConfig()
-        }
-    }
-
-}
-
-extension RuleAuditView {
-    static func isRuleEnabled(_ rule: Rule, config: YAMLConfigurationEngine.YAMLConfig) -> Bool {
-        if let onlyRules = config.onlyRules {
-            return onlyRules.contains(rule.id)
-        }
-        if rule.isAnalyzer {
-            if let ruleConfig = config.rules[rule.id], ruleConfig.enabled == false {
-                return false
-            }
-            return config.analyzerRules?.contains(rule.id) ?? false
-        }
-        if rule.isOptIn {
-            if let ruleConfig = config.rules[rule.id], ruleConfig.enabled == false {
-                return false
-            }
-            if let optInRules = config.optInRules {
-                return optInRules.contains(rule.id)
-            }
-            return false
-        }
-        if config.disabledRules?.contains(rule.id) == true {
-            return false
-        }
-        if let ruleConfig = config.rules[rule.id] {
-            return ruleConfig.enabled
-        }
-        return true
     }
 }
