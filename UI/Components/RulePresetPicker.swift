@@ -8,8 +8,12 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
-/// A full-screen sheet view for browsing and selecting presets with details
-private struct RulePresetBrowserView: View {
+/// A full-screen sheet view for browsing and selecting presets with details.
+///
+/// Staged, not yet wired to an entry point — see `Feature.presetBrowser`. Kept
+/// internal so it stays under test while it waits, rather than rotting behind a
+/// `#Preview`.
+struct RulePresetBrowserView: View {
     let onPresetSelected: (RulePreset) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var selectedCategory: RulePreset.PresetCategory?
@@ -67,15 +71,19 @@ private struct RulePresetBrowserView: View {
     }
 
     private var filteredPresets: [RulePreset] {
-        if let category = selectedCategory {
-            return RulePresets.presets(in: category)
-        }
-        return RulePresets.allPresets
+        Self.presets(in: selectedCategory)
+    }
+
+    /// The presets shown for a sidebar selection: everything when no category is
+    /// picked, otherwise just that category's.
+    static func presets(in category: RulePreset.PresetCategory?) -> [RulePreset] {
+        guard let category else { return RulePresets.allPresets }
+        return RulePresets.presets(in: category)
     }
 }
 
 /// Card view for displaying a single preset
-private struct PresetCard: View {
+struct PresetCard: View {
     let preset: RulePreset
     let isHovered: Bool
 
@@ -138,7 +146,12 @@ private struct PresetCard: View {
     }
 
     private var categoryColor: Color {
-        switch preset.category {
+        Self.color(for: preset.category)
+    }
+
+    /// The accent colour a preset category is drawn in.
+    static func color(for category: RulePreset.PresetCategory) -> Color {
+        switch category {
         case .performance:
             return .orange
         case .swiftUI:
@@ -170,9 +183,38 @@ struct RulePresetPicker: View {
                     }
                 }
             }
+
+            browserEntry
         } label: {
             Label("Presets", systemImage: "rectangle.stack")
         }
+    }
+
+    /// The browser's entry point. Shown even while unfinished, under a heading
+    /// that says so, rather than hidden until it ships — every preset here can
+    /// already be applied from the menu above, so nothing is withheld.
+    @ViewBuilder
+    private var browserEntry: some View {
+        let feature = Feature.presetBrowser
+        if let disclosure = feature.status.disclosure {
+            SwiftUI.Section(disclosure) {
+                browserButton(feature, isEnabled: false)
+            }
+        } else {
+            SwiftUI.Section {
+                browserButton(feature, isEnabled: true)
+            }
+        }
+    }
+
+    private func browserButton(_ feature: Feature, isEnabled: Bool) -> some View {
+        Button {
+            // Inert until the browser ships; the heading above says as much.
+        } label: {
+            Label(feature.title, systemImage: "square.grid.2x2")
+        }
+        .disabled(!isEnabled)
+        .accessibilityIdentifier("PresetBrowserMenuItem")
     }
 }
 
