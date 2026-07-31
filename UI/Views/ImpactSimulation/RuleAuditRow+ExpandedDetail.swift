@@ -51,8 +51,9 @@ extension RuleAuditRow {
                             RoundedRectangle(cornerRadius: 2)
                                 .fill(entry.effortCategory.color)
                                 .frame(
-                                    width: fileBarWidth(
+                                    width: Self.fileBarWidth(
                                         count: item.count,
+                                        maxCount: entry.violationsByFile.first?.count ?? 0,
                                         in: geometry.size.width
                                     ),
                                     height: 4
@@ -80,8 +81,11 @@ extension RuleAuditRow {
         .frame(minWidth: 300, alignment: .leading)
     }
 
-    private func fileBarWidth(count: Int, in totalWidth: CGFloat) -> CGFloat {
-        guard let maxCount = entry.violationsByFile.first?.count, maxCount > 0 else { return 0 }
+    /// Width of one file's bar, scaled against the worst file in the breakdown.
+    /// Bars are floored at 2pt so a file with a single violation still reads as
+    /// a bar rather than disappearing.
+    static func fileBarWidth(count: Int, maxCount: Int, in totalWidth: CGFloat) -> CGFloat {
+        guard maxCount > 0 else { return 0 }
         let proportion = CGFloat(count) / CGFloat(maxCount)
         return max(proportion * totalWidth, 2)
     }
