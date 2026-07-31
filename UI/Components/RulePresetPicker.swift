@@ -153,41 +153,6 @@ private struct PresetCard: View {
     }
 }
 
-/// Compact inline preset badge
-private struct PresetBadge: View {
-    let preset: RulePreset
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: preset.icon)
-                .font(.caption2)
-                .accessibilityHidden(true)
-            Text(preset.name)
-                .font(.caption2)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(categoryColor.opacity(0.2))
-        .foregroundStyle(categoryColor)
-        .clipShape(.rect(cornerRadius: 6))
-    }
-
-    private var categoryColor: Color {
-        switch preset.category {
-        case .performance:
-            return .orange
-        case .swiftUI:
-            return .blue
-        case .concurrency:
-            return .purple
-        case .codeStyle:
-            return .green
-        case .documentation:
-            return .cyan
-        }
-    }
-}
-
 /// A menu-based picker for selecting and applying rule presets
 struct RulePresetPicker: View {
     let onPresetSelected: (RulePreset) -> Void
