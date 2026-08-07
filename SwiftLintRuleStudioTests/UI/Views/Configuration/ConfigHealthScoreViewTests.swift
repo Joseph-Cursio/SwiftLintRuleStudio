@@ -17,7 +17,13 @@ import ViewInspector
 
 @MainActor
 struct ConfigHealthScoreViewTests {
-    @Test("ConfigHealthScoreView renders the three section headers")
+    // Disabled on macOS 27 beta (build 26A5388g): `ConfigHealthScoreView` renders a
+    // GeometryReader, and ViewInspector 0.10.3 traps fabricating the `GeometryProxy`
+    // (it handles 48 and 52 bytes; this OS reports 76). The trap kills the test
+    // process rather than failing this test, crashlooping the whole target — see the
+    // fuller note in RuleAuditRowExpandedDetailTests.swift.
+    @Test("ConfigHealthScoreView renders the three section headers",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func testRendersSectionHeaders() async throws {
         // The Recommendations section only renders when there's at least one
         // recommendation, so provide one so the test can assert that section's

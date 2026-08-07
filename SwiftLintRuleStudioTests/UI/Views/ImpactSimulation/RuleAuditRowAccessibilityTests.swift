@@ -34,7 +34,16 @@ struct RuleAuditRowAccessibilityTests {
         )
     }
 
-    @Test("The audit row exposes a single composed accessibility label")
+    // Disabled on macOS 27 beta (build 26A5388g): `RuleAuditRow` renders a
+    // GeometryReader, and ViewInspector 0.10.3 fabricates the `GeometryProxy`
+    // SwiftUI won't let it construct by `unsafeBitCast`-ing a fixed-size zeroed
+    // struct. It knows 48 and 52 bytes; this OS reports 76, so the unguarded
+    // fallback traps. That kills the test process rather than failing this test,
+    // crashlooping the whole target — see the fuller note in
+    // RuleAuditRowExpandedDetailTests.swift. The composed label itself is correct;
+    // the XCUITest target still covers it against the real accessibility tree.
+    @Test("The audit row exposes a single composed accessibility label",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func rowHasComposedLabel() throws {
         let row = makeRow()
         let matchesComposedLabel: (InspectableView<ViewType.ClassifiedView>) throws -> Bool = { view in

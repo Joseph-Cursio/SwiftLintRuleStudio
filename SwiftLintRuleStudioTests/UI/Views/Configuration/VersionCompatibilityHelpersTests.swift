@@ -255,7 +255,13 @@ struct VersionCompatibilityHelpersTests {
         #expect(Self.contains(section, text: "The content"))
     }
 
-    @Test("The section icon is hidden from assistive technologies")
+    // Disabled on macOS 27 beta (build 26A5388g): ViewInspector 0.10.3 cannot read
+    // accessibility modifiers on this SwiftUI, so `accessibilityHidden()` throws
+    // "Image does not have 'accessibilityHidden' modifier" regardless of the view.
+    // The modifier is correct and present; only test-time introspection is broken.
+    // See the fuller note in RuleParameterEditorTests.swift.
+    @Test("The section icon is hidden from assistive technologies",
+          .disabled("ViewInspector 0.10.3 cannot read accessibility modifiers on macOS 27"))
     func issueSectionHidesItsIcon() throws {
         // The title already names the section, so the icon would be a second,
         // redundant VoiceOver stop.

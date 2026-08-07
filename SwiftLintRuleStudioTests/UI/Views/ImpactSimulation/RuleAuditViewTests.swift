@@ -270,7 +270,17 @@ struct RuleAuditViewTests {
         #expect(ruleCount == 2)
     }
 
-    @Test("RuleAuditView shows summary cards and status bar with pre-populated entries")
+    // Disabled on macOS 27 beta (build 26A5388g): with entries present, RuleAuditView
+    // renders RuleAuditRow, which contains a GeometryReader. ViewInspector 0.10.3
+    // fabricates the `GeometryProxy` SwiftUI won't let it construct by
+    // `unsafeBitCast`-ing a fixed-size zeroed struct — it handles 48 and 52 bytes,
+    // this OS reports 76 — and the unguarded fallback traps. That kills the test
+    // process rather than failing this test, crashlooping the whole target. The
+    // sibling tests above stay enabled because they render the empty state, which
+    // has no rows and so no GeometryReader. See the fuller note in
+    // RuleAuditRowExpandedDetailTests.swift.
+    @Test("RuleAuditView shows summary cards and status bar with pre-populated entries",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     @MainActor
     func testShowsSummaryAndStatusBar() async throws {
         let entries = [
