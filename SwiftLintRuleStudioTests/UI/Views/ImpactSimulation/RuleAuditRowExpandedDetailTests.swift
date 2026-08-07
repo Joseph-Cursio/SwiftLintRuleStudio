@@ -13,6 +13,22 @@ import SwiftUI
 import Testing
 import ViewInspector
 
+// Every test that inspects `expandedDetail` is disabled on macOS 27 beta (build
+// 26A5388g). SwiftUI gives `GeometryProxy` no public initializer, so ViewInspector
+// 0.10.3 fabricates one by `unsafeBitCast`-ing a fixed-size zeroed struct; it
+// knows 48 and 52 bytes, this OS reports 76, and the unguarded fallback traps
+// with "Can't unsafeBitCast between types of different sizes".
+//
+// A trap is not a test failure — it kills the test process. Left enabled, these
+// crashloop the whole target: the run restarts repeatedly, unrelated suites are
+// reported failed, and the set differs run to run. `withKnownIssue` cannot help,
+// because this is a fatalError rather than a recorded issue. See
+// ViewInspectorCompatibilityTests.swift for the preflight that names the size.
+//
+// `RuleAuditRow` renders a GeometryReader, so any traversal of it traps. The five
+// `fileBarWidth` tests below stay enabled: they call the static function directly
+// and never inspect a view. Re-enable the rest when upstream ships the fix
+// (nalexn/ViewInspector PR #421, unmerged as of 2026-08-07).
 @MainActor
 @Suite("RuleAuditRow expanded detail")
 struct RuleAuditRowExpandedDetailTests {
@@ -130,7 +146,8 @@ struct RuleAuditRowExpandedDetailTests {
 
     // MARK: - File breakdown
 
-    @Test("The panel shows both section headings")
+    @Test("The panel shows both section headings",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func showsSectionHeadings() {
         let row = Self.makeRow(violations: Self.makeViolations([("A.swift", 2)]))
 
@@ -138,7 +155,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(Self.detailContains(row, text: "Example Violation"))
     }
 
-    @Test("Each affected file is listed with its violation count")
+    @Test("Each affected file is listed with its violation count",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func listsFilesWithCounts() {
         let row = Self.makeRow(
             violations: Self.makeViolations([("A.swift", 3), ("B.swift", 1)])
@@ -149,7 +167,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(Self.detailContains(row, text: "3"))
     }
 
-    @Test("Only the five worst files are listed, with the rest summarised")
+    @Test("Only the five worst files are listed, with the rest summarised",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func truncatesToTopFiveFiles() {
         // Seven files, descending so the cut-off is unambiguous.
         let row = Self.makeRow(
@@ -167,7 +186,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(Self.detailContains(row, text: "+ 2 more files"))
     }
 
-    @Test("Exactly five files are all listed with no overflow line")
+    @Test("Exactly five files are all listed with no overflow line",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func showsNoOverflowLineAtExactlyFive() {
         let row = Self.makeRow(
             violations: Self.makeViolations([
@@ -183,7 +203,8 @@ struct RuleAuditRowExpandedDetailTests {
 
     // MARK: - Example violation
 
-    @Test("The first violation is shown with its file, line and message")
+    @Test("The first violation is shown with its file, line and message",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func showsFirstViolationDetails() {
         let violations = [
             Violation(
@@ -201,7 +222,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(Self.detailContains(row, text: "Force casts should be avoided"))
     }
 
-    @Test("An entry with no violation details says so")
+    @Test("An entry with no violation details says so",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func showsPlaceholderWithoutViolations() {
         // A result can carry a count without the individual violations.
         let impact = RuleImpactResult(
@@ -230,7 +252,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(Self.detailContains(row, text: "No violation details available"))
     }
 
-    @Test("An error-severity violation is labelled as an error")
+    @Test("An error-severity violation is labelled as an error",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func labelsErrorSeverity() throws {
         let row = Self.makeRow(
             violations: Self.makeViolations([("A.swift", 1)], severity: .error)
@@ -243,7 +266,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(hasErrorLabel)
     }
 
-    @Test("A warning-severity violation is labelled as a warning")
+    @Test("A warning-severity violation is labelled as a warning",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func labelsWarningSeverity() throws {
         let row = Self.makeRow(
             violations: Self.makeViolations([("A.swift", 1)], severity: .warning)
@@ -258,7 +282,8 @@ struct RuleAuditRowExpandedDetailTests {
 
     // MARK: - Autocorrection
 
-    @Test("An auto-fixable rule advertises that every violation can be fixed")
+    @Test("An auto-fixable rule advertises that every violation can be fixed",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func showsAutocorrectionNote() {
         let row = Self.makeRow(
             violations: Self.makeViolations([("A.swift", 3)]),
@@ -268,7 +293,8 @@ struct RuleAuditRowExpandedDetailTests {
         #expect(Self.detailContains(row, text: "All 3 violations are auto-fixable"))
     }
 
-    @Test("A rule without autocorrection shows no such note")
+    @Test("A rule without autocorrection shows no such note",
+          .disabled("ViewInspector 0.10.3 traps on GeometryReader on macOS 27"))
     func hidesAutocorrectionNote() {
         let row = Self.makeRow(
             violations: Self.makeViolations([("A.swift", 3)]),
