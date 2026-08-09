@@ -144,13 +144,7 @@ struct WorkspaceSelectionViewInteractionTests {
         #expect(hasRecentWorkspaces == true, "Recent workspace row should be tappable")
     }
 
-    // Disabled on macOS 27 beta (build 26A5388g): ViewInspector 0.10.3 cannot read
-    // accessibility modifiers on this SwiftUI, so the traversal fails with
-    // "Search did not find a match. Possible blockers: AccessibilityImageLabel".
-    // Only test-time introspection is broken. See the fuller note in
-    // RuleParameterEditorTests.swift.
-    @Test("WorkspaceSelectionView taps recent workspace row to open",
-          .disabled("ViewInspector 0.10.3 cannot read accessibility modifiers on macOS 27"))
+    @Test("WorkspaceSelectionView taps recent workspace row to open")
     func testTappingRecentWorkspaceRowOpensWorkspace() async throws {
         let (_, workspaceManager) = await createWorkspaceSelectionView()
 

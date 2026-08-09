@@ -2,59 +2,92 @@
 //  ViewInspectorCompatibilityTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  Preflight for the one ViewInspector assumption that fails catastrophically
+//  Preflight for the ViewInspector assumptions that fail catastrophically
 //  rather than gracefully.
 //
 
 import SwiftUI
 import Testing
+import ViewInspector
 
-/// SwiftUI gives `GeometryProxy` no public initializer, so ViewInspector
-/// fabricates one by `unsafeBitCast`-ing a zeroed struct of a hardcoded size —
-/// see `Sources/ViewInspector/SwiftUI/GeometryReader.swift`. It recognizes 52
-/// and 48 bytes; for any other size it bitcasts the 48-byte allocator anyway,
-/// with no guard, and traps.
+/// ViewInspector reflects into private SwiftUI layout, so an OS update can break
+/// it while the public API is unchanged. Two such breaks bit this project on
+/// macOS 27 beta:
 ///
-/// A trap is not a test failure. It kills the whole test process, so every suite
-/// scheduled alongside it is reported as failed — ~115 of them here, a different
-/// set each run because the scheduling is nondeterministic. The real cause is
-/// invisible in that output: the reported crash site is the Swift stdlib's
-/// `unsafeBitCast`, not ViewInspector.
+/// - `GeometryProxy` has no public initializer, so ViewInspector fabricates one
+///   from a zeroed allocation. Until nalexn/ViewInspector#421 that allocation was
+///   a fixed-size `unsafeBitCast` recognizing only 48 and 52 bytes; macOS 27
+///   reports 76 and the unguarded fallback trapped.
+/// - `AccessibilityProperties` replaced its named members with a generic
+///   `storage` array, so every `accessibilityLabel()` lookup threw.
 ///
-/// This test converts that into one named failure carrying the actual number.
+/// The first is the dangerous one: a trap is not a test failure, it kills the
+/// whole test process, so every suite scheduled alongside it is reported failed —
+/// ~115 of them here, a different set each run. The real cause is invisible in
+/// that output, because the reported crash site is the Swift stdlib's
+/// `unsafeBitCast` rather than ViewInspector.
+///
+/// These tests exercise the two capabilities directly, on the smallest possible
+/// views, so a future regression surfaces as a named failure here instead of as
+/// unexplained collateral across the target.
 @Suite("ViewInspector compatibility")
+@MainActor
 struct ViewInspectorCompatibilityTests {
 
-    /// Sizes ViewInspector 0.10.3 knows how to fabricate. Update this to match
-    /// `GeometryProxy.init()` in whatever version the project pins.
-    private static let supportedGeometryProxySizes = [48, 52]
+    private struct GeometryProbe: View {
+        var body: some View {
+            GeometryReader { proxy in
+                Rectangle()
+                    .frame(width: max(0, proxy.size.width))
+                    .accessibilityIdentifier("probe")
+            }
+        }
+    }
 
-    @Test("ViewInspector can fabricate a GeometryProxy on this OS")
-    func geometryProxyLayoutIsSupported() {
-        let size = MemoryLayout<GeometryProxy>.size
+    private struct AccessibilityProbe: View {
+        var body: some View {
+            Button("Probe") {}
+                .accessibilityLabel("Probe label")
+        }
+    }
+
+    @Test("ViewInspector can traverse into a GeometryReader on this OS")
+    func geometryReaderTraversalWorks() throws {
+        // Reaching the child forces ViewInspector to fabricate the GeometryProxy,
+        // which is the step that trapped. RuleAuditRow, RuleAuditRow+ExpandedDetail
+        // and ConfigHealthScoreView all render a GeometryReader, so their suites
+        // depend on this working.
+        let identifier = try GeometryProbe().inspect()
+            .geometryReader()
+            .shape()
+            .accessibilityIdentifier()
 
         #expect(
-            Self.supportedGeometryProxySizes.contains(size),
+            identifier == "probe",
             """
-            ViewInspector cannot fabricate a GeometryProxy on this OS.
+            ViewInspector could not traverse into a GeometryReader on this OS.
 
-            MemoryLayout<GeometryProxy>.size is \(size) bytes; ViewInspector \
-            0.10.3 handles only \(Self.supportedGeometryProxySizes). Its \
-            unguarded fallback will unsafeBitCast a 48-byte allocator into a \
-            \(size)-byte type and trap.
+            MemoryLayout<GeometryProxy>.size is \(MemoryLayout<GeometryProxy>.size) \
+            bytes. If ViewInspector has regressed to a fixed-size fabrication, this \
+            traversal traps rather than fails, killing the test process — treat any \
+            mass failure of unrelated suites as collateral. withKnownIssue cannot \
+            help, because a fatalError is not a recorded issue.
+            """
+        )
+    }
 
-            Consequence: any ViewInspector traversal reaching a GeometryReader \
-            kills the test process. In this project that is RuleAuditRow.swift, \
-            RuleAuditRow+ExpandedDetail.swift and ConfigHealthScoreView.swift, \
-            so RuleAuditViewTests, RuleAuditRowAccessibilityTests, \
-            RuleAuditRowExpandedDetailTests and ConfigHealthScoreViewTests \
-            cannot run. Treat any mass failure of unrelated suites as collateral.
+    @Test("ViewInspector can read accessibility modifiers on this OS")
+    func accessibilityIntrospectionWorks() throws {
+        let label = try AccessibilityProbe().inspect().button().accessibilityLabel().string()
 
-            Measured 76 bytes on macOS 27.0 beta (26A5388g). Adding an \
-            Allocator76 to ViewInspector locally cleared the crash and let all \
-            21 tests in those suites execute, so a size-matched allocator is \
-            the fix. Note withKnownIssue cannot help: this is a fatalError trap, \
-            not a recorded issue.
+        #expect(
+            label == "Probe label",
+            """
+            ViewInspector could not read an accessibility modifier on this OS.
+
+            This fails on the simplest possible view, so it is a library/OS layout \
+            mismatch rather than anything wrong with the views under test. The \
+            XCUITest target still reads the real accessibility tree.
             """
         )
     }
