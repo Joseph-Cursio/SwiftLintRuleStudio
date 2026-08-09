@@ -39,14 +39,7 @@ struct OnboardingViewAccessibilityTests {
         }
     }
 
-    // Disabled on macOS 27 beta (build 26A5388g): ViewInspector 0.10.3 cannot read
-    // accessibility modifiers on this SwiftUI, so `accessibilityLabel()` never
-    // matches and `hasStepLabel` is always false. The label is correct in the view;
-    // only test-time introspection is broken. See the fuller note in
-    // RuleParameterEditorTests.swift. The ScrollView test above is unaffected —
-    // structural traversal still works.
-    @Test("The progress indicator announces the step number",
-          .disabled("ViewInspector 0.10.3 cannot read accessibility modifiers on macOS 27"))
+    @Test("The progress indicator announces the step number")
     func progressAnnouncesStep() throws {
         let view = makeView(testName: #function)
         let announcesStep: (InspectableView<ViewType.ClassifiedView>) throws -> Bool = { element in
