@@ -35,7 +35,10 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftLintInProcessBackendTests",
-            dependencies: ["SwiftLintInProcessBackend"],
+            dependencies: [
+                "SwiftLintInProcessBackend",
+                .product(name: "SwiftLintRuleStudioCore", package: "SwiftLintRuleStudioCore")
+            ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]
