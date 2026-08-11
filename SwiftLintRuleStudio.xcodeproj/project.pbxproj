@@ -8,21 +8,21 @@
 
 /* Begin PBXBuildFile section */
 		2818FF612F79C06B00B130CE /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF602F79C06B00B130CE /* SwiftLintRuleStudioCore */; };
-		C0DE0011CAFEBABE00000011 /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */; };
 		2818FF652F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */; };
-		C0DE0001CAFEBABE00000001 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */; };
-		E00000000000000000000012 /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000011 /* SwiftLintRuleStudioCore */; };
-		E00000000000000000000014 /* SwiftLintInProcessBackend in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000013 /* SwiftLintInProcessBackend */; };
-		E0000000000000000000001A /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000019 /* Yams */; };
-		E00000000000000000000016 /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000015 /* LintStudioCore */; };
-		E00000000000000000000018 /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000017 /* LintStudioUI */; };
-		C0DE0003CAFEBABE00000003 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */; };
 		703C936D2F0030E8006A88AE /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = 703886762EFC3A3500F2A033 /* Yams */; };
 		703C936E2F0030E8006A88AE /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = 703886742EFC3A3500F2A033 /* ViewInspector */; };
 		AA10000130000001AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000230000002AABBCCDD /* LintStudioCore */; };
 		AA10000330000003AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000430000004AABBCCDD /* LintStudioUI */; };
 		AA10000630000006AABBCCDD /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000830000008AABBCCDD /* LintStudioCore */; };
 		AA10000730000007AABBCCDD /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = AA10000930000009AABBCCDD /* LintStudioUI */; };
+		C0DE0001CAFEBABE00000001 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */; };
+		C0DE0003CAFEBABE00000003 /* SwiftLintCLIBackend in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */; };
+		C0DE0011CAFEBABE00000011 /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */; };
+		E00000000000000000000012 /* SwiftLintRuleStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000011 /* SwiftLintRuleStudioCore */; };
+		E00000000000000000000014 /* SwiftLintInProcessBackend in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000013 /* SwiftLintInProcessBackend */; };
+		E00000000000000000000016 /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000015 /* LintStudioCore */; };
+		E00000000000000000000018 /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000017 /* LintStudioUI */; };
+		E0000000000000000000001A /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000019 /* Yams */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,21 +44,16 @@
 
 /* Begin PBXFileReference section */
 		703886472EFC3A3400F2A033 /* SwiftLintRuleStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLintRuleStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E00000000000000000000008 /* SwiftLintRuleExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLintRuleExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7038864D2EFC3A3400F2A037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		703886562EFC3A3500F2A033 /* SwiftLintRuleStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLintRuleStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		703886602EFC3A3500F2A033 /* SwiftLintRuleStudioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLintRuleStudioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E00000000000000000000008 /* SwiftLintRuleExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLintRuleExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		703886492EFC3A3400F2A033 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = App;
-			sourceTree = "<group>";
-		};
-		E00000000000000000000009 /* ExplorerApp */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ExplorerApp;
 			sourceTree = "<group>";
 		};
 		7038864B2EFC3A3400F2A035 /* UI */ = {
@@ -74,6 +69,11 @@
 		703886632EFC3A3500F2A033 /* SwiftLintRuleStudioUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SwiftLintRuleStudioUITests;
+			sourceTree = "<group>";
+		};
+		E00000000000000000000009 /* ExplorerApp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ExplorerApp;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -262,8 +262,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				E00000000000000000000009 /* ExplorerApp */,
 				7038864B2EFC3A3400F2A035 /* UI */,
+				E00000000000000000000009 /* ExplorerApp */,
 			);
 			name = SwiftLintRuleExplorer;
 			packageProductDependencies = (
@@ -285,7 +285,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					703886462EFC3A3400F2A033 = {
 						CreatedOnToolsVersion = 26.2;
@@ -448,6 +448,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L3QPPH39L5;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -473,6 +474,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_DEBUG_INFO_FORMAT = dwarf;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -519,6 +521,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = L3QPPH39L5;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -537,6 +540,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -550,6 +554,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -587,6 +592,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -620,6 +626,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_THREAD_SANITIZER = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -646,6 +653,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
@@ -668,6 +676,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.2.1;
@@ -689,6 +698,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.2.1;
@@ -710,19 +720,30 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_THREAD_SANITIZER = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "SwiftLint Rule Explorer";
+				INFOPLIST_KEY_CFBundleDisplayName = "Rule Explorer for SwiftLint";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -730,7 +751,7 @@
 				);
 				MARKETING_VERSION = 1.2.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks";
-				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLintRuleExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.GroovySoftwareLabs.SwiftLintRuleExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -749,25 +770,36 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Manual;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = "";
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = L3QPPH39L5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "SwiftLint Rule Explorer";
+				INFOPLIST_KEY_CFBundleDisplayName = "Rule Explorer for SwiftLint";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.2.1;
-				PRODUCT_BUNDLE_IDENTIFIER = name.JosephCursio.SwiftLintRuleExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.GroovySoftwareLabs.SwiftLintRuleExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
@@ -875,25 +907,10 @@
 			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
 			productName = SwiftLintRuleStudioCore;
 		};
-		C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
-			productName = SwiftLintRuleStudioCore;
-		};
 		2818FF642F79C0A200B130CE /* SwiftLintRuleStudioCoreTestSupport */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
 			productName = SwiftLintRuleStudioCoreTestSupport;
-		};
-		C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
-			productName = SwiftLintCLIBackend;
-		};
-		C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
-			productName = SwiftLintCLIBackend;
 		};
 		703886742EFC3A3500F2A033 /* ViewInspector */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -925,29 +942,44 @@
 			package = AA10000530000005AABBCCDD /* XCRemoteSwiftPackageReference "LintStudioUI" */;
 			productName = LintStudioUI;
 		};
+		C0DE0002CAFEBABE00000002 /* SwiftLintCLIBackend */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
+			productName = SwiftLintCLIBackend;
+		};
+		C0DE0004CAFEBABE00000004 /* SwiftLintCLIBackend */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
+			productName = SwiftLintCLIBackend;
+		};
+		C0DE0010CAFEBABE00000010 /* SwiftLintRuleStudioCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
+			productName = SwiftLintRuleStudioCore;
+		};
 		E00000000000000000000011 /* SwiftLintRuleStudioCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 2818FF5E2F79BFC700B130CE /* ... */;
+			package = 2818FF5E2F79BFC700B130CE /* XCLocalSwiftPackageReference "SwiftLintRuleStudioCore" */;
 			productName = SwiftLintRuleStudioCore;
 		};
 		E00000000000000000000013 /* SwiftLintInProcessBackend */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E00000000000000000000010 /* ... */;
+			package = E00000000000000000000010 /* XCLocalSwiftPackageReference "SwiftLintInProcessBackend" */;
 			productName = SwiftLintInProcessBackend;
 		};
 		E00000000000000000000015 /* LintStudioCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AA10000530000005AABBCCDD /* ... */;
+			package = AA10000530000005AABBCCDD /* XCRemoteSwiftPackageReference "LintStudioUI" */;
 			productName = LintStudioCore;
 		};
 		E00000000000000000000017 /* LintStudioUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AA10000530000005AABBCCDD /* ... */;
+			package = AA10000530000005AABBCCDD /* XCRemoteSwiftPackageReference "LintStudioUI" */;
 			productName = LintStudioUI;
 		};
 		E00000000000000000000019 /* Yams */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 703886752EFC3A3500F2A033 /* ... */;
+			package = 703886752EFC3A3500F2A033 /* XCRemoteSwiftPackageReference "Yams" */;
 			productName = Yams;
 		};
 /* End XCSwiftPackageProductDependency section */
