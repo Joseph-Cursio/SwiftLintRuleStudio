@@ -23,6 +23,10 @@
 		E00000000000000000000016 /* LintStudioCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000015 /* LintStudioCore */; };
 		E00000000000000000000018 /* LintStudioUI in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000017 /* LintStudioUI */; };
 		E0000000000000000000001A /* Yams in Frameworks */ = {isa = PBXBuildFile; productRef = E00000000000000000000019 /* Yams */; };
+		E0000000000000000000A101 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7038864D2EFC3A3400F2A037 /* Assets.xcassets */; };
+		E0000000000000000000A102 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7038864D2EFC3A3400F2A037 /* Assets.xcassets */; };
+		E0000000000000000000A201 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000A200 /* AppIcon.icon */; };
+		E0000000000000000000A202 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000A200 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +49,7 @@
 /* Begin PBXFileReference section */
 		703886472EFC3A3400F2A033 /* SwiftLintRuleStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLintRuleStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7038864D2EFC3A3400F2A037 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E0000000000000000000A200 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		703886562EFC3A3500F2A033 /* SwiftLintRuleStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLintRuleStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		703886602EFC3A3500F2A033 /* SwiftLintRuleStudioUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftLintRuleStudioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E00000000000000000000008 /* SwiftLintRuleExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftLintRuleExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -141,6 +146,7 @@
 				7038864B2EFC3A3400F2A035 /* UI */,
 				E00000000000000000000009 /* ExplorerApp */,
 				7038864D2EFC3A3400F2A037 /* Assets.xcassets */,
+				E0000000000000000000A200 /* AppIcon.icon */,
 				703886592EFC3A3500F2A033 /* SwiftLintRuleStudioTests */,
 				703886632EFC3A3500F2A033 /* SwiftLintRuleStudioUITests */,
 				2818FF5F2F79C06B00B130CE /* Frameworks */,
@@ -337,6 +343,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E0000000000000000000A102 /* Assets.xcassets in Resources */,
+				E0000000000000000000A202 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,6 +366,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E0000000000000000000A101 /* Assets.xcassets in Resources */,
+				E0000000000000000000A201 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
