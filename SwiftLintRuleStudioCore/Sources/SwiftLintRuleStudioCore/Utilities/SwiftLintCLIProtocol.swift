@@ -34,7 +34,7 @@ public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async thr
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
 
 /// Protocol for SwiftLint CLI operations
-public protocol SwiftLintCLIProtocol: Sendable {
+public nonisolated protocol SwiftLintCLIProtocol: Sendable {
     func detectSwiftLintPath() async throws -> URL
     func executeRulesCommand() async throws -> Data
     func executeRuleDetailCommand(ruleId: String) async throws -> Data
