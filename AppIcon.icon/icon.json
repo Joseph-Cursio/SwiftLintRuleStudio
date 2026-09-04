@@ -7,8 +7,8 @@
       "layers" : [
         {
           "hidden" : false,
-          "image-name" : "C_full_1024 4.png",
-          "name" : "C_full_1024 4",
+          "image-name" : "C_full_1024.png",
+          "name" : "C_full_1024",
           "opacity-specializations" : [
             {
               "value" : 0
@@ -21,8 +21,8 @@
         },
         {
           "hidden" : false,
-          "image-name" : "icon_C_light_1024 4.png",
-          "name" : "icon_C_light_1024 4",
+          "image-name" : "icon_C_light_1024.png",
+          "name" : "icon_C_light_1024",
           "opacity-specializations" : [
             {
               "appearance" : "dark",
