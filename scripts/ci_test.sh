@@ -17,6 +17,13 @@ cd "$PROJECT_ROOT"
 # three targets in this order; the script only ran two.
 swift test --package-path SwiftLintRuleStudioCore
 
+# Same trap, second package. SwiftLintInProcessBackend holds the sandboxed Explorer
+# edition's ONLY coverage -- the in-process backend, the reduced capability set and
+# the sandbox bootstrap. Those tests live here rather than in an Xcode test target
+# because a test bundle hosted by the Explorer app breaks SwiftLint's macro plugin;
+# see the Testing section of CLAUDE.md. Without this line CI skips them silently.
+swift test --package-path SwiftLintInProcessBackend
+
 # -parallel-testing-enabled NO is no longer required for correctness -- it predates
 # the scratch-directory race fixed in TestTempDirectory. Measured after that fix,
 # both settings pass consistently and the wall-clock difference is in the noise, so

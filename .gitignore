@@ -4,6 +4,7 @@ DerivedData/
 SwiftLintRuleStudio.xcodeproj/project.xcworkspace/xcuserdata/
 SwiftLintRuleStudio.xcodeproj/xcuserdata/
 *.xcresult
+SwiftLintRuleStudio.xcodeproj/project.pbxproj.bak-*
 SwiftLintRuleStudioCore/.build/
 SwiftLintRuleStudioCore/.swiftpm/
 SwiftLintRuleStudioCore/.swiftinfer/
