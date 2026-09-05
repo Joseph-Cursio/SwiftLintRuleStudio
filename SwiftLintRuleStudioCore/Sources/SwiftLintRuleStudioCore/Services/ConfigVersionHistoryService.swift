@@ -53,6 +53,17 @@ public protocol ConfigVersionHistoryServiceProtocol {
 /// Service for browsing and restoring configuration version history
 public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
 
+    private let now: DateProvider
+
+    /// `now` defaults to the system clock, so no existing call site changes.
+    ///
+    /// The clock is observable here rather than incidental: the safety backup is named
+    /// `{config}.{unix timestamp}.backup`, and `listBackups` parses that stamp back out. Choose
+    /// the instant and the round trip becomes a law — a backup taken at `t` is listed at `t`.
+    public init(now: DateProvider = .system) {
+        self.now = now
+    }
+
     public func listBackups(for configPath: URL) -> [ConfigBackup] {
         let directory = configPath.deletingLastPathComponent()
         let configFileName = configPath.lastPathComponent
@@ -104,7 +115,7 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
 
         // Create a safety backup of current config before restoring
         if fileManager.fileExists(atPath: configPath.path) {
-            let timestamp = Int(Date.now.timeIntervalSince1970)
+            let timestamp = Int(now().timeIntervalSince1970)
             let safetyBackupName = "\(configPath.lastPathComponent).\(timestamp).backup"
             let safetyBackupPath = configPath.deletingLastPathComponent()
                 .appendingPathComponent(safetyBackupName)
