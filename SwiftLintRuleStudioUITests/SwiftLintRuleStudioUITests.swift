@@ -87,11 +87,18 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
         // If "Show Sidebar" button exists, tap it to reveal sidebar items.
         let showSidebarButton = window.buttons["Show Sidebar"]
         if showSidebarButton.waitForExistence(timeout: 2) {
-            showSidebarButton.tap()
+            showSidebarButton.click()
             sleep(1)
         }
     }
 
+    // Interactions use `click()`, not `tap()`. On the macOS 27 SDK `tap()` is a
+    // silent no-op against this app's SwiftUI controls: the element reports
+    // `exists`, `isEnabled` and `isHittable` all true, the call returns without
+    // error, and nothing happens. `testOnboardingFlow` caught it because it
+    // asserts on the step it navigates to; the other flows kept passing only
+    // because their assertions held without the tap ever landing. `click()` is
+    // the macOS-native API and works on both 6.3.3 and 6.4.
     func findElement(
         in root: XCUIElement,
         identifier: String
@@ -157,7 +164,7 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
             predicate: enabledPredicate, object: nextButton
         )
         _ = XCTWaiter.wait(for: [nextEnabledExpectation], timeout: 5.0)
-        nextButton.tap()
+        nextButton.click()
 
         let nextButtonAfterCheck = findElement(in: window, identifier: "OnboardingNextButton")
         let nextCheckEnabledExpectation = XCTNSPredicateExpectation(
@@ -165,7 +172,7 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
             object: nextButtonAfterCheck
         )
         _ = XCTWaiter.wait(for: [nextCheckEnabledExpectation], timeout: 5.0)
-        nextButtonAfterCheck.tap()
+        nextButtonAfterCheck.click()
 
         let workspaceTitle = window.staticTexts["Select a Workspace"]
         XCTAssertTrue(workspaceTitle.waitForExistence(timeout: 5))
@@ -179,14 +186,14 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
 
         let rulesRow = findElement(in: window, identifier: "SidebarRulesLink")
         XCTAssertTrue(rulesRow.waitForExistence(timeout: 5))
-        rulesRow.tap()
+        rulesRow.click()
 
         let violationsRow = findElement(in: window, identifier: "SidebarViolationsLink")
         XCTAssertTrue(violationsRow.waitForExistence(timeout: 5))
-        violationsRow.tap()
+        violationsRow.click()
 
         let ruleAuditRow = findElement(in: window, identifier: "SidebarRuleAuditLink")
         XCTAssertTrue(ruleAuditRow.waitForExistence(timeout: 5))
-        ruleAuditRow.tap()
+        ruleAuditRow.click()
     }
 }
