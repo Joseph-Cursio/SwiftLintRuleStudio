@@ -8,6 +8,7 @@
 import Foundation
 import LintStudioCore
 @testable import SwiftLintRuleStudioCore
+import SwiftLintCLISeam
 
 // @unchecked Sendable: Test mock with controlled single-threaded access in tests
 public final class MockViolationStorage: ViolationStorageProtocol, @unchecked Sendable {

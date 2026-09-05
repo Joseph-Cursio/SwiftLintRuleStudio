@@ -135,6 +135,7 @@ enum ViolationInspectorViewModelTestHelpers {
         }
     }
 
+    @MainActor
     static func createMockViolationStorage() -> MockViolationStorageForViewModel {
         MockViolationStorageForViewModel()
     }

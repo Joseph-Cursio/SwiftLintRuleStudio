@@ -10,6 +10,7 @@ import Foundation
 import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
+import SwiftLintCLISeam
 
 struct SwiftLintCLICommandAndPathTests {
     @Test("SwiftLintCLIActor executeRulesCommand uses runner")

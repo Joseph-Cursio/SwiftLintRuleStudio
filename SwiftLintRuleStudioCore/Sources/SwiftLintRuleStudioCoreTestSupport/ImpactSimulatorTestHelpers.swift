@@ -7,6 +7,7 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
+import SwiftLintCLISeam
 
 /// Test helpers for impact simulator tests
 public enum ImpactSimulatorTestHelpers {

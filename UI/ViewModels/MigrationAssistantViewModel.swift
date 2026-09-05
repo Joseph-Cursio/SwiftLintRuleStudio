@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import SwiftLintRuleStudioCore
+import SwiftLintCLISeam
 
 enum MigrationError: LocalizedError {
     case noPreviousVersion

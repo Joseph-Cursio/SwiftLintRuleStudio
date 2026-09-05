@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftLintCLISeam
 
 /// A non-destructive mirror of a workspace. Hand ``root`` to
 /// `SwiftLintCLIProtocol.executeLintCommand(configPath:workspacePath:)` as the

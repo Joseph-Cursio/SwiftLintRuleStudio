@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import SwiftLintRuleStudioCore
+import SwiftLintCLISeam
 
 @MainActor
 @Observable

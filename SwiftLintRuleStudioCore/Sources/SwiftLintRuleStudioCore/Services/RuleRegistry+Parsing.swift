@@ -1,4 +1,5 @@
 import Foundation
+import SwiftLintCLISeam
 
 extension RuleRegistry {
     private static let initialDetailBatchSize = 20

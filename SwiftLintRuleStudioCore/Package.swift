@@ -25,6 +25,12 @@ let package = Package(
         .library(
             name: "SwiftLintCLIBackend",
             targets: ["SwiftLintCLIBackend"]
+        ),
+        // The backend seam. A product rather than a bare target so the separate
+        // SwiftLintInProcessBackend package can implement it directly.
+        .library(
+            name: "SwiftLintCLISeam",
+            targets: ["SwiftLintCLISeam"]
         )
     ],
     dependencies: [
@@ -37,9 +43,21 @@ let package = Package(
         .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "3.0.0")
     ],
     targets: [
+        // Deliberately omits `.defaultIsolation(MainActor.self)`: the seam is
+        // implemented by actors, structs and classes across three packages, and an
+        // isolation default it has to opt out of is what broke the build across two
+        // Swift versions. See the file header.
+        .target(
+            name: "SwiftLintCLISeam",
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+                .enableUpcomingFeature("MemberImportVisibility")
+            ]
+        ),
         .target(
             name: "SwiftLintRuleStudioCore",
             dependencies: [
+                "SwiftLintCLISeam",
                 "Yams",
                 .product(name: "LintStudioCore", package: "LintStudioUI")
             ],

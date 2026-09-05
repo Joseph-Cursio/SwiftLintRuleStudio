@@ -10,6 +10,7 @@ import Foundation
 import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
+import SwiftLintCLISeam
 
 struct SwiftLintCLILintCommandTests {
     @Test("SwiftLintCLIActor executeLintCommand lints in effective (nested) mode")

@@ -7,6 +7,7 @@
 
 import SwiftLintRuleStudioCore
 import SwiftUI
+import SwiftLintCLISeam
 
 struct VersionCompatibilityView: View {
     @State var viewModel: VersionCompatibilityViewModel

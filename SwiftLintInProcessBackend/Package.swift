@@ -28,6 +28,9 @@ let package = Package(
         .target(
             name: "SwiftLintInProcessBackend",
             dependencies: [
+                // Only the seam, not all of Core: this target implements the protocol and
+                // wants none of the app's MainActor isolation default.
+                .product(name: "SwiftLintCLISeam", package: "SwiftLintRuleStudioCore"),
                 .product(name: "SwiftLintRuleStudioCore", package: "SwiftLintRuleStudioCore"),
                 .product(name: "SwiftLintFramework", package: "SwiftLint")
             ],
