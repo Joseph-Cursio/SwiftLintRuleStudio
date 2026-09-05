@@ -244,7 +244,12 @@ public actor RuleDetailsSwiftLintCLIActor: SwiftLintCLIProtocol {
     }
 }
 
-public final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
+// `nonisolated` on the class, not on each method: the package's
+// `defaultIsolation(MainActor.self)` otherwise pins the stored properties to the
+// main actor while the protocol's `nonisolated` requirements pull the methods off
+// it, which Swift 6.4 rejects. `CacheManager` itself dodges this only by being a
+// struct of `let`s.
+nonisolated public final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
     public var cachedRules: [Rule] = []
     public var shouldFailLoad = false
     public var shouldFailSave = false
