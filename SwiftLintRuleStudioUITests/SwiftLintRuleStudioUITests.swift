@@ -125,6 +125,80 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
             .firstMatch
     }
 
+    /// Text in this app's SwiftUI views surfaces as `value` on macOS, not `label`,
+    /// so match on either rather than using subscript lookup.
+    func text(in root: XCUIElement, _ string: String) -> XCUIElement {
+        root.staticTexts
+            .matching(NSPredicate(format: "label == %@ OR value == %@", string, string))
+            .firstMatch
+    }
+
+    /// Asserts the destination identified by `present` is on screen and that every
+    /// other section's marker is gone. Checking the absences is the point: a
+    /// navigation that never happened leaves the previous screen's markers behind,
+    /// which is exactly what a presence-only assertion cannot see.
+    func assertShowing(
+        _ window: XCUIElement,
+        present: [String],
+        absent: [String],
+        _ destination: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        guard let first = present.first else { return }
+        XCTAssertTrue(
+            findElement(in: window, identifier: first).waitForExistence(timeout: 8),
+            "\(destination) should be showing, but \(first) never appeared",
+            file: file, line: line
+        )
+        for ident in present.dropFirst() {
+            XCTAssertTrue(
+                findElement(in: window, identifier: ident).exists,
+                "\(destination) should be showing, but \(ident) is missing",
+                file: file, line: line
+            )
+        }
+        for ident in absent {
+            XCTAssertFalse(
+                findElement(in: window, identifier: ident).exists,
+                "\(ident) is still on screen, so navigation to \(destination) did not happen",
+                file: file, line: line
+            )
+        }
+    }
+
+    /// Polls until the outline reports a different row count, so filtering
+    /// assertions wait on the list actually changing rather than on a fixed sleep.
+    @discardableResult
+    func waitForCellCountChange(
+        _ outline: XCUIElement,
+        from original: Int,
+        timeout: TimeInterval = 10
+    ) -> Int {
+        let deadline = Date().addingTimeInterval(timeout)
+        var current = outline.cells.count
+        while current == original && Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.25)
+            current = outline.cells.count
+        }
+        return current
+    }
+
+    /// Markers unique to each sidebar destination, used to prove navigation landed.
+    enum Marker {
+        static let rules = [
+            "RuleBrowserClearFiltersButton",
+            "RuleBrowserStatusFilter",
+            "RuleBrowserMultiSelectButton"
+        ]
+        static let violations = [
+            "ViolationInspectorRefreshButton",
+            "ViolationInspectorGroupingMenu",
+            "ViolationInspectorSearchField"
+        ]
+        static let audit = ["RunAuditButton"]
+    }
+
     // swiftlint:enable test_case_accessibility
 
     @MainActor
@@ -184,16 +258,32 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
             XCTFail("No window available"); return
         }
 
-        let rulesRow = findElement(in: window, identifier: "SidebarRulesLink")
-        XCTAssertTrue(rulesRow.waitForExistence(timeout: 5))
-        rulesRow.click()
+        // Each leg asserts the destination arrived *and* that the previous one
+        // left. Before this, the test clicked three links and asserted nothing
+        // about the result, so it passed just as happily when the clicks did
+        // nothing at all -- which, on the macOS 27 SDK, they did.
+        findElement(in: window, identifier: "SidebarRulesLink").click()
+        assertShowing(
+            window,
+            present: Marker.rules,
+            absent: Marker.violations + Marker.audit,
+            "Rules"
+        )
 
-        let violationsRow = findElement(in: window, identifier: "SidebarViolationsLink")
-        XCTAssertTrue(violationsRow.waitForExistence(timeout: 5))
-        violationsRow.click()
+        findElement(in: window, identifier: "SidebarViolationsLink").click()
+        assertShowing(
+            window,
+            present: Marker.violations,
+            absent: Marker.rules + Marker.audit,
+            "Violations"
+        )
 
-        let ruleAuditRow = findElement(in: window, identifier: "SidebarRuleAuditLink")
-        XCTAssertTrue(ruleAuditRow.waitForExistence(timeout: 5))
-        ruleAuditRow.click()
+        findElement(in: window, identifier: "SidebarRuleAuditLink").click()
+        assertShowing(
+            window,
+            present: Marker.audit,
+            absent: Marker.rules + Marker.violations,
+            "Rule Audit"
+        )
     }
 }
