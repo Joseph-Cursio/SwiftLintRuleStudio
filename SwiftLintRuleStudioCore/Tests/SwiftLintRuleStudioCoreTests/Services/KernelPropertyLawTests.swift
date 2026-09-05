@@ -2,7 +2,7 @@
 //  KernelPropertyLawTests.swift
 //  SwiftLintRuleStudioCoreTests
 //
-//  Property-based laws (swift-property-based) for pure kernels the `swift-infer`
+//  Property-based laws (swift-property-based) for total kernels the `swift-infer`
 //  discover pass surfaced but could only characterize with the generic
 //  determinism fallback: it has no *signal* that `deindent` is idempotent, that
 //  `levenshtein` is a metric, or that `isVersion` is an ordering. Those laws are
