@@ -9,6 +9,7 @@ import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing
+import SwiftLintCLISeam
 
 @MainActor
 private final class SpyMigrationAssistant: MigrationAssistantProtocol, @unchecked Sendable {

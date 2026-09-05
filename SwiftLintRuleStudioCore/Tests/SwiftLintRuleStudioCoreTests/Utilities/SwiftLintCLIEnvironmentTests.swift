@@ -10,6 +10,7 @@ import Foundation
 import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
+import SwiftLintCLISeam
 
 struct SwiftLintCLIEnvironmentTests {
     @Test("buildLintArguments rootConfigOnly mode forces --config when present")

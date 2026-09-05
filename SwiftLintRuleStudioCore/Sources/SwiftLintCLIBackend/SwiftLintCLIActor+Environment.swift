@@ -1,5 +1,6 @@
 import Foundation
 import SwiftLintRuleStudioCore
+import SwiftLintCLISeam
 
 /// How SwiftLint resolves configuration when linting a workspace.
 ///

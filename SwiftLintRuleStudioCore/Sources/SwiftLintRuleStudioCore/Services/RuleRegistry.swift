@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftLintCLISeam
 
 /// Service for managing SwiftLint rules metadata
 @MainActor

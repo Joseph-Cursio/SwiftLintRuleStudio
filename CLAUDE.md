@@ -8,8 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build the project (via Xcode command line tools)
 xcodebuild -scheme SwiftLintRuleStudio -configuration Debug build
 
-# Run all tests (three targets, run in this order)
+# Run all tests (four suites, run in this order: packages first, then app unit, then UI)
 swift test --package-path SwiftLintRuleStudioCore
+swift test --package-path SwiftLintInProcessBackend
 xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS' -only-testing:SwiftLintRuleStudioTests
 xcodebuild test -scheme SwiftLintRuleStudio -destination 'platform=macOS' -only-testing:SwiftLintRuleStudioUITests
 
@@ -26,7 +27,7 @@ swiftlint --fix
 open SwiftLintRuleStudio.xcodeproj
 ```
 
-Note: The Core layer is a local Swift package (`SwiftLintRuleStudioCore/`). Its tests run via `swift test`. The app-level unit tests and UI tests run via xcodebuild.
+Note: Two layers are local Swift packages — `SwiftLintRuleStudioCore/` and `SwiftLintInProcessBackend/`. Their tests run via `swift test`; `xcodebuild test` on the app scheme builds them but never runs their tests, so omitting either line silently skips those suites. The app-level unit tests and UI tests run via xcodebuild.
 
 ## Project Overview
 
@@ -133,10 +134,30 @@ Services use protocols for testability:
 
 ## Testing
 
-- **Framework:** Swift Testing (migrated from XCTest)
-- **Test Location:** `SwiftLintRuleStudioTests/` and `SwiftLintRuleStudioUITests/`
-- **Coverage:** 500+ tests, organized by Core/ and UI/
+- **Framework:** Swift Testing (migrated from XCTest); UI tests use XCTest
+- **Test Location:** `SwiftLintRuleStudioCore/Tests/`, `SwiftLintInProcessBackend/Tests/`, `SwiftLintRuleStudioTests/`, and `SwiftLintRuleStudioUITests/`
+- **Coverage:** 1,400+ tests, organized by Core/ and UI/
 - **Isolation:** Tests use isolated UserDefaults, file system, and workspace instances
+
+### Testing the sandboxed Explorer edition
+
+`SwiftLintRuleExplorer` is the sandboxed (App Store) target; `SwiftLintRuleStudio` is
+not sandboxed. Cover the Explorer's distinguishing behaviour from the **package**
+suites — `SwiftLintInProcessBackend/Tests/` for the backend and capability set,
+`SwiftLintRuleStudioCoreTests` for the bookmark store.
+
+Do **not** add an Xcode test target whose `TEST_HOST` is the Explorer app. A test
+bundle sharing package products with its host makes Xcode rebuild every product as a
+dynamic framework; SwiftLint's macro plugin then loads swift-syntax via `@rpath`, and
+the Swift compiler's macro-plugin sandbox blocks the load. The build fails with
+`SwiftLintCoreMacros produced malformed response` plus a cascade of bogus
+`SwiftLintCore` errors that hide the real cause. `-Xfrontend -disable-sandbox` gets
+past the build, but the host then crashes at launch on a missing `SwiftOperators`
+symbol.
+
+Caveat: package tests exercise the sandbox *logic*, not a real sandboxed process.
+Entitlement-dependent behaviour — whether a security-scoped bookmark actually
+resolves under the App Store sandbox — still needs a manual check before submission.
 
 ## Data Flow Example
 

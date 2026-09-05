@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftLintCLISeam
 
 /// Result of simulating a rule's impact
 public struct RuleImpactResult: Sendable, Identifiable {
@@ -67,13 +68,28 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
 
     private let swiftLintCLI: SwiftLintCLIProtocol
     private let workspaceBuilder: SimulationWorkspaceBuilder
+    private let now: DateProvider
+    private let makeID: IDProvider
 
     // MARK: - Initialization
 
-    /// Creates a simulator backed by the given SwiftLint CLI and file manager
-    public init(swiftLintCLI: SwiftLintCLIProtocol, fileManager: FileManager = .default) {
+    /// Creates a simulator backed by the given SwiftLint CLI and file manager.
+    ///
+    /// `now` and `makeID` default to the system clock and random identifiers, so no existing
+    /// call site changes. A test supplies its own to make the simulator a function of its
+    /// inputs: every duration this type reports is a gap between two clock reads, and every
+    /// violation it builds carries an identifier, so both have to be chosen for two runs over
+    /// the same workspace to produce equal results.
+    public init(
+        swiftLintCLI: SwiftLintCLIProtocol,
+        fileManager: FileManager = .default,
+        now: DateProvider = .system,
+        makeID: IDProvider = .random
+    ) {
         self.swiftLintCLI = swiftLintCLI
         self.workspaceBuilder = SimulationWorkspaceBuilder(fileManager: fileManager)
+        self.now = now
+        self.makeID = makeID
     }
 
     // MARK: - Single Rule Simulation
@@ -113,7 +129,7 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         isAnalyzer: Bool,
         parameterOverrides: [String: AnyCodable]?
     ) async throws -> RuleImpactResult {
-        let startTime = Date.now
+        let startTime = now()
 
         try shadow.applyRule(
             ruleId,
@@ -141,7 +157,7 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
             violationCount: ruleViolations.count,
             violations: ruleViolations,
             affectedFiles: affectedFiles,
-            simulationDuration: Date.now.timeIntervalSince(startTime)
+            simulationDuration: now().timeIntervalSince(startTime)
         )
     }
 
@@ -161,7 +177,7 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         classification: RuleClassification = RuleClassification(),
         progressHandler: ((Int, Int, String) -> Void)? = nil
     ) async throws -> BatchSimulationResult {
-        let startTime = Date.now
+        let startTime = now()
         var results: [RuleImpactResult] = []
 
         // Mirror the workspace once; each rule only rewrites the mirror's configs.
@@ -195,12 +211,12 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
             }
         }
 
-        let duration = Date.now.timeIntervalSince(startTime)
+        let duration = now().timeIntervalSince(startTime)
 
         return BatchSimulationResult(
             results: results,
             totalDuration: duration,
-            completedAt: Date.now
+            completedAt: now()
         )
     }
 
@@ -275,9 +291,9 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
                 line: line,
                 severity: severity,
                 message: reason,
-                id: UUID(),
+                id: makeID(),
                 column: column,
-                detectedAt: Date.now
+                detectedAt: now()
             )
 
             violations.append(violation)

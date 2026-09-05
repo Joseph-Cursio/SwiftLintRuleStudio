@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import LintStudioCore
+import SwiftLintCLISeam
 
 /// Abstraction over the workspace analysis engine so callers — and tests — can
 /// depend on the analyze capability without binding to the concrete class or

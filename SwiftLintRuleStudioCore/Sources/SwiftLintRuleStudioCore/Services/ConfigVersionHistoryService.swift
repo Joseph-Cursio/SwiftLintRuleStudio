@@ -53,6 +53,29 @@ public protocol ConfigVersionHistoryServiceProtocol {
 /// Service for browsing and restoring configuration version history
 public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
 
+    private let now: DateProvider
+    private let files: FileIO
+
+    /// Both dependencies default to the real thing, so no existing call site changes.
+    ///
+    /// The clock is observable here rather than incidental: the safety backup is named
+    /// `{config}.{unix timestamp}.backup`, and `listBackups` parses that stamp back out. Choose
+    /// the instant and the round trip becomes a law — a backup taken at `t` is listed at `t`.
+    ///
+    /// `files` covers the read/write/copy this service performs on behalf of a restore. It is
+    /// injected for the failure paths rather than the happy one: whether a restore that cannot
+    /// read its backup leaves the user's configuration untouched is not something you want to
+    /// discover from a bug report, and it cannot be reached on a real file system without
+    /// arranging a permission error.
+    ///
+    /// `diffBetween` deliberately still writes to disk. Its two writes exist to hand content to
+    /// `YAMLConfigurationEngine(configPath:)`, which takes a path and reads it back, so routing
+    /// them through this seam would move the dependency rather than remove it.
+    public init(now: DateProvider = .system, files: FileIO = .live) {
+        self.now = now
+        self.files = files
+    }
+
     public func listBackups(for configPath: URL) -> [ConfigBackup] {
         let directory = configPath.deletingLastPathComponent()
         let configFileName = configPath.lastPathComponent
@@ -96,24 +119,25 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
     }
 
     public func loadBackup(_ backup: ConfigBackup) throws -> String {
-        try String(contentsOf: backup.path, encoding: .utf8)
+        try files.read(backup.path)
     }
 
     public func restoreBackup(_ backup: ConfigBackup, to configPath: URL) throws {
-        let fileManager = FileManager.default
+        // Read first, and write only after the read has succeeded. The order is the contract:
+        // a backup that cannot be read must leave the current configuration untouched, and
+        // reading last would overwrite it before finding out.
+        let backupContent = try files.read(backup.path)
 
-        // Create a safety backup of current config before restoring
-        if fileManager.fileExists(atPath: configPath.path) {
-            let timestamp = Int(Date.now.timeIntervalSince1970)
+        // Safety-net the current config before replacing it.
+        if files.exists(configPath) {
+            let timestamp = Int(now().timeIntervalSince1970)
             let safetyBackupName = "\(configPath.lastPathComponent).\(timestamp).backup"
             let safetyBackupPath = configPath.deletingLastPathComponent()
                 .appendingPathComponent(safetyBackupName)
-            try fileManager.copyItem(at: configPath, to: safetyBackupPath)
+            try files.copy(configPath, safetyBackupPath)
         }
 
-        // Copy backup content to config path
-        let backupContent = try String(contentsOf: backup.path, encoding: .utf8)
-        try backupContent.write(to: configPath, atomically: true, encoding: .utf8)
+        try files.write(backupContent, configPath)
     }
 
     public func diffBetween(
