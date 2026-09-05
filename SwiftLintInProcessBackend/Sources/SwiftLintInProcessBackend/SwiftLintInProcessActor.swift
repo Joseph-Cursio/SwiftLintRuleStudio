@@ -19,7 +19,13 @@ import enum SwiftLintCLISeam.SwiftLintError
 /// `SWIFTLINT_SWIFT_VERSION` supplies the version so rule gating stays correct.
 /// A GUI `.app` doesn't inherit shell env, so these are set via `setenv` at
 /// startup, before any SwiftLintFramework symbol is touched.
-public actor SwiftLintInProcessActor: SwiftLintCLIProtocol {
+/// Declared as a `final class` rather than an `actor`, deliberately. It has no mutable
+/// stored state — only a `static let` and function-local values — so there is nothing for
+/// actor isolation to serialize, and the isolation was decorative. It also has to conform to
+/// `SwiftLintCLIProtocol`, which is `nonisolated` so that every backend and test double can
+/// implement it; an actor conforming to that seam is accepted by one Swift version and
+/// rejected by another, and this type gains nothing by sitting on that fault line.
+public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
 
     /// The Swift version this app is built against. SwiftLint uses it to gate
     /// version-specific rules. Keep in sync with the toolchain on version bumps.
