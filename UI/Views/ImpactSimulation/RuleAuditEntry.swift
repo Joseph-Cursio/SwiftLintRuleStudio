@@ -13,6 +13,13 @@ struct RuleAuditEntry: Identifiable, Sendable {
 
     var id: String { rule.id }
 
+    /// The rule's category, asked of the entry rather than reached for through it.
+    ///
+    /// `RuleAuditRow` read `entry.rule.category.displayName`, which is the chain
+    /// `law-of-demeter` names. The row cares which category this entry is in, not that an entry
+    /// contains a rule which has one.
+    var category: RuleCategory { rule.category }
+
     var violationCount: Int {
         guard let result = impactResult else { return 0 }
         return max(result.violationCount, 0)
