@@ -20,7 +20,7 @@ extension SwiftLintRuleStudioUITests {
 
         let rulesLink = findElement(in: window, identifier: "SidebarRulesLink")
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
-        rulesLink.tap()
+        rulesLink.click()
 
         let searchField = window.searchFields.firstMatch
         XCTAssertTrue(searchField.waitForExistence(timeout: 8),
@@ -49,7 +49,7 @@ extension SwiftLintRuleStudioUITests {
 
         let rulesLink = findElement(in: window, identifier: "SidebarRulesLink")
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
-        rulesLink.tap()
+        rulesLink.click()
 
         let searchField = window.searchFields.firstMatch
         guard searchField.waitForExistence(timeout: 8) else { return }
@@ -77,7 +77,7 @@ extension SwiftLintRuleStudioUITests {
 
         let rulesLink = findElement(in: window, identifier: "SidebarRulesLink")
         XCTAssertTrue(rulesLink.waitForExistence(timeout: 5))
-        rulesLink.tap()
+        rulesLink.click()
 
         let searchField = window.searchFields.firstMatch
         guard searchField.waitForExistence(timeout: 8) else { return }
@@ -93,7 +93,7 @@ extension SwiftLintRuleStudioUITests {
         XCTAssertTrue(simulateButton.isEnabled,
                       "Simulate button should be enabled when a workspace is open")
 
-        simulateButton.tap()
+        simulateButton.click()
 
         let progressIndicator = app.progressIndicators.firstMatch
         _ = progressIndicator.waitForExistence(timeout: 5)
