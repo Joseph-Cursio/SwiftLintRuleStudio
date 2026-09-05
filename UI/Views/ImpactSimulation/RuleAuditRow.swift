@@ -166,7 +166,7 @@ struct RuleAuditRow: View {
     }
 
     private var categoryBadge: some View {
-        Text(entry.rule.category.displayName)
+        Text(entry.category.displayName)
             .font(.caption2)
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
@@ -176,14 +176,14 @@ struct RuleAuditRow: View {
             .frame(width: AuditColumnWidths.category)
     }
 
+    /// The shared mapping, not a local one.
+    ///
+    /// This was a private switch giving `style` purple, `lint` blue, `metrics` green and
+    /// `idiomatic` teal — while `RuleCategoryColors`, used by the rule list and the rule detail
+    /// header, gives them blue, red, purple and green. Four of five categories disagreed, so the
+    /// same rule wore a different badge colour depending on which screen you were looking at.
     private var categoryColor: Color {
-        switch entry.rule.category {
-        case .style: .purple
-        case .lint: .blue
-        case .metrics: .green
-        case .performance: .orange
-        case .idiomatic: .teal
-        }
+        RuleCategoryColors.color(for: entry.category)
     }
 
     private var violationDisplay: some View {
