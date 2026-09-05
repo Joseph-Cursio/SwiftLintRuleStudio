@@ -10,6 +10,7 @@ import Foundation
 import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
+import SwiftLintCLISeam
 
 struct SwiftLintCLIErrorAndVersionTests {
     @Test("SwiftLintError has correct error descriptions")

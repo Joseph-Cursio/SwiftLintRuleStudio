@@ -12,6 +12,7 @@ import Foundation
 import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
+import SwiftLintCLISeam
 
 struct SwiftLintCLIShellOutputTests {
     @Test("SwiftLintCLIActor treats exit 127 as notFound")

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftLintCLISeam
 
 /// Result of simulating a rule's impact
 public struct RuleImpactResult: Sendable, Identifiable {

@@ -1,3 +1,16 @@
+//  The SwiftLint CLI seam.
+//
+//  This file lives in its own target for one reason: the target does **not** set
+//  `.defaultIsolation(MainActor.self)`. In Core, which does, every declaration is
+//  MainActor-isolated unless it opts out, and these had to carry `nonisolated` to
+//  undo a default they never wanted. That opt-out is what put the seam on a
+//  compiler fault line — an actor conforming to a `nonisolated` protocol is
+//  accepted by one Swift version and rejected by another.
+//
+//  With no isolation default to undo, there is no keyword, and nothing for two
+//  compilers to disagree about. A seam implemented by every backend and every test
+//  double should not inherit an app's isolation policy in the first place.
+
 //
 //  SwiftLintCLIProtocol.swift
 //  SwiftLintRuleStudio
@@ -9,11 +22,10 @@
 //
 
 import Foundation
-import LintStudioCore
 
 /// Output of a SwiftLint command: standard output, standard error, and the
 /// process exit code (which drives the exit-code policy).
-public nonisolated struct SwiftLintCommandOutput: Sendable {
+public struct SwiftLintCommandOutput: Sendable {
     public let stdout: Data
     public let stderr: Data
     public let exitCode: Int32
@@ -34,7 +46,7 @@ public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async thr
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
 
 /// Protocol for SwiftLint CLI operations
-public nonisolated protocol SwiftLintCLIProtocol: Sendable {
+public protocol SwiftLintCLIProtocol: Sendable {
     func detectSwiftLintPath() async throws -> URL
     func executeRulesCommand() async throws -> Data
     func executeRuleDetailCommand(ruleId: String) async throws -> Data
@@ -43,7 +55,7 @@ public nonisolated protocol SwiftLintCLIProtocol: Sendable {
     func getVersion() async throws -> String
 }
 
-public nonisolated enum SwiftLintError: LocalizedError, Sendable {
+public enum SwiftLintError: LocalizedError, Sendable {
     case notFound
     case invalidVersion
     case executionFailed(message: String)

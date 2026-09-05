@@ -14,6 +14,7 @@ import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
+import SwiftLintCLISeam
 
 private struct StubVersionChecker: VersionCompatibilityCheckerProtocol {
     func checkCompatibility(

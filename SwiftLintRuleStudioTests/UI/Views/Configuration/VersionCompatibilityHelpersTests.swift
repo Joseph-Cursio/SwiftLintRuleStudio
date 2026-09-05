@@ -13,6 +13,7 @@ import Foundation
 import SwiftUI
 import Testing
 import ViewInspector
+import SwiftLintCLISeam
 
 private struct HelpersStubChecker: VersionCompatibilityCheckerProtocol {
     func checkCompatibility(

@@ -9,6 +9,7 @@ import Foundation
 import LintStudioCore
 @testable import SwiftLintRuleStudioCore
 import Testing
+import SwiftLintCLISeam
 
 /// Provides isolated UserDefaults instances for each test to prevent cross-test contamination
 public enum IsolatedUserDefaults {

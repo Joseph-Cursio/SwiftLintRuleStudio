@@ -15,6 +15,7 @@
 //
 
 import Foundation
+import SwiftLintCLISeam
 
 public nonisolated struct UnconfiguredSwiftLintBackend: SwiftLintCLIProtocol {
     public init() {}

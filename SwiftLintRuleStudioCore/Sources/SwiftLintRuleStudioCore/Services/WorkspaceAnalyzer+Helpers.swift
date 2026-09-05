@@ -7,6 +7,7 @@
 
 import Foundation
 import LintStudioCore
+import SwiftLintCLISeam
 
 public extension WorkspaceAnalyzer {
     /// Marks the analyzer as actively running and resets progress

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftLintCLISeam
 
 extension RuleRegistry {
     /// Enriches rules with detailed documentation fetched from SwiftLint

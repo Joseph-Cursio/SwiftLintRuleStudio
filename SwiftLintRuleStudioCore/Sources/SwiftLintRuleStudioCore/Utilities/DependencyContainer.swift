@@ -8,6 +8,7 @@
 import Foundation
 import LintStudioCore
 import Observation
+import SwiftLintCLISeam
 
 /// Dependency injection container
 @MainActor

@@ -7,6 +7,7 @@
 
 import SwiftLintRuleStudioCore
 import SwiftUI
+import SwiftLintCLISeam
 
 struct OnboardingView: View {
     var onboardingManager: OnboardingManager
