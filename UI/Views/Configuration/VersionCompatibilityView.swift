@@ -9,6 +9,24 @@ import SwiftLintRuleStudioCore
 import SwiftUI
 import SwiftLintCLISeam
 
+// MARK: - Compatibility sections
+
+/// The prompt shown before a check has run. Fixed text.
+private struct CompatibilityEmptyState: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "checkmark.shield")
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("Click \"Check\" to analyze your configuration compatibility")
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+}
+
 struct VersionCompatibilityView: View {
     @State var viewModel: VersionCompatibilityViewModel
 
@@ -38,7 +56,7 @@ struct VersionCompatibilityView: View {
                 } else if let report = viewModel.report {
                     reportSection(report)
                 } else {
-                    emptyState
+                    CompatibilityEmptyState()
                 }
             }
             .padding()
@@ -78,19 +96,6 @@ struct VersionCompatibilityView: View {
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
-    }
-
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "checkmark.shield")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            Text("Click \"Check\" to analyze your configuration compatibility")
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
     }
 
     private func reportSection(_ report: CompatibilityReport) -> some View {
@@ -139,5 +144,4 @@ struct VersionCompatibilityView: View {
             }
         }
     }
-
 }
