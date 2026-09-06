@@ -10,6 +10,34 @@ import SwiftLintRuleStudioCore
 import SwiftUI
 import UniformTypeIdentifiers
 
+// MARK: - Selection sections
+
+/// The title and icon.
+/// 
+/// `WorkspaceSelectionView` re-renders on the file-picker flag and the error state; this
+/// reads neither, so opening the picker no longer redraws it.
+private struct WorkspaceSelectionHeader: View {
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSizeLarge: CGFloat = 64
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "folder.badge.gearshape")
+                .font(.system(size: iconSizeLarge))
+                .foregroundStyle(.blue)
+                .accessibilityHidden(true)
+
+            Text("Select a Workspace")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+
+            Text("Choose a directory containing your Swift project")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 40)
+    }
+}
+
 struct WorkspaceSelectionView: View {
     @ScaledMetric(relativeTo: .largeTitle) private var iconSizeLarge: CGFloat = 64
 
@@ -20,7 +48,7 @@ struct WorkspaceSelectionView: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            headerSection
+            WorkspaceSelectionHeader()
 
             if let current = workspaceManager.currentWorkspace {
                 currentWorkspaceView(current)
@@ -52,24 +80,6 @@ struct WorkspaceSelectionView: View {
         } message: {
             Text(errorMessage ?? "An unknown error occurred")
         }
-    }
-
-    private var headerSection: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "folder.badge.gearshape")
-                .font(.system(size: iconSizeLarge))
-                .foregroundStyle(.blue)
-                .accessibilityHidden(true)
-
-            Text("Select a Workspace")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-
-            Text("Choose a directory containing your Swift project")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.top, 40)
     }
 
     private var actionButtons: some View {

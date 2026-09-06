@@ -25,6 +25,53 @@ private struct ConfigBenefitRow: View {
     }
 }
 
+// MARK: - Recommendation sections
+
+/// The explanatory banner. Fixed text, so it depends on nothing.
+private struct RecommendationInfoHeader: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.blue)
+                .font(.title2)
+                .accessibilityLabel("Information")
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("SwiftLint Configuration File Missing")
+                    .font(.headline)
+
+                Text("""
+                Your workspace doesn't have a `.swiftlint.yml` configuration file.
+                Creating one will help you:
+                """)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+/// The list of what the recommended config buys. Fixed rows.
+private struct RecommendationBenefits: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ConfigBenefitRow(
+                icon: "checkmark.circle.fill",
+                text: "Exclude third-party code from analysis"
+            )
+            ConfigBenefitRow(
+                icon: "checkmark.circle.fill",
+                text: "Customize rule severity and behavior"
+            )
+            ConfigBenefitRow(
+                icon: "checkmark.circle.fill",
+                text: "Follow SwiftLint best practices"
+            )
+        }
+        .padding(.leading, 32)
+    }
+}
+
 struct ConfigRecommendationView: View {
     var workspaceManager: WorkspaceManager
     /// Test-only seam to capture the opened URL without launching a browser.
@@ -38,8 +85,8 @@ struct ConfigRecommendationView: View {
     var body: some View {
         if workspaceManager.configFileMissing {
             VStack(alignment: .leading, spacing: 12) {
-                infoHeader
-                benefitsList
+                RecommendationInfoHeader()
+                RecommendationBenefits()
                 actionRow
             }
             .padding()
@@ -60,45 +107,6 @@ struct ConfigRecommendationView: View {
                 Text(errorMessage ?? "Unknown error occurred while creating the configuration file.")
             }
         }
-    }
-
-    private var infoHeader: some View {
-        HStack {
-            Image(systemName: "info.circle.fill")
-                .foregroundStyle(.blue)
-                .font(.title2)
-                .accessibilityLabel("Information")
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("SwiftLint Configuration File Missing")
-                    .font(.headline)
-
-                Text("""
-                Your workspace doesn't have a `.swiftlint.yml` configuration file.
-                Creating one will help you:
-                """)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var benefitsList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ConfigBenefitRow(
-                icon: "checkmark.circle.fill",
-                text: "Exclude third-party code from analysis"
-            )
-            ConfigBenefitRow(
-                icon: "checkmark.circle.fill",
-                text: "Customize rule severity and behavior"
-            )
-            ConfigBenefitRow(
-                icon: "checkmark.circle.fill",
-                text: "Follow SwiftLint best practices"
-            )
-        }
-        .padding(.leading, 32)
     }
 
     private var actionRow: some View {

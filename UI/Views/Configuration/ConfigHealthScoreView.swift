@@ -9,7 +9,7 @@ import SwiftLintRuleStudioCore
 import SwiftUI
 
 /// Row displaying a single breakdown metric
-private struct BreakdownRow: View {
+struct BreakdownRow: View {
     private let excellentThreshold = 80
     private let goodThreshold = 60
     private let fairThreshold = 40
@@ -224,6 +224,8 @@ private struct ConfigHealthPopover: View {
     }
 }
 
+// MARK: - Health sections
+
 /// Full health report view with score breakdown and recommendations
 struct ConfigHealthScoreView: View {
     let report: ConfigHealthReport
@@ -243,7 +245,7 @@ struct ConfigHealthScoreView: View {
                 Divider()
 
                 // Score breakdown
-                breakdownSection
+                HealthBreakdownSection(details: report.breakdown.details)
 
                 Divider()
 
@@ -275,22 +277,6 @@ struct ConfigHealthScoreView: View {
             }
 
             Spacer()
-        }
-    }
-
-    private var breakdownSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Score Breakdown")
-                .font(.headline)
-
-            ForEach(report.breakdown.details, id: \.name) { detail in
-                BreakdownRow(
-                    name: detail.name,
-                    score: detail.score,
-                    weight: detail.weight,
-                    description: detail.description
-                )
-            }
         }
     }
 

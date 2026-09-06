@@ -8,6 +8,36 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+// MARK: - Audit sections
+
+/// The spinner and the rule counter while an audit runs.
+/// 
+/// Takes the progress, so the audit results accumulating beneath it do not redraw the
+/// spinner.
+private struct AuditProgressView: View {
+    let progress: AuditProgress?
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.5)
+
+            if let progress {
+                Text("Analyzing rule \(progress.current) of \(progress.total)")
+                    .font(.headline)
+
+                Text("Checking: \(progress.ruleId)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ProgressView(value: Double(progress.current), total: Double(progress.total))
+                    .frame(width: 400)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 struct RuleAuditView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
 
@@ -63,7 +93,7 @@ struct RuleAuditView: View {
     @ViewBuilder
     private var mainContent: some View {
         if isAuditing {
-            auditingProgressView
+            AuditProgressView(progress: auditProgress)
         } else if auditEntries.isEmpty {
             emptyStateView
         } else {
@@ -113,26 +143,6 @@ struct RuleAuditView: View {
         } label: {
             Label("Sort", systemImage: "arrow.up.arrow.down")
         }
-    }
-
-    private var auditingProgressView: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.5)
-
-            if let progress = auditProgress {
-                Text("Analyzing rule \(progress.current) of \(progress.total)")
-                    .font(.headline)
-
-                Text("Checking: \(progress.ruleId)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                ProgressView(value: Double(progress.current), total: Double(progress.total))
-                    .frame(width: 400)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyStateView: some View {

@@ -8,6 +8,25 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+// MARK: - Import sections
+
+/// The confirmation banner. Fixed text, so it depends on nothing.
+private struct ImportSuccessBanner: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .accessibilityHidden(true)
+            Text("Configuration imported successfully!")
+                .fontWeight(.semibold)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.1))
+        .clipShape(.rect(cornerRadius: 8))
+    }
+}
+
 struct ConfigImportView: View {
     @State private var viewModel: ConfigImportViewModel
 
@@ -33,7 +52,7 @@ struct ConfigImportView: View {
                 }
 
                 if viewModel.importComplete {
-                    successSection
+                    ImportSuccessBanner()
                 }
 
                 if let preview = viewModel.preview {
@@ -85,20 +104,6 @@ struct ConfigImportView: View {
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
-    }
-
-    private var successSection: some View {
-        HStack {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-                .accessibilityHidden(true)
-            Text("Configuration imported successfully!")
-                .fontWeight(.semibold)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.green.opacity(0.1))
         .clipShape(.rect(cornerRadius: 8))
     }
 
@@ -168,5 +173,4 @@ struct ConfigImportView: View {
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
     }
-
 }

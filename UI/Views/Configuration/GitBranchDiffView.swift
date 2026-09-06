@@ -8,6 +8,27 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+// MARK: - Branch diff sections
+
+/// Shown when the workspace is not inside a git repository. Fixed text.
+private struct NotGitRepoNotice: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "arrow.triangle.branch")
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("Not a Git Repository")
+                .font(.headline)
+            Text("This workspace is not inside a git repository. Branch diff requires git.")
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+}
+
 struct GitBranchDiffView: View {
     @State private var viewModel: GitBranchDiffViewModel
 
@@ -34,7 +55,7 @@ struct GitBranchDiffView: View {
     @ViewBuilder
     private var mainContent: some View {
         if viewModel.isNotGitRepo {
-            notGitRepoSection
+            NotGitRepoNotice()
         } else if viewModel.isLoading && viewModel.availableRefs == nil {
             ProgressView("Loading git refs...")
                 .frame(maxWidth: .infinity)
@@ -59,22 +80,6 @@ struct GitBranchDiffView: View {
     }
 
     // MARK: - Sections
-
-    private var notGitRepoSection: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "arrow.triangle.branch")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            Text("Not a Git Repository")
-                .font(.headline)
-            Text("This workspace is not inside a git repository. Branch diff requires git.")
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
-    }
 
     private var branchPickerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
