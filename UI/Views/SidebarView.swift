@@ -8,24 +8,22 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
-struct SidebarView: View {
-    @Binding var selection: AppSection?
-    @Environment(\.dependencies) var dependencies: DependencyContainer
-    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
+// MARK: - Sidebar sections
+
+// Each section depends on fewer of the sidebar's inputs than the sidebar does, so SwiftUI can skip
+// it when the others change. `SidebarView` re-renders on `selection`, `dependencies` and
+// `ruleRegistry`; `AnalysisSection` and `ConfigurationSection` depend on none of them.
+//
+// That these can be extracted at all was measured rather than assumed — see
+// `TagResolutionMeasurementTests`. A `.tag()` applied inside an extracted `View` still resolves
+// against the enclosing `List(selection:)`, which is what makes each of these safe to move.
+
+/// The current workspace's name and path, or nothing when none is open.
+private struct WorkspaceInfoSection: View {
+    let workspace: Workspace?
 
     var body: some View {
-        List(selection: $selection) {
-            workspaceInfoSection
-            workspaceNavigationSection
-            analysisSection
-            configurationSection
-        }
-        .listStyle(.sidebar)
-    }
-
-    @ViewBuilder
-    private var workspaceInfoSection: some View {
-        if let workspace = dependencies.workspaceManager.currentWorkspace {
+        if let workspace {
             SwiftUI.Section("Workspace") {
                 VStack(alignment: .leading, spacing: 4) {
                     Label {
@@ -46,11 +44,16 @@ struct SidebarView: View {
             }
         }
     }
+}
 
-    private var workspaceNavigationSection: some View {
+/// Rules, violations and export. Takes the rule count rather than the registry.
+private struct WorkspaceNavigationSection: View {
+    let ruleCount: Int
+
+    var body: some View {
         SwiftUI.Section("Workspace") {
             Label("Rules", systemImage: "list.bullet.rectangle")
-                .badge(max(ruleRegistry.rules.count, 0))
+                .badge(max(ruleCount, 0))
                 .tag(AppSection.rules)
                 .accessibilityIdentifier("SidebarRulesLink")
             Label("Enabled Rule Violations", systemImage: "exclamationmark.triangle")
@@ -61,8 +64,11 @@ struct SidebarView: View {
                 .accessibilityIdentifier("SidebarExportReportLink")
         }
     }
+}
 
-    private var analysisSection: some View {
+/// Dashboard, audit and version check. Depends on nothing.
+private struct AnalysisSection: View {
+    var body: some View {
         SwiftUI.Section("Analysis") {
             Label("Dashboard", systemImage: "chart.bar").tag(AppSection.dashboard)
             Label("Disabled Rule Audit", systemImage: "checklist").tag(AppSection.ruleAudit)
@@ -71,8 +77,11 @@ struct SidebarView: View {
                 .accessibilityIdentifier("SidebarVersionCheckLink")
         }
     }
+}
 
-    private var configurationSection: some View {
+/// The configuration destinations. Depends on nothing.
+private struct ConfigurationSection: View {
+    var body: some View {
         SwiftUI.Section("Configuration") {
             Label("Config Map", systemImage: "map").tag(AppSection.configMap)
                 .accessibilityIdentifier("SidebarConfigMapLink")
@@ -87,5 +96,21 @@ struct SidebarView: View {
             Label("Migration", systemImage: "arrow.up.circle").tag(AppSection.migration)
                 .accessibilityIdentifier("SidebarMigrationLink")
         }
+    }
+}
+
+struct SidebarView: View {
+    @Binding var selection: AppSection?
+    @Environment(\.dependencies) var dependencies: DependencyContainer
+    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
+
+    var body: some View {
+        List(selection: $selection) {
+            WorkspaceInfoSection(workspace: dependencies.workspaceManager.currentWorkspace)
+            WorkspaceNavigationSection(ruleCount: ruleRegistry.rules.count)
+            AnalysisSection()
+            ConfigurationSection()
+        }
+        .listStyle(.sidebar)
     }
 }

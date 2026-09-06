@@ -33,7 +33,9 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if !dependencies.onboardingManager.hasCompletedOnboarding {
+            if TagResolutionHarness.isEnabled {
+                TagResolutionHarnessView()
+            } else if !dependencies.onboardingManager.hasCompletedOnboarding {
                 OnboardingView(
                     onboardingManager: dependencies.onboardingManager,
                     workspaceManager: dependencies.workspaceManager,
