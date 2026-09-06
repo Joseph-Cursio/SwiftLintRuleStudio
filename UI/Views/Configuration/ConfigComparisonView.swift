@@ -43,6 +43,36 @@ private struct FullYAMLDiffView: View {
     }
 }
 
+// MARK: - Comparison sections
+
+/// The placeholder shown before two configs are chosen.
+/// 
+/// Depends on none of the view's inputs — it carries its own scaled metric, which is a
+/// measurement rather than something the parent changes.
+private struct ComparisonEmptyState: View {
+    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.system(size: iconSizeMedium))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+
+            Text("Compare Configurations")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Text("Select two SwiftLint configuration files to compare their rules and settings.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+}
+
 struct ConfigComparisonView: View {
     @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
 
@@ -70,7 +100,7 @@ struct ConfigComparisonView: View {
             } else if let result = viewModel.comparisonResult {
                 comparisonResultView(result)
             } else {
-                emptyStateView
+                ComparisonEmptyState()
             }
         }
         .navigationTitle("Compare Configs")
@@ -284,25 +314,5 @@ struct ConfigComparisonView: View {
             Label("Differences (\(diffs.count))", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
         }
-    }
-
-    private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "arrow.left.arrow.right")
-                .font(.system(size: iconSizeMedium))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text("Compare Configurations")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-
-            Text("Select two SwiftLint configuration files to compare their rules and settings.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 }
