@@ -9,6 +9,106 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+// MARK: - Column subviews
+
+/// The category chip.
+///
+/// `RuleAuditRow` re-renders whenever any of its nine inputs changes — the expansion flag, the
+/// selection flag, the file totals, three callbacks. These four columns depend on the entry alone,
+/// so as inlined properties they were redrawn every time a neighbouring row was expanded or
+/// selected. Each now takes only the values it draws, all of them value types, so SwiftUI compares
+/// them equal and skips.
+private struct AuditCategoryBadge: View {
+    let category: RuleCategory
+
+    /// The shared mapping, not a local one.
+    ///
+    /// This was a private switch giving `style` purple, `lint` blue, `metrics` green and
+    /// `idiomatic` teal — while `RuleCategoryColors`, used by the rule list and the rule detail
+    /// header, gives them blue, red, purple and green. Four of five categories disagreed, so the
+    /// same rule wore a different badge colour depending on which screen you were looking at.
+    private var categoryColor: Color { RuleCategoryColors.color(for: category) }
+
+    var body: some View {
+        Text(category.displayName)
+            .font(.caption2)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(categoryColor.opacity(0.15))
+            .foregroundStyle(categoryColor)
+            .clipShape(Capsule())
+            .frame(width: AuditColumnWidths.category)
+    }
+}
+
+/// Whether the rule can autocorrect.
+private struct AutoFixIndicator: View {
+    let supportsAutocorrection: Bool
+
+    var body: some View {
+        Group {
+            if supportsAutocorrection {
+                Text("Yes")
+                    .foregroundStyle(.green)
+            } else {
+                Text("No")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption)
+        .frame(width: AuditColumnWidths.autoFix)
+    }
+}
+
+/// Affected files, as a count or a fraction of the workspace.
+private struct AffectedFilesDisplay: View {
+    let isCurrentlyEnabled: Bool
+    let affectedFileCount: Int
+    let totalSwiftFiles: Int
+
+    var body: some View {
+        Group {
+            if isCurrentlyEnabled {
+                Text("—")
+                    .foregroundStyle(.secondary)
+            } else if totalSwiftFiles > 0 {
+                Text("\(affectedFileCount) / \(totalSwiftFiles)")
+            } else {
+                Text("\(affectedFileCount)")
+            }
+        }
+        .font(.caption)
+        .frame(width: AuditColumnWidths.affectedFiles)
+    }
+}
+
+/// Enabled or disabled, as a chip.
+private struct AuditStatusBadge: View {
+    let isCurrentlyEnabled: Bool
+
+    var body: some View {
+        Group {
+            if isCurrentlyEnabled {
+                Text("enabled")
+                    .foregroundStyle(.green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color.green.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            } else {
+                Text("disabled")
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color(NSColor.controlBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+        }
+        .font(.caption2)
+        .frame(width: AuditColumnWidths.status)
+    }
+}
+
 struct RuleAuditRow: View {
     let entry: RuleAuditEntry
     let isExpanded: Bool
@@ -129,19 +229,23 @@ struct RuleAuditRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             // Category badge
-            categoryBadge
+            AuditCategoryBadge(category: entry.category)
 
             // Violations + proportional bar
             violationDisplay
 
             // Auto-fixable
-            autoFixIndicator
+            AutoFixIndicator(supportsAutocorrection: entry.rule.supportsAutocorrection)
 
             // Affected files
-            affectedFilesDisplay
+            AffectedFilesDisplay(
+                isCurrentlyEnabled: entry.isCurrentlyEnabled,
+                affectedFileCount: entry.affectedFileCount,
+                totalSwiftFiles: totalSwiftFiles
+            )
 
             // Status
-            statusBadge
+            AuditStatusBadge(isCurrentlyEnabled: entry.isCurrentlyEnabled)
 
             // Action
             actionColumn
@@ -150,6 +254,13 @@ struct RuleAuditRow: View {
         .contentShape(Rectangle())
     }
 
+    /// Kept inline deliberately.
+    ///
+    /// Extracting it would hand a child `onEnable`, a closure the row is given rather than one it
+    /// makes. Its call site decides whether it captures, and a child holding a capturing closure
+    /// was measured to re-render exactly as often as the property it replaced — so there would be
+    /// no update to skip. `Computed Property View` still reports this; its capture gate sees a
+    /// closure a property creates, not one it forwards.
     private var actionColumn: some View {
         Group {
             if !entry.isCurrentlyEnabled {
@@ -163,27 +274,6 @@ struct RuleAuditRow: View {
         }
         .font(.caption)
         .frame(width: AuditColumnWidths.action)
-    }
-
-    private var categoryBadge: some View {
-        Text(entry.category.displayName)
-            .font(.caption2)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(categoryColor.opacity(0.15))
-            .foregroundStyle(categoryColor)
-            .clipShape(Capsule())
-            .frame(width: AuditColumnWidths.category)
-    }
-
-    /// The shared mapping, not a local one.
-    ///
-    /// This was a private switch giving `style` purple, `lint` blue, `metrics` green and
-    /// `idiomatic` teal — while `RuleCategoryColors`, used by the rule list and the rule detail
-    /// header, gives them blue, red, purple and green. Four of five categories disagreed, so the
-    /// same rule wore a different badge colour depending on which screen you were looking at.
-    private var categoryColor: Color {
-        RuleCategoryColors.color(for: entry.category)
     }
 
     private var violationDisplay: some View {
@@ -222,56 +312,5 @@ struct RuleAuditRow: View {
         guard maxViolationCount > 0 else { return 0 }
         let proportion = CGFloat(entry.violationCount) / CGFloat(maxViolationCount)
         return max(proportion * totalWidth, 3)
-    }
-
-    private var autoFixIndicator: some View {
-        Group {
-            if entry.rule.supportsAutocorrection {
-                Text("Yes")
-                    .foregroundStyle(.green)
-            } else {
-                Text("No")
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .font(.caption)
-        .frame(width: AuditColumnWidths.autoFix)
-    }
-
-    private var affectedFilesDisplay: some View {
-        Group {
-            if entry.isCurrentlyEnabled {
-                Text("—")
-                    .foregroundStyle(.secondary)
-            } else if totalSwiftFiles > 0 {
-                Text("\(entry.affectedFileCount) / \(totalSwiftFiles)")
-            } else {
-                Text("\(entry.affectedFileCount)")
-            }
-        }
-        .font(.caption)
-        .frame(width: AuditColumnWidths.affectedFiles)
-    }
-
-    private var statusBadge: some View {
-        Group {
-            if entry.isCurrentlyEnabled {
-                Text("enabled")
-                    .foregroundStyle(.green)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.green.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            } else {
-                Text("disabled")
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            }
-        }
-        .font(.caption2)
-        .frame(width: AuditColumnWidths.status)
     }
 }
