@@ -114,6 +114,34 @@ private struct CodingStyleText: View {
     }
 }
 
+// MARK: - Picker chrome
+
+/// The sheet's title bar and close button.
+/// 
+/// `TemplatePickerView` re-renders on the project type, the coding style and the hovered
+/// template; this reads none of them.
+private struct TemplatePickerHeader: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        HStack {
+            Text("Choose a Template")
+                .font(.headline)
+            Spacer()
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Close")
+            }
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+}
+
 /// Compact modal picker for selecting a template
 struct TemplatePickerView: View {
     @Environment(\.dismiss) private var dismiss
@@ -135,7 +163,7 @@ struct TemplatePickerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            pickerHeader
+            TemplatePickerHeader()
             Divider()
             filterBar
             Divider()
@@ -147,24 +175,6 @@ struct TemplatePickerView: View {
             pickerFooter
         }
         .frame(width: 500, height: 450)
-    }
-
-    private var pickerHeader: some View {
-        HStack {
-            Text("Choose a Template")
-                .font(.headline)
-            Spacer()
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("Close")
-            }
-            .buttonStyle(.plain)
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
     }
 
     private var filterBar: some View {

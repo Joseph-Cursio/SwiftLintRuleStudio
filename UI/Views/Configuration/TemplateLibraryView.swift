@@ -47,6 +47,56 @@ private struct TemplateListRow: View {
     }
 }
 
+// MARK: - Template detail sections
+
+/// The template's name, icon and summary.
+private struct TemplateDetailHeader: View {
+    let template: ConfigurationTemplate
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: template.projectType.icon)
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(template.name)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+
+                    HStack(spacing: 8) {
+                        Text(template.projectType.rawValue)
+                            .foregroundStyle(.secondary)
+                        CodingStyleBadge(style: template.codingStyle)
+                    }
+                }
+            }
+
+            Text(template.description)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// What the template's coding style means.
+/// 
+/// Takes the style rather than the template, so a change to any other field leaves it alone.
+private struct TemplateCodingStyleSection: View {
+    let codingStyle: ConfigurationTemplate.CodingStyle
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("About \(codingStyle.rawValue) Style")
+                .font(.headline)
+
+            Text(codingStyle.description)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
 /// Badge showing the coding style
 struct CodingStyleBadge: View {
     let style: ConfigurationTemplate.CodingStyle
@@ -80,52 +130,14 @@ private struct TemplateDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                headerSection
+                TemplateDetailHeader(template: template)
                 Divider()
-                codingStyleSection
+                TemplateCodingStyleSection(codingStyle: template.codingStyle)
                 Divider()
                 yamlPreviewSection
                 applyButtonSection
             }
             .padding()
-        }
-    }
-
-    @ViewBuilder
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: template.projectType.icon)
-                    .font(.title2)
-                    .foregroundStyle(.tint)
-                    .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(template.name)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-
-                    HStack(spacing: 8) {
-                        Text(template.projectType.rawValue)
-                            .foregroundStyle(.secondary)
-                        CodingStyleBadge(style: template.codingStyle)
-                    }
-                }
-            }
-
-            Text(template.description)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    @ViewBuilder
-    private var codingStyleSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("About \(template.codingStyle.rawValue) Style")
-                .font(.headline)
-
-            Text(template.codingStyle.description)
-                .foregroundStyle(.secondary)
         }
     }
 
