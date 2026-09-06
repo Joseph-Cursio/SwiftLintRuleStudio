@@ -80,6 +80,8 @@ public class WorkspaceManager {
     /// The folder whose security scope is currently held open (so it can be
     /// released when the workspace changes or closes).
     private var activeScopedURL: URL?
+    /// The clock that stamps `Workspace.lastOpened`.
+    private let now: DateProvider
 
     // MARK: - Initialization
 
@@ -87,10 +89,12 @@ public class WorkspaceManager {
     /// optional security-scoped bookmark store (sandboxed target only).
     public init(
         userDefaults: UserDefaults = .standard,
-        bookmarkStore: (any SecurityScopedBookmarkStoring)? = nil
+        bookmarkStore: (any SecurityScopedBookmarkStoring)? = nil,
+        now: DateProvider = .system
     ) {
         self.userDefaults = userDefaults
         self.bookmarkStore = bookmarkStore
+        self.now = now
         loadRecentWorkspaces()
     }
 
@@ -144,12 +148,16 @@ public class WorkspaceManager {
         // Validate that it's a valid Swift project workspace
         try validateSwiftWorkspace(at: url)
 
+        // Both branches stamp `lastOpened`, because both of them are an open. Only the
+        // already-in-recents branch used to, which left the value nil until the second open.
+        let openedAt = now()
+
         // Check if workspace already exists in recent workspaces
         if let existingIndex = recentWorkspaces.firstIndex(where: { $0.path == url }) {
             // Move existing workspace to top
             let existing = recentWorkspaces.remove(at: existingIndex)
             var updated = existing
-            updated.lastAnalyzed = Date.now
+            updated.lastOpened = openedAt
             recentWorkspaces.insert(updated, at: 0)
             currentWorkspace = updated
             // Persist the reordered list so the "most recent" order survives relaunch;
@@ -157,7 +165,8 @@ public class WorkspaceManager {
             saveRecentWorkspaces()
         } else {
             // Create new workspace
-            let workspace = Workspace(path: url)
+            var workspace = Workspace(path: url)
+            workspace.lastOpened = openedAt
             currentWorkspace = workspace
             addToRecentWorkspaces(workspace)
         }

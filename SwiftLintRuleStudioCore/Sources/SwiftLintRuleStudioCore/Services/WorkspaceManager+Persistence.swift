@@ -12,7 +12,48 @@ private struct WorkspaceData: Codable {
     let path: String
     let name: String
     let configPath: String?
-    let lastAnalyzed: Date?
+    let lastOpened: Date?
+
+    init(id: UUID, path: String, name: String, configPath: String?, lastOpened: Date?) {
+        self.id = id
+        self.path = path
+        self.name = name
+        self.configPath = configPath
+        self.lastOpened = lastOpened
+    }
+
+    /// Includes the key this field was written under before it was renamed.
+    private enum CodingKeys: String, CodingKey {
+        case id, path, name, configPath, lastOpened
+        case lastAnalyzed
+    }
+
+    /// Reads `lastOpened`, falling back to whatever was stored under `lastAnalyzed`.
+    ///
+    /// Carrying the old values forward is not only politeness about someone's stored list: the old
+    /// field was written by `openWorkspace(at:)` and by nothing else, so a value stored under
+    /// `lastAnalyzed` *was* an open time. The rename is what makes it readable, not a change to
+    /// what it holds.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        path = try container.decode(String.self, forKey: .path)
+        name = try container.decode(String.self, forKey: .name)
+        configPath = try container.decodeIfPresent(String.self, forKey: .configPath)
+        lastOpened = try container.decodeIfPresent(Date.self, forKey: .lastOpened)
+            ?? container.decodeIfPresent(Date.self, forKey: .lastAnalyzed)
+    }
+
+    /// Writes only the current key. The legacy one is read, never written, so a list that has been
+    /// saved once stops carrying it.
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(path, forKey: .path)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(configPath, forKey: .configPath)
+        try container.encodeIfPresent(lastOpened, forKey: .lastOpened)
+    }
 }
 
 public extension WorkspaceManager {
@@ -37,7 +78,7 @@ public extension WorkspaceManager {
             workspace.configPath = data.configPath.map {
                 URL(fileURLWithPath: $0)
             }
-            workspace.lastAnalyzed = data.lastAnalyzed
+            workspace.lastOpened = data.lastOpened
             return workspace
         }
 
@@ -52,7 +93,7 @@ public extension WorkspaceManager {
                 path: workspace.path.path,
                 name: workspace.name,
                 configPath: workspace.configPath?.path,
-                lastAnalyzed: workspace.lastAnalyzed
+                lastOpened: workspace.lastOpened
             )
         }
 

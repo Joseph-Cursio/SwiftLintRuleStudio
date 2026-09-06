@@ -158,21 +158,4 @@ struct WorkspaceManagerRecentTests {
 
         #expect(count == 0)
     }
-
-    @Test("WorkspaceManager updates last analyzed time")
-    func testUpdateLastAnalyzed() async throws {
-        let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
-        defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
-
-        let (first, second) = try await WorkspaceManagerTestHelpers.withWorkspaceManager { manager in
-            try manager.openWorkspace(at: workspace)
-            let first = manager.recentWorkspaces.first?.lastAnalyzed
-            try manager.openWorkspace(at: workspace)
-            let second = manager.recentWorkspaces.first?.lastAnalyzed
-            return (first, second)
-        }
-
-        #expect(first == nil)
-        #expect(second != nil)
-    }
 }
