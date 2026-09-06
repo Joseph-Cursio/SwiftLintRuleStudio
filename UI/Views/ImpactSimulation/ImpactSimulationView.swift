@@ -42,6 +42,84 @@ private struct ViolationRow: View {
     }
 }
 
+/// Violation count, affected files and simulation time.
+///
+/// Depends on the result alone. `ImpactSimulationView` also holds `ruleId`, `ruleName`,
+/// `onEnable` and the dismiss action, none of which this draws.
+private struct ImpactSummary: View {
+    let result: RuleImpactResult
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Summary")
+                .font(.headline)
+
+            HStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Violations")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("\(result.violationCount)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(result.isSafe ? .green : .orange)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Affected Files")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("\(result.affectedFiles.count)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Simulation Time")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(String(format: "%.2fs", result.simulationDuration))
+                        .font(.title)
+                        .fontWeight(.bold)
+                }
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(.rect(cornerRadius: 8))
+        }
+    }
+}
+
+/// The first twenty violations, with a note when there are more.
+private struct ImpactViolations: View {
+    let result: RuleImpactResult
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Violations")
+                .font(.headline)
+
+            if result.violations.isEmpty {
+                Text("No violations found")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .italic()
+            } else {
+                ForEach(Array(result.violations.prefix(20)), id: \.id) { violation in
+                    ViolationRow(violation: violation)
+                }
+
+                if result.violations.count > 20 {
+                    Text("... and \(result.violations.count - 20) more violations")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.leading, 8)
+                }
+            }
+        }
+    }
+}
+
 struct ImpactSimulationView: View {
     let ruleId: String
     let ruleName: String
@@ -62,13 +140,13 @@ struct ImpactSimulationView: View {
                     Divider()
 
                     // Violation count and affected files
-                    summaryView
+                    ImpactSummary(result: result)
 
                     if result.hasViolations {
                         Divider()
 
                         // Violations list
-                        violationsView
+                        ImpactViolations(result: result)
                     }
                 }
                 .padding()
@@ -122,70 +200,6 @@ struct ImpactSimulationView: View {
         }
     }
 
-    private var summaryView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Summary")
-                .font(.headline)
-
-            HStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Violations")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(result.violationCount)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(result.isSafe ? .green : .orange)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Affected Files")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(result.affectedFiles.count)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Simulation Time")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text(String(format: "%.2fs", result.simulationDuration))
-                        .font(.title)
-                        .fontWeight(.bold)
-                }
-            }
-            .padding()
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(.rect(cornerRadius: 8))
-        }
-    }
-
-    private var violationsView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Violations")
-                .font(.headline)
-
-            if result.violations.isEmpty {
-                Text("No violations found")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .italic()
-            } else {
-                ForEach(Array(result.violations.prefix(20)), id: \.id) { violation in
-                    ViolationRow(violation: violation)
-                }
-
-                if result.violations.count > 20 {
-                    Text("... and \(result.violations.count - 20) more violations")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 8)
-                }
-            }
-        }
-    }
 }
 
 #Preview {
