@@ -219,9 +219,11 @@ extension ExportReportView {
                             workspaceName: workspaceName,
                             // The composition root is where the clock belongs: everything below
                             // this line is a function of what it is handed. Spelled `Date.now`
-                            // rather than `.now` on purpose — the linter's classifier does not
-                            // recognise the implicit-member form, and a clock read that the tool
-                            // cannot see is worse than one it reports here, where it is correct.
+                            // rather than `.now` on purpose: a leading-dot `.now` has no
+                            // syntactic base type, so a linter cannot tell a wall clock from a
+                            // monotonic one and deliberately classifies neither. Writing it that
+                            // way would move this read somewhere no tool can see it, and a read
+                            // reported where it belongs is better than one nothing can find.
                             generatedAt: Date.now,
                             includeSummary: includeSummary,
                             includeDetailedList: includeDetailedList,
