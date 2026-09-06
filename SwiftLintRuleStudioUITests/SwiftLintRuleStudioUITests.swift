@@ -158,9 +158,19 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
                 file: file, line: line
             )
         }
+        // Wait for the old screen to *leave*, rather than asserting it already has.
+        //
+        // The destination appearing does not mean the previous one has gone: during a SwiftUI
+        // navigation transition both are briefly in the tree, so the `waitForExistence` above can
+        // succeed while the outgoing markers are still present. A bare `exists` here then fails
+        // on timing alone.
+        //
+        // Observed on `testRuleBrowserSearchAndFilter`, which failed with "ViolationInspectorGroupingMenu
+        // is still on screen" on one run and passed on the next with no code change between them —
+        // while `testMainNavigation`, driving the same sidebar, passed in the failing run.
         for ident in absent {
-            XCTAssertFalse(
-                findElement(in: window, identifier: ident).exists,
+            XCTAssertTrue(
+                findElement(in: window, identifier: ident).waitForNonExistence(timeout: 8),
                 "\(ident) is still on screen, so navigation to \(destination) did not happen",
                 file: file, line: line
             )
