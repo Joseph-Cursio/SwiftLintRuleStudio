@@ -146,19 +146,16 @@ struct ContentView: View {
         .background(.bar)
     }
 
+    /// Derived from `AppSection.allCases` rather than transcribed.
+    ///
+    /// It used to be eleven hand-written buttons, and it listed eleven of the twelve sections —
+    /// Config Map was missing, reachable only from the sidebar. Deriving the menu is what stops
+    /// that happening again: adding a case to the enum now adds the destination here.
     @ViewBuilder
     private var titleMenuContent: some View {
-        Button("Rules") { selection = .rules }
-        Button("Enabled Rule Violations") { selection = .violations }
-        Button("Export Report") { selection = .exportReport }
-        Button("Dashboard") { selection = .dashboard }
-        Button("Disabled Rule Audit") { selection = .ruleAudit }
-        Button("Version History") { selection = .versionHistory }
-        Button("Compare Configs") { selection = .compareConfigs }
-        Button("Version Check") { selection = .versionCheck }
-        Button("Import Config") { selection = .importConfig }
-        Button("Branch Diff") { selection = .branchDiff }
-        Button("Migration") { selection = .migration }
+        ForEach(AppSection.allCases, id: \.self) { section in
+            Button(section.title) { selection = section }
+        }
     }
 
     @ViewBuilder
