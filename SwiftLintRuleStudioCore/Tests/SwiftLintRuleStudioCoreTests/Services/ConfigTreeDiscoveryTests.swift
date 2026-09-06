@@ -224,4 +224,60 @@ struct ConfigTreeDiscoveryTests {
         #expect(only.depth == 1)
         #expect(only.parentID == nil)
     }
+
+    // MARK: - Discovery is a function of the directory tree
+
+    /// The law the minted id made unstatable.
+    ///
+    /// `DiscoveredConfig.id` was a fresh `UUID()`, so two discoveries over an unchanged workspace
+    /// produced results that were structurally identical and compared unequal. Nothing could be
+    /// said about discovery, two runs could not be diffed, and every row handed to SwiftUI on a
+    /// refresh was a new identity for a row that had not changed.
+    @Test("two discoveries of an unchanged workspace agree on every id")
+    @MainActor
+    func discoveryIsAFunctionOfTheTree() throws {
+        let root = try makePopulatedWorkspace()
+        defer { cleanup(root) }
+        let discovery = ConfigTreeDiscovery()
+
+        let first = discovery.discover(in: root)
+        let second = discovery.discover(in: root)
+
+        #expect(first.configs.count == second.configs.count)
+        #expect(first.configs.map(\.id) == second.configs.map(\.id))
+        #expect(first.configs.map(\.parentID) == second.configs.map(\.parentID))
+    }
+
+    /// Non-vacuity for the law above: the ids are distinct, so the equality is not holding because
+    /// everything collapsed to one value.
+    @Test("each config's id is its own path")
+    @MainActor
+    func idIsTheConfigPath() throws {
+        let root = try makePopulatedWorkspace()
+        defer { cleanup(root) }
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+
+        #expect(tree.configs.count > 1)
+        #expect(Set(tree.configs.map(\.id)).count == tree.configs.count)
+        #expect(tree.configs.allSatisfy { $0.id == $0.configPath })
+    }
+
+    /// Parent links survive the change: a child still points at the nearest ancestor config, and it
+    /// now points at it by path.
+    @Test("a nested config's parent is the nearest ancestor config's path")
+    @MainActor
+    func parentIsTheNearestAncestorPath() throws {
+        let root = try makePopulatedWorkspace()
+        defer { cleanup(root) }
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+        let rootConfig = try #require(tree.configs.first(where: { $0.isRoot }))
+        let legacyPath = "Sources/Legacy/.swiftlint.yml"
+        let legacy = try #require(tree.configs.first(where: { $0.relativePath == legacyPath }))
+
+        #expect(legacy.parentID == rootConfig.configPath)
+        #expect(tree.children(of: rootConfig).contains { $0.id == legacy.id })
+    }
 }
+

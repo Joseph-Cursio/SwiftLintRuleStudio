@@ -84,7 +84,6 @@ public struct ConfigTreeDiscovery {
                 summary = .empty
             }
             return DiscoveredConfig(
-                id: pending.id,
                 configPath: pending.configPath,
                 directoryPath: pending.directoryPath,
                 relativePath: pending.relativePath,
@@ -104,7 +103,6 @@ public struct ConfigTreeDiscovery {
 
     /// A config's path/parse information before parent links are resolved.
     private struct PendingConfig {
-        let id = UUID()
         let configPath: URL
         let directoryPath: URL
         /// Path components of the governed directory (used for ancestor lookup).
@@ -152,14 +150,18 @@ public struct ConfigTreeDiscovery {
 
     /// Resolves a config's parent: the discovered config in the *nearest*
     /// ancestor directory.
+    ///
+    /// Self-exclusion compares paths, which is what it always meant. It used to compare a minted
+    /// `UUID` that existed for no other purpose — two configs are the same config when they are the
+    /// same file.
     private static func parentID(
         for pending: PendingConfig,
         among all: [PendingConfig]
-    ) -> UUID? {
+    ) -> URL? {
         var nearest: PendingConfig?
         let nodeComponents = pending.directoryComponents
 
-        for candidate in all where candidate.id != pending.id {
+        for candidate in all where candidate.configPath != pending.configPath {
             let ancestorComponents = candidate.directoryComponents
             guard ancestorComponents.count < nodeComponents.count else { continue }
             guard Array(nodeComponents.prefix(ancestorComponents.count)) == ancestorComponents else {
@@ -174,7 +176,7 @@ public struct ConfigTreeDiscovery {
             }
         }
 
-        return nearest?.id
+        return nearest?.configPath
     }
 
     private static func summarize(_ config: YAMLConfig) -> ConfigSummary {

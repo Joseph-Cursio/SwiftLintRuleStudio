@@ -15,8 +15,8 @@ import Foundation
 /// Identifies a single config layer (`.swiftlint.yml`) that contributed to a
 /// resolved configuration — the "Set by" attribution in the inspector.
 public struct ConfigLayer: Identifiable, Sendable {
-    /// Matches the originating ``DiscoveredConfig/id``.
-    nonisolated public let id: UUID
+    /// Matches the originating ``DiscoveredConfig/id`` — the config file's path.
+    nonisolated public let id: URL
     /// Path relative to the workspace root, e.g. `Tests/.swiftlint.yml`.
     nonisolated public let relativePath: String
     /// Directory depth below the workspace root (root layer is `0`).
@@ -27,7 +27,7 @@ public struct ConfigLayer: Identifiable, Sendable {
     nonisolated public let displayName: String
 
     nonisolated public init(
-        id: UUID,
+        id: URL,
         relativePath: String,
         depth: Int,
         isRoot: Bool,

@@ -90,7 +90,6 @@ public struct ConfigSummary: Sendable {
 /// A single `.swiftlint.yml` discovered in the workspace, with its parsed
 /// contents and where it sits in the directory hierarchy.
 public struct DiscoveredConfig: Identifiable, Sendable {
-    nonisolated public let id: UUID
     /// Absolute path to the `.swiftlint.yml` file.
     nonisolated public let configPath: URL
     /// The directory this config governs (the file's parent directory).
@@ -102,9 +101,9 @@ public struct DiscoveredConfig: Identifiable, Sendable {
     nonisolated public let depth: Int
     /// Whether this config sits at the workspace root.
     nonisolated public let isRoot: Bool
-    /// The id of the nearest ancestor config (its parent layer), or `nil` for the
-    /// top-most discovered config.
-    nonisolated public let parentID: UUID?
+    /// The path of the nearest ancestor config (its parent layer), or `nil` for
+    /// the top-most discovered config.
+    nonisolated public let parentID: URL?
     /// The parsed configuration, or `nil` if it failed to parse.
     nonisolated public let config: YAMLConfig?
     /// A human-readable parse error, when `config` is `nil`.
@@ -112,19 +111,31 @@ public struct DiscoveredConfig: Identifiable, Sendable {
     /// What this config declares on its own.
     nonisolated public let summary: ConfigSummary
 
+    /// A config's identity is where it is.
+    ///
+    /// This was a freshly minted `UUID`, which made `ConfigTreeDiscovery.discover(in:)` a function
+    /// of more than the directory tree: two calls over an unchanged workspace produced results that
+    /// were structurally identical and compared unequal, so no law could be stated about discovery
+    /// and every row handed to SwiftUI on a refresh was a new identity for a row that had not
+    /// changed.
+    ///
+    /// The path was already doing this work everywhere else — configs are enumerated in path order,
+    /// parents are resolved by comparing path components, and the minted id was only ever used to
+    /// tell one config from another, which the path does. A second identity is one that has to be
+    /// kept in agreement with the first.
+    nonisolated public var id: URL { configPath }
+
     nonisolated public init(
-        id: UUID,
         configPath: URL,
         directoryPath: URL,
         relativePath: String,
         depth: Int,
         isRoot: Bool,
-        parentID: UUID?,
+        parentID: URL?,
         config: YAMLConfig?,
         parseError: String?,
         summary: ConfigSummary
     ) {
-        self.id = id
         self.configPath = configPath
         self.directoryPath = directoryPath
         self.relativePath = relativePath

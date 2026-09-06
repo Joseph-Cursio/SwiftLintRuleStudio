@@ -23,7 +23,6 @@ struct LayerChainPropertyLawTests {
 
     nonisolated private static func makeConfig(directory: URL, depth: Int) -> DiscoveredConfig {
         DiscoveredConfig(
-            id: UUID(),
             configPath: directory.appendingPathComponent(".swiftlint.yml"),
             directoryPath: directory,
             relativePath: ".swiftlint.yml",
