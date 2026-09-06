@@ -13,6 +13,12 @@ import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
+/// The report's timestamp, chosen by the test rather than read from the clock.
+///
+/// `generate(options:)` used to read `Date.now` in the middle of building the HTML, so no test
+/// could state what it produces — one line making a hundred-line pure function impure.
+private let fixedReportInstant = Date(timeIntervalSince1970: 1_000_000)
+
 @MainActor
 @Suite("HTMLReportGenerator Escaping Tests")
 struct HTMLReportGeneratorEscapingTests {
@@ -54,6 +60,7 @@ struct HTMLReportGeneratorEscapingTests {
             options: HTMLReportOptions(
                 violations: [],
                 workspaceName: "Test",
+                generatedAt: fixedReportInstant,
                 includeSummary: false,
                 includeDetailedList: false,
                 includeCodeSnippets: false,
@@ -78,6 +85,7 @@ struct HTMLReportGeneratorEscapingTests {
             options: HTMLReportOptions(
                 violations: [],
                 workspaceName: "Test",
+                generatedAt: fixedReportInstant,
                 includeSummary: false,
                 includeDetailedList: false,
                 includeCodeSnippets: false,
@@ -137,6 +145,7 @@ struct HTMLReportGeneratorTests {
         return HTMLReportOptions(
             violations: violations,
             workspaceName: workspaceName,
+            generatedAt: fixedReportInstant,
             includeSummary: includeSummary,
             includeDetailedList: includeDetailedList,
             includeCodeSnippets: includeCodeSnippets,
@@ -311,6 +320,7 @@ struct HTMLReportGeneratorTests {
         let options = HTMLReportOptions(
             violations: violations,
             workspaceName: "TestProject",
+            generatedAt: fixedReportInstant,
             includeSummary: false,
             includeDetailedList: false,
             includeCodeSnippets: false,
@@ -340,6 +350,39 @@ struct HTMLReportGeneratorTests {
 
         #expect(!html.contains("class=\"rule-config\""))
         #expect(!html.contains("Rule Details"))
+    }
+
+    // MARK: - The report is a function of its options
+
+    /// The property the change buys, and **not** a regression test: it passes against the old
+    /// `Date.now` too, because the formatter renders to the minute and two reads inside one minute
+    /// give the same string. Saying so is the point — a test that passes both ways proves nothing
+    /// about the defect it claims to pin, and this one states an invariant instead.
+    ///
+    /// `timestampIsTheSuppliedInstant` below is the one that fails against the old read.
+    @Test("the same options produce byte-identical HTML")
+    func generationIsDeterministic() {
+        let options = makeOptions(
+            violations: [makeViolation(ruleID: "force_cast"), makeViolation(ruleID: "line_length")],
+            includeSummary: true,
+            includeDetailedList: true
+        )
+
+        #expect(HTMLReportGenerator.generate(options: options)
+            == HTMLReportGenerator.generate(options: options))
+    }
+
+    /// Non-vacuity: the timestamp in the output is the one the caller chose, so the test above is
+    /// not passing because the report ignores it.
+    @Test("the rendered timestamp is the instant that was supplied")
+    func timestampIsTheSuppliedInstant() {
+        let expected = DateFormatter.localizedString(
+            from: fixedReportInstant, dateStyle: .long, timeStyle: .short
+        )
+
+        let html = HTMLReportGenerator.generate(options: makeOptions(violations: []))
+
+        #expect(html.contains(HTMLEscaping.escape(expected)) || html.contains(expected))
     }
 
 }

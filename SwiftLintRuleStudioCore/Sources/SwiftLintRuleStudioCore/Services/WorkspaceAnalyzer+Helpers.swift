@@ -54,13 +54,16 @@ public extension WorkspaceAnalyzer {
     /// Runs SwiftLint and parses the JSON output into violation models
     func runLintAndParse(
         configPath: URL?,
-        workspacePath: URL
+        workspacePath: URL,
+        detectedAt: Date
     ) async throws -> [Violation] {
         let lintData = try await swiftLintCLI.executeLintCommand(
             configPath: configPath,
             workspacePath: workspacePath
         )
-        return try parseViolations(from: lintData, workspacePath: workspacePath)
+        return try parseViolations(
+            from: lintData, workspacePath: workspacePath, detectedAt: detectedAt
+        )
     }
 
     /// Constructs an `AnalysisResult` from collected violations and timing data
@@ -70,7 +73,7 @@ public extension WorkspaceAnalyzer {
         startedAt: Date,
         configHash: String?
     ) -> AnalysisResult {
-        let completedAt = Date.now
+        let completedAt = now()
         return AnalysisResult(
             violations: violations,
             filesAnalyzed: filesAnalyzed,
@@ -94,7 +97,8 @@ public extension WorkspaceAnalyzer {
     func analyzeBatches(
         _ filesToAnalyzeURLs: [URL],
         in workspace: Workspace,
-        configPath: URL?
+        configPath: URL?,
+        detectedAt: Date
     ) async throws -> [Violation] {
         var allViolations: [Violation] = []
         let batchSize = 10
@@ -113,7 +117,9 @@ public extension WorkspaceAnalyzer {
                 configPath: configPath ?? workspace.configPath,
                 workspacePath: workspace.path
             )
-            let violations = try parseViolations(from: lintData, workspacePath: workspace.path)
+            let violations = try parseViolations(
+                from: lintData, workspacePath: workspace.path, detectedAt: detectedAt
+            )
             let filteredViolations = filterViolations(
                 violations,
                 batch: batch,
@@ -182,8 +188,16 @@ public extension WorkspaceAnalyzer {
         return swiftFiles
     }
 
-    /// Parses SwiftLint JSON output into an array of `Violation` models
-    func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
+    /// Parses SwiftLint JSON output into an array of `Violation` models.
+    ///
+    /// `detectedAt` is supplied rather than read, and is the same instant for every violation in
+    /// one analysis. It used to be `Date.now` inside the loop, which gave each violation a
+    /// different microsecond — and `ViolationInspectorViewModel` sorts by `detectedAt` with a
+    /// file/line tie-break underneath, so that tie-break could never be reached. A list the user
+    /// asked to see newest-first came back in whatever order the JSON happened to arrive.
+    func parseViolations(
+        from data: Data, workspacePath: URL, detectedAt: Date
+    ) throws -> [Violation] {
         guard let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
             if let string = String(data: data, encoding: .utf8),
                string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -222,7 +236,7 @@ public extension WorkspaceAnalyzer {
                 severity: severity,
                 message: message,
                 column: column,
-                detectedAt: Date.now
+                detectedAt: detectedAt
             )
 
             violations.append(violation)

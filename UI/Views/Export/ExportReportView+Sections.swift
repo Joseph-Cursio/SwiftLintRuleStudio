@@ -217,6 +217,12 @@ extension ExportReportView {
                         options: HTMLReportOptions(
                             violations: violations,
                             workspaceName: workspaceName,
+                            // The composition root is where the clock belongs: everything below
+                            // this line is a function of what it is handed. Spelled `Date.now`
+                            // rather than `.now` on purpose — the linter's classifier does not
+                            // recognise the implicit-member form, and a clock read that the tool
+                            // cannot see is worse than one it reports here, where it is correct.
+                            generatedAt: Date.now,
                             includeSummary: includeSummary,
                             includeDetailedList: includeDetailedList,
                             includeCodeSnippets: includeCodeSnippets,
