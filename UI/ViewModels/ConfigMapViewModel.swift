@@ -18,7 +18,7 @@ class ConfigMapViewModel {
     /// Sparse config-tree rows for the sidebar list.
     var treeRows: [ConfigTreeRow] = []
     /// The selected config row (drives the inspector).
-    var selectedRowID: UUID?
+    var selectedRowID: URL?
     /// The resolved-config inspector content for the selected folder.
     var resolvedDisplay: ResolvedConfigDisplay?
     /// Advisories for the selected config (e.g. a custom rule shadowing a built-in).
@@ -67,7 +67,7 @@ class ConfigMapViewModel {
 
     /// Resolves and presents the effective config for the selected config's folder,
     /// and computes any advisories for that config.
-    func select(rowID: UUID) {
+    func select(rowID: URL) {
         selectedRowID = rowID
         guard let tree = tree,
               let config = tree.configs.first(where: { $0.id == rowID }) else {

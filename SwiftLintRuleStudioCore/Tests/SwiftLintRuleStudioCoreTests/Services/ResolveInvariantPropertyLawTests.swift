@@ -108,7 +108,6 @@ struct ResolveInvariantPropertyLawTests {
         config: YAMLConfigurationEngine.YAMLConfig?
     ) -> DiscoveredConfig {
         DiscoveredConfig(
-            id: UUID(),
             configPath: directory.appendingPathComponent(".swiftlint.yml"),
             directoryPath: directory,
             relativePath: depth == 0 ? ".swiftlint.yml" : "a/.swiftlint.yml",

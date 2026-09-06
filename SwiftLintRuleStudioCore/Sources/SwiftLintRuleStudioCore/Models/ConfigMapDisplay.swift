@@ -12,8 +12,8 @@ import Foundation
 
 /// A row in the sparse Config Tree (one per config-bearing folder).
 public struct ConfigTreeRow: Identifiable, Sendable {
-    /// Matches the originating ``DiscoveredConfig/id``.
-    nonisolated public let id: UUID
+    /// Matches the originating ``DiscoveredConfig/id`` — the config file's path.
+    nonisolated public let id: URL
     /// `root`, or the governed directory name (`Tests`).
     nonisolated public let displayName: String
     /// Path relative to the workspace root (`Tests/.swiftlint.yml`).
@@ -31,7 +31,7 @@ public struct ConfigTreeRow: Identifiable, Sendable {
     nonisolated public let hasParseError: Bool
 
     nonisolated public init(
-        id: UUID,
+        id: URL,
         displayName: String,
         relativePath: String,
         indentLevel: Int,

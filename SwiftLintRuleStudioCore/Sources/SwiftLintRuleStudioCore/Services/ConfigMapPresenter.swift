@@ -21,7 +21,7 @@ public struct ConfigMapPresenter {
     /// depth — so a deep config whose nearest ancestor config is the root still
     /// sits one level under it.
     public func treeRows(for tree: ConfigTree) -> [ConfigTreeRow] {
-        var childrenByParent: [UUID: [DiscoveredConfig]] = [:]
+        var childrenByParent: [URL: [DiscoveredConfig]] = [:]
         var roots: [DiscoveredConfig] = []
         for config in tree.configs {
             if let parentID = config.parentID {

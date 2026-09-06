@@ -26,7 +26,7 @@ struct ConfigTreeRowViewTests {
     @Test("renders the display name and badge")
     func testNameAndBadge() throws {
         let row = ConfigTreeRow(
-            id: UUID(),
+            id: URL(fileURLWithPath: "/ws/Tests/.swiftlint.yml"),
             displayName: "Tests",
             relativePath: "Tests/.swiftlint.yml",
             indentLevel: 1,
@@ -44,7 +44,7 @@ struct ConfigTreeRowViewTests {
     @Test("root row renders without a badge when none is provided")
     func testRootNoBadge() throws {
         let row = ConfigTreeRow(
-            id: UUID(),
+            id: URL(fileURLWithPath: "/ws/.swiftlint.yml"),
             displayName: "root",
             relativePath: ".swiftlint.yml",
             indentLevel: 0,

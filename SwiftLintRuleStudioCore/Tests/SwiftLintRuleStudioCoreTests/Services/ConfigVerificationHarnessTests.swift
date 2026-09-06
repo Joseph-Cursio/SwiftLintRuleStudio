@@ -18,9 +18,10 @@ struct ConfigVerificationHarnessTests {
     // MARK: - Helpers
 
     private func layer(_ name: String, isRoot: Bool) -> ConfigLayer {
-        ConfigLayer(
-            id: UUID(),
-            relativePath: isRoot ? ".swiftlint.yml" : "\(name)/.swiftlint.yml",
+        let relativePath = isRoot ? ".swiftlint.yml" : "\(name)/.swiftlint.yml"
+        return ConfigLayer(
+            id: URL(fileURLWithPath: "/ws/\(relativePath)"),
+            relativePath: relativePath,
             depth: isRoot ? 0 : 1,
             isRoot: isRoot,
             displayName: name
