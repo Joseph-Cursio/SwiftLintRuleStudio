@@ -259,8 +259,9 @@ struct RuleAuditRow: View {
     /// Extracting it would hand a child `onEnable`, a closure the row is given rather than one it
     /// makes. Its call site decides whether it captures, and a child holding a capturing closure
     /// was measured to re-render exactly as often as the property it replaced — so there would be
-    /// no update to skip. `Computed Property View` still reports this; its capture gate sees a
-    /// closure a property creates, not one it forwards.
+    /// no update to skip. The rule agrees now — its capture gate saw a closure a property creates
+    /// and not one it forwards, and this property was one of the thirteen that closing the gap
+    /// silenced.
     private var actionColumn: some View {
         Group {
             if !entry.isCurrentlyEnabled {
