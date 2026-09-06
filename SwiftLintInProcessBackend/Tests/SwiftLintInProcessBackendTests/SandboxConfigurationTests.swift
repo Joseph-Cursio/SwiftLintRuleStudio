@@ -17,8 +17,8 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudioCore
 import SwiftLintInProcessBackend
+@testable import SwiftLintRuleStudioCore
 import Testing
 
 // Core is built with `.defaultIsolation(MainActor.self)`, so its model methods are

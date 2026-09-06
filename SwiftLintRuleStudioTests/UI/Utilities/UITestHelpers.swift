@@ -5,9 +5,9 @@
 //  Common test helpers and factories for UI tests
 //
 
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing

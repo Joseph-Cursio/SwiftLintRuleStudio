@@ -5,9 +5,9 @@
 //  UI tests for RuleBrowserView
 //
 
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing

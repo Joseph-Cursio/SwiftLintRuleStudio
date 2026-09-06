@@ -5,9 +5,9 @@
 //  Additional tests for OnboardingView (split from OnboardingViewTests)
 //
 
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import SwiftLintInProcessBackend
+import Testing
 
 @Suite
 struct SwiftLintInProcessActorTests {

@@ -7,9 +7,9 @@
 
 import Foundation
 import LintStudioCore
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 

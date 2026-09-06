@@ -7,8 +7,8 @@
 
 import Foundation
 import LintStudioCore
-import SwiftLintRuleStudioCore
 import SwiftLintCLISeam
+import SwiftLintRuleStudioCore
 
 /// Service for executing SwiftLint CLI commands.
 ///

@@ -12,8 +12,8 @@
 //
 
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
+import Testing
 
 @Suite("Determinism providers")
 struct DeterminismProvidersTests {

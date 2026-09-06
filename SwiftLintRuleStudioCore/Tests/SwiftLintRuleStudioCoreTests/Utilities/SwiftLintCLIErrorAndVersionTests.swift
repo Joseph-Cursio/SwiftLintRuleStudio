@@ -6,11 +6,11 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudioCore
 import SwiftLintCLIBackend
+import SwiftLintCLISeam
+@testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
-import SwiftLintCLISeam
 
 struct SwiftLintCLIErrorAndVersionTests {
     @Test("SwiftLintError has correct error descriptions")
