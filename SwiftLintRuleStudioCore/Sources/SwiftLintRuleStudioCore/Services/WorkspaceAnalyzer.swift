@@ -46,15 +46,26 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
     // cancelAnalysis() can reach it even though analyze() returns a value.
     private var pendingAnalysisCancellation: (@Sendable () -> Void)?
 
+    /// The clock this analyzer reads.
+    ///
+    /// `ImpactSimulator` — the other service that runs SwiftLint and builds `Violation`s from its
+    /// JSON — has taken a `DateProvider` since it was written, and `DateProvider`'s own
+    /// documentation names `completedAt` and `detectedAt` as the fields it exists for. This one
+    /// read `Date.now` inline in four places, so the two halves of the package disagreed about
+    /// whether the clock is an input.
+    let now: DateProvider
+
     // MARK: - Initialization
 
     public init(
         swiftLintCLI: SwiftLintCLIProtocol,
         violationStorage: ViolationStorageProtocol,
-        fileTracker: FileTracker? = nil
+        fileTracker: FileTracker? = nil,
+        now: DateProvider = .system
     ) {
         self.swiftLintCLI = swiftLintCLI
         self.violationStorage = violationStorage
+        self.now = now
 
         // Create file tracker with cache in app support directory
         if let providedTracker = fileTracker {
@@ -79,7 +90,7 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
         configPath: URL? = nil
     ) async throws -> AnalysisResult {
         cancelAnalysis()
-        let startedAt = Date.now
+        let startedAt = now()
         beginAnalysis()
 
         // Wrap the body in a Task so cancelAnalysis() can reach it externally.
@@ -87,9 +98,12 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
         let task = Task<AnalysisResult, Error> {
             do {
                 let actualConfigPath = self.resolveConfigPath(configPath, workspace: workspace)
+                // One instant for the whole run. Every violation this pass finds was found by
+                // this pass, and stamping them individually made that untrue by microseconds.
                 let violations = try await self.runLintAndParse(
                     configPath: actualConfigPath,
-                    workspacePath: workspace.path
+                    workspacePath: workspace.path,
+                    detectedAt: startedAt
                 )
                 // A run superseded by a newer analyze() (which cancels this one)
                 // must not overwrite the newer run's stored results or UI state.
@@ -135,7 +149,7 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
         configPath: URL? = nil,
         onlyChanged: Bool = true
     ) async throws -> AnalysisResult {
-        let startedAt = Date.now
+        let startedAt = now()
         isAnalyzing = true
 
         let filesToAnalyze = resolveFilesToAnalyze(filePaths, onlyChanged: onlyChanged)
@@ -154,7 +168,8 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
         let allViolations = try await analyzeBatches(
             filesToAnalyzeURLs,
             in: workspace,
-            configPath: configPath
+            configPath: configPath,
+            detectedAt: startedAt
         )
 
         try fileTracker.updateTracking(for: filesToAnalyze)
