@@ -12,6 +12,14 @@ import SwiftLintRuleStudioCore
 struct HTMLReportOptions {
     let violations: [Violation]
     let workspaceName: String
+
+    /// When the report was produced, supplied rather than read.
+    ///
+    /// `generate(options:)` is otherwise a function of this struct alone — the same violations and
+    /// the same switches give the same HTML, byte for byte — and a single `Date.now` in the middle
+    /// of it was the only thing standing between that and a test that can say so. There is no
+    /// default: a hidden one would put the clock read back, just further away.
+    let generatedAt: Date
     let includeSummary: Bool
     let includeDetailedList: Bool
     let includeCodeSnippets: Bool
@@ -27,7 +35,7 @@ enum HTMLReportGenerator {
         let fileCount = Set(violations.map(\.filePath)).count
         let ruleCount = Set(violations.map(\.ruleID)).count
         let timestamp = DateFormatter.localizedString(
-            from: Date.now,
+            from: options.generatedAt,
             dateStyle: .long,
             timeStyle: .short
         )
