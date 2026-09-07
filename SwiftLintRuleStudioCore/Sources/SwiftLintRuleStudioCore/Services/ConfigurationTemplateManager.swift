@@ -70,6 +70,32 @@ public struct ConfigurationTemplate: Identifiable, Codable, Sendable, Equatable,
         self.yamlContent = yamlContent
         self.isBuiltIn = isBuiltIn
     }
+
+    /// Everything about a new user template except the YAML it is made from.
+    ///
+    /// `identifier` is defaulted rather than read at the point of use: it is also the template's
+    /// filename on disk, so a caller that can name it can assert what was written and where.
+    public struct Draft: Sendable, Equatable, Hashable {
+        public let identifier: UUID
+        public let name: String
+        public let description: String
+        public let projectType: ProjectType
+        public let codingStyle: CodingStyle
+
+        public init(
+            name: String,
+            description: String,
+            projectType: ProjectType,
+            codingStyle: CodingStyle,
+            identifier: UUID = UUID()
+        ) {
+            self.identifier = identifier
+            self.name = name
+            self.description = description
+            self.projectType = projectType
+            self.codingStyle = codingStyle
+        }
+    }
 }
 
 /// Protocol for configuration template management
@@ -88,12 +114,8 @@ public protocol ConfigurationTemplateManagerProtocol {
 
     /// Save a configuration as a user template
     func saveAsTemplate(
-        name: String,
-        description: String,
-        projectType: ConfigurationTemplate.ProjectType,
-        codingStyle: ConfigurationTemplate.CodingStyle,
-        from config: YAMLConfigurationEngine.YAMLConfig,
-        identifier: UUID
+        _ draft: ConfigurationTemplate.Draft,
+        from config: YAMLConfigurationEngine.YAMLConfig
     ) throws -> ConfigurationTemplate
 
     /// Delete a user template
@@ -167,15 +189,9 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
         try template.yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
     }
 
-    /// - Parameter identifier: The new template's id. It is also its filename on disk, so a
-    ///   caller that can name it can assert what was written and where.
     public func saveAsTemplate(
-        name: String,
-        description: String,
-        projectType: ConfigurationTemplate.ProjectType,
-        codingStyle: ConfigurationTemplate.CodingStyle,
-        from config: YAMLConfigurationEngine.YAMLConfig,
-        identifier: UUID = UUID()
+        _ draft: ConfigurationTemplate.Draft,
+        from config: YAMLConfigurationEngine.YAMLConfig
     ) throws -> ConfigurationTemplate {
         // Serialization needs no file. This used to build an engine at `/tmp/temp.yml` — a
         // path that was never read, never written, and never existed — because `serialize`
@@ -184,11 +200,11 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
         let yamlContent = try YAMLConfigurationEngine.serialize(config)
 
         let template = ConfigurationTemplate(
-            id: identifier,
-            name: name,
-            description: description,
-            projectType: projectType,
-            codingStyle: codingStyle,
+            id: draft.identifier,
+            name: draft.name,
+            description: draft.description,
+            projectType: draft.projectType,
+            codingStyle: draft.codingStyle,
             yamlContent: yamlContent,
             isBuiltIn: false
         )
