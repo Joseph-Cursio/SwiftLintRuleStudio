@@ -89,3 +89,15 @@ struct BulkOperationToolbar: View {
         .buttonStyle(.bordered)
     }
 }
+
+#Preview {
+    BulkOperationToolbar(
+        selectedCount: 3,
+        onEnableAll: {},
+        onDisableAll: {},
+        onSetSeverity: { _ in },
+        onPreview: {},
+        onClearSelection: {}
+    )
+    .padding()
+}

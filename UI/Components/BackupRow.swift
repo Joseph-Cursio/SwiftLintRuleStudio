@@ -53,3 +53,29 @@ struct BackupRow: View {
         }
     }
 }
+
+#Preview {
+    let backup = ConfigBackup(
+        id: "preview",
+        path: URL(filePath: "/tmp/.swiftlint.yml"),
+        timestamp: Date(),
+        fileSize: 2_340
+    )
+    return VStack(spacing: 0) {
+        BackupRow(
+            backup: backup,
+            isSelected: false,
+            isComparison: false,
+            onSelect: {},
+            onRestore: {}
+        )
+        BackupRow(
+            backup: backup,
+            isSelected: true,
+            isComparison: false,
+            onSelect: {},
+            onRestore: {}
+        )
+    }
+    .padding()
+}
