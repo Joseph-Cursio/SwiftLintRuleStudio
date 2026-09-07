@@ -5,7 +5,7 @@ extension YAMLConfigurationEngine {
     /// Serialize a YAML configuration to a string, preserving the top-level
     /// key order from the loaded file when possible so that round-tripping a
     /// user's `.swiftlint.yml` doesn't reorganize their layout.
-    public func serialize(_ config: YAMLConfig) throws -> String {
+    public static func serialize(_ config: YAMLConfig) throws -> String {
         do {
             let pairs = try orderedTopLevelPairs(for: config)
             let mapping = Node.Mapping(pairs)
@@ -45,7 +45,7 @@ extension YAMLConfigurationEngine {
     /// 1. Keys in `config.keyOrder` (preserves the user's original file layout)
     /// 2. Reserved SwiftLint keys not yet emitted, in `defaultTopLevelKeyOrder`
     /// 3. Per-rule configuration keys, alphabetically (stable output)
-    private func orderedTopLevelPairs(for config: YAMLConfig) throws -> [(Node, Node)] {
+    private static func orderedTopLevelPairs(for config: YAMLConfig) throws -> [(Node, Node)] {
         let keyValues = try collectTopLevelKeyValues(from: config)
         var pairs: [(Node, Node)] = []
         var seen: Set<String> = []
@@ -75,7 +75,7 @@ extension YAMLConfigurationEngine {
 
     /// Collect every top-level YAML key the config wants to emit, mapped to
     /// its already-serialized Node value.
-    private func collectTopLevelKeyValues(from config: YAMLConfig) throws -> [String: Node] {
+    private static func collectTopLevelKeyValues(from config: YAMLConfig) throws -> [String: Node] {
         var result: [String: Node] = [:]
 
         if let included = config.included { result["included"] = try Node(included) }
@@ -118,7 +118,7 @@ extension YAMLConfigurationEngine {
 
     /// The serialized Node for one rule — a scalar for `line_length: 120`-style
     /// shorthand, otherwise a mapping. Returns nil for rules that emit nothing.
-    private func ruleNode(
+    private static func ruleNode(
         ruleId: String,
         ruleConfig: RuleConfiguration,
         config: YAMLConfig
@@ -164,7 +164,7 @@ extension YAMLConfigurationEngine {
         "reporter"
     ]
 
-    private func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> [String: Any]? {
+    private static func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> [String: Any]? {
         let hasSeverity = ruleConfig.severity != nil
         let hasParameters = !(ruleConfig.parameters?.isEmpty ?? true)
         guard hasSeverity || hasParameters else { return nil }

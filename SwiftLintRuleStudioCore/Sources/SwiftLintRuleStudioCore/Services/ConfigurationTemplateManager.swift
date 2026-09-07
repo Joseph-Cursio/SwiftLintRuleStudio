@@ -164,9 +164,11 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
         codingStyle: ConfigurationTemplate.CodingStyle,
         from config: YAMLConfigurationEngine.YAMLConfig
     ) throws -> ConfigurationTemplate {
-        // Serialize config to YAML
-        let engine = YAMLConfigurationEngine(configPath: URL(fileURLWithPath: "/tmp/temp.yml"))
-        let yamlContent = try engine.serialize(config)
+        // Serialization needs no file. This used to build an engine at `/tmp/temp.yml` — a
+        // path that was never read, never written, and never existed — because `serialize`
+        // was spelled as an instance method on a type whose only stored state is a config
+        // path it does not use.
+        let yamlContent = try YAMLConfigurationEngine.serialize(config)
 
         let template = ConfigurationTemplate(
             id: UUID(),

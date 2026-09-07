@@ -235,7 +235,7 @@ struct YAMLConfigEngineRuleParamEdgeCaseTests {
             let lineError = lineLength?.parameters?["error"]?.value
             let ignoresComments = lineLength?.parameters?["ignores_comments"]?.value
             let typeLevel = nesting?.parameters?["type_level"]?.value
-            let serialized = try engine.serialize(engine.getConfig())
+            let serialized = try YAMLConfigurationEngine.serialize(engine.getConfig())
             return NumericScalarSnapshot(
                 warningType: String(describing: type(of: warning ?? "")),
                 errorType: String(describing: type(of: lineError ?? "")),
