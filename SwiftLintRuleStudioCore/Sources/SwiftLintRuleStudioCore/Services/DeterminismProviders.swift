@@ -21,15 +21,15 @@ public struct DateProvider: Sendable {
     /// This is the one place in the package that is allowed to read it. Every other clock
     /// read was a hidden input; this one is the seam they were moved to.
     // swiftprojectlint:disable:next non-injected-nondeterminism
-    public static let system = DateProvider { Date() }
+    public static let system = Self { Date() }
 
     /// Always the same instant.
     ///
     /// Right for a *stamp* — `completedAt`, `detectedAt` — where the test asserts the record
     /// carries the time it was told. Wrong for a duration, which this makes always zero;
     /// use ``scripted(_:)`` there.
-    public static func fixed(_ date: Date) -> DateProvider {
-        DateProvider { date }
+    public static func fixed(_ date: Date) -> Self {
+        Self { date }
     }
 
     /// Returns each instant in turn, then repeats the last one forever.
@@ -42,17 +42,17 @@ public struct DateProvider: Sendable {
     /// Repeating the last instant rather than trapping is deliberate — a caller that reads the
     /// clock one more time than the test predicted gets a defensible answer instead of a dead
     /// process, and the assertion still fails if the count mattered.
-    public static func scripted(_ dates: [Date]) -> DateProvider {
+    public static func scripted(_ dates: [Date]) -> Self {
         precondition(!dates.isEmpty, "a scripted DateProvider needs at least one instant")
         let cursor = Cursor(dates)
-        return DateProvider { cursor.next() }
+        return Self { cursor.next() }
     }
 
     public func callAsFunction() -> Date { make() }
 
     /// Hands out the scripted instants in order under a lock, since a provider is `Sendable`
     /// and the code under test may read the clock from more than one task.
-    private nonisolated final class Cursor: @unchecked Sendable {
+    nonisolated private final class Cursor: @unchecked Sendable {
         private let dates: [Date]
         private var index = 0
         private let lock = NSLock()
@@ -87,17 +87,17 @@ public struct IDProvider: Sendable {
     ///
     /// As with `DateProvider.system`, the nondeterminism is deliberate and confined here.
     // swiftprojectlint:disable:next non-injected-nondeterminism
-    public static let random = IDProvider { UUID() }
+    public static let random = Self { UUID() }
 
     /// Counts up from zero, so the nth identifier is the same on every run.
-    public static func sequential() -> IDProvider {
+    public static func sequential() -> Self {
         let counter = Counter()
-        return IDProvider { counter.next() }
+        return Self { counter.next() }
     }
 
     public func callAsFunction() -> UUID { make() }
 
-    private nonisolated final class Counter: @unchecked Sendable {
+    nonisolated private final class Counter: @unchecked Sendable {
         private var value: UInt32 = 0
         private let lock = NSLock()
 

@@ -59,10 +59,24 @@ struct RuleBrowserView: View {
             syncEnabledStatesFromConfig()
         }
         .onChange(of: viewModel.filteredRules) { _, newRules in
-            if let selectedRuleId, !newRules.contains(where: { $0.id == selectedRuleId }) {
-                self.selectedRuleId = nil
-            }
+            dropSelectionIfFiltered(from: newRules)
         }
+    }
+
+    private func dropSelectionIfFiltered(from newRules: [Rule]) {
+        selectedRuleId = Self.selection(selectedRuleId, survivingIn: newRules)
+    }
+
+    /// The selected rule, or `nil` when the new filter no longer contains it.
+    ///
+    /// A total function of the two things it depends on, lifted out of an `onChange` closure no
+    /// test could fire. Three cases and only one of them was obvious from the closure: nothing
+    /// selected stays nothing, a selection the filter still contains survives, and a selection
+    /// the filter has dropped is cleared — which is the case that keeps the detail pane from
+    /// showing a rule the list no longer offers.
+    static func selection(_ current: String?, survivingIn rules: [Rule]) -> String? {
+        guard let current, rules.contains(where: { $0.id == current }) else { return nil }
+        return current
     }
 
     private var draggableDivider: some View {

@@ -17,30 +17,30 @@
 import Foundation
 import SwiftLintCLISeam
 
-public nonisolated struct UnconfiguredSwiftLintBackend: SwiftLintCLIProtocol {
+nonisolated public struct UnconfiguredSwiftLintBackend: SwiftLintCLIProtocol {
     public init() {}
 
-    public func detectSwiftLintPath() async throws -> URL {
+    public func detectSwiftLintPath() throws -> URL {
         throw SwiftLintError.notFound
     }
 
-    public func executeRulesCommand() async throws -> Data {
+    public func executeRulesCommand() throws -> Data {
         Data()
     }
 
-    public func executeRuleDetailCommand(ruleId: String) async throws -> Data {
+    public func executeRuleDetailCommand(ruleId _: String) throws -> Data {
         Data()
     }
 
-    public func generateDocsForRule(ruleId: String) async throws -> String {
+    public func generateDocsForRule(ruleId _: String) throws -> String {
         ""
     }
 
-    public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
+    public func executeLintCommand(configPath _: URL?, workspacePath _: URL) throws -> Data {
         Data("[]".utf8)
     }
 
-    public func getVersion() async throws -> String {
+    public func getVersion() throws -> String {
         ""
     }
 }

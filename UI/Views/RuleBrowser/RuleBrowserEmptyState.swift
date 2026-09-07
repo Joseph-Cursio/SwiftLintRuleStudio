@@ -46,9 +46,8 @@ struct RuleBrowserEmptyState: View {
         searchText: "force",
         selectedCategory: nil,
         selectedStatus: .enabled,
-        rulesAreEmpty: false,
-        onClearFilters: {}
-    )
+        rulesAreEmpty: false
+    )        {}
 }
 
 #Preview("Loading") {
@@ -56,7 +55,6 @@ struct RuleBrowserEmptyState: View {
         searchText: "",
         selectedCategory: nil,
         selectedStatus: .all,
-        rulesAreEmpty: true,
-        onClearFilters: {}
-    )
+        rulesAreEmpty: true
+    )        {}
 }

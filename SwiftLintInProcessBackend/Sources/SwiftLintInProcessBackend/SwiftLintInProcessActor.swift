@@ -52,17 +52,17 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
 
     // MARK: - SwiftLintCLIProtocol
 
-    public func detectSwiftLintPath() async throws -> URL {
+    public func detectSwiftLintPath() throws -> URL {
         // No external binary — SwiftLint is linked in-process.
         URL(fileURLWithPath: "in-process/SwiftLintFramework")
     }
 
-    public func getVersion() async throws -> String {
+    public func getVersion() throws -> String {
         Self.prepare()
         return Version.current.value
     }
 
-    public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
+    public func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data {
         Self.prepare()
         let configuration = Configuration(configurationFiles: configPath.map { [$0] } ?? [])
         let files = configuration.lintableFiles(
@@ -78,12 +78,12 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         return Data(Self.jsonReport(for: violations).utf8)
     }
 
-    public func executeRulesCommand() async throws -> Data {
+    public func executeRulesCommand() throws -> Data {
         Self.prepare()
         return Data(Self.rulesTable().utf8)
     }
 
-    public func executeRuleDetailCommand(ruleId: String) async throws -> Data {
+    public func executeRuleDetailCommand(ruleId: String) throws -> Data {
         Self.prepare()
         guard let description = Self.ruleDescription(forID: ruleId) else {
             throw SwiftLintError.executionFailed(message: "Unknown rule: \(ruleId)")
@@ -91,7 +91,7 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         return Data(Self.ruleDetailText(for: description).utf8)
     }
 
-    public func generateDocsForRule(ruleId: String) async throws -> String {
+    public func generateDocsForRule(ruleId: String) throws -> String {
         Self.prepare()
         guard let description = Self.ruleDescription(forID: ruleId) else {
             throw SwiftLintError.executionFailed(message: "Unknown rule: \(ruleId)")
