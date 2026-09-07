@@ -22,6 +22,11 @@ private struct DependencyContainerKey: EnvironmentKey {
 
 private struct RuleRegistryKey: EnvironmentKey {
     @MainActor static var defaultValue: RuleRegistry = {
+        // An `EnvironmentKey.defaultValue` is the environment's composition root: the value
+        // used when no app target has injected one, which is what the comment on
+        // `DependencyContainerKey` above describes for the backend. Injecting a cache manager
+        // into the default would mean routing it in from somewhere there is no somewhere.
+        // swiftprojectlint:disable:next direct-instantiation
         let cache = CacheManager()
         let cli = UnconfiguredSwiftLintBackend()
         return RuleRegistry(swiftLintCLI: cli, cacheManager: cache)

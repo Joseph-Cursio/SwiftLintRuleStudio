@@ -164,6 +164,11 @@ struct RuleDetailView: View {
     private func loadWorkspaceConfiguration() {
         if let workspace = dependencies.workspaceManager.currentWorkspace,
            let configPath = workspace.configPath {
+            // The seam exists and is in use: `RuleDetailViewModel.yamlEngine` is typed
+            // `(any YAMLConfigurationEngineProtocol)?` and its tests set a stub. This is the
+            // view choosing the production implementation for the model it owns — the one
+            // place that has to name a concrete type for the injection everywhere else to work.
+            // swiftprojectlint:disable:next direct-instantiation
             let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
             viewModel.yamlEngine = yamlEngine
             try? viewModel.loadConfiguration()

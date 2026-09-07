@@ -256,6 +256,9 @@ struct ConfigDiffPreviewView: View {
     }
 
     private func copyForPR() {
+        // Same shape as `ConfigDiff.toMarkdown`: a stateless formatter, constructed to answer
+        // one question. `copyToClipboard` is the only effect and it is the point of the button.
+        // swiftprojectlint:disable:next direct-instantiation
         let generator = PRCommentGenerator()
         let markdown = generator.generateMarkdown(from: diff)
         generator.copyToClipboard(markdown)

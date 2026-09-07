@@ -56,9 +56,7 @@ final class SimulationWorkspace {
                 at: destination.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
-            let engine = YAMLConfigurationEngine(configPath: destination)
-            engine.updateConfig(config)
-            try engine.save(config: config, createBackup: false)
+            try YAMLConfigurationEngine.save(config, to: destination, createBackup: false)
         }
     }
 
@@ -214,17 +212,16 @@ struct SimulationWorkspaceBuilder {
         var haveRoot = false
 
         for url in ConfigTreeDiscovery.configFileURLs(in: workspace.path) {
-            let engine = YAMLConfigurationEngine(configPath: url)
             // Tolerate an empty or malformed `.swiftlint.yml`: skipping it lets the
             // mirror inherit the parent config for that subtree — which is exactly
             // what an empty nested config means to SwiftLint — rather than aborting
             // the whole simulation.
-            guard (try? engine.load()) != nil else { continue }
+            guard let config = try? YAMLConfigurationEngine.loadConfig(at: url) else { continue }
             let relative = Self.relativePath(of: url, underRoot: workspace.path)
             if relative == ConfigTreeDiscovery.configFileName {
                 haveRoot = true
             }
-            entries.append(.init(relativePath: relative, original: engine.getConfig()))
+            entries.append(.init(relativePath: relative, original: config))
         }
 
         if !haveRoot {
@@ -244,9 +241,8 @@ struct SimulationWorkspaceBuilder {
     ) -> YAMLConfigurationEngine.YAMLConfig {
         if let base = baseConfigPath ?? workspace.configPath,
            fileManager.fileExists(atPath: base.path) {
-            let engine = YAMLConfigurationEngine(configPath: base)
-            if (try? engine.load()) != nil {
-                return engine.getConfig()
+            if let config = try? YAMLConfigurationEngine.loadConfig(at: base) {
+                return config
             }
         }
         return YAMLConfigurationEngine.YAMLConfig()

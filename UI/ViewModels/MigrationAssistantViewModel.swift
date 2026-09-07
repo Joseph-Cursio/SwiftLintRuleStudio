@@ -96,12 +96,11 @@ class MigrationAssistantViewModel {
               let plan = migrationPlan else { return }
 
         do {
-            let engine = YAMLConfigurationEngine(configPath: configPath)
-            try engine.load()
-            var config = engine.getConfig()
+            let current = try YAMLConfigurationEngine.loadConfig(at: configPath)
+            var config = current
 
             assistant.applyMigration(plan, to: &config)
-            previewDiff = engine.generateDiff(proposedConfig: config)
+            previewDiff = YAMLConfigurationEngine.diff(from: current, to: config)
         } catch {
             self.error = error
         }
@@ -115,12 +114,10 @@ class MigrationAssistantViewModel {
         error = nil
 
         do {
-            let engine = YAMLConfigurationEngine(configPath: configPath)
-            try engine.load()
-            var config = engine.getConfig()
+            var config = try YAMLConfigurationEngine.loadConfig(at: configPath)
 
             assistant.applyMigration(plan, to: &config)
-            try engine.save(config: config, createBackup: true)
+            try YAMLConfigurationEngine.save(config, to: configPath)
 
             migrationComplete = true
         } catch {

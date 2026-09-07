@@ -31,6 +31,11 @@ class ConfigMapViewModel {
     private let workspacePath: URL?
     private let builtInRuleIdentifiers: Set<String>
     private let discovery = ConfigTreeDiscovery()
+    // No stored properties at all — `nonisolated public init() {}` and a `resolve` that is a
+    // function of its arguments. There is nothing to inject and nothing a test could
+    // substitute; the three siblings on either side of this line are the same shape and go
+    // unreported only because "Discovery", "Presenter" and "Detector" are not service suffixes.
+    // swiftprojectlint:disable:next direct-instantiation
     private let engine = ResolvedConfigurationEngine()
     private let presenter = ConfigMapPresenter()
     private let conflictDetector = CustomRuleConflictDetector()

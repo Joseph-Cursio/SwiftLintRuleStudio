@@ -199,6 +199,12 @@ public extension YAMLConfigurationEngine.ConfigDiff {
     /// Generate a markdown PR comment from this diff
     @MainActor
     func toMarkdown(options: PRCommentOptions = .default) -> String {
+        // `PRCommentGenerator` stores one constant URL string and formats markdown out of a
+        // `ConfigDiff`. Constructed, asked one question, discarded — a total function wearing
+        // a class, and there is no substitute a test of `toMarkdown` would want. Left as a
+        // construction rather than made `static` because the type conforms to
+        // `PRCommentGeneratorProtocol`, which is a real seam elsewhere.
+        // swiftprojectlint:disable:next direct-instantiation
         let generator = PRCommentGenerator()
         return generator.generateMarkdown(from: self, options: options)
     }
