@@ -194,31 +194,49 @@ public class YAMLConfigurationEngine {
 
     // MARK: - Saving
 
-    /// Generate diff between current and proposed configuration
+    /// Generate diff between current and proposed configuration.
+    ///
+    /// A forwarder onto `diff(from:to:)`, kept because `YAMLConfigurationEngineProtocol`
+    /// requires it and the two view models that depend on that protocol call it this way.
     public func generateDiff(proposedConfig: YAMLConfig) -> ConfigDiff {
-        let currentRules = Set(currentConfig.rules.keys)
-        let proposedRules = Set(proposedConfig.rules.keys)
+        Self.diff(from: currentConfig, to: proposedConfig)
+    }
+
+    /// The difference between two configurations.
+    ///
+    /// A total function of its two arguments: no file, no engine, no order dependence beyond
+    /// which side is "before". It read one stored property, `currentConfig`, which every
+    /// caller had loaded a moment earlier and could pass instead.
+    public static func diff(from current: YAMLConfig, to proposed: YAMLConfig) -> ConfigDiff {
+        let currentRules = Set(current.rules.keys)
+        let proposedRules = Set(proposed.rules.keys)
 
         let addedRules = Array(proposedRules.subtracting(currentRules))
         let removedRules = Array(currentRules.subtracting(proposedRules))
         let modifiedRules = currentRules.intersection(proposedRules).filter { ruleId in
-            currentConfig.rules[ruleId] != proposedConfig.rules[ruleId]
+            current.rules[ruleId] != proposed.rules[ruleId]
         }
-
-        let before = try? Self.serialize(currentConfig)
-        let after = try? Self.serialize(proposedConfig)
 
         return ConfigDiff(
             addedRules: addedRules.sorted(),
             removedRules: removedRules.sorted(),
             modifiedRules: Array(modifiedRules).sorted(),
-            before: before ?? "",
-            after: after ?? ""
+            before: (try? serialize(current)) ?? "",
+            after: (try? serialize(proposed)) ?? ""
         )
     }
 
-    /// Validate configuration before saving
+    /// Validate configuration before saving.
+    ///
+    /// Reads no engine state and never did — it is a predicate on the configuration, spelled
+    /// as an instance method. Kept as a forwarder for the protocol.
     public func validate(_ config: YAMLConfig) throws {
+        try Self.validated(config)
+    }
+
+    /// Throws unless every severity is `warning` or `error` and no include/exclude path is
+    /// empty.
+    public static func validated(_ config: YAMLConfig) throws {
         // Check for invalid rule IDs (basic validation)
         // More comprehensive validation can be added later
 
@@ -245,20 +263,27 @@ public class YAMLConfigurationEngine {
         }
     }
 
-    /// Save configuration to file with backup
+    /// Save configuration to file with backup, and adopt it as the engine's current state.
     public func save(config: YAMLConfig, createBackup: Bool = true) throws {
-        // Validate before saving
-        try validate(config)
-
-        // Serialize to YAML
-        let yamlContent = try Self.serialize(config)
-
-        // Atomic write with optional backup via shared SafeFileWriter
-        try SafeFileWriter.write(yamlContent, to: configPath, createBackup: createBackup)
-
-        // Update current config
         currentConfig = config
-        originalContent = yamlContent
+        originalContent = try Self.save(config, to: configPath, createBackup: createBackup)
+    }
+
+    /// Validate, serialize and write a configuration to `url`, returning the text written.
+    ///
+    /// Two of the three steps are pure and the third is one call. The engine is not needed to
+    /// perform any of them — it was needed only to hold the destination, which every caller
+    /// already had in hand.
+    @discardableResult
+    public static func save(
+        _ config: YAMLConfig,
+        to url: URL,
+        createBackup: Bool = true
+    ) throws -> String {
+        try validated(config)
+        let yamlContent = try serialize(config)
+        try SafeFileWriter.write(yamlContent, to: url, createBackup: createBackup)
+        return yamlContent
     }
 
 }
