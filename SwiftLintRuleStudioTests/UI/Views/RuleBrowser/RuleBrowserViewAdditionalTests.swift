@@ -18,67 +18,12 @@ struct RuleBrowserViewAdditionalTests {
 
     // MARK: - Test Data Helpers
 
-    private func makeTestRule(
-        id: String = "test_rule",
-        name: String = "Test Rule",
-        description: String = "Test description",
-        category: RuleCategory = .lint,
-        isOptIn: Bool = false,
-        isEnabled: Bool = false
-    ) -> Rule {
-        Rule(
-            id: id,
-            name: name,
-            description: description,
-            category: category,
-            isOptIn: isOptIn,
-            severity: nil,
-            parameters: nil,
-            triggeringExamples: [],
-            nonTriggeringExamples: [],
-            documentation: nil,
-            isEnabled: isEnabled,
-            supportsAutocorrection: false,
-            minimumSwiftVersion: nil,
-            defaultSeverity: nil,
-            markdownDocumentation: nil
-        )
-    }
-
-    @MainActor
-    struct ViewResult: @unchecked Sendable {
-        let view: AnyView
-        let container: DependencyContainer
-
-        init(view: some View, container: DependencyContainer) {
-            self.view = AnyView(view)
-            self.container = container
-        }
-    }
-
-    @MainActor
-    private func createRuleBrowserView(rules: [Rule] = []) -> ViewResult {
-        let container = DependencyContainer.createForTesting()
-        let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
-        let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
-        #if DEBUG
-        if !rules.isEmpty {
-            ruleRegistry.setRulesForTesting(rules)
-        }
-        #endif
-        let view = RuleBrowserView(ruleRegistry: ruleRegistry)
-            .environment(\.ruleRegistry, ruleRegistry)
-            .environment(\.dependencies, container)
-        return ViewResult(view: view, container: container)
-    }
-
-    // MARK: - List Tests
+       // MARK: - List Tests
 
     @Test("RuleBrowserView displays rule list")
     func testDisplaysRuleList() async throws {
         let result = await Task { @MainActor in
-            let rule = makeTestRule()
+            let rule = RuleBrowserFixtures.makeTestRule()
             let cacheManager = CacheManager.createForTesting()
             let ruleRegistry = RuleRegistry(
                 swiftLintCLI: SwiftLintCLIActor(cacheManager: cacheManager),
@@ -92,7 +37,7 @@ struct RuleBrowserViewAdditionalTests {
             let view = RuleBrowserView(viewModel: viewModel)
                 .environment(\.ruleRegistry, ruleRegistry)
                 .environment(\.dependencies, container)
-            return ViewResult(view: view, container: container)
+            return RuleBrowserFixtures.ViewResult(view: view, container: container)
         }.value
 
         let hasList = try? await MainActor.run {
@@ -121,7 +66,7 @@ struct RuleBrowserViewAdditionalTests {
             let view = RuleBrowserView(viewModel: viewModel)
                 .environment(\.ruleRegistry, ruleRegistry)
                 .environment(\.dependencies, container)
-            return ViewResult(view: view, container: container)
+            return RuleBrowserFixtures.ViewResult(view: view, container: container)
         }.value
 
         let hasEmptyText = try? await MainActor.run {
@@ -145,7 +90,7 @@ struct RuleBrowserViewAdditionalTests {
             let view = RuleBrowserView(viewModel: viewModel)
                 .environment(\.ruleRegistry, ruleRegistry)
                 .environment(\.dependencies, container)
-            return ViewResult(view: view, container: container)
+            return RuleBrowserFixtures.ViewResult(view: view, container: container)
         }.value
 
         let hasMessage = try? await MainActor.run {
@@ -159,7 +104,7 @@ struct RuleBrowserViewAdditionalTests {
 
     @Test("RuleBrowserView shows clear filters button in toolbar")
     func testShowsClearFiltersButton() async throws {
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         let hasNavigationSplitView = try await MainActor.run {
             _ = try result.view.inspect().find(ViewType.HStack.self)
@@ -172,7 +117,7 @@ struct RuleBrowserViewAdditionalTests {
 
     @Test("RuleBrowserView has correct view hierarchy")
     func testViewHierarchy() async throws {
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         let hasNavigationSplitView = try await MainActor.run {
             _ = try result.view.inspect().find(ViewType.HStack.self)
@@ -183,7 +128,7 @@ struct RuleBrowserViewAdditionalTests {
 
     @Test("RuleBrowserView has primary-detail layout")
     func testPrimaryDetailLayout() async throws {
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         let hasNavigationSplitView = try await MainActor.run {
             _ = try result.view.inspect().find(ViewType.HStack.self)
@@ -196,7 +141,7 @@ struct RuleBrowserViewAdditionalTests {
 
     @Test("RuleBrowserView integrates with RuleRegistry")
     func testIntegratesWithRuleRegistry() async throws {
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         let hasNavigationSplitView = try await MainActor.run {
             _ = try result.view.inspect().find(ViewType.HStack.self)
