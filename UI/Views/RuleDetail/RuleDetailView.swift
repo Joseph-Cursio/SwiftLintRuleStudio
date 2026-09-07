@@ -30,12 +30,23 @@ private struct RuleDetailEventHandlers: ViewModifier {
                 saveAction()
             }
             .onChange(of: rules) { _, newRules in
-                if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
-                    currentRule = updatedRule
-                }
-                rebuildString()
+                adoptRule(from: newRules)
             }
             .onChange(of: colorScheme) { rebuildString() }
+    }
+
+    /// Refresh the displayed rule from a new registry snapshot, keeping the current one when the
+    /// snapshot does not mention it.
+    ///
+    /// The `rebuildString()` is unconditional and that is the point: the documentation string is
+    /// rebuilt whether or not the rule changed, because a registry refresh can alter what the
+    /// string renders from even when the rule's own fields are unchanged. Inside the closure that
+    /// read as an oversight — the assignment is guarded and the call is not.
+    private func adoptRule(from newRules: [Rule]) {
+        if let updatedRule = newRules.first(where: { $0.id == ruleId }) {
+            currentRule = updatedRule
+        }
+        rebuildString()
     }
 }
 

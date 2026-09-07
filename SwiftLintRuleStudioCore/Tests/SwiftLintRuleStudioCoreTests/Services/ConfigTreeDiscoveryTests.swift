@@ -272,12 +272,11 @@ struct ConfigTreeDiscoveryTests {
         defer { cleanup(root) }
 
         let tree = ConfigTreeDiscovery().discover(in: root)
-        let rootConfig = try #require(tree.configs.first(where: { $0.isRoot }))
+        let rootConfig = try #require(tree.configs.first(where: \.isRoot))
         let legacyPath = "Sources/Legacy/.swiftlint.yml"
-        let legacy = try #require(tree.configs.first(where: { $0.relativePath == legacyPath }))
+        let legacy = try #require(tree.configs.first { $0.relativePath == legacyPath })
 
         #expect(legacy.parentID == rootConfig.configPath)
         #expect(tree.children(of: rootConfig).contains { $0.id == legacy.id })
     }
 }
-

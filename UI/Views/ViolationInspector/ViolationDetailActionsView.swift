@@ -18,6 +18,12 @@ struct ViolationDetailActionsView: View {
 
             HStack(spacing: 12) {
                 if !violation.suppressed {
+                    // A single store into a `@Binding` the parent owns and a test supplies, so
+                    // the effect is already reachable; naming it would produce a method whose
+                    // whole content is the store. `Unreachable Effect Closure` reports it because
+                    // a bare assignment is not a member setter — the one shape where its
+                    // single-store gate cannot see that the seam already exists.
+                    // swiftprojectlint:disable:next unreachable-effect-closure
                     Button {
                         showSuppressDialog = true
                     } label: {

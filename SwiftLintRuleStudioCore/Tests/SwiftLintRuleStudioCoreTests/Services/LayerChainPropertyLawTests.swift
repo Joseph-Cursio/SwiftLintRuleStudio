@@ -64,7 +64,7 @@ struct LayerChainPropertyLawTests {
     }
 
     private static func targetGenerator() -> Generator<URL, some SendableSequenceType> {
-        directoryGenerator().map { $0.0 }
+        directoryGenerator().map(\.0)
     }
 
     @Test("layerChain selects tree ancestors of the target, ordered by depth")
@@ -82,7 +82,7 @@ struct LayerChainPropertyLawTests {
             }
 
             // From the tree — the chain invents no config.
-            let treeDirectories = Set(tree.configs.map { $0.directoryPath.standardizedFileURL.path })
+            let treeDirectories = Set(tree.configs.map(\.directoryPath.standardizedFileURL.path))
             #expect(chain.allSatisfy { treeDirectories.contains($0.directoryPath.standardizedFileURL.path) })
 
             // Ordered by depth ascending — the root layer first.

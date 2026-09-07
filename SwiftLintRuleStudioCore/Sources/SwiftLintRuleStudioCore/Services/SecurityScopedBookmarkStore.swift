@@ -29,7 +29,7 @@ public protocol SecurityScopedBookmarkStoring: Sendable {
 ///
 /// `@unchecked Sendable`: the only stored property is a `UserDefaults`, which is
 /// documented thread-safe; it isn't formally `Sendable`.
-public nonisolated struct UserDefaultsBookmarkStore: SecurityScopedBookmarkStoring, @unchecked Sendable {
+nonisolated public struct UserDefaultsBookmarkStore: SecurityScopedBookmarkStoring, @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let storageKey = "SwiftLintRuleStudio.securityScopedBookmarks"
 
@@ -55,15 +55,14 @@ public nonisolated struct UserDefaultsBookmarkStore: SecurityScopedBookmarkStori
             return nil
         }
         var isStale = false
-        let url = try? URL(
+        // If the bookmark is stale, the URL still resolves for this launch; a
+        // fresh bookmark is written the next time the user re-grants access.
+        return try? URL(
             resolvingBookmarkData: data,
             options: .withSecurityScope,
             relativeTo: nil,
             bookmarkDataIsStale: &isStale
         )
-        // If the bookmark is stale, the URL still resolves for this launch; a
-        // fresh bookmark is written the next time the user re-grants access.
-        return url
     }
 
     private func storedBookmarks() -> [String: Data] {
