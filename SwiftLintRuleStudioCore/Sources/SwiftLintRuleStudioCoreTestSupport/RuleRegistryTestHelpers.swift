@@ -6,8 +6,8 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudioCore
 import SwiftLintCLISeam
+@testable import SwiftLintRuleStudioCore
 
 public enum RulesTable: Sendable {
     nonisolated public static let border =

@@ -9,12 +9,12 @@
 //
 
 import Foundation
+import SwiftLintCLISeam
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftUI
 import Testing
 import ViewInspector
-import SwiftLintCLISeam
 
 private struct StubVersionChecker: VersionCompatibilityCheckerProtocol {
     func checkCompatibility(

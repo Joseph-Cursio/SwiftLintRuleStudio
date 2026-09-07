@@ -6,11 +6,11 @@
 //
 
 import Foundation
+import SwiftLintCLISeam
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
-import SwiftLintCLISeam
 
 @MainActor
 struct RuleBrowserViewModelTests {

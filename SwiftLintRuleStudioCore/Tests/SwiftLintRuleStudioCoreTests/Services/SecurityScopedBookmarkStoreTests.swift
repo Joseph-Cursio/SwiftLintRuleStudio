@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import SwiftLintRuleStudioCore
+import Testing
 
 @Suite
 struct SecurityScopedBookmarkStoreTests {

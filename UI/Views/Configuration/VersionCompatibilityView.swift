@@ -5,9 +5,9 @@
 //  View for checking SwiftLint version compatibility
 //
 
+import SwiftLintCLISeam
 import SwiftLintRuleStudioCore
 import SwiftUI
-import SwiftLintCLISeam
 
 // MARK: - Compatibility sections
 

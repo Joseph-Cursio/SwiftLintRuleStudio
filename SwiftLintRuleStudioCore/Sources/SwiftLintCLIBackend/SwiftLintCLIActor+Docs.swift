@@ -1,6 +1,6 @@
 import Foundation
-import SwiftLintRuleStudioCore
 import SwiftLintCLISeam
+import SwiftLintRuleStudioCore
 
 extension SwiftLintCLIActor {
     private static let docFileReadAttempts = 20

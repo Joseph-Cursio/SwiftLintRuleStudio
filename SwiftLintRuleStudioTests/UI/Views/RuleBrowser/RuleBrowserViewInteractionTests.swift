@@ -6,9 +6,9 @@
 //
 
 import Foundation
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing
@@ -22,34 +22,7 @@ struct RuleBrowserViewInteractionTests {
 
     // MARK: - Test Data Helpers
 
-    private func makeTestRule(
-        id: String = "test_rule",
-        name: String = "Test Rule",
-        description: String = "Test description",
-        category: RuleCategory = .lint,
-        isOptIn: Bool = false,
-        isEnabled: Bool = false
-    ) -> Rule {
-        Rule(
-            id: id,
-            name: name,
-            description: description,
-            category: category,
-            isOptIn: isOptIn,
-            severity: nil,
-            parameters: nil,
-            triggeringExamples: [],
-            nonTriggeringExamples: [],
-            documentation: nil,
-            isEnabled: isEnabled,
-            supportsAutocorrection: false,
-            minimumSwiftVersion: nil,
-            defaultSeverity: nil,
-            markdownDocumentation: nil
-        )
-    }
-
-    // Workaround type to bypass Sendable check for SwiftUI views
+     // Workaround type to bypass Sendable check for SwiftUI views
     @MainActor
     struct ViewResult: @unchecked Sendable {
         let view: AnyView
@@ -210,7 +183,7 @@ struct RuleBrowserViewInteractionTests {
     @Test("RuleBrowserView allows rule selection")
     func testAllowsRuleSelection() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
-        let rule = makeTestRule()
+        let rule = RuleBrowserFixtures.makeTestRule()
         let result = await Task { @MainActor in createRuleBrowserView(rules: [rule]) }.value
 
         // Find the List view

@@ -8,9 +8,9 @@
 //  under the App Sandbox.
 //
 
-import SwiftUI
-import SwiftLintRuleStudioCore
 import SwiftLintInProcessBackend
+import SwiftLintRuleStudioCore
+import SwiftUI
 
 @main
 struct SwiftLintRuleExplorerApp: App {

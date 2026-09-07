@@ -1,9 +1,9 @@
 import Foundation
-import SwiftLintFramework
 // Scoped imports: pull ONLY the seam symbols from Core. A broad import would make
 // `Rule`/`RuleRegistry`/`Configuration` ambiguous, since Core declares its own.
 import protocol SwiftLintCLISeam.SwiftLintCLIProtocol
 import enum SwiftLintCLISeam.SwiftLintError
+import SwiftLintFramework
 
 /// In-process SwiftLint backend for the sandboxed (Mac App Store) app target.
 ///

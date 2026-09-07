@@ -5,9 +5,9 @@
 //  UI tests for RuleBrowserView
 //
 
+import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintCLIBackend
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing
@@ -19,76 +19,12 @@ import ViewInspector
 @MainActor
 struct RuleBrowserViewTests {
 
-    // MARK: - Test Data Helpers
-
-    private func makeTestRule(
-        id: String = "test_rule",
-        name: String = "Test Rule",
-        description: String = "Test description",
-        category: RuleCategory = .lint,
-        isOptIn: Bool = false,
-        isEnabled: Bool = false
-    ) -> Rule {
-        Rule(
-            id: id,
-            name: name,
-            description: description,
-            category: category,
-            isOptIn: isOptIn,
-            severity: nil,
-            parameters: nil,
-            triggeringExamples: [],
-            nonTriggeringExamples: [],
-            documentation: nil,
-            isEnabled: isEnabled,
-            supportsAutocorrection: false,
-            minimumSwiftVersion: nil,
-            defaultSeverity: nil,
-            markdownDocumentation: nil
-        )
-    }
-
-    // Workaround type to bypass Sendable check for SwiftUI views
-    @MainActor
-    struct ViewResult: @unchecked Sendable {
-        let view: AnyView
-        let container: DependencyContainer
-
-        init(view: some View, container: DependencyContainer) {
-            self.view = AnyView(view)
-            self.container = container
-        }
-    }
-
-    // Workaround for Swift 6 strict concurrency: Return ViewResult instead of tuple with 'some View'
-    @MainActor
-    private func createRuleBrowserView(rules: [Rule] = []) -> ViewResult {
-        let container = DependencyContainer.createForTesting()
-
-        // Create a mock rule registry with test rules
-        let cacheManager = CacheManager.createForTesting()
-        let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
-        let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
-        #if DEBUG
-        if !rules.isEmpty {
-            ruleRegistry.setRulesForTesting(rules)
-        }
-        #endif
-
-        // Note: RuleRegistry loads rules asynchronously, so we test the view structure
-        let view = RuleBrowserView(ruleRegistry: ruleRegistry)
-            .environment(\.ruleRegistry, ruleRegistry)
-            .environment(\.dependencies, container)
-
-        return ViewResult(view: view, container: container)
-    }
-
     // MARK: - Initialization Tests
 
     @Test("RuleBrowserView initializes correctly")
     func testInitialization() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        // Workaround: Use RuleBrowserFixtures.ViewResult to bypass Sendable check
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         // Verify the view can be created
         _ = try await MainActor.run {
@@ -100,8 +36,8 @@ struct RuleBrowserViewTests {
 
     @Test("RuleBrowserView sets navigation title")
     func testSetsNavigationTitle() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        // Workaround: Use RuleBrowserFixtures.ViewResult to bypass Sendable check
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         // Navigation title is set via .navigationTitle modifier
         // We can verify the view structure exists
@@ -114,7 +50,7 @@ struct RuleBrowserViewTests {
 
     @Test("RuleBrowserView shows loading state when rules are empty")
     func testShowsLoadingState() async throws {
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         let hasLoadingText = try await MainActor.run {
             ViewHosting.expel()
@@ -132,7 +68,7 @@ struct RuleBrowserViewTests {
     func testDisplaysSearchField() async throws {
         // Search is now handled by .searchable() on the parent NavigationSplitView.
         // Verify filter controls (Status/Category/Sort pickers) are present in the view.
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
         let hasFilters = await MainActor.run {
             (try? result.view.inspect().find(ViewType.Picker.self)) != nil
         }
@@ -143,7 +79,7 @@ struct RuleBrowserViewTests {
     func testSearchFieldPlaceholder() async throws {
         // Search is now handled by .searchable() on the parent NavigationSplitView.
         // Verify the view model exposes a searchText property for search-driven filtering.
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
         let hasFilters = await MainActor.run {
             (try? result.view.inspect().find(ViewType.Picker.self)) != nil
         }
@@ -154,7 +90,7 @@ struct RuleBrowserViewTests {
     func testSearchFieldClearButton() async throws {
         // Search is now handled by .searchable() on the parent NavigationSplitView.
         // Verify that setting searchText on the view model affects filteredRules.
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
         let hasFilters = await MainActor.run {
             (try? result.view.inspect().find(ViewType.Picker.self)) != nil
         }
@@ -179,7 +115,7 @@ struct RuleBrowserViewTests {
             let view = RuleBrowserView(viewModel: viewModel)
                 .environment(\.ruleRegistry, ruleRegistry)
                 .environment(\.dependencies, container)
-            return ViewResult(view: view, container: container)
+            return RuleBrowserFixtures.ViewResult(view: view, container: container)
         }.value
 
         let hasGuidance = await MainActor.run {
@@ -196,8 +132,8 @@ struct RuleBrowserViewTests {
 
     @Test("RuleBrowserView displays status filter picker")
     func testDisplaysStatusFilter() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        // Workaround: Use RuleBrowserFixtures.ViewResult to bypass Sendable check
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         // Find the status filter picker
         // Picker views are complex, so we verify structure exists
@@ -210,8 +146,8 @@ struct RuleBrowserViewTests {
 
     @Test("RuleBrowserView displays category filter picker")
     func testDisplaysCategoryFilter() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        // Workaround: Use RuleBrowserFixtures.ViewResult to bypass Sendable check
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         // Find the category filter picker
         let hasVStack = try await MainActor.run {
@@ -223,8 +159,8 @@ struct RuleBrowserViewTests {
 
     @Test("RuleBrowserView displays sort option picker")
     func testDisplaysSortPicker() async throws {
-        // Workaround: Use ViewResult to bypass Sendable check
-        let result = await Task { @MainActor in createRuleBrowserView() }.value
+        // Workaround: Use RuleBrowserFixtures.ViewResult to bypass Sendable check
+        let result = await Task { @MainActor in RuleBrowserFixtures.makeView() }.value
 
         // Find the sort picker
         let hasVStack = try await MainActor.run {

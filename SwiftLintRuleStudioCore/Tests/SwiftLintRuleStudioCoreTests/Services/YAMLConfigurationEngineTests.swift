@@ -1,8 +1,8 @@
 import Foundation
+import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
-import SwiftLintCLISeam
 
 // YAMLConfigurationEngine is @MainActor, but we'll use await MainActor.run { } inside tests
 // to allow parallel test execution

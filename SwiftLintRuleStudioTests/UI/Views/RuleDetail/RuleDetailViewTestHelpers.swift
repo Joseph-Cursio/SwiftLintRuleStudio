@@ -5,12 +5,12 @@
 //  Helper utilities for RuleDetailView tests
 //
 
+import SwiftLintCLISeam
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import ViewInspector
-import SwiftLintCLISeam
 
 enum RuleDetailViewTestHelpers {
     struct ViewResult: @unchecked Sendable {

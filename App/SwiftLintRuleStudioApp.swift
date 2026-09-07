@@ -8,8 +8,8 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
-import SwiftLintRuleStudioCore
 import SwiftLintCLIBackend
+import SwiftLintRuleStudioCore
 import UserNotifications
 #endif
 
