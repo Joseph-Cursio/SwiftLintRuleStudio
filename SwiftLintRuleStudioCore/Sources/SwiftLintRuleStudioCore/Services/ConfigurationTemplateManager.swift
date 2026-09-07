@@ -92,7 +92,8 @@ public protocol ConfigurationTemplateManagerProtocol {
         description: String,
         projectType: ConfigurationTemplate.ProjectType,
         codingStyle: ConfigurationTemplate.CodingStyle,
-        from config: YAMLConfigurationEngine.YAMLConfig
+        from config: YAMLConfigurationEngine.YAMLConfig,
+        identifier: UUID
     ) throws -> ConfigurationTemplate
 
     /// Delete a user template
@@ -130,13 +131,22 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
 
     @Published public private(set) var userTemplates: [ConfigurationTemplate] = []
 
-    public init() {
-        // Set up user templates directory
-        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? fileManager.temporaryDirectory
-        userTemplatesDirectory = appSupport
-            .appendingPathComponent("SwiftLintRuleStudio")
-            .appendingPathComponent("Templates")
+    /// - Parameter templatesDirectory: Where user templates are stored. Defaults to the app's
+    ///   own directory under Application Support, which is what the app wants and what a test
+    ///   must not touch — every test in this suite constructs a manager, and until this parameter
+    ///   existed each of them created and read the real user's template directory. That is why
+    ///   `saveAsTemplate`, `deleteTemplate` and `loadUserTemplates` had no tests at all: there was
+    ///   no way to exercise them without writing into the user's data.
+    public init(templatesDirectory: URL? = nil) {
+        if let templatesDirectory {
+            userTemplatesDirectory = templatesDirectory
+        } else {
+            let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+                ?? fileManager.temporaryDirectory
+            userTemplatesDirectory = appSupport
+                .appendingPathComponent("SwiftLintRuleStudio")
+                .appendingPathComponent("Templates")
+        }
 
         // Create directory if needed
         try? fileManager.createDirectory(at: userTemplatesDirectory, withIntermediateDirectories: true)
@@ -157,12 +167,15 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
         try template.yamlContent.write(to: configPath, atomically: true, encoding: .utf8)
     }
 
+    /// - Parameter identifier: The new template's id. It is also its filename on disk, so a
+    ///   caller that can name it can assert what was written and where.
     public func saveAsTemplate(
         name: String,
         description: String,
         projectType: ConfigurationTemplate.ProjectType,
         codingStyle: ConfigurationTemplate.CodingStyle,
-        from config: YAMLConfigurationEngine.YAMLConfig
+        from config: YAMLConfigurationEngine.YAMLConfig,
+        identifier: UUID = UUID()
     ) throws -> ConfigurationTemplate {
         // Serialization needs no file. This used to build an engine at `/tmp/temp.yml` — a
         // path that was never read, never written, and never existed — because `serialize`
@@ -171,7 +184,7 @@ public class ConfigurationTemplateManager: ConfigurationTemplateManagerProtocol 
         let yamlContent = try YAMLConfigurationEngine.serialize(config)
 
         let template = ConfigurationTemplate(
-            id: UUID(),
+            id: identifier,
             name: name,
             description: description,
             projectType: projectType,
