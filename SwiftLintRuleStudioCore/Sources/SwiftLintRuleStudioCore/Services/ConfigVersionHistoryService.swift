@@ -147,25 +147,11 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
         let firstContent = try String(contentsOf: first.path, encoding: .utf8)
         let secondContent = try String(contentsOf: second.path, encoding: .utf8)
 
-        // Load first config into a temporary engine
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        let tempPath = tempDir.appendingPathComponent(".swiftlint.yml")
-
-        // Load first as "current"
-        try firstContent.write(to: tempPath, atomically: true, encoding: .utf8)
-        let tempEngine = YAMLConfigurationEngine(configPath: tempPath)
-        try tempEngine.load()
-        let firstConfig = tempEngine.getConfig()
-
-        // Load second as proposed
-        try secondContent.write(to: tempPath, atomically: true, encoding: .utf8)
-        let tempEngine2 = YAMLConfigurationEngine(configPath: tempPath)
-        try tempEngine2.load()
-        let secondConfig = tempEngine2.getConfig()
+        // Both backups are already strings. This used to create a temporary directory, write
+        // each string into the same file in turn, and construct an engine per write to read it
+        // back — two filesystem round trips to reach a pure parse.
+        let firstConfig = try YAMLConfigurationEngine.parse(firstContent)
+        let secondConfig = try YAMLConfigurationEngine.parse(secondContent)
 
         let firstRules = Set(firstConfig.rules.keys)
         let secondRules = Set(secondConfig.rules.keys)

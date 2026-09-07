@@ -71,22 +71,14 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
     public func fetchAndPreview(from url: URL, currentConfigPath: URL?) async throws -> ConfigImportPreview {
         let yamlContent = try await fetcher.fetchConfig(from: url)
 
-        // Parse the fetched YAML
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("ConfigImport-\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: tempDir) }
-
-        let tempFile = tempDir.appendingPathComponent(".swiftlint.yml")
-        try yamlContent.write(to: tempFile, atomically: true, encoding: .utf8)
-
+        // Parse the fetched YAML. This used to create a temporary directory, write
+        // `yamlContent` into it, and construct an engine to read the file back — a round trip
+        // through the filesystem to reach `parse(_:)`, which takes the string directly.
         var parsedConfig: YAMLConfigurationEngine.YAMLConfig
         var validationErrors: [String] = []
 
         do {
-            let engine = YAMLConfigurationEngine(configPath: tempFile)
-            try engine.load()
-            parsedConfig = engine.getConfig()
+            parsedConfig = try YAMLConfigurationEngine.parse(yamlContent)
         } catch {
             // Empty or comment-only YAML: return empty config with validation warning
             parsedConfig = YAMLConfigurationEngine.YAMLConfig()

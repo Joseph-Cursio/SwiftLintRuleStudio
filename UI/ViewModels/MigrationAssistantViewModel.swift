@@ -74,9 +74,7 @@ class MigrationAssistantViewModel {
                 // Superseded by a newer detection — leave the newer run's state alone.
                 guard !Task.isCancelled else { return }
 
-                let engine = YAMLConfigurationEngine(configPath: configPath)
-                try engine.load()
-                let config = engine.getConfig()
+                let config = try YAMLConfigurationEngine.loadConfig(at: configPath)
 
                 currentVersion = version
                 migrationPlan = assistant.detectMigrations(

@@ -363,19 +363,9 @@ class RuleBrowserViewModel {
 
         // Reconstruct the proposed config by parsing the diff's after YAML
         // We rebuild from scratch since ConfigDiff stores the serialized form
-        let afterContent = diff.after
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        let tempConfig = tempDir.appendingPathComponent(".swiftlint.yml")
-        try afterContent.write(to: tempConfig, atomically: true, encoding: .utf8)
-
-        let tempEngine = YAMLConfigurationEngine(configPath: tempConfig)
-        try tempEngine.load()
-        let proposedConfig = tempEngine.getConfig()
-
-        // Clean up temp files
-        try? FileManager.default.removeItem(at: tempDir)
+        // `ConfigDiff` stores the serialized form, so the proposed config is rebuilt by
+        // parsing it. That used to mean a temporary directory, a write and a read back.
+        let proposedConfig = try YAMLConfigurationEngine.parse(diff.after)
 
         try yamlEngine.save(config: proposedConfig, createBackup: true)
         bulkDiff = nil

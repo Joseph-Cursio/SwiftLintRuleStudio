@@ -76,13 +76,8 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
         config2: URL,
         label2: String
     ) throws -> ConfigComparisonResult {
-        let engine1 = YAMLConfigurationEngine(configPath: config1)
-        let engine2 = YAMLConfigurationEngine(configPath: config2)
-        try engine1.load()
-        try engine2.load()
-
-        let cfg1 = engine1.getConfig()
-        let cfg2 = engine2.getConfig()
+        let cfg1 = try YAMLConfigurationEngine.loadConfig(at: config1)
+        let cfg2 = try YAMLConfigurationEngine.loadConfig(at: config2)
 
         let rules1 = Set(cfg1.rules.keys)
         let rules2 = Set(cfg2.rules.keys)

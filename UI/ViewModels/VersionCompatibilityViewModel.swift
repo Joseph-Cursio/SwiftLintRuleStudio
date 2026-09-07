@@ -53,12 +53,9 @@ class VersionCompatibilityViewModel {
                 // Superseded by a newer check — leave the newer run's state alone.
                 guard !Task.isCancelled else { return }
 
-                // NOTE: YAMLConfigurationEngine is @MainActor so we must use it here.
-                // engine.load() does synchronous file I/O but that is an existing design
-                // constraint of YAMLConfigurationEngine. Avoid heavy configs.
-                let engine = YAMLConfigurationEngine(configPath: configPath)
-                try engine.load()
-                let config = engine.getConfig()
+                // NOTE: `loadConfig(at:)` does synchronous file I/O, an existing design
+                // constraint of the Core layer's @MainActor isolation. Avoid heavy configs.
+                let config = try YAMLConfigurationEngine.loadConfig(at: configPath)
 
                 currentVersion = version
                 report = checker.checkCompatibility(config: config, swiftLintVersion: version)
