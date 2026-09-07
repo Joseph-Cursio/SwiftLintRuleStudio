@@ -159,7 +159,27 @@ public class YAMLConfigurationEngine {
         originalContent = try String(contentsOf: configPath, encoding: .utf8)
 
         // Everything past reading the file is pure — see `parse(_:)`.
-        currentConfig = try parse(originalContent)
+        currentConfig = try Self.parse(originalContent)
+    }
+
+    /// Read and parse the configuration at `url`, without an engine.
+    ///
+    /// The three-line dance this replaces — construct an engine at a path, `load()`, then
+    /// `getConfig()` and throw the engine away — was written at fourteen call sites, and at
+    /// several of them the path was a temporary file created for the purpose. The engine has
+    /// exactly one piece of stored state, `configPath`, and callers that only want the parsed
+    /// contents of a file they already have were carrying an object to hold it.
+    ///
+    /// Two lines here, and only the first has an effect. Everything after `String(contentsOf:)`
+    /// is `parse(_:)`, which is total and pure, and which round-trip property laws already
+    /// cover — `parse(serialize(config)) == config` and its ordering companion.
+    ///
+    /// A missing file yields an empty configuration rather than throwing, matching `load()`.
+    /// That is load-bearing: `ConfigTreeDiscovery` walks a directory tree and expects to be
+    /// told "nothing here" rather than to fail.
+    public static func loadConfig(at url: URL) throws -> YAMLConfig {
+        guard FileManager.default.fileExists(atPath: url.path) else { return YAMLConfig() }
+        return try parse(String(contentsOf: url, encoding: .utf8))
     }
 
     /// Get current configuration
@@ -185,8 +205,8 @@ public class YAMLConfigurationEngine {
             currentConfig.rules[ruleId] != proposedConfig.rules[ruleId]
         }
 
-        let before = try? serialize(currentConfig)
-        let after = try? serialize(proposedConfig)
+        let before = try? Self.serialize(currentConfig)
+        let after = try? Self.serialize(proposedConfig)
 
         return ConfigDiff(
             addedRules: addedRules.sorted(),
@@ -231,7 +251,7 @@ public class YAMLConfigurationEngine {
         try validate(config)
 
         // Serialize to YAML
-        let yamlContent = try serialize(config)
+        let yamlContent = try Self.serialize(config)
 
         // Atomic write with optional backup via shared SafeFileWriter
         try SafeFileWriter.write(yamlContent, to: configPath, createBackup: createBackup)

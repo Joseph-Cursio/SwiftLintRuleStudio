@@ -20,7 +20,7 @@ extension YAMLConfigurationEngine {
     ///   mapping. An empty document throws rather than yielding an empty config
     ///   — ``load()`` has always behaved this way, and callers that want the
     ///   lenient reading should check for empty input themselves.
-    public func parse(_ yaml: String) throws -> YAMLConfig {
+    public static func parse(_ yaml: String) throws -> YAMLConfig {
         do {
             guard let node = try Yams.compose(yaml: yaml) else {
                 throw YAMLConfigError.parseError("Empty YAML document")
@@ -56,7 +56,7 @@ extension YAMLConfigurationEngine {
     }
 
     /// Convert a YAML node into a Swift dictionary
-    public func nodeToDictionary(_ node: Node) throws -> [String: Any] {
+    public static func nodeToDictionary(_ node: Node) throws -> [String: Any] {
         guard case .mapping(let mapping) = node else {
             throw YAMLConfigError.parseError("Expected mapping node")
         }
@@ -71,7 +71,7 @@ extension YAMLConfigurationEngine {
         return dict
     }
 
-    private func nodeToAny(_ node: Node) throws -> Any {
+    private static func nodeToAny(_ node: Node) throws -> Any {
         switch node {
         case .scalar(let scalar):
             return parseScalarValue(scalar)
@@ -84,7 +84,7 @@ extension YAMLConfigurationEngine {
         }
     }
 
-    private func parseSequence(_ sequence: Node.Sequence) throws -> [Any] {
+    private static func parseSequence(_ sequence: Node.Sequence) throws -> [Any] {
         var array: [Any] = []
         for item in sequence {
             array.append(try nodeToAny(item))
@@ -92,7 +92,7 @@ extension YAMLConfigurationEngine {
         return array
     }
 
-    private func parseScalarValue(_ scalar: Node.Scalar) -> Any {
+    private static func parseScalarValue(_ scalar: Node.Scalar) -> Any {
         let stringValue = scalar.string
         let tagDescription = String(describing: scalar.tag)
         if isBoolScalar(tagDescription: tagDescription, stringValue: stringValue) {
@@ -120,23 +120,23 @@ extension YAMLConfigurationEngine {
         return stringValue
     }
 
-    private func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
+    private static func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
         if tagDescription.contains("bool") || tagDescription.contains("tag:yaml.org,2002:bool") {
             return true
         }
         return stringValue == "true" || stringValue == "false"
     }
 
-    private func isIntScalar(tagDescription: String) -> Bool {
+    private static func isIntScalar(tagDescription: String) -> Bool {
         tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int")
     }
 
-    private func isFloatScalar(tagDescription: String) -> Bool {
+    private static func isFloatScalar(tagDescription: String) -> Bool {
         tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float")
     }
 
     /// Parse a dictionary into a SwiftLintConfiguration struct
-    public func parseDictionaryToConfig(_ dict: [String: Any]) throws -> SwiftLintConfiguration {
+    public static func parseDictionaryToConfig(_ dict: [String: Any]) throws -> SwiftLintConfiguration {
         var config = SwiftLintConfiguration()
         parseReservedFields(from: dict, into: &config)
         parseLegacyRulesBlock(from: dict, into: &config)
@@ -144,7 +144,7 @@ extension YAMLConfigurationEngine {
         return config
     }
 
-    private func parseReservedFields(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
+    private static func parseReservedFields(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
         config.included = dict["included"] as? [String]
         config.excluded = dict["excluded"] as? [String]
         config.reporter = dict["reporter"] as? String
@@ -158,7 +158,7 @@ extension YAMLConfigurationEngine {
     // emitted it; SwiftLint rejects it). Parsing it here lets those files
     // round-trip into the correct top-level layout on next save, and any
     // `enabled: false` entries get migrated into `disabled_rules`.
-    private func parseLegacyRulesBlock(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
+    private static func parseLegacyRulesBlock(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
         guard let rulesDict = dict["rules"] as? [String: Any] else { return }
         config.rules = parseRulesConfig(from: rulesDict)
         var migrated = config.disabledRules ?? []
@@ -174,7 +174,10 @@ extension YAMLConfigurationEngine {
 
     // Any top-level key not in the reserved set is treated as a per-rule
     // configuration — that matches SwiftLint's actual schema.
-    private func parseTopLevelRuleConfigurations(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
+    private static func parseTopLevelRuleConfigurations(
+        from dict: [String: Any],
+        into config: inout SwiftLintConfiguration
+    ) {
         for (key, value) in dict where !Self.reservedTopLevelKeys.contains(key) {
             if let ruleConfig = parseRuleConfiguration(from: value) {
                 config.rules[key] = ruleConfig
@@ -243,7 +246,7 @@ extension YAMLConfigurationEngine {
         return result
     }
 
-    private func parseRulesConfig(from rulesDict: [String: Any]) -> [String: RuleConfiguration] {
+    private static func parseRulesConfig(from rulesDict: [String: Any]) -> [String: RuleConfiguration] {
         var rules: [String: RuleConfiguration] = [:]
         for (ruleId, ruleValue) in rulesDict {
             if let ruleConfig = parseRuleConfiguration(from: ruleValue) {
@@ -253,7 +256,7 @@ extension YAMLConfigurationEngine {
         return rules
     }
 
-    private func parseRuleConfiguration(from ruleValue: Any) -> RuleConfiguration? {
+    private static func parseRuleConfiguration(from ruleValue: Any) -> RuleConfiguration? {
         if let boolValue = parseBoolRuleValue(from: ruleValue) {
             return RuleConfiguration(enabled: boolValue)
         }
@@ -280,7 +283,7 @@ extension YAMLConfigurationEngine {
 
     // Returns nil when the value isn't parseable as a boolean
     // swiftlint:disable:next discouraged_optional_boolean
-    private func parseBoolRuleValue(from ruleValue: Any) -> Bool? {
+    private static func parseBoolRuleValue(from ruleValue: Any) -> Bool? {
         if let boolRuleValue = ruleValue as? Bool {
             return boolRuleValue
         }
@@ -290,7 +293,7 @@ extension YAMLConfigurationEngine {
         return nil
     }
 
-    private func parseComplexRuleConfiguration(from ruleDict: [String: Any]) -> RuleConfiguration {
+    private static func parseComplexRuleConfiguration(from ruleDict: [String: Any]) -> RuleConfiguration {
         let severity = parseSeverity(from: ruleDict)
         let enabled = parseEnabledValue(from: ruleDict)
         let parameters = parseRuleParameters(from: ruleDict)
@@ -301,14 +304,14 @@ extension YAMLConfigurationEngine {
         )
     }
 
-    private func parseSeverity(from ruleDict: [String: Any]) -> Severity? {
+    private static func parseSeverity(from ruleDict: [String: Any]) -> Severity? {
         guard let severityStr = ruleDict["severity"] as? String else {
             return nil
         }
         return Severity(rawValue: severityStr)
     }
 
-    private func parseEnabledValue(from ruleDict: [String: Any]) -> Bool {
+    private static func parseEnabledValue(from ruleDict: [String: Any]) -> Bool {
         if let enabledValue = ruleDict["enabled"] as? Bool {
             return enabledValue
         }
@@ -318,7 +321,7 @@ extension YAMLConfigurationEngine {
         return true
     }
 
-    private func parseRuleParameters(from ruleDict: [String: Any]) -> [String: AnyCodable]? {
+    private static func parseRuleParameters(from ruleDict: [String: Any]) -> [String: AnyCodable]? {
         var params: [String: AnyCodable] = [:]
         for (paramKey, paramValue) in ruleDict {
             if paramKey != "severity" && paramKey != "enabled" {

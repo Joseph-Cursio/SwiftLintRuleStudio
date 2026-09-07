@@ -104,7 +104,7 @@ struct OrderingStabilityPropertyLawTests {
     /// by the parser, which is the only honest way to observe an emission.
     private func emittedOrder(_ config: YAMLConfigurationEngine.YAMLConfig) throws -> [String] {
         let engine = makeEngine()
-        return try engine.parse(try engine.serialize(config)).keyOrder
+        return try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config)).keyOrder
     }
 
     // MARK: - Laws
@@ -113,8 +113,8 @@ struct OrderingStabilityPropertyLawTests {
     func insertionOrderDoesNotLeak() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
             let engine = makeEngine()
-            let forward = try engine.serialize(makeConfig(from: spec))
-            let backward = try engine.serialize(makeConfig(from: spec, reversed: true))
+            let forward = try YAMLConfigurationEngine.serialize(makeConfig(from: spec))
+            let backward = try YAMLConfigurationEngine.serialize(makeConfig(from: spec, reversed: true))
 
             // Byte-identical, not merely same-set: a user who changes nothing
             // must get a file that differs by nothing.
@@ -163,8 +163,8 @@ struct OrderingStabilityPropertyLawTests {
         await propertyCheck(input: Self.specGenerator()) { spec in
             let engine = makeEngine()
             let config = makeConfig(from: spec)
-            let once = try engine.parse(try engine.serialize(config))
-            let twice = try engine.parse(try engine.serialize(once))
+            let once = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config))
+            let twice = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(once))
 
             // The order recovered from a file is the order that file is written
             // back in — the fixed point that keeps an untouched save a no-op.

@@ -38,7 +38,7 @@ public extension YAMLConfigurationEngine {
     /// `nil` — leaves a stale entry in `config.comments`; filtering against the
     /// keys actually emitted discards that stale comment along with its deleted
     /// key, rather than orphaning it to the end of the file.
-    func reinsertComments(into yaml: String, config: YAMLConfig) -> String {
+    static func reinsertComments(into yaml: String, config: YAMLConfig) -> String {
         guard !config.comments.isEmpty else { return yaml }
 
         // Drop comments whose anchor key is no longer present in the output.

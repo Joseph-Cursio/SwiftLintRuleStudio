@@ -198,10 +198,8 @@ extension RuleAuditView {
     static func loadConfiguration(for workspace: Workspace) -> YAMLConfigurationEngine.YAMLConfig {
         let configPath = workspace.configPath
             ?? workspace.path.appendingPathComponent(".swiftlint.yml")
-        let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
         do {
-            try yamlEngine.load()
-            return yamlEngine.getConfig()
+            return try YAMLConfigurationEngine.loadConfig(at: configPath)
         } catch {
             return YAMLConfigurationEngine.YAMLConfig()
         }

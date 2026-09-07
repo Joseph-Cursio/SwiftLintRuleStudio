@@ -203,7 +203,7 @@ struct ConfigRoundTripPropertyLawTests {
         await propertyCheck(input: Self.specGenerator()) { spec in
             let engine = makeEngine()
             let config = makeConfig(from: spec)
-            let back = try engine.parse(try engine.serialize(config))
+            let back = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config))
 
             // `disabled_rules` round-trips verbatim. A rule marked
             // `enabled == false` is NOT folded in here: the serializer cannot tell
@@ -249,8 +249,8 @@ struct ConfigRoundTripPropertyLawTests {
     func serializeIsAFixedPointThroughParse() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
             let engine = makeEngine()
-            let once = try engine.serialize(makeConfig(from: spec))
-            let twice = try engine.serialize(try engine.parse(once))
+            let once = try YAMLConfigurationEngine.serialize(makeConfig(from: spec))
+            let twice = try YAMLConfigurationEngine.serialize(try YAMLConfigurationEngine.parse(once))
 
             // Stronger than law A: no field model, so nothing can be forgotten
             // from the comparison. Layout counts — indentation, key order and
@@ -288,7 +288,7 @@ struct ConfigRoundTripPropertyLawTests {
 
         """
         let engine = makeEngine()
-        #expect(try engine.serialize(try engine.parse(source)) == source)
+        #expect(try YAMLConfigurationEngine.serialize(try YAMLConfigurationEngine.parse(source)) == source)
     }
 
     // MARK: - Identity and passthrough
@@ -296,10 +296,10 @@ struct ConfigRoundTripPropertyLawTests {
     @Test("the empty config is the identity element")
     func emptyConfigRoundTrips() throws {
         let engine = makeEngine()
-        let yaml = try engine.serialize(YAMLConfigurationEngine.YAMLConfig())
+        let yaml = try YAMLConfigurationEngine.serialize(YAMLConfigurationEngine.YAMLConfig())
         #expect(yaml == "{}\n")
 
-        let back = try engine.parse(yaml)
+        let back = try YAMLConfigurationEngine.parse(yaml)
         #expect(back.rules.isEmpty)
         #expect(back.disabledRules == nil)
         #expect(back.excluded == nil)
@@ -322,17 +322,17 @@ struct ConfigRoundTripPropertyLawTests {
           - todo
         """
         let engine = makeEngine()
-        let parsed = try engine.parse(source)
+        let parsed = try YAMLConfigurationEngine.parse(source)
 
         #expect(Set(parsed.passthroughNodes.keys) == ["warning_threshold", "strict", "custom_rules"])
         #expect(parsed.comments["warning_threshold"] == "# leading comment")
 
-        let emitted = try engine.serialize(parsed)
+        let emitted = try YAMLConfigurationEngine.serialize(parsed)
         #expect(emitted.contains("warning_threshold: 10"))
         #expect(emitted.contains("strict: true"))
         #expect(emitted.contains("regex: \"foo\""))
         #expect(emitted.contains("# leading comment"))
-        #expect(try engine.serialize(try engine.parse(emitted)) == emitted)
+        #expect(try YAMLConfigurationEngine.serialize(try YAMLConfigurationEngine.parse(emitted)) == emitted)
     }
 
     @Test("a numeric-looking string parameter stays a string")
@@ -345,8 +345,8 @@ struct ConfigRoundTripPropertyLawTests {
             enabled: true, severity: nil, parameters: ["kind": AnyCodable("120")]
         )
 
-        let yaml = try engine.serialize(config)
+        let yaml = try YAMLConfigurationEngine.serialize(config)
         #expect(yaml.contains("'120'") || yaml.contains("\"120\""))
-        #expect(try engine.parse(yaml).rules["custom"]?.parameters == ["kind": AnyCodable("120")])
+        #expect(try YAMLConfigurationEngine.parse(yaml).rules["custom"]?.parameters == ["kind": AnyCodable("120")])
     }
 }

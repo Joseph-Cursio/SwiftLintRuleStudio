@@ -129,9 +129,7 @@ public struct ConfigTreeDiscovery {
         var parsedConfig: YAMLConfig?
         var parseError: String?
         do {
-            let engine = YAMLConfigurationEngine(configPath: url)
-            try engine.load()
-            parsedConfig = engine.getConfig()
+            parsedConfig = try YAMLConfigurationEngine.loadConfig(at: url)
         } catch {
             parseError = error.localizedDescription
         }
