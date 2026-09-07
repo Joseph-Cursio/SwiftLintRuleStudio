@@ -272,7 +272,10 @@ struct ConfigTreeDiscoveryTests {
         defer { cleanup(root) }
 
         let tree = ConfigTreeDiscovery().discover(in: root)
-        let rootConfig = try #require(tree.configs.first(where: \.isRoot))
+        // Spelled as a closure, not `where: \.isRoot`. Inside `#require` the key path becomes the
+        // macro's own `$1`, and the expansion then calls a `rethrows` `first(where:)` with an
+        // argument the compiler treats as throwing — so the key-path form does not build at all.
+        let rootConfig = try #require(tree.configs.first { $0.isRoot })
         let legacyPath = "Sources/Legacy/.swiftlint.yml"
         let legacy = try #require(tree.configs.first { $0.relativePath == legacyPath })
 
