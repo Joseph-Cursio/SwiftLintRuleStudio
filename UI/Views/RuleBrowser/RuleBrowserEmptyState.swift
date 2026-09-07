@@ -40,3 +40,23 @@ struct RuleBrowserEmptyState: View {
         }
     }
 }
+
+#Preview("With Filters") {
+    RuleBrowserEmptyState(
+        searchText: "force",
+        selectedCategory: nil,
+        selectedStatus: .enabled,
+        rulesAreEmpty: false,
+        onClearFilters: {}
+    )
+}
+
+#Preview("Loading") {
+    RuleBrowserEmptyState(
+        searchText: "",
+        selectedCategory: nil,
+        selectedStatus: .all,
+        rulesAreEmpty: true,
+        onClearFilters: {}
+    )
+}

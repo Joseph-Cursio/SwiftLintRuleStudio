@@ -42,3 +42,12 @@ struct SuppressViolationDialog: View {
         .frame(width: 500, height: 300)
     }
 }
+
+#Preview {
+    @Previewable @State var reason = ""
+    SuppressViolationDialog(
+        reason: $reason,
+        onSuppress: { _ in },
+        onCancel: {}
+    )
+}
