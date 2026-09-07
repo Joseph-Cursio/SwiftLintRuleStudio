@@ -86,9 +86,7 @@ extension RuleAuditView {
         configPath: URL,
         rules: [Rule]
     ) throws {
-        let yamlEngine = YAMLConfigurationEngine(configPath: configPath)
-        try yamlEngine.load()
-        var config = yamlEngine.getConfig()
+        var config = try YAMLConfigurationEngine.loadConfig(at: configPath)
         let classification = ruleClassification(from: rules)
 
         applyEnableRules(
@@ -98,7 +96,7 @@ extension RuleAuditView {
             analyzerRuleIds: classification.analyzerRuleIds
         )
 
-        try yamlEngine.save(config: config, createBackup: true)
+        try YAMLConfigurationEngine.save(config, to: configPath)
         postRuleChangeNotification(ruleIds: Array(ruleIds))
     }
 

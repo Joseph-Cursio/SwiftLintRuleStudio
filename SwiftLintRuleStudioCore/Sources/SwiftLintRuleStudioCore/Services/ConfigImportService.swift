@@ -90,9 +90,10 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
 
         if let currentPath = currentConfigPath,
            FileManager.default.fileExists(atPath: currentPath.path) {
-            let currentEngine = YAMLConfigurationEngine(configPath: currentPath)
-            try currentEngine.load()
-            diff = currentEngine.generateDiff(proposedConfig: parsedConfig)
+            diff = YAMLConfigurationEngine.diff(
+                from: try YAMLConfigurationEngine.loadConfig(at: currentPath),
+                to: parsedConfig
+            )
         }
 
         // Basic validation (only if no errors already added)
@@ -114,20 +115,20 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
     }
 
     public func applyImport(preview: ConfigImportPreview, mode: ImportMode, to configPath: URL) throws {
-        let engine = YAMLConfigurationEngine(configPath: configPath)
-
         switch mode {
         case .replace:
-            try engine.save(config: preview.parsedConfig, createBackup: true)
+            try YAMLConfigurationEngine.save(preview.parsedConfig, to: configPath)
 
         case .merge:
             // Load existing config and merge, or save the import as-is if none exists.
             if FileManager.default.fileExists(atPath: configPath.path) {
-                try engine.load()
-                let merged = Self.merge(existing: engine.getConfig(), imported: preview.parsedConfig)
-                try engine.save(config: merged, createBackup: true)
+                let existing = try YAMLConfigurationEngine.loadConfig(at: configPath)
+                let merged = Self.merge(existing: existing, imported: preview.parsedConfig)
+                try YAMLConfigurationEngine.save(merged, to: configPath)
             } else {
-                try engine.save(config: preview.parsedConfig, createBackup: false)
+                try YAMLConfigurationEngine.save(
+                    preview.parsedConfig, to: configPath, createBackup: false
+                )
             }
         }
     }

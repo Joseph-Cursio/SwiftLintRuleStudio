@@ -72,9 +72,7 @@ class VersionCompatibilityViewModel {
         guard let configPath = configPath else { return }
 
         do {
-            let engine = YAMLConfigurationEngine(configPath: configPath)
-            try engine.load()
-            var config = engine.getConfig()
+            var config = try YAMLConfigurationEngine.loadConfig(at: configPath)
 
             // Move rule config from old to new
             if let ruleConfig = config.rules[rule.oldRuleId] {
@@ -98,7 +96,7 @@ class VersionCompatibilityViewModel {
                 }
             }
 
-            try engine.save(config: config, createBackup: true)
+            try YAMLConfigurationEngine.save(config, to: configPath)
 
             // Re-run check
             checkCompatibility()
