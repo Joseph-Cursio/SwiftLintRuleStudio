@@ -8,6 +8,22 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// How many rules the bulk toolbar is acting on.
+///
+/// Takes the count. `BulkOperationToolbar` is handed five closures, every one of them freshly
+/// allocated on each update of the browser above it, so the toolbar value never compares equal and
+/// its whole body re-runs — including this label, whose text changes only when the count does.
+private struct BulkSelectionLabel: View {
+    let count: Int
+
+    var body: some View {
+        Text("\(count) selected")
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundStyle(.secondary)
+    }
+}
+
 struct BulkOperationToolbar: View {
     let selectedCount: Int
     let onEnableAll: () -> Void
@@ -21,7 +37,7 @@ struct BulkOperationToolbar: View {
             Divider()
 
             HStack(spacing: 12) {
-                selectionLabel
+                BulkSelectionLabel(count: selectedCount)
                 Divider().frame(height: 20)
                 enableDisableButtons
                 Divider().frame(height: 20)
@@ -33,13 +49,6 @@ struct BulkOperationToolbar: View {
             .padding(.vertical, 8)
             .background(Color(NSColor.controlBackgroundColor))
         }
-    }
-
-    private var selectionLabel: some View {
-        Text("\(selectedCount) selected")
-            .font(.subheadline)
-            .fontWeight(.medium)
-            .foregroundStyle(.secondary)
     }
 
     @ViewBuilder

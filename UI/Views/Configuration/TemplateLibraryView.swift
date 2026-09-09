@@ -232,6 +232,16 @@ struct TemplateLibraryView: View {
         .navigationSplitViewColumnWidth(min: 180, ideal: 220)
     }
 
+    // swiftprojectlint:disable:next computed-property-view
+    /// Kept inline deliberately.
+    ///
+    /// Every row here carries a `.tag()`, and the `List(selection: $selectedProjectType)` above
+    /// resolves those tags out of its own content. Whether a tag survives being moved inside a
+    /// child `View`'s body is a question about SwiftUI's selection machinery that no test in this
+    /// project can answer, and the cost of being wrong is a sidebar that stops selecting —
+    /// behaviour, not redraws. That is the same reason `Computed Property View` already declines
+    /// `alert(actions:)` and `Menu(content:)` bodies; the tagged-row case is recorded as open in
+    /// `Docs/rules/computed-property-view.md` rather than gated on a claim nobody has measured.
     @ViewBuilder
     private var projectTypeSection: some View {
         SwiftUI.Section("Project Type") {

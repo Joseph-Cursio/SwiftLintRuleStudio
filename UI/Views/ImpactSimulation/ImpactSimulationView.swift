@@ -8,6 +8,46 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// The safe/unsafe icon, the rule's name and id, and the one-line verdict.
+///
+/// Takes the three values it reads. `ImpactSimulationView` is also handed `onEnable`, a closure
+/// the presenting screen allocates on every update, so the sheet value never compares equal and
+/// its whole body re-runs — this does not.
+private struct ImpactSimulationHeader: View {
+    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+
+    let ruleId: String
+    let ruleName: String
+    let result: RuleImpactResult
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: result.isSafe ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .font(.system(size: iconSizeMedium))
+                    .foregroundStyle(result.isSafe ? .green : .orange)
+                    .accessibilityLabel(result.isSafe ? "Safe rule" : "Rule has violations")
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(ruleName)
+                        .font(.title)
+                        .fontWeight(.bold)
+
+                    Text(ruleId)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+            }
+
+            Text(result.isSafe ? "This rule is safe to enable" : "This rule would introduce violations")
+                .font(.headline)
+                .foregroundStyle(result.isSafe ? .green : .orange)
+        }
+    }
+}
+
 private struct ViolationRow: View {
     let violation: Violation
 
@@ -126,8 +166,6 @@ struct ImpactSimulationView: View {
     let result: RuleImpactResult
     let onEnable: (() -> Void)?
 
-    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
-
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -135,7 +173,7 @@ struct ImpactSimulationView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // Header with result summary
-                    headerView
+                    ImpactSimulationHeader(ruleId: ruleId, ruleName: ruleName, result: result)
 
                     Divider()
 
@@ -171,33 +209,6 @@ struct ImpactSimulationView: View {
             }
         }
         .frame(width: 700, height: 600)
-    }
-
-    private var headerView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: result.isSafe ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                    .font(.system(size: iconSizeMedium))
-                    .foregroundStyle(result.isSafe ? .green : .orange)
-                    .accessibilityLabel(result.isSafe ? "Safe rule" : "Rule has violations")
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(ruleName)
-                        .font(.title)
-                        .fontWeight(.bold)
-
-                    Text(ruleId)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-            }
-
-            Text(result.isSafe ? "This rule is safe to enable" : "This rule would introduce violations")
-                .font(.headline)
-                .foregroundStyle(result.isSafe ? .green : .orange)
-        }
     }
 
 }

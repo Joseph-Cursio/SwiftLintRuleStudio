@@ -18,6 +18,50 @@ struct ConfigVersionHistoryEmptyStateView: View {
     }
 }
 
+struct ConfigVersionHistoryDiffDetailView: View {
+    let viewModel: ConfigVersionHistoryViewModel
+
+    var body: some View {
+        VStack {
+            if let diff = viewModel.currentDiff {
+                diffContent(diff)
+            } else {
+                ConfigVersionHistoryEmptyState()
+            }
+        }
+    }
+
+    private func diffContent(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ConfigVersionDiffHeaderRow(
+                before: viewModel.selectedBackup?.formattedDate,
+                after: viewModel.comparisonBackup?.formattedDate
+            )
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+
+            Divider()
+
+            ConfigDiffPreviewView(
+                diff: diff,
+                ruleName: "Version Comparison",
+                onSave: {
+                    if let backup = viewModel.comparisonBackup {
+                        viewModel.confirmRestore(backup)
+                    }
+                },
+                onCancel: {
+                    viewModel.clearComparison()
+                },
+                isInline: true,
+                beforeLabel: "Before — \(viewModel.selectedBackup?.formattedDate ?? "Unknown")",
+                afterLabel: "After — \(viewModel.comparisonBackup?.formattedDate ?? "Unknown")"
+            )
+        }
+    }
+
+}
+
 struct ConfigVersionHistoryBackupListView: View {
     let viewModel: ConfigVersionHistoryViewModel
 
@@ -56,79 +100,6 @@ struct ConfigVersionHistoryBackupListView: View {
                     .padding()
             }
         }
-    }
-}
-
-struct ConfigVersionHistoryDiffDetailView: View {
-    @ScaledMetric(relativeTo: .title) private var iconSizeSmall: CGFloat = 36
-
-    let viewModel: ConfigVersionHistoryViewModel
-
-    var body: some View {
-        VStack {
-            if let diff = viewModel.currentDiff {
-                diffContent(diff)
-            } else {
-                emptyStateContent
-            }
-        }
-    }
-
-    private func diffContent(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            diffHeaderRow
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-
-            Divider()
-
-            ConfigDiffPreviewView(
-                diff: diff,
-                ruleName: "Version Comparison",
-                onSave: {
-                    if let backup = viewModel.comparisonBackup {
-                        viewModel.confirmRestore(backup)
-                    }
-                },
-                onCancel: {
-                    viewModel.clearComparison()
-                },
-                isInline: true,
-                beforeLabel: "Before — \(viewModel.selectedBackup?.formattedDate ?? "Unknown")",
-                afterLabel: "After — \(viewModel.comparisonBackup?.formattedDate ?? "Unknown")"
-            )
-        }
-    }
-
-    private var diffHeaderRow: some View {
-        HStack {
-            if let first = viewModel.selectedBackup {
-                Label(first.formattedDate, systemImage: "clock")
-                    .font(.caption)
-                    .foregroundStyle(.blue)
-            }
-            Image(systemName: "arrow.right")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            if let second = viewModel.comparisonBackup {
-                Label(second.formattedDate, systemImage: "clock")
-                    .font(.caption)
-                    .foregroundStyle(.green)
-            }
-        }
-    }
-
-    private var emptyStateContent: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "arrow.left.arrow.right")
-                .font(.system(size: iconSizeSmall))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            Text("Select two backups to compare")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
