@@ -8,6 +8,61 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// The score ring, the grade and the one-line summary.
+///
+/// Takes the report. `ConfigHealthScoreView` is also handed `onApplyPreset`, an optional closure
+/// the caller allocates on every update, so the view itself never compares equal — this does.
+private struct ConfigHealthHeader: View {
+    let report: ConfigHealthReport
+
+    private var gradeColor: Color {
+        switch report.grade {
+        case .excellent: return .green
+        case .good: return .blue
+        case .fair: return .yellow
+        case .needsWork: return .orange
+        case .poor: return .red
+        }
+    }
+
+    private var healthSummary: String {
+        switch report.grade {
+        case .excellent:
+            return "Your configuration is well optimized!"
+        case .good:
+            return "Good configuration with room for improvement."
+        case .fair:
+            return "Consider implementing the recommendations below."
+        case .needsWork:
+            return "Several areas need attention."
+        case .poor:
+            return "Significant improvements recommended."
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 24) {
+            HealthScoreRing(report: report)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Configuration Health")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text(report.grade.displayName)
+                    .font(.headline)
+                    .foregroundStyle(gradeColor)
+
+                Text(healthSummary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+    }
+}
+
 /// Row displaying a single breakdown metric
 struct BreakdownRow: View {
     private let excellentThreshold = 80
@@ -240,7 +295,7 @@ struct ConfigHealthScoreView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Header with score
-                headerSection
+                ConfigHealthHeader(report: report)
 
                 Divider()
 
@@ -258,28 +313,6 @@ struct ConfigHealthScoreView: View {
         }
     }
 
-    private var headerSection: some View {
-        HStack(spacing: 24) {
-            HealthScoreRing(report: report)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Configuration Health")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-
-                Text(report.grade.displayName)
-                    .font(.headline)
-                    .foregroundStyle(gradeColor)
-
-                Text(healthSummary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-        }
-    }
-
     private var recommendationsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recommendations")
@@ -291,31 +324,6 @@ struct ConfigHealthScoreView: View {
                     onApplyPreset: onApplyPreset
                 )
             }
-        }
-    }
-
-    private var gradeColor: Color {
-        switch report.grade {
-        case .excellent: return .green
-        case .good: return .blue
-        case .fair: return .yellow
-        case .needsWork: return .orange
-        case .poor: return .red
-        }
-    }
-
-    private var healthSummary: String {
-        switch report.grade {
-        case .excellent:
-            return "Your configuration is well optimized!"
-        case .good:
-            return "Good configuration with room for improvement."
-        case .fair:
-            return "Consider implementing the recommendations below."
-        case .needsWork:
-            return "Several areas need attention."
-        case .poor:
-            return "Significant improvements recommended."
         }
     }
 }

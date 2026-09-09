@@ -8,6 +8,27 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// The right-hand pane: the selected rule, or nothing.
+///
+/// Takes the resolved rule. The browser around it re-renders on every pixel of a divider drag —
+/// `listWidth` is `@State` and the gesture writes it continuously — and on every keystroke in the
+/// search field, neither of which changes which rule is selected.
+private struct RuleBrowserDetailPanel: View {
+    let rule: Rule?
+
+    var body: some View {
+        Group {
+            if let rule {
+                RuleDetailView(rule: rule)
+                    .id(rule.id)
+            } else {
+                Color.clear
+            }
+        }
+        .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 struct RuleBrowserView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     @Environment(\.dependencies) var dependencies: DependencyContainer
@@ -48,7 +69,11 @@ struct RuleBrowserView: View {
 
             draggableDivider
 
-            detailPanel
+            RuleBrowserDetailPanel(
+                rule: selectedRuleId.flatMap { identifier in
+                    ruleRegistry.rules.first { $0.id == identifier }
+                }
+            )
         }
         .searchable(text: Bindable(viewModel).searchText, prompt: "Search rules")
         .onAppear(perform: handleAppear)
@@ -100,19 +125,6 @@ struct RuleBrowserView: View {
                     NSCursor.pop()
                 }
             }
-    }
-
-    private var detailPanel: some View {
-        Group {
-            if let selectedRuleId = selectedRuleId,
-               let selectedRule = ruleRegistry.rules.first(where: { $0.id == selectedRuleId }) {
-                RuleDetailView(rule: selectedRule)
-                    .id(selectedRuleId)
-            } else {
-                Color.clear
-            }
-        }
-        .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func handleAppear() {

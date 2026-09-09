@@ -8,113 +8,16 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
-// MARK: - Full YAML Diff View
-
-private struct FullYAMLDiffView: View {
-    let diff: YAMLConfigurationEngine.ConfigDiff
-
-    var body: some View {
-        DisclosureGroup("Full YAML Diff") {
-            HStack(alignment: .top, spacing: 16) {
-                yamlPane(title: "Left", content: diff.before)
-                yamlPane(title: "Right", content: diff.after)
-            }
-        }
-    }
-
-    private func yamlPane(
-        title: String,
-        content: String
-    ) -> some View {
-        VStack(alignment: .leading) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            ScrollView {
-                Text(content)
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxHeight: 400)
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(.rect(cornerRadius: 4))
-        }
-    }
-}
-
-// MARK: - Comparison sections
-
-/// The placeholder shown before two configs are chosen.
-/// 
-/// Depends on none of the view's inputs — it carries its own scaled metric, which is a
-/// measurement rather than something the parent changes.
-private struct ComparisonEmptyState: View {
-    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+/// The two "pick a config" rows and the Compare button.
+///
+/// Takes the view model, which is the only thing it reads. What it narrows away is
+/// `ConfigComparisonView`'s `@ScaledMetric` — an ambient value that changes only when the reader
+/// changes their text size, so the skip this buys is real but rare. It is extracted for the same
+/// reason a sixty-line expression usually is.
+private struct ConfigComparisonSelectors: View {
+    let viewModel: ConfigComparisonViewModel
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "arrow.left.arrow.right")
-                .font(.system(size: iconSizeMedium))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text("Compare Configurations")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-
-            Text("Select two SwiftLint configuration files to compare their rules and settings.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
-    }
-}
-
-struct ConfigComparisonView: View {
-    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
-
-    @State private var viewModel: ConfigComparisonViewModel
-
-    init(service: ConfigComparisonServiceProtocol, currentWorkspace: Workspace?) {
-        _viewModel = State(initialValue: ConfigComparisonViewModel(
-            service: service,
-            currentWorkspace: currentWorkspace
-        ))
-    }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Workspace selectors
-            workspaceSelectorsView
-                .padding()
-
-            Divider()
-
-            // Results
-            if viewModel.isComparing {
-                ProgressView("Comparing configurations...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let result = viewModel.comparisonResult {
-                comparisonResultView(result)
-            } else {
-                ComparisonEmptyState()
-            }
-        }
-        .navigationTitle("Compare Configs")
-        .alert("Error", isPresented: Binding(
-            get: { viewModel.error != nil },
-            set: { if !$0 { viewModel.error = nil } }
-        )) {
-            Button("OK") { viewModel.error = nil }
-        } message: {
-            Text(viewModel.error?.localizedDescription ?? "An unknown error occurred.")
-        }
-    }
-
-    private var workspaceSelectorsView: some View {
         HStack(spacing: 16) {
             // Left workspace
             VStack(alignment: .leading, spacing: 4) {
@@ -184,6 +87,111 @@ struct ConfigComparisonView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.leftWorkspacePath == nil || viewModel.rightWorkspacePath == nil)
+        }
+    }
+}
+
+// MARK: - Full YAML Diff View
+
+private struct FullYAMLDiffView: View {
+    let diff: YAMLConfigurationEngine.ConfigDiff
+
+    var body: some View {
+        DisclosureGroup("Full YAML Diff") {
+            HStack(alignment: .top, spacing: 16) {
+                yamlPane(title: "Left", content: diff.before)
+                yamlPane(title: "Right", content: diff.after)
+            }
+        }
+    }
+
+    private func yamlPane(
+        title: String,
+        content: String
+    ) -> some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            ScrollView {
+                Text(content)
+                    .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: 400)
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(.rect(cornerRadius: 4))
+        }
+    }
+}
+
+// MARK: - Comparison sections
+
+/// The placeholder shown before two configs are chosen.
+/// 
+/// Depends on none of the view's inputs — it carries its own scaled metric, which is a
+/// measurement rather than something the parent changes.
+private struct ComparisonEmptyState: View {
+    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.system(size: iconSizeMedium))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+
+            Text("Compare Configurations")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Text("Select two SwiftLint configuration files to compare their rules and settings.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+}
+
+struct ConfigComparisonView: View {
+    @State private var viewModel: ConfigComparisonViewModel
+
+    init(service: ConfigComparisonServiceProtocol, currentWorkspace: Workspace?) {
+        _viewModel = State(initialValue: ConfigComparisonViewModel(
+            service: service,
+            currentWorkspace: currentWorkspace
+        ))
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Workspace selectors
+            ConfigComparisonSelectors(viewModel: viewModel)
+                .padding()
+
+            Divider()
+
+            // Results
+            if viewModel.isComparing {
+                ProgressView("Comparing configurations...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let result = viewModel.comparisonResult {
+                comparisonResultView(result)
+            } else {
+                ComparisonEmptyState()
+            }
+        }
+        .navigationTitle("Compare Configs")
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.error != nil },
+            set: { if !$0 { viewModel.error = nil } }
+        )) {
+            Button("OK") { viewModel.error = nil }
+        } message: {
+            Text(viewModel.error?.localizedDescription ?? "An unknown error occurred.")
         }
     }
 

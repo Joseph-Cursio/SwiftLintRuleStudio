@@ -9,6 +9,41 @@ import SwiftLintRuleStudioCore
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// The bar along the bottom: the open workspace, and how many rules are loaded.
+///
+/// Takes the three values it shows. `ContentView` holds ten pieces of state — the sidebar
+/// selection, the search text, the column visibility, two error flags, the workspace picker — and
+/// re-renders on every one of them; none of those changes anything here.
+private struct ContentStatusBar: View {
+    let workspacePath: String?
+    let isLoadingRules: Bool
+    let ruleCount: Int
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let workspacePath {
+                Label(workspacePath, systemImage: "folder")
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer()
+            if isLoadingRules {
+                ProgressView()
+                    .controlSize(.small)
+                    .progressViewStyle(.circular)
+            } else if ruleCount > 0 {
+                Text("\(ruleCount) rules")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(8)
+        .background(.bar)
+    }
+}
+
 struct ContentView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     @Environment(\.dependencies) var dependencies: DependencyContainer
@@ -69,7 +104,13 @@ struct ContentView: View {
         }
         .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
         .toolbar { toolbarContent }
-        .safeAreaInset(edge: .bottom) { statusBar }
+        .safeAreaInset(edge: .bottom) {
+            ContentStatusBar(
+                workspacePath: dependencies.workspaceManager.currentWorkspace?.path.path(),
+                isLoadingRules: ruleRegistry.isLoading,
+                ruleCount: ruleRegistry.rules.count
+            )
+        }
         .navigationSubtitle(dependencies.workspaceManager.currentWorkspace?.name ?? "")
         .fileImporter(
             isPresented: $showWorkspacePicker,
@@ -120,30 +161,6 @@ struct ContentView: View {
                 .accessibilityIdentifier("ContentViewRefreshViolationsButton")
             }
         }
-    }
-
-    private var statusBar: some View {
-        HStack(spacing: 12) {
-            if let workspace = dependencies.workspaceManager.currentWorkspace {
-                Label(workspace.path.path(), systemImage: "folder")
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-            Spacer()
-            if ruleRegistry.isLoading {
-                ProgressView()
-                    .controlSize(.small)
-                    .progressViewStyle(.circular)
-            } else if !ruleRegistry.rules.isEmpty {
-                Text("\(ruleRegistry.rules.count) rules")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(8)
-        .background(.bar)
     }
 
     /// Derived from `AppSection.allCases` rather than transcribed.

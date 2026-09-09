@@ -27,9 +27,42 @@ struct RuleBrowserListView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            searchAndFiltersSection
+            // Both of these were computed properties until the Computed Property View rule
+            // reported them. Neither wanted extracting: each was a one-line alias for a `View`
+            // this app already declares, so the identity boundary the rule asks for is already
+            // the `RuleBrowserSearchAndFilters` and `BulkOperationToolbar` values themselves.
+            RuleBrowserSearchAndFilters(
+                searchText: Bindable(viewModel).searchText,
+                selectedStatus: Bindable(viewModel).selectedStatus,
+                selectedCategory: Bindable(viewModel).selectedCategory,
+                selectedSortOption: Bindable(viewModel).selectedSortOption,
+                categoryCounts: viewModel.categoryCounts
+            )
             Divider()
-            bulkToolbarSection
+            if viewModel.isMultiSelectMode {
+                BulkOperationToolbar(
+                    selectedCount: viewModel.selectedRuleIds.count,
+                    onEnableAll: {
+                        if let engine = currentYAMLEngine {
+                            viewModel.enableSelectedRules(yamlEngine: engine)
+                        }
+                    },
+                    onDisableAll: {
+                        if let engine = currentYAMLEngine {
+                            viewModel.disableSelectedRules(yamlEngine: engine)
+                        }
+                    },
+                    onSetSeverity: { severity in
+                        if let engine = currentYAMLEngine {
+                            viewModel.setSeverityForSelected(severity, yamlEngine: engine)
+                        }
+                    },
+                    onPreview: {},
+                    onClearSelection: {
+                        viewModel.clearSelection()
+                    }
+                )
+            }
             rulesListSection
         }
         .toolbar { toolbarContent }
@@ -40,44 +73,6 @@ struct RuleBrowserListView: View {
             Button("OK") { bulkSaveError = nil }
         } message: {
             Text(bulkSaveError ?? "")
-        }
-    }
-
-    private var searchAndFiltersSection: some View {
-        RuleBrowserSearchAndFilters(
-            searchText: Bindable(viewModel).searchText,
-            selectedStatus: Bindable(viewModel).selectedStatus,
-            selectedCategory: Bindable(viewModel).selectedCategory,
-            selectedSortOption: Bindable(viewModel).selectedSortOption,
-            categoryCounts: viewModel.categoryCounts
-        )
-    }
-
-    @ViewBuilder
-    private var bulkToolbarSection: some View {
-        if viewModel.isMultiSelectMode {
-            BulkOperationToolbar(
-                selectedCount: viewModel.selectedRuleIds.count,
-                onEnableAll: {
-                    if let engine = currentYAMLEngine {
-                        viewModel.enableSelectedRules(yamlEngine: engine)
-                    }
-                },
-                onDisableAll: {
-                    if let engine = currentYAMLEngine {
-                        viewModel.disableSelectedRules(yamlEngine: engine)
-                    }
-                },
-                onSetSeverity: { severity in
-                    if let engine = currentYAMLEngine {
-                        viewModel.setSeverityForSelected(severity, yamlEngine: engine)
-                    }
-                },
-                onPreview: {},
-                onClearSelection: {
-                    viewModel.clearSelection()
-                }
-            )
         }
     }
 

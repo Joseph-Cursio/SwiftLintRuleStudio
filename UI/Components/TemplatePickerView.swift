@@ -8,6 +8,46 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// Shown when the two filters leave no template.
+///
+/// Reads nothing. The picker rebuilds on every hover over every card — `hoveredTemplate` is
+/// `@State` — and none of that reaches here.
+///
+/// The two `Spacer()`s that used to sit either side of this text stayed in the caller's `VStack`
+/// on purpose. They expand against *that* stack; moving them inside a child would put them in a
+/// stack sized to the text, where they collapse to nothing.
+private struct TemplatePickerEmptyState: View {
+    var body: some View {
+        Text("No templates available for this selection")
+            .foregroundStyle(.secondary)
+    }
+}
+
+/// Cancel, and the count of what the filters left.
+///
+/// Reads `dismiss` from the environment rather than taking a closure: a closure the picker
+/// allocates would capture, and a child holding a capturing closure re-renders exactly as often as
+/// the property it replaced.
+private struct TemplatePickerFooter: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let templateCount: Int
+
+    var body: some View {
+        HStack {
+            Button("Cancel") {
+                dismiss()
+            }
+            .keyboardShortcut(.escape)
+            Spacer()
+            Text("\(templateCount) templates")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+    }
+}
+
 /// Card view for a template in the picker
 private struct TemplatePickerCard: View {
     let template: ConfigurationTemplate
@@ -169,10 +209,12 @@ struct TemplatePickerView: View {
             Divider()
             templateGrid
             if filteredTemplates.isEmpty {
-                emptyState
+                Spacer()
+                TemplatePickerEmptyState()
+                Spacer()
             }
             Divider()
-            pickerFooter
+            TemplatePickerFooter(templateCount: filteredTemplates.count)
         }
         .frame(width: 500, height: 450)
     }
@@ -219,28 +261,6 @@ struct TemplatePickerView: View {
             }
             .padding()
         }
-    }
-
-    @ViewBuilder
-    private var emptyState: some View {
-        Spacer()
-        Text("No templates available for this selection")
-            .foregroundStyle(.secondary)
-        Spacer()
-    }
-
-    private var pickerFooter: some View {
-        HStack {
-            Button("Cancel") {
-                dismiss()
-            }
-            .keyboardShortcut(.escape)
-            Spacer()
-            Text("\(filteredTemplates.count) templates")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
     }
 
     private var filteredTemplates: [ConfigurationTemplate] {

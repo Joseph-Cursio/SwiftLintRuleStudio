@@ -9,6 +9,25 @@ import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// The preview's title and standing explanation.
+///
+/// Reads nothing. `ConfigDiffPreviewView` re-renders on the summary/full toggle and on the
+/// copy-feedback flag, and neither changes these two lines.
+private struct ConfigDiffHeader: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Preview Configuration Changes")
+                .font(.headline)
+            Text("Review the changes that will be made to your .swiftlint.yml file")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+}
+
 struct ConfigDiffPreviewView: View {
     let diff: YAMLConfigurationEngine.ConfigDiff
     let ruleName: String
@@ -71,7 +90,7 @@ struct ConfigDiffPreviewView: View {
     private var modalBody: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                diffHeader
+                ConfigDiffHeader()
                 Divider()
                 diffContent
                 Divider()
@@ -118,25 +137,21 @@ struct ConfigDiffPreviewView: View {
         .padding(.vertical, 6)
     }
 
-    private var diffHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Preview Configuration Changes")
-                .font(.headline)
-            Text("Review the changes that will be made to your .swiftlint.yml file")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor))
-    }
-
     @ViewBuilder
     private var diffContent: some View {
         if selectedView == .summary {
             summaryView
         } else {
-            fullDiffView
+            // Inlined rather than named: the property was a one-line alias for a `View` the app
+            // already declares, so the identity boundary this rule asks for is the
+            // `UnifiedDiffContentView` value itself. Wrapping it in a second struct would have
+            // produced one whose body is this same call.
+            UnifiedDiffContentView(
+                before: diff.before,
+                after: diff.after,
+                beforeLabel: beforeLabel,
+                afterLabel: afterLabel
+            )
         }
     }
 
@@ -244,15 +259,6 @@ struct ConfigDiffPreviewView: View {
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
-    }
-
-    private var fullDiffView: some View {
-        UnifiedDiffContentView(
-            before: diff.before,
-            after: diff.after,
-            beforeLabel: beforeLabel,
-            afterLabel: afterLabel
-        )
     }
 
     private func copyForPR() {
