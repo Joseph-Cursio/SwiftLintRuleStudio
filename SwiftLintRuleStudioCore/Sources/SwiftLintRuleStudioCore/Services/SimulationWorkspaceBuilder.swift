@@ -130,7 +130,23 @@ enum ConfigRuleEnabler {
 /// are hardlinked (copied only on a cross-volume fallback) and every
 /// `.swiftlint.yml` is reproduced with the target rule enabled. SwiftLint then
 /// lints the mirror in its normal (`.effective`) mode.
-struct SimulationWorkspaceBuilder {
+/// What `ImpactSimulator` needs from a workspace builder.
+///
+/// Every other collaborator in `ImpactSimulator.init` is a seam — `SwiftLintCLIProtocol`,
+/// `DateProvider`, `IDProvider` — and this one was constructed inside the initializer from the
+/// `FileManager` it was handed. `concrete-type-usage` reported the odd one out.
+///
+/// Its nominal seam was that `FileManager`, which is close to unfakeable: there is no useful way to
+/// hand in a `FileManager` that does not touch a real file system. So simulating a rule meant
+/// mirroring a whole workspace into a temp directory before any of `ImpactSimulator`'s own logic —
+/// the diffing, the durations, the identifiers — could be reached.
+protocol SimulationWorkspaceBuilding: Sendable {
+
+    /// Mirrors `workspace` into a fresh location and returns a workspace ready for `applyRule`.
+    func makeWorkspace(for workspace: Workspace, baseConfigPath: URL?) throws -> SimulationWorkspace
+}
+
+struct SimulationWorkspaceBuilder: SimulationWorkspaceBuilding {
 
     private let fileManager: FileManager
 

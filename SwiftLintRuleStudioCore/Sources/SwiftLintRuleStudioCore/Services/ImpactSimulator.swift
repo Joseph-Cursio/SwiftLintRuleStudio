@@ -67,7 +67,7 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
     // MARK: - Properties
 
     private let swiftLintCLI: SwiftLintCLIProtocol
-    private let workspaceBuilder: SimulationWorkspaceBuilder
+    private let workspaceBuilder: any SimulationWorkspaceBuilding
     private let now: DateProvider
     private let makeID: IDProvider
 
@@ -80,14 +80,32 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
     /// inputs: every duration this type reports is a gap between two clock reads, and every
     /// violation it builds carries an identifier, so both have to be chosen for two runs over
     /// the same workspace to produce equal results.
-    public init(
+    public convenience init(
         swiftLintCLI: SwiftLintCLIProtocol,
         fileManager: FileManager = .default,
         now: DateProvider = .system,
         makeID: IDProvider = .random
     ) {
+        self.init(
+            swiftLintCLI: swiftLintCLI,
+            workspaceBuilder: SimulationWorkspaceBuilder(fileManager: fileManager),
+            now: now,
+            makeID: makeID
+        )
+    }
+
+    /// The seam initializer. Internal rather than public because
+    /// `SimulationWorkspaceBuilding` returns a `SimulationWorkspace`, which is internal — making
+    /// the parameter public would mean exporting a shadow-workspace type that no consumer of this
+    /// package has any use for. The public initializer above is unchanged, so no call site moves.
+    init(
+        swiftLintCLI: SwiftLintCLIProtocol,
+        workspaceBuilder: any SimulationWorkspaceBuilding,
+        now: DateProvider = .system,
+        makeID: IDProvider = .random
+    ) {
         self.swiftLintCLI = swiftLintCLI
-        self.workspaceBuilder = SimulationWorkspaceBuilder(fileManager: fileManager)
+        self.workspaceBuilder = workspaceBuilder
         self.now = now
         self.makeID = makeID
     }
