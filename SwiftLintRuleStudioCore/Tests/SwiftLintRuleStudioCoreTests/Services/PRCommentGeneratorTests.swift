@@ -177,6 +177,14 @@ struct PRCommentGeneratorTests {
 
         #expect(withLinks.contains("](https://realm.github.io/SwiftLint/force_cast.html)"))
         #expect(withoutLinks.contains("](https://") == false)
+
+        // The whole bullet, both ways. The two `contains` checks above pass for
+        // any line carrying the URL, and so say nothing about the rest of the
+        // bullet — the emoji, the backticks, the `- ` prefix. When the link
+        // fragment was lifted into `ruleReference(_:linked:)` that prefix stopped
+        // being written twice, and this is what pins the result.
+        #expect(withLinks.contains("- [+] [`force_cast`](https://realm.github.io/SwiftLint/force_cast.html)"))
+        #expect(withoutLinks.contains("- [+] `force_cast`"))
     }
 
     @Test("Respects includeDiffSummary option")
