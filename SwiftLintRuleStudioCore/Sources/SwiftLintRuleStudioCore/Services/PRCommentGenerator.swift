@@ -179,17 +179,23 @@ public class PRCommentGenerator: PRCommentGeneratorProtocol {
         lines.append("")
 
         for rule in rules.sorted() {
-            if includeLinks {
-                let ruleURL = "\(swiftLintDocsBaseURL)/\(rule).html"
-                lines.append("- [\(emoji)] [`\(rule)`](\(ruleURL))")
-            } else {
-                lines.append("- [\(emoji)] `\(rule)`")
-            }
+            lines.append("- [\(emoji)] \(ruleReference(rule, linked: includeLinks))")
         }
 
         lines.append("")
 
         return lines
+    }
+
+    /// How one rule name renders inside a bullet: a docs link, or the bare name.
+    ///
+    /// Pulled out of the loop above, where it was an `if includeLinks` around two
+    /// `lines.append` calls that differed only in this fragment. Both arms built
+    /// the same bullet, so the branch was choosing a value and the repeated
+    /// `- [emoji] ` prefix was two places to get the bullet shape wrong.
+    private func ruleReference(_ rule: String, linked: Bool) -> String {
+        guard linked else { return "`\(rule)`" }
+        return "[`\(rule)`](\(swiftLintDocsBaseURL)/\(rule).html)"
     }
 }
 
