@@ -69,6 +69,7 @@ let package = Package(
         .target(
             name: "SwiftLintCLIBackend",
             dependencies: [
+                "SwiftLintCLISeam",
                 "SwiftLintRuleStudioCore",
                 .product(name: "LintStudioCore", package: "LintStudioUI")
             ],
@@ -76,12 +77,13 @@ let package = Package(
         ),
         .target(
             name: "SwiftLintRuleStudioCoreTestSupport",
-            dependencies: ["SwiftLintRuleStudioCore"],
+            dependencies: ["SwiftLintCLISeam", "SwiftLintRuleStudioCore"],
             swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "SwiftLintRuleStudioCoreTests",
             dependencies: [
+                "SwiftLintCLISeam",
                 "SwiftLintRuleStudioCore",
                 "SwiftLintCLIBackend",
                 "SwiftLintRuleStudioCoreTestSupport",
