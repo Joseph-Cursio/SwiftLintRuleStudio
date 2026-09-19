@@ -120,18 +120,18 @@ extension YAMLConfigurationEngine {
         return stringValue
     }
 
-    private static func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
+    static func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
         if tagDescription.contains("bool") || tagDescription.contains("tag:yaml.org,2002:bool") {
             return true
         }
         return stringValue == "true" || stringValue == "false"
     }
 
-    private static func isIntScalar(tagDescription: String) -> Bool {
+    static func isIntScalar(tagDescription: String) -> Bool {
         tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int")
     }
 
-    private static func isFloatScalar(tagDescription: String) -> Bool {
+    static func isFloatScalar(tagDescription: String) -> Bool {
         tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float")
     }
 
