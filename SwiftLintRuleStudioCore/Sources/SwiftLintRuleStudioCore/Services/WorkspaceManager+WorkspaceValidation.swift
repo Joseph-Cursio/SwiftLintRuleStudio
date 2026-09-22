@@ -67,15 +67,6 @@ private extension WorkspaceManager {
         }
     }
 
-    func isProjectMarker(_ url: URL) -> Bool {
-        let itemName = url.lastPathComponent
-        if itemName.hasSuffix(".xcodeproj")
-            || itemName.hasSuffix(".xcworkspace") {
-            return true
-        }
-        return itemName == "Package.swift" || itemName == ".swiftpm"
-    }
-
     func hasSwiftFilesWithinDepth(
         at url: URL,
         rootPath: String,
@@ -113,6 +104,18 @@ private extension WorkspaceManager {
         }
 
         return false
+    }
+}
+
+// Internal rather than private so a test can call them directly; the rest of the scan stays private.
+extension WorkspaceManager {
+    func isProjectMarker(_ url: URL) -> Bool {
+        let itemName = url.lastPathComponent
+        if itemName.hasSuffix(".xcodeproj")
+            || itemName.hasSuffix(".xcworkspace") {
+            return true
+        }
+        return itemName == "Package.swift" || itemName == ".swiftpm"
     }
 
     func shouldSkipWorkspaceScan(path: String) -> Bool {
