@@ -36,7 +36,7 @@ extension RuleRegistry {
         return updatedRules
     }
 
-    private func decodeRuleText(from data: Data) throws -> String {
+    func decodeRuleText(from data: Data) throws -> String {
         guard let text = String(data: data, encoding: .utf8) else {
             throw NSError(
                 domain: "RuleRegistry",
@@ -47,11 +47,11 @@ extension RuleRegistry {
         return text
     }
 
-    private func parseRulesTable(from text: String) -> [Rule] {
+    func parseRulesTable(from text: String) -> [Rule] {
         text.components(separatedBy: .newlines).compactMap(parseRuleLine(from:))
     }
 
-    private func parseRuleLine(from line: String) -> Rule? {
+    func parseRuleLine(from line: String) -> Rule? {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         guard shouldParseRuleLine(trimmed) else { return nil }
 
@@ -98,7 +98,7 @@ extension RuleRegistry {
         )
     }
 
-    private func shouldParseRuleLine(_ trimmed: String) -> Bool {
+    func shouldParseRuleLine(_ trimmed: String) -> Bool {
         if trimmed.isEmpty || trimmed.hasPrefix("+") || !trimmed.hasPrefix("|") {
             return false
         }

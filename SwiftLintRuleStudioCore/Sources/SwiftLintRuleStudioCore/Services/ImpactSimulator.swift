@@ -269,7 +269,7 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
     // MARK: - Helper Methods
 
     /// Parse violations from SwiftLint JSON output
-    private func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
+    func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
             return []
         }
