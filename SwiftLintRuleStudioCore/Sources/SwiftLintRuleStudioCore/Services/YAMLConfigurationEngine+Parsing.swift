@@ -311,7 +311,7 @@ extension YAMLConfigurationEngine {
         return Severity(rawValue: severityStr)
     }
 
-    private static func parseEnabledValue(from ruleDict: [String: Any]) -> Bool {
+    static func parseEnabledValue(from ruleDict: [String: Any]) -> Bool {
         if let enabledValue = ruleDict["enabled"] as? Bool {
             return enabledValue
         }

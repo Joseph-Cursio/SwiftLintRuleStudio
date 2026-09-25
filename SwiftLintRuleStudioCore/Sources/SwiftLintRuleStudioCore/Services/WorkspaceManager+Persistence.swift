@@ -7,7 +7,7 @@
 
 import Foundation
 
-private struct WorkspaceData: Codable {
+struct WorkspaceData: Codable {
     let id: UUID
     let path: String
     let name: String
