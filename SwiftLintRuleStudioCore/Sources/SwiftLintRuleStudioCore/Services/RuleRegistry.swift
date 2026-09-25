@@ -121,7 +121,7 @@ public class RuleRegistry: RuleRegistryProtocol {
         rules = updated
     }
 
-    private func isRuleEnabled(
+    func isRuleEnabled(
         _ rule: Rule,
         config: YAMLConfigurationEngine.YAMLConfig
     ) -> Bool {

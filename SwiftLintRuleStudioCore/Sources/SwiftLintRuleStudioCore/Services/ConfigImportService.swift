@@ -136,7 +136,7 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
     /// Merge `imported` onto `existing`: imported rule configs override conflicts,
     /// every list field unions, and the scalar `reporter` is overridden when the
     /// import provides one.
-    private static func merge(
+    static func merge(
         existing: YAMLConfigurationEngine.YAMLConfig,
         imported: YAMLConfigurationEngine.YAMLConfig
     ) -> YAMLConfigurationEngine.YAMLConfig {

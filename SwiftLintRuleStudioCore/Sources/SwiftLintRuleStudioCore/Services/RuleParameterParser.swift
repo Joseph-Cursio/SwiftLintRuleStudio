@@ -168,7 +168,7 @@ public enum RuleParameterParser {
     /// classified as integer 0/1. Reaching CFBoolean's type id via the
     /// AnyObject bridge — without naming `NSNumber` — distinguishes the
     /// underlying token as a true boolean.
-    private static func isYAMLBool(_ value: Any) -> Bool {
+    static func isYAMLBool(_ value: Any) -> Bool {
         CFGetTypeID(value as AnyObject) == CFBooleanGetTypeID()
     }
 }
