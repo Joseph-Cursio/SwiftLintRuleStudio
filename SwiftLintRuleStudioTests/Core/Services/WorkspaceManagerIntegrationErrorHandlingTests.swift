@@ -39,8 +39,7 @@ struct WorkspaceManagerIntegrationErrorHandlingTests {
         }
 
         let (recentCount1, recentCount2, firstPath) = try await MainActor.run {
-            let sharedDefaults = IsolatedUserDefaults.createShared(for: #function)
-            sharedDefaults.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
+            let sharedDefaults = IsolatedUserDefaults.create(for: #function)
 
             let manager1 = WorkspaceManager(userDefaults: sharedDefaults)
             try manager1.openWorkspace(at: tempDir1)
