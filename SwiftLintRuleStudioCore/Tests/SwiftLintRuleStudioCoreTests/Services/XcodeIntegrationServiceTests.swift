@@ -19,7 +19,7 @@ struct XcodeIntegrationServiceTests {
     ) async throws -> T {
         try await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
-            let service = XcodeIntegrationService()
+            let service = XcodeIntegrationService(launcher: RecordingXcodeLauncher())
             return try operation(service, workspaceManager)
         }
     }
@@ -30,7 +30,7 @@ struct XcodeIntegrationServiceTests {
     ) async throws -> T {
         try await Task { @MainActor in
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
-            let service = XcodeIntegrationService()
+            let service = XcodeIntegrationService(launcher: RecordingXcodeLauncher())
             return try await operation(service, workspaceManager)
         }.value
     }
@@ -315,7 +315,7 @@ struct XcodeIntegrationServiceTests {
 
         // Create a file outside the workspace
         let outsideFile = FileManager.default.temporaryDirectory
-            .appendingPathComponent("OutsideFile.swift")
+            .appendingPathComponent("OutsideFile-\(UUID().uuidString).swift")
         try "// Outside file".write(to: outsideFile, atomically: true, encoding: .utf8)
         defer { try? FileManager.default.removeItem(at: outsideFile) }
 

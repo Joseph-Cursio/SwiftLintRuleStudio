@@ -19,7 +19,7 @@ struct XcodeIntegrationServiceIntegrationTests {
     ) async throws -> T {
         try await MainActor.run {
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
-            let service = XcodeIntegrationService()
+            let service = XcodeIntegrationService(launcher: RecordingXcodeLauncher())
             return try operation(service, workspaceManager)
         }
     }
@@ -30,7 +30,7 @@ struct XcodeIntegrationServiceIntegrationTests {
     ) async throws -> T {
         try await Task { @MainActor in
             let workspaceManager = WorkspaceManager.createForTesting(testName: testName)
-            let service = XcodeIntegrationService()
+            let service = XcodeIntegrationService(launcher: RecordingXcodeLauncher())
             return try await operation(service, workspaceManager)
         }.value
     }
