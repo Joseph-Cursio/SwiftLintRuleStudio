@@ -134,7 +134,7 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
         return (different, same)
     }
 
-    private func buildRuleDiff(
+    func buildRuleDiff(
         ruleId: String,
         rc1: RuleConfiguration?,
         rc2: RuleConfiguration?,
