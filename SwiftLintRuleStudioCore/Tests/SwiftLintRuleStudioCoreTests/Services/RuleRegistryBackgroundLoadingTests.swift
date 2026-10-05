@@ -265,14 +265,21 @@ struct RuleRegistryBackgroundLoadingTests {
         #expect(value == 42)
     }
 
-    @Test("withTimeout throws NSError with RuleRegistry/3 when operation exceeds timeout")
+    // The time limit bounds the one failure the long sleep below would otherwise
+    // turn into an hour-long hang: a timeout that never fires.
+    @Test(
+        "withTimeout throws NSError with RuleRegistry/3 when operation exceeds timeout",
+        .timeLimit(.minutes(1))
+    )
     func withTimeoutThrowsOnTimeout() async {
         do {
             _ = try await RuleRegistry.withTimeout(
                 seconds: 1,
                 ruleId: "slow_rule"
             ) {
-                try await Task.sleep(nanoseconds: 3_000_000_000)
+                // Far longer than any scheduling delay, so the timeout always wins;
+                // the timeout cancels this sleep, so the test still takes ~1s.
+                try await Task.sleep(nanoseconds: 3_600_000_000_000)
                 return 0
             }
             Issue.record("Expected timeout error to be thrown")

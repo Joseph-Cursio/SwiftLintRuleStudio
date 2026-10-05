@@ -24,16 +24,6 @@ public enum IsolatedUserDefaults {
         return userDefaults
     }
 
-    /// Creates a shared UserDefaults suite for a test suite
-    /// Useful when tests need to share state within a suite but isolate from others
-    public static func createShared(for suiteName: String) -> UserDefaults {
-        let fullSuiteName = "test.shared.\(suiteName)"
-        guard let userDefaults = UserDefaults(suiteName: fullSuiteName) else {
-            fatalError("Failed to create shared UserDefaults suite: \(fullSuiteName)")
-        }
-        return userDefaults
-    }
-
     /// Cleans up a UserDefaults suite
     /// Note: UserDefaults doesn't expose suiteName, so we remove all keys manually
     public static func cleanup(_ userDefaults: UserDefaults) {

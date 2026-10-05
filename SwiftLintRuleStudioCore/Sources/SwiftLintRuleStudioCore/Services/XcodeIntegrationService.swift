@@ -42,6 +42,12 @@ public protocol XcodeIntegrationServiceProtocol: AnyObject {
 @MainActor
 public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
     private var projectCache: [URL: URL] = [:] // Cache workspace -> project mapping
+    private let launcher: XcodeLaunching
+
+    /// - Parameter launcher: What actually starts Xcode. Tests pass a recording double.
+    public init(launcher: XcodeLaunching = SystemXcodeLauncher()) {
+        self.launcher = launcher
+    }
 
     /// Whether the app is running in UI testing mode
     nonisolated public static var isUITesting: Bool {
@@ -210,19 +216,19 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
     ) throws -> Bool {
         // Method 1: Try xed command line tool first (most reliable)
         // This is preferred because it's more reliable than the URL scheme
-        if try openWithXedCommand(fileURL: fileURL, line: line) {
+        if launcher.runXed(arguments: ["--line", "\(line)", fileURL.path]) {
             return true
         }
 
         // Method 2: Try xcode:// URL scheme as fallback
         if let xcodeURL = generateXcodeURL(fileURL: fileURL, line: line, column: column, projectURL: projectURL) {
-            if NSWorkspace.shared.open(xcodeURL) {
+            if launcher.open(xcodeURL) {
                 return true
             }
         }
 
         // Method 3: Fallback to opening file in default editor
-        if NSWorkspace.shared.open(fileURL) {
+        if launcher.open(fileURL) {
             return true
         }
 
@@ -253,30 +259,6 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
         components.queryItems = queryItems
 
         return components.url
-    }
-
-    /// Try opening file using xed command line tool
-    private func openWithXedCommand(fileURL: URL, line: Int) throws -> Bool {
-        // xed is typically in /usr/bin/xed, but can also be accessed via xcode-select
-        let xedPath = "/usr/bin/xed"
-        guard FileManager.default.fileExists(atPath: xedPath) else {
-            return false
-        }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: xedPath)
-        process.arguments = ["--line", "\(line)", fileURL.path]
-        process.standardOutput = nil
-        process.standardError = nil
-
-        do {
-            try process.run()
-            // Don't wait for exit - xed opens Xcode asynchronously
-            // Return true if process started successfully
-            return true
-        } catch {
-            return false
-        }
     }
 
     /// Clear project cache (useful when workspace changes)

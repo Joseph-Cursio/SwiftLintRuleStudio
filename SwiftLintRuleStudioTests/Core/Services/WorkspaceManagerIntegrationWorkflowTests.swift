@@ -58,12 +58,10 @@ struct WorkspaceManagerIntegrationWorkflowTests {
 
     @Test("Workspace persistence across app restarts")
     func testWorkspacePersistenceAcrossRestarts() async throws {
-        let sharedDefaults = IsolatedUserDefaults.createShared(for: "WorkspaceManagerIntegrationTests")
+        let sharedDefaults = IsolatedUserDefaults.create(for: #function)
         defer {
             IsolatedUserDefaults.cleanup(sharedDefaults)
         }
-
-        sharedDefaults.removeObject(forKey: "SwiftLintRuleStudio.recentWorkspaces")
 
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
