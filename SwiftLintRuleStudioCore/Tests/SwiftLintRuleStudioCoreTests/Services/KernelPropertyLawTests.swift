@@ -32,6 +32,22 @@ struct KernelPropertyLawTests {
         return line.array(of: 0...6)
     }
 
+    /// `linesGenerator` with 0–3 extra spaces in front of every line. On its own
+    /// that generator rarely indents *every* line, so `deindent`'s shifting path
+    /// would mostly go untested; a shared base makes a common indentation the
+    /// usual case, and base 0 keeps the unindented case in the mix. In about half
+    /// the samples the whitespace-only lines are tabs instead: `deindent` reads
+    /// them as blank but still shortens them.
+    static func sharedIndentLinesGenerator() -> Generator<[String], some SendableSequenceType> {
+        zip(Gen<Int>.int(in: 0...3), linesGenerator(), Gen<Bool>.bool).map { base, lines, tabs in
+            lines.map { line in
+                let indented = String(repeating: " ", count: base) + line
+                guard tabs, indented.allSatisfy({ $0 == " " }) else { return indented }
+                return String(repeating: "\t", count: indented.count)
+            }
+        }
+    }
+
     /// Exclusion lists over an alphabet that overlaps the canonical defaults, so
     /// the dedup path is exercised. Returned non-optional; a `[String]` promotes to
     /// `[String]?` at the call site.
@@ -63,6 +79,80 @@ struct KernelPropertyLawTests {
         await propertyCheck(input: Self.linesGenerator()) { lines in
             let once = RuleParameterParser.deindent(lines)
             #expect(RuleParameterParser.deindent(once) == once)
+        }
+    }
+
+    // MARK: - deindent — what it removes
+
+    // Idempotence alone is satisfied by the identity: a `deindent` that returned
+    // its input untouched would pass the law above, and mutation testing showed
+    // exactly that — six of its seven mutants survived it. The laws below pin
+    // what it removes: only leading spaces from a content line, the same amount
+    // from every content line, and all of the common indentation.
+
+    nonisolated private static func indent(_ line: String) -> Int {
+        line.prefix { $0 == " " }.count
+    }
+
+    nonisolated private static func isBlank(_ line: String) -> Bool {
+        line.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    @Test("deindent keeps every line, and takes only leading spaces from content lines")
+    func deindentRemovesOnlyLeadingSpaces() async {
+        await propertyCheck(input: Self.sharedIndentLinesGenerator()) { lines in
+            let result = RuleParameterParser.deindent(lines)
+            #expect(result.count == lines.count)
+            for (input, output) in zip(lines, result) {
+                let taken = input.prefix(input.count - output.count)
+                #expect(input.hasSuffix(output))
+                if Self.isBlank(input) {
+                    // A whitespace-only line may lose tabs as well as spaces.
+                    let onlyWhitespace = taken.allSatisfy(\.isWhitespace)
+                    #expect(onlyWhitespace)
+                } else {
+                    #expect(taken.allSatisfy { $0 == " " })
+                }
+            }
+        }
+    }
+
+    @Test("deindent shifts every content line left by the same amount")
+    func deindentPreservesRelativeIndentation() async {
+        await propertyCheck(input: Self.sharedIndentLinesGenerator()) { lines in
+            let result = RuleParameterParser.deindent(lines)
+            let shifts = zip(lines, result)
+                .filter { !Self.isBlank($0.0) }
+                .map { Self.indent($0.0) - Self.indent($0.1) }
+            #expect(Set(shifts).count <= 1)
+        }
+    }
+
+    @Test("deindent leaves the least-indented content line flush left")
+    func deindentRemovesAllCommonIndentation() async {
+        await propertyCheck(input: Self.sharedIndentLinesGenerator()) { lines in
+            let content = RuleParameterParser.deindent(lines).filter { !Self.isBlank($0) }
+            if !content.isEmpty {
+                #expect(content.map(Self.indent).min() == 0)
+            }
+        }
+    }
+
+    /// Pins today's behaviour for whitespace-only lines, which is a choice rather
+    /// than a necessity: one at least as long as the common indentation loses that
+    /// many characters, tabs included; a shorter one is kept whole. If blank lines
+    /// should always come out empty, change `deindent` and this law together.
+    @Test("a blank line loses the common indentation only if it is that long")
+    func deindentShiftsBlankLinesThatReach() async {
+        await propertyCheck(input: Self.sharedIndentLinesGenerator()) { lines in
+            let pairs = Array(zip(lines, RuleParameterParser.deindent(lines)))
+            // The common indentation, as the content lines show it.
+            guard let firstContent = pairs.first(where: { !Self.isBlank($0.0) }) else { return }
+            let shift = Self.indent(firstContent.0) - Self.indent(firstContent.1)
+            for (input, output) in pairs where Self.isBlank(input) {
+                let expected = input.count >= shift ? input.count - shift : input.count
+                #expect(output.count == expected)
+            }
         }
     }
 
