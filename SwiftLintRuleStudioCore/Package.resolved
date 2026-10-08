@@ -1,5 +1,5 @@
 {
-  "originHash" : "a12233cc41221ea7ec28bc9b52aae6abfe5680b26ad34554b6b9103e19a89d81",
+  "originHash" : "b35bfbaf6a84d7c703e347fe2dba067a9c6770e2b60694666d7e339a0c14edfa",
   "pins" : [
     {
       "identity" : "lintstudioui",
@@ -8,6 +8,51 @@
       "state" : {
         "revision" : "2de257dcbda9935a83a7b93abf7a7ef3a5f08408",
         "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swift-async-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-async-algorithms.git",
+      "state" : {
+        "revision" : "13713a4ffdee8abd929f92568ee9462a46ae26e0",
+        "version" : "1.1.7"
+      }
+    },
+    {
+      "identity" : "swift-clocks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-clocks.git",
+      "state" : {
+        "revision" : "82440fa0a8b1c381a6d1e8e0fc7bbba53ec63204",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "3b69cedbaa49957e97c092ae400bb57602ef941f",
+        "version" : "1.7.2"
+      }
+    },
+    {
+      "identity" : "swift-concurrency-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+      "state" : {
+        "revision" : "5fa253428866f2360c3754e88537f700ed2656b5",
+        "version" : "1.4.1"
+      }
+    },
+    {
+      "identity" : "swift-issue-reporting",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-issue-reporting",
+      "state" : {
+        "revision" : "75b000cea2ca6d7527a57e1b9cc0bdf21a9abe9f",
+        "version" : "2.1.1"
       }
     },
     {
@@ -42,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git",
       "state" : {
-        "revision" : "27133ee6cd72bc80a493d89e33bd6a9b6e29c67a",
-        "version" : "3.3.0"
+        "revision" : "b59cdb4e65994f684d7d4a1720f4fd7c5a8d5460",
+        "version" : "3.28.0"
       }
     },
     {
