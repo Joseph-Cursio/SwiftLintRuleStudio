@@ -92,51 +92,49 @@ extension YAMLConfigurationEngine {
         return array
     }
 
+    /// A scalar's value, typed the way the YAML says.
+    ///
+    /// An explicit core tag decides: `!!str 5` is the string "5", `!!int "5"` the number 5. Yams
+    /// reports such a tag in full (`tag:yaml.org,2002:int`), and gives a quoted scalar the `str`
+    /// tag. A local tag (`!hint`) is no core type, so it decides nothing.
+    ///
+    /// Without a core tag, only a **plain** scalar is resolved implicitly, by YAML's core rules:
+    /// `true`/`false`, then an integer, then a float. Unquoted numerics must round-trip as numbers,
+    /// or re-serialization emits them quoted, which SwiftLint rejects as invalid configuration. A
+    /// quoted or block scalar is a string: the quotes are how a config says so.
+    ///
+    /// Before, the value overrode the YAML twice: a quoted `"true"` was read as a `Bool`, because
+    /// the bool check fell back to the value whatever the tag, and `!!str 5` as the number 5,
+    /// because the plain-scalar fallback ignored the explicit tag.
     private static func parseScalarValue(_ scalar: Node.Scalar) -> Any {
-        let stringValue = scalar.string
-        let tagDescription = String(describing: scalar.tag)
-        if isBoolScalar(tagDescription: tagDescription, stringValue: stringValue) {
-            return stringValue == "true"
-        }
-        if isIntScalar(tagDescription: tagDescription) {
-            return Int(stringValue) ?? stringValue
-        }
-        if isFloatScalar(tagDescription: tagDescription) {
-            return Double(stringValue) ?? stringValue
-        }
-        // Plain (unquoted) scalars arrive without an explicit tag — Yams leaves
-        // tag resolution to the consumer when you walk Nodes directly. Apply
-        // YAML's implicit-resolution rules so unquoted numerics like `120`
-        // round-trip as Int rather than String (otherwise re-serialization
-        // emits them quoted, which SwiftLint rejects as invalid configuration).
-        if scalar.style == .plain {
-            if let intValue = Int(stringValue) {
-                return intValue
-            }
-            if let doubleValue = Double(stringValue) {
-                return doubleValue
-            }
-        }
-        return stringValue
-    }
+        let value = scalar.string
+        switch String(describing: scalar.tag) {
+        case Tag.Name.str.rawValue:
+            return value
 
-    // The scalar checks compare the whole tag. Yams reports an explicit core tag in full
-    // (`!!int 120` has tag `tag:yaml.org,2002:int`), a plain untagged scalar with an empty tag,
-    // and a local tag as written (`!hint`). These used to be
-    // `tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int")`: the
-    // second test implied the first, and the first also matched `!hint`, `!point` and `!mint`,
-    // so `key: !hint "5"` was read as the number 5.
+        case Tag.Name.bool.rawValue:
+            return value.lowercased() == "true"
 
-    static func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
-        tagDescription == Tag.Name.bool.rawValue || stringValue == "true" || stringValue == "false"
-    }
+        case Tag.Name.int.rawValue:
+            return Int(value) ?? value
 
-    static func isIntScalar(tagDescription: String) -> Bool {
-        tagDescription == Tag.Name.int.rawValue
-    }
+        case Tag.Name.float.rawValue:
+            return Double(value) ?? value
 
-    static func isFloatScalar(tagDescription: String) -> Bool {
-        tagDescription == Tag.Name.float.rawValue
+        default:
+            break
+        }
+        guard scalar.style == .plain else { return value }
+        if value == "true" || value == "false" {
+            return value == "true"
+        }
+        if let intValue = Int(value) {
+            return intValue
+        }
+        if let doubleValue = Double(value) {
+            return doubleValue
+        }
+        return value
     }
 
     /// Parse a dictionary into a SwiftLintConfiguration struct
