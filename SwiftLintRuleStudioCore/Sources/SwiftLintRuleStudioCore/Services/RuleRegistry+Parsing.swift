@@ -98,11 +98,10 @@ extension RuleRegistry {
         )
     }
 
+    /// A table row, and not the header row. A border (`+---`) and a blank line are not rows
+    /// because they do not start with `|`.
     func shouldParseRuleLine(_ trimmed: String) -> Bool {
-        if trimmed.isEmpty || trimmed.hasPrefix("+") || !trimmed.hasPrefix("|") {
-            return false
-        }
-        return !trimmed.lowercased().hasPrefix("| identifier ")
+        trimmed.hasPrefix("|") && !trimmed.lowercased().hasPrefix("| identifier ")
     }
 
     private func mapCategory(_ kind: String) -> RuleCategory {
