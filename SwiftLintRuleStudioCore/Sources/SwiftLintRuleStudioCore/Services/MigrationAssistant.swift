@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Types
 
-public enum MigrationStep: Sendable, Identifiable {
+public enum MigrationStep: Sendable, Identifiable, Equatable {
     case renameRule(from: String, newName: String)
     case removeDeprecatedRule(ruleId: String, reason: String)
     case updateParameter(ruleId: String, oldParam: String, newParam: String)
@@ -54,7 +54,7 @@ public enum MigrationStep: Sendable, Identifiable {
     }
 }
 
-public struct MigrationPlan: Sendable {
+public struct MigrationPlan: Sendable, Equatable {
     public let fromVersion: String
     public let toVersion: String
     public let steps: [MigrationStep]
@@ -94,7 +94,6 @@ public protocol MigrationAssistantProtocol: Sendable {
 
 public final class MigrationAssistant: MigrationAssistantProtocol {
 
-    // swiftlint:disable:next cyclomatic_complexity
     public func detectMigrations(
         config: YAMLConfigurationEngine.YAMLConfig,
         fromVersion: String,
@@ -104,11 +103,19 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
 
         let allRuleIds = collectAllRuleIds(from: config)
 
-        // Check renamed rules
+        // Check renamed rules. A rename is offered only once the target version has the new name:
+        // `variable_name` → `identifier_name` arrived in 0.25.0, so a 0.20 → 0.22 migration that
+        // renamed it would leave a rule 0.22 does not know. The deprecation table carries the version
+        // a rule was renamed in, and supplies a target for any deprecated rule the rename table lacks.
         for ruleId in allRuleIds.sorted() {
-            if let newId = SwiftLintDeprecations.renamedRules[ruleId], newId != ruleId {
-                steps.append(.renameRule(from: ruleId, newName: newId))
+            let deprecation = SwiftLintDeprecations.deprecatedRules[ruleId]
+            guard let newId = SwiftLintDeprecations.renamedRules[ruleId] ?? deprecation?.replacement,
+                  newId != ruleId else { continue }
+            if let renamedIn = deprecation?.deprecatedInVersion,
+               SwiftLintDeprecations.isVersion(toVersion, lessThan: renamedIn) {
+                continue
             }
+            steps.append(.renameRule(from: ruleId, newName: newId))
         }
 
         // Check removed rules
@@ -122,26 +129,6 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
                         return false
                     }) {
                         steps.append(.removeDeprecatedRule(ruleId: ruleId, reason: entry.message))
-                    }
-                }
-            }
-        }
-
-        // Check deprecated rules
-        for ruleId in allRuleIds.sorted() {
-            if let entry = SwiftLintDeprecations.deprecatedRules[ruleId] {
-                if SwiftLintDeprecations.isVersion(fromVersion, lessThan: entry.deprecatedInVersion)
-                    && !SwiftLintDeprecations.isVersion(toVersion, lessThan: entry.deprecatedInVersion) {
-                    // Only add if not already handled by rename or removal
-                    let alreadyHandled = steps.contains {
-                        switch $0 {
-                        case .renameRule(let from, _): return from == ruleId
-                        case .removeDeprecatedRule(let id, _): return id == ruleId
-                        default: return false
-                        }
-                    }
-                    if !alreadyHandled, let replacement = entry.replacement {
-                        steps.append(.renameRule(from: ruleId, newName: replacement))
                     }
                 }
             }
