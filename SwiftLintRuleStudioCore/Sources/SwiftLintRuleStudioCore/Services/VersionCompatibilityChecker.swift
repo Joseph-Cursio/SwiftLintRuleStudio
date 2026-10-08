@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Report Types
 
-public struct DeprecatedRuleInfo: Sendable, Identifiable {
+nonisolated public struct DeprecatedRuleInfo: Sendable, Identifiable, Equatable {
     public let id: String
     public let ruleId: String
     public let deprecatedInVersion: String
@@ -31,7 +31,7 @@ public struct DeprecatedRuleInfo: Sendable, Identifiable {
     }
 }
 
-public struct RemovedRuleInfo: Sendable, Identifiable {
+nonisolated public struct RemovedRuleInfo: Sendable, Identifiable, Equatable {
     public let id: String
     public let ruleId: String
     public let removedInVersion: String
@@ -53,7 +53,7 @@ public struct RemovedRuleInfo: Sendable, Identifiable {
     }
 }
 
-public struct RenamedRuleInfo: Sendable, Identifiable {
+nonisolated public struct RenamedRuleInfo: Sendable, Identifiable, Equatable {
     public let id: String
     public let oldRuleId: String
     public let newRuleId: String
@@ -69,7 +69,7 @@ public struct RenamedRuleInfo: Sendable, Identifiable {
     }
 }
 
-public struct CompatibilityReport: Sendable {
+nonisolated public struct CompatibilityReport: Sendable, Equatable {
     public let swiftLintVersion: String
     public let deprecatedRules: [DeprecatedRuleInfo]
     public let removedRules: [RemovedRuleInfo]
@@ -120,7 +120,7 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
 
         let deprecated = findDeprecatedRules(in: allConfigRuleIds, version: swiftLintVersion)
         let removed = findRemovedRules(in: allConfigRuleIds, version: swiftLintVersion)
-        let renamed = findRenamedRules(in: allConfigRuleIds)
+        let renamed = findRenamedRules(in: allConfigRuleIds, version: swiftLintVersion)
         let newRules = findNewRulesAvailable(configRuleIds: allConfigRuleIds, version: swiftLintVersion)
 
         return CompatibilityReport(
@@ -194,10 +194,18 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
         return results
     }
 
-    private func findRenamedRules(in ruleIds: Set<String>) -> [RenamedRuleInfo] {
+    private func findRenamedRules(in ruleIds: Set<String>, version: String) -> [RenamedRuleInfo] {
         var results: [RenamedRuleInfo] = []
         for ruleId in ruleIds.sorted() {
             if let newId = SwiftLintDeprecations.renamedRules[ruleId], newId != ruleId {
+                // A rename is an issue only once the installed version has the new name:
+                // `identifier_name` replaced `variable_name` in 0.25.0, so a config for 0.22 that
+                // still says `variable_name` is current, not renamed. The deprecation table carries
+                // the version each rule was renamed in.
+                if let renamedIn = SwiftLintDeprecations.deprecatedRules[ruleId]?.deprecatedInVersion,
+                   SwiftLintDeprecations.isVersion(version, lessThan: renamedIn) {
+                    continue
+                }
                 results.append(RenamedRuleInfo(
                     id: ruleId,
                     oldRuleId: ruleId,
