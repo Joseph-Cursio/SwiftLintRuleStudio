@@ -44,7 +44,7 @@ public class YAMLConfigurationEngine {
     // MARK: - Types
 
     /// Represents a YAML configuration with preserved comments
-    public struct YAMLConfig {
+    public struct YAMLConfig: Equatable {
         /// Rule configurations keyed by rule identifier
         public var rules: [String: RuleConfiguration]
         /// Paths to include in analysis
