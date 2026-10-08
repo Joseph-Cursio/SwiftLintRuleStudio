@@ -120,19 +120,23 @@ extension YAMLConfigurationEngine {
         return stringValue
     }
 
+    // The scalar checks compare the whole tag. Yams reports an explicit core tag in full
+    // (`!!int 120` has tag `tag:yaml.org,2002:int`), a plain untagged scalar with an empty tag,
+    // and a local tag as written (`!hint`). These used to be
+    // `tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int")`: the
+    // second test implied the first, and the first also matched `!hint`, `!point` and `!mint`,
+    // so `key: !hint "5"` was read as the number 5.
+
     static func isBoolScalar(tagDescription: String, stringValue: String) -> Bool {
-        if tagDescription.contains("bool") || tagDescription.contains("tag:yaml.org,2002:bool") {
-            return true
-        }
-        return stringValue == "true" || stringValue == "false"
+        tagDescription == Tag.Name.bool.rawValue || stringValue == "true" || stringValue == "false"
     }
 
     static func isIntScalar(tagDescription: String) -> Bool {
-        tagDescription.contains("int") || tagDescription.contains("tag:yaml.org,2002:int")
+        tagDescription == Tag.Name.int.rawValue
     }
 
     static func isFloatScalar(tagDescription: String) -> Bool {
-        tagDescription.contains("float") || tagDescription.contains("tag:yaml.org,2002:float")
+        tagDescription == Tag.Name.float.rawValue
     }
 
     /// Parse a dictionary into a SwiftLintConfiguration struct

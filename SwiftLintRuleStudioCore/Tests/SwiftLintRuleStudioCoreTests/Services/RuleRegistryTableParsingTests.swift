@@ -186,4 +186,24 @@ struct RuleRegistryTableParsingTests {
             try await registry.loadRules()
         }
     }
+
+    /// The gate used to read `trimmed.isEmpty || trimmed.hasPrefix("+") || !trimmed.hasPrefix("|")`.
+    /// The first two tests were implied by the third, so mutation testing reported their `||`
+    /// mutants as survivors no test could kill. This pins what the simplified gate decides.
+    @Test("only a table row that is not the header is parsed", arguments: [
+        ("| force_cast | no | no | yes | lint | no | no | |", true),
+        ("| identifier | opt-in | correctable | enabled in your config | kind |", false),
+        ("| Identifier | Opt-in |", false),
+        ("+------------+--------+", false),
+        ("", false),
+        ("force_cast  no  no  yes", false)
+    ])
+    @MainActor
+    func rowGate(line: String, parsed: Bool) {
+        let registry = RuleRegistry(
+            swiftLintCLI: MockSwiftLintCLIActor(mockRulesData: Data()),
+            cacheManager: MockCacheManager()
+        )
+        #expect(registry.shouldParseRuleLine(line) == parsed)
+    }
 }
