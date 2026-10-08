@@ -98,6 +98,22 @@ public class YAMLConfigurationEngine {
             self.analyzerRules = nil
             self.onlyRules = nil
         }
+
+        /// Every rule the configuration names: the rule configurations and the
+        /// four rule lists.
+        ///
+        /// The one enumeration of the family. It was spelled out by hand in four
+        /// places, and two of them had dropped members: import validation omitted
+        /// `analyzerRules`, so a config defining only analyzer rules was warned
+        /// that it defined none, and the health check's deprecated-rule scan
+        /// omitted `analyzerRules` and `onlyRules`.
+        public var ruleIds: Set<String> {
+            Set(rules.keys)
+                .union(disabledRules ?? [])
+                .union(optInRules ?? [])
+                .union(analyzerRules ?? [])
+                .union(onlyRules ?? [])
+        }
     }
 
     /// Represents a diff between two configurations
