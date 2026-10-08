@@ -101,7 +101,7 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
     ) -> MigrationPlan {
         var steps: [MigrationStep] = []
 
-        let allRuleIds = collectAllRuleIds(from: config)
+        let allRuleIds = config.ruleIds
 
         // Check renamed rules. A rename is offered only once the target version has the new name:
         // `variable_name` → `identifier_name` arrived in 0.25.0, so a 0.20 → 0.22 migration that
@@ -159,15 +159,6 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
     }
 
     // MARK: - Private
-
-    private func collectAllRuleIds(from config: YAMLConfigurationEngine.YAMLConfig) -> Set<String> {
-        var ids = Set(config.rules.keys)
-        if let disabled = config.disabledRules { ids.formUnion(disabled) }
-        if let optIn = config.optInRules { ids.formUnion(optIn) }
-        if let analyzer = config.analyzerRules { ids.formUnion(analyzer) }
-        if let only = config.onlyRules { ids.formUnion(only) }
-        return ids
-    }
 
     private func applyStep(_ step: MigrationStep, to config: inout YAMLConfigurationEngine.YAMLConfig) {
         switch step {

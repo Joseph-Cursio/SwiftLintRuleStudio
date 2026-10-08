@@ -304,11 +304,7 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
     }
 
     private func calculateNoDeprecatedRules(config: YAMLConfigurationEngine.YAMLConfig) -> Int {
-        let allConfiguredRules = Set(config.rules.keys)
-            .union(Set(config.optInRules ?? []))
-            .union(Set(config.disabledRules ?? []))
-
-        let usedDeprecated = allConfiguredRules.intersection(deprecatedRules)
+        let usedDeprecated = config.ruleIds.intersection(deprecatedRules)
 
         if deprecatedRules.isEmpty { return 100 }
         if usedDeprecated.isEmpty { return 100 }

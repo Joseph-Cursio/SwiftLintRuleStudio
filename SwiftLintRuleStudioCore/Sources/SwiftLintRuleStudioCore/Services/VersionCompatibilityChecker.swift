@@ -116,7 +116,7 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
         config: YAMLConfigurationEngine.YAMLConfig,
         swiftLintVersion: String
     ) -> CompatibilityReport {
-        let allConfigRuleIds = collectAllRuleIds(from: config)
+        let allConfigRuleIds = config.ruleIds
 
         let deprecated = findDeprecatedRules(in: allConfigRuleIds, version: swiftLintVersion)
         let removed = findRemovedRules(in: allConfigRuleIds, version: swiftLintVersion)
@@ -133,23 +133,6 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
     }
 
     // MARK: - Private
-
-    private func collectAllRuleIds(from config: YAMLConfigurationEngine.YAMLConfig) -> Set<String> {
-        var ids = Set(config.rules.keys)
-        if let disabled = config.disabledRules {
-            ids.formUnion(disabled)
-        }
-        if let optIn = config.optInRules {
-            ids.formUnion(optIn)
-        }
-        if let analyzer = config.analyzerRules {
-            ids.formUnion(analyzer)
-        }
-        if let only = config.onlyRules {
-            ids.formUnion(only)
-        }
-        return ids
-    }
 
     private func findDeprecatedRules(in ruleIds: Set<String>, version: String) -> [DeprecatedRuleInfo] {
         var results: [DeprecatedRuleInfo] = []
