@@ -206,40 +206,46 @@ extension RuleRegistry {
         }
     }
 
+    /// Which examples section of `swiftlint rules <id>` output a line belongs to.
+    private enum ExampleSection {
+        case triggering
+        case nonTriggering
+    }
+
+    /// The examples in `swiftlint rules <id>` output, the fallback when the generated docs gave none.
+    ///
+    /// SwiftLint prints a blank line after each section header and numbers each example
+    /// `Example #n`. Every flush used to end the section, an empty flush included, so the blank
+    /// line after the header ended it before the first example and real output yielded no
+    /// examples at all; a flush that did append one ended the section too, so at most one per
+    /// section survived. A section now lasts until the next header. Blank lines and `Example #`
+    /// still separate examples.
     private static func applyRuleExamples(lines: [String], state: inout RuleDetailsState) {
-        var inTriggeringExamples = false
-        var inNonTriggeringExamples = false
+        var section: ExampleSection?
         var currentExample: [String] = []
 
         for line in lines {
             if line.contains("Non-Triggering Examples") || line.contains("Non Triggering Examples") {
-                inNonTriggeringExamples = true
-                inTriggeringExamples = false
+                flushExample(&currentExample, into: section, state: &state)
+                section = .nonTriggering
                 continue
             }
             if line.contains("Triggering Examples") {
-                inTriggeringExamples = true
-                inNonTriggeringExamples = false
+                flushExample(&currentExample, into: section, state: &state)
+                section = .triggering
                 continue
             }
-            if line.contains("Configuration") || line.isEmpty {
-                flushExample(
-                    inTriggeringExamples: &inTriggeringExamples,
-                    inNonTriggeringExamples: &inNonTriggeringExamples,
-                    currentExample: &currentExample,
-                    state: &state
-                )
+            // The configuration header ends the examples. It starts its line; example code is
+            // indented, so a `Configuration` type inside an example does not end anything.
+            if line.hasPrefix("Configuration") {
+                flushExample(&currentExample, into: section, state: &state)
+                section = nil
                 continue
             }
-            guard inTriggeringExamples || inNonTriggeringExamples else { continue }
+            guard section != nil else { continue }
 
             if line.contains("Example #") || line.trimmingCharacters(in: .whitespaces).isEmpty {
-                flushExample(
-                    inTriggeringExamples: &inTriggeringExamples,
-                    inNonTriggeringExamples: &inNonTriggeringExamples,
-                    currentExample: &currentExample,
-                    state: &state
-                )
+                flushExample(&currentExample, into: section, state: &state)
                 continue
             }
 
@@ -249,33 +255,23 @@ extension RuleRegistry {
             }
         }
 
-        flushExample(
-            inTriggeringExamples: &inTriggeringExamples,
-            inNonTriggeringExamples: &inNonTriggeringExamples,
-            currentExample: &currentExample,
-            state: &state
-        )
+        flushExample(&currentExample, into: section, state: &state)
     }
 
     private static func flushExample(
-        inTriggeringExamples: inout Bool,
-        inNonTriggeringExamples: inout Bool,
-        currentExample: inout [String],
+        _ currentExample: inout [String],
+        into section: ExampleSection?,
         state: inout RuleDetailsState
     ) {
-        guard !currentExample.isEmpty else {
-            inTriggeringExamples = false
-            inNonTriggeringExamples = false
-            return
-        }
         let example = currentExample.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-        if inTriggeringExamples && !example.isEmpty {
+        currentExample = []
+        guard !example.isEmpty, let section else { return }
+        switch section {
+        case .triggering:
             state.triggeringExamples.append(example)
-        } else if inNonTriggeringExamples && !example.isEmpty {
+
+        case .nonTriggering:
             state.nonTriggeringExamples.append(example)
         }
-        currentExample = []
-        inTriggeringExamples = false
-        inNonTriggeringExamples = false
     }
 }
