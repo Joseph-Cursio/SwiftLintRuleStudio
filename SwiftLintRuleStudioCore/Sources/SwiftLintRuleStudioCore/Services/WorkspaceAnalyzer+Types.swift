@@ -65,7 +65,9 @@ public enum WorkspaceAnalyzerError: LocalizedError, Sendable {
 }
 
 /// Analysis progress information
-public struct AnalysisProgress {
+///
+/// `nonisolated` so a generator can build one off the main actor; every field is a value.
+nonisolated public struct AnalysisProgress: Sendable {
     /// Name of the file currently being analyzed
     public let currentFile: String?
     /// Number of files processed so far
@@ -78,9 +80,13 @@ public struct AnalysisProgress {
     public let isComplete: Bool
 
     /// Fraction of files processed (0.0 to 1.0)
+    ///
+    /// Clamped, because nothing else keeps it in range: a snapshot whose count runs past its total
+    /// — a file counted twice, a total estimated low — gave a fraction above 1.0, which
+    /// swift-infer's `documented-range` law found against this comment.
     public var progress: Double {
         guard let total = totalFiles, total > 0 else { return 0.0 }
-        return Double(filesProcessed) / Double(total)
+        return min(max(Double(filesProcessed) / Double(total), 0.0), 1.0)
     }
 
     /// Creates a new progress snapshot
