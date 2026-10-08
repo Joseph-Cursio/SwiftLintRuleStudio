@@ -153,7 +153,9 @@ public enum RuleDocumentationParser {
                 }
             }
 
-            if trimmed.contains("severity") && index < lines.count - 1 {
+            // The key cell is exactly `severity`. Matching any line containing the word also read
+            // `unallowed_symbols_severity` and `expired_severity`, other keys' severities.
+            if cellText(trimmed) == "severity", index < lines.count - 1 {
                 if let severity = parseDefaultSeverity(from: lines, startIndex: index + 1) {
                     defaultSeverity = severity
                 }
@@ -167,20 +169,39 @@ public enum RuleDocumentationParser {
         )
     }
 
+    /// A table cell's text, from a line that is the whole cell (`<td>severity</td>`) or the value
+    /// line of a cell spread over three (`severity`).
+    private static func cellText(_ line: String) -> String {
+        line.replacingOccurrences(of: "<td>", with: "")
+            .replacingOccurrences(of: "</td>", with: "")
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+    /// The value cell after the `severity` key: the first text inside the next `<td>`.
+    ///
+    /// SwiftLint's generated docs write each cell over three lines — `<td>`, the value, `</td>` —
+    /// and this used to read only a one-line `<td>warning</td>`. Against SwiftLint 0.65.1's 258
+    /// generated docs it found no default severity at all, so a rule absent from the config showed
+    /// none in the detail view, though 239 of those docs state one. Both layouts are read now.
     private static func parseDefaultSeverity(from lines: [String], startIndex: Int) -> Severity? {
         let endIndex = min(startIndex + 10, lines.count)
-        for lookaheadIndex in startIndex..<endIndex {
-            let nextLine = lines[lookaheadIndex].trimmingCharacters(in: .whitespaces)
-            if nextLine.hasPrefix("<td>") && nextLine.contains("</td>") {
-                let severityValue = nextLine
-                    .replacingOccurrences(of: "<td>", with: "")
-                    .replacingOccurrences(of: "</td>", with: "")
-                    .trimmingCharacters(in: .whitespaces)
-                    .lowercased()
-                if severityValue == "warning" || severityValue == "error" {
-                    return Severity(rawValue: severityValue)
-                }
-                return nil
+        var inCell = false
+        for line in lines[startIndex..<endIndex] {
+            var text = line.trimmingCharacters(in: .whitespaces)
+            if text.hasPrefix("<td>") {
+                inCell = true
+                text = String(text.dropFirst("<td>".count))
+            }
+            let closesCell = text.hasSuffix("</td>")
+            if closesCell {
+                text = String(text.dropLast("</td>".count))
+            }
+            let value = text.trimmingCharacters(in: .whitespaces).lowercased()
+            if inCell, !value.isEmpty {
+                return value == "warning" || value == "error" ? Severity(rawValue: value) : nil
+            }
+            if closesCell {
+                inCell = false
             }
         }
         return nil
