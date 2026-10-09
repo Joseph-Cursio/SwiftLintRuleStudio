@@ -42,9 +42,13 @@ struct ConfigDiffPreviewView: View {
     var addedLabel: String = "Rules to be Added"
     var removedLabel: String = "Rules to be Removed"
     var modifiedLabel: String = "Rules to be Modified"
+    var saveLabel: String = "Save Changes"
+    var cancelLabel: String = "Cancel"
+    var showsSave = true
 
     @State private var selectedView: DiffViewMode = .summary
     @State private var showCopiedFeedback = false
+    @Environment(\.ruleRegistry) private var ruleRegistry
 
     enum DiffViewMode {
         case summary
@@ -62,7 +66,10 @@ struct ConfigDiffPreviewView: View {
         afterLabel: String = "After",
         addedLabel: String = "Rules to be Added",
         removedLabel: String = "Rules to be Removed",
-        modifiedLabel: String = "Rules to be Modified"
+        modifiedLabel: String = "Rules to be Modified",
+        saveLabel: String = "Save Changes",
+        cancelLabel: String = "Cancel",
+        showsSave: Bool = true
     ) {
         self.diff = diff
         self.ruleName = ruleName
@@ -76,6 +83,9 @@ struct ConfigDiffPreviewView: View {
         self.addedLabel = addedLabel
         self.removedLabel = removedLabel
         self.modifiedLabel = modifiedLabel
+        self.saveLabel = saveLabel
+        self.cancelLabel = cancelLabel
+        self.showsSave = showsSave
         self._selectedView = State(initialValue: selectedView)
     }
 
@@ -119,6 +129,8 @@ struct ConfigDiffPreviewView: View {
                 Text("Full Diff").tag(DiffViewMode.full)
             }
             .pickerStyle(.segmented)
+            // The segments say what they are; a visible "View" label only wrapped in the 200pt.
+            .labelsHidden()
             .frame(width: 200)
 
             Spacer()
@@ -157,12 +169,14 @@ struct ConfigDiffPreviewView: View {
 
     private var diffActions: some View {
         HStack {
-            Button("Cancel") { onCancel() }
+            Button(cancelLabel) { onCancel() }
                 .keyboardShortcut(.escape)
             Spacer()
-            Button("Save Changes") { onSave() }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.return, modifiers: .command)
+            if showsSave {
+                Button(saveLabel) { onSave() }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.return, modifiers: .command)
+            }
         }
         .padding()
     }
@@ -189,76 +203,12 @@ struct ConfigDiffPreviewView: View {
     }
 
     private var summaryView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Changes Summary
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Changes Summary")
-                        .font(.headline)
-
-                    if !diff.addedRules.isEmpty {
-                        changeSection(
-                            title: addedLabel,
-                            rules: diff.addedRules,
-                            color: .green,
-                            icon: "plus.circle.fill"
-                        )
-                    }
-
-                    if !diff.removedRules.isEmpty {
-                        changeSection(
-                            title: removedLabel,
-                            rules: diff.removedRules,
-                            color: .red,
-                            icon: "minus.circle.fill"
-                        )
-                    }
-
-                    if !diff.modifiedRules.isEmpty {
-                        changeSection(
-                            title: modifiedLabel,
-                            rules: diff.modifiedRules,
-                            color: .orange,
-                            icon: "pencil.circle.fill"
-                        )
-                    }
-
-                    if diff.addedRules.isEmpty && diff.removedRules.isEmpty && diff.modifiedRules.isEmpty {
-                        Text("No changes detected")
-                            .foregroundStyle(.secondary)
-                            .italic()
-                    }
-                }
-                .padding()
-            }
-            .padding()
-        }
-    }
-
-    private func changeSection(title: String, rules: [String], color: Color, icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .accessibilityHidden(true)
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-            }
-
-            ForEach(rules, id: \.self) { ruleId in
-                HStack {
-                    Text("•")
-                        .foregroundStyle(color)
-                    Text(ruleId)
-                        .font(.system(.body, design: .monospaced))
-                }
-                .padding(.leading, 20)
-            }
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
+        ConfigDiffSummaryView(
+            diff: diff,
+            addedLabel: addedLabel,
+            removedLabel: removedLabel,
+            modifiedLabel: modifiedLabel
+        )
     }
 
     private func copyForPR() {
@@ -266,7 +216,7 @@ struct ConfigDiffPreviewView: View {
         // one question. `copyToClipboard` is the only effect and it is the point of the button.
         // swiftprojectlint:disable:next direct-instantiation
         let generator = PRCommentGenerator()
-        let markdown = generator.generateMarkdown(from: diff)
+        let markdown = generator.generateMarkdown(from: diff.knowing(ruleRegistry.rules))
         generator.copyToClipboard(markdown)
 
         showCopiedFeedback = true

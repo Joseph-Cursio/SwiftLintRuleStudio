@@ -167,7 +167,8 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
             removedRules: removed,
             modifiedRules: Array(modified).sorted(),
             before: firstContent,
-            after: secondContent
+            after: secondContent,
+            changes: ConfigChangeSummary(from: firstConfig, to: secondConfig)
         )
     }
 

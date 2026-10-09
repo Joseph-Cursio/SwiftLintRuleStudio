@@ -62,6 +62,21 @@ public enum SwiftLintDeprecations {
         "redundant_self_in_closure": "redundant_self"
     ]
 
+    // MARK: - Aliases (old identifier -> current identifier)
+
+    /// Old names SwiftLint still reads as a current rule — the rules' `deprecatedAliases` in
+    /// SwiftLint 0.65. A rule listed or configured under one of these is the same rule as under
+    /// its current name. ``renamedRules`` is broader: some of its entries point to a different
+    /// rule that took over the job, while the old rule still exists — `generic_type_name` and
+    /// `multiple_closures_with_trailing_closure` both still run on their own.
+    public static let ruleAliases: [String: String] = [
+        "variable_name": "identifier_name",
+        "redundant_optional_initialization": "implicit_optional_initialization",
+        "operator_whitespace": "function_name_whitespace",
+        "redundant_self_in_closure": "redundant_self",
+        "if_let_shadowing": "shorthand_optional_binding"
+    ]
+
     // MARK: - Deprecated Rules (still work but will be removed)
 
     /// Map of deprecated rule identifiers to their deprecation details

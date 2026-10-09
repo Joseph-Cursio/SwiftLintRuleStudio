@@ -71,7 +71,7 @@ extension YAMLConfigurationEngine {
         return dict
     }
 
-    private static func nodeToAny(_ node: Node) throws -> Any {
+    static func nodeToAny(_ node: Node) throws -> Any {
         switch node {
         case .scalar(let scalar):
             return parseScalarValue(scalar)

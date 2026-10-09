@@ -119,14 +119,21 @@ public class YAMLConfigurationEngine {
     /// Represents a diff between two configurations
     public struct ConfigDiff: Identifiable {
         public let id = UUID()
+        /// Rule keys added to, removed from, or changed in the per-rule settings blocks.
+        /// These miss every change made through a rule list such as `opt_in_rules`;
+        /// ``changes`` covers those.
         public let addedRules: [String]
         public let removedRules: [String]
         public let modifiedRules: [String]
         public let before: String
         public let after: String
+        /// What the change does to SwiftLint, when the diff was built from two parsed
+        /// configurations.
+        public let changes: ConfigChangeSummary?
 
         public var hasChanges: Bool {
             !addedRules.isEmpty || !removedRules.isEmpty || !modifiedRules.isEmpty
+                || changes?.isEmpty == false
         }
 
         public init(
@@ -134,13 +141,15 @@ public class YAMLConfigurationEngine {
             removedRules: [String],
             modifiedRules: [String],
             before: String,
-            after: String
+            after: String,
+            changes: ConfigChangeSummary? = nil
         ) {
             self.addedRules = addedRules
             self.removedRules = removedRules
             self.modifiedRules = modifiedRules
             self.before = before
             self.after = after
+            self.changes = changes
         }
     }
 
@@ -232,13 +241,21 @@ public class YAMLConfigurationEngine {
         let modifiedRules = currentRules.intersection(proposedRules).filter { ruleId in
             current.rules[ruleId] != proposed.rules[ruleId]
         }
+        let before = (try? serialize(current)) ?? ""
+        let after = (try? serialize(proposed)) ?? ""
 
         return ConfigDiff(
             addedRules: addedRules.sorted(),
             removedRules: removedRules.sorted(),
             modifiedRules: Array(modifiedRules).sorted(),
-            before: (try? serialize(current)) ?? "",
-            after: (try? serialize(proposed)) ?? ""
+            before: before,
+            after: after,
+            // From what's written, not the in-memory configs: a setting the serializer drops,
+            // such as `enabled: false` on a rule, changes nothing SwiftLint will see.
+            changes: ConfigChangeSummary(
+                from: (try? parse(before)) ?? current,
+                to: (try? parse(after)) ?? proposed
+            )
         )
     }
 
@@ -279,6 +296,15 @@ public class YAMLConfigurationEngine {
         }
     }
 
+    /// The text whose comments, blank lines and ordering a save keeps, wherever the
+    /// configuration agrees with it.
+    public enum LayoutSource: Sendable {
+        /// The file the save replaces, so an edit keeps what the user wrote.
+        case fileBeingReplaced
+        /// Other text, such as an imported file that replaces the current one wholesale.
+        case text(String)
+    }
+
     /// Save configuration to file with backup, and adopt it as the engine's current state.
     public func save(config: YAMLConfig, createBackup: Bool = true) throws {
         currentConfig = config
@@ -290,14 +316,22 @@ public class YAMLConfigurationEngine {
     /// Two of the three steps are pure and the third is one call. The engine is not needed to
     /// perform any of them — it was needed only to hold the destination, which every caller
     /// already had in hand.
+    ///
+    /// The file is written as an edit of `layoutSource` — by default the file it replaces — so
+    /// the user's comments, blank lines and ordering survive wherever the configuration agrees.
     @discardableResult
     public static func save(
         _ config: YAMLConfig,
         to url: URL,
-        createBackup: Bool = true
+        createBackup: Bool = true,
+        keepingLayoutOf layoutSource: LayoutSource = .fileBeingReplaced
     ) throws -> String {
         try validated(config)
-        let yamlContent = try serialize(config)
+        let layout: String? = switch layoutSource {
+        case .fileBeingReplaced: try? String(contentsOf: url, encoding: .utf8)
+        case .text(let text): text
+        }
+        let yamlContent = try serialize(config, preservingLayoutOf: layout)
         try SafeFileWriter.write(yamlContent, to: url, createBackup: createBackup)
         return yamlContent
     }

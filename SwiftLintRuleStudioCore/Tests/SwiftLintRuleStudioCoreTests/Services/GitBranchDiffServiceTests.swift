@@ -83,8 +83,8 @@ struct GitBranchDiffServiceTests {
 
     @Test("Compares config between branches")
     func testCompareConfigBetweenBranches() async throws {
-        let mainConfig = "rules:\n  force_cast: true\n"
-        let branchConfig = "rules:\n  line_length: true\n"
+        let mainConfig = "opt_in_rules:\n  - empty_count\n"
+        let branchConfig = "opt_in_rules:\n  - array_init\n"
 
         let repoDir = try createTempGitRepo(initialConfig: mainConfig)
         defer { cleanup(repoDir) }
@@ -101,8 +101,8 @@ struct GitBranchDiffServiceTests {
         )
 
         #expect(result.totalDifferences > 0)
-        #expect(result.onlyInFirst.contains("force_cast"))
-        #expect(result.onlyInSecond.contains("line_length"))
+        #expect(result.onlyInFirst.contains("empty_count"))
+        #expect(result.onlyInSecond.contains("array_init"))
     }
 
     @Test("Identical configs on different branches show no differences")

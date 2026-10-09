@@ -35,6 +35,13 @@ public protocol GitBranchDiffServiceProtocol: Sendable {
         branch: String,
         configRelativePath: String
     ) async throws -> ConfigComparisonResult
+    /// The comparison, with the rule catalog saying for certain which rules are opt-in.
+    func compareConfigWithBranch(
+        repoPath: URL,
+        branch: String,
+        configRelativePath: String,
+        knownRules: [Rule]
+    ) async throws -> ConfigComparisonResult
 }
 
 // MARK: - Errors
@@ -92,6 +99,20 @@ public final class GitBranchDiffService: GitBranchDiffServiceProtocol, Sendable 
         branch: String,
         configRelativePath: String
     ) async throws -> ConfigComparisonResult {
+        try await compareConfigWithBranch(
+            repoPath: repoPath,
+            branch: branch,
+            configRelativePath: configRelativePath,
+            knownRules: []
+        )
+    }
+
+    public func compareConfigWithBranch(
+        repoPath: URL,
+        branch: String,
+        configRelativePath: String,
+        knownRules: [Rule]
+    ) async throws -> ConfigComparisonResult {
         // Get config content from the selected branch
         let branchContent: String
         do {
@@ -118,7 +139,20 @@ public final class GitBranchDiffService: GitBranchDiffServiceProtocol, Sendable 
             config1: currentConfigPath,
             label1: "Current",
             config2: branchConfigFile,
-            label2: branch
+            label2: branch,
+            knownRules: knownRules
         )
+    }
+}
+
+public extension GitBranchDiffServiceProtocol {
+    /// Without the catalog, which rules are opt-in is inferred from the configs themselves.
+    func compareConfigWithBranch(
+        repoPath: URL,
+        branch: String,
+        configRelativePath: String,
+        knownRules _: [Rule]
+    ) async throws -> ConfigComparisonResult {
+        try await compareConfigWithBranch(repoPath: repoPath, branch: branch, configRelativePath: configRelativePath)
     }
 }

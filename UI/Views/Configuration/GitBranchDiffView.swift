@@ -31,6 +31,7 @@ private struct NotGitRepoNotice: View {
 
 struct GitBranchDiffView: View {
     @State private var viewModel: GitBranchDiffViewModel
+    @Environment(\.ruleRegistry) private var ruleRegistry
 
     init(service: GitBranchDiffServiceProtocol, workspacePath: URL?) {
         _viewModel = State(initialValue: GitBranchDiffViewModel(
@@ -124,7 +125,7 @@ struct GitBranchDiffView: View {
                     }
 
                     Button("Compare") {
-                        viewModel.compareWithSelected()
+                        viewModel.compareWithSelected(knownRules: ruleRegistry.rules)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(viewModel.selectedRef == nil || viewModel.isLoading)
@@ -163,7 +164,7 @@ struct GitBranchDiffView: View {
             } else {
                 if !result.onlyInFirst.isEmpty {
                     diffSection(
-                        title: "Only in Current Branch",
+                        title: "Runs Only on the Current Branch",
                         rules: result.onlyInFirst,
                         color: .blue,
                         icon: "minus.circle.fill"
@@ -172,7 +173,7 @@ struct GitBranchDiffView: View {
 
                 if !result.onlyInSecond.isEmpty {
                     diffSection(
-                        title: "Only in \(viewModel.selectedRef ?? "other branch")",
+                        title: "Runs Only on \(viewModel.selectedRef ?? "the Other Branch")",
                         rules: result.onlyInSecond,
                         color: .purple,
                         icon: "plus.circle.fill"
@@ -181,6 +182,14 @@ struct GitBranchDiffView: View {
 
                 if !result.inBothDifferent.isEmpty {
                     modifiedRulesSection(result.inBothDifferent)
+                }
+
+                if !result.pathDifferences.isEmpty {
+                    lineSection(title: "Paths", lines: result.pathDifferences, icon: "folder.fill")
+                }
+
+                if !result.otherDifferences.isEmpty {
+                    lineSection(title: otherSettingsTitle, lines: result.otherDifferences, icon: "gearshape.fill")
                 }
 
                 yamlDiffSection(result.diff)
@@ -245,6 +254,32 @@ struct GitBranchDiffView: View {
             }
         }
         .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
+    }
+
+    /// The lines read from the current config to the branch's, so the title says which way.
+    private var otherSettingsTitle: String {
+        "Other Settings (Current → \(viewModel.selectedRef ?? "Other Branch"))"
+    }
+
+    private func lineSection(title: String, lines: [String], icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+            }
+            ForEach(lines, id: \.self) { line in
+                Text(line)
+                    .padding(.leading, 24)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
     }

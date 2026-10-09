@@ -41,7 +41,7 @@ The main window uses a two-column `NavigationSplitView`:
 | Compare Configs | Side-by-side config comparison |
 | Version Check | SwiftLint version compatibility checker |
 | Import Config | URL and file config importer |
-| Branch Diff | Git branch configuration diff |
+| Branch Diff | Git branch configuration diff (SwiftLint Rule Studio only) |
 | Migration | Migration Assistant |
 
 The workspace name and path are displayed at the top of the sidebar when a workspace is open.
@@ -342,17 +342,16 @@ The **Export** toolbar menu provides four options:
 
 ### YAML Diff Preview
 
-The YAML Diff Preview sheet appears before any config write. It shows:
+The YAML Diff Preview sheet appears before any config write. It has two tabs:
 
-| Section | Content |
-|---------|---------|
-| Rule name / label | Identifies what is being changed (a rule name, "Version Comparison", or "N rules" for bulk ops) |
-| Added rules | Rule IDs added to the config |
-| Removed rules | Rule IDs removed from the config |
-| Modified rules | Rule IDs whose configuration changed |
-| Before / After YAML | Side-by-side or sequential raw YAML text of the old and new config |
+| Tab | Content |
+|-----|---------|
+| **Summary** | What SwiftLint will check differently: **Rules turned on**, **Rules turned off**, **Settings changed** (one line per setting, e.g. `warning: 160 → 120`), **Paths** (newly excluded or included, or no longer), and **Other changes** (`only_rules`, the reporter, and settings such as `custom_rules` or `warning_threshold`). Rules switched on or off through `opt_in_rules`, `disabled_rules`, `analyzer_rules` or `only_rules` count, not just per-rule settings blocks, following SwiftLint's precedence (`disabled_rules` wins over `opt_in_rules`) and treating renamed rules as the same rule. When nothing SwiftLint checks changes, it says whether the two versions are identical or only their text differs. |
+| **Full Diff** | The raw YAML of the old and new config |
 
-The sheet has a **Save** (confirm) button and a **Cancel** button. Cancelling leaves the config unchanged.
+**Copy for PR** copies the same summary as Markdown. The sheet has a **Save Changes** (confirm) button and a **Cancel** button. Cancelling leaves the config unchanged.
+
+**How the file is written:** a save edits `.swiftlint.yml` rather than rewriting it. Every top-level section the change doesn't touch is kept exactly as written, comments and blank lines included; a changed list gains or loses only the affected items (comments between items stay); a changed rule-settings block has only the changed settings rewritten, in place. New sections go at the end. If an edit can't be made safely, the file is written in full, as before.
 
 ### Version History
 
@@ -377,11 +376,13 @@ The timestamp is a Unix epoch integer (seconds since 1970-01-01 UTC). Backups ar
 
 **Compare two backups:**
 
-Click one backup to mark it as version **①** (highlighted in blue). Click a second to mark it as **②** (green). The diff panel on the right shows what changed between the two versions. Click **Clear** to deselect.
+The list starts with **Current**, the `.swiftlint.yml` as it is now, followed by the backups. Click one version, then a second. Version **①** (blue) is "before" and **②** (green) is "after": the older of two backups goes first, and **Current** always goes first, so the comparison shows what restoring the backup would change. The panel on the right shows the change from ① to ② with the same **Summary** and **Full Diff** tabs as the YAML Diff Preview.
+
+Click the **→** arrow between the two dates to swap before and after. The restore button always brings back the "after" version, and says which: **Restore Older Version** or **Restore Newer Version**. It is hidden when **Current** is the "after" version, since there is nothing to restore. **Clear Comparison**, or **Clear** above the list, deselects both.
 
 **Restore:**
 
-Right-click any backup row → **Restore This Version**. Before restoring, the service automatically creates a safety backup of the current config (with the current Unix timestamp). The restore is a full content replacement.
+Right-click any backup row (not **Current**) → **Restore This Version**. Before restoring, the service automatically creates a safety backup of the current config (with the current Unix timestamp). The restore is a full content replacement.
 
 **Prune toolbar menu:**
 
@@ -444,15 +445,13 @@ A preview is shown before applying, including validation errors (e.g., if the fe
 
 ### Git Branch Diff
 
-The Git Branch Diff panel compares the current workspace's `.swiftlint.yml` against the same file on any local branch or tag.
+The Git Branch Diff panel compares the current workspace's `.swiftlint.yml` against the same file on any local branch or tag. It is in SwiftLint Rule Studio only; Rule Explorer for SwiftLint, the App Store edition, leaves it out of the sidebar and the title menu.
 
 **Prerequisites:** The workspace must be inside a git repository. If it is not, an error "The workspace is not a git repository" is shown.
 
 **Available refs:** The panel lists all local branches and all tags. The current branch is identified separately.
 
-**Comparison:** Fetches the `.swiftlint.yml` content from the selected ref using `git show <ref>:<path>` and generates a diff against the current file. If the config file does not exist on the selected ref, an error is shown.
-
-The result is displayed in the standard YAML Diff Preview view.
+**Comparison:** Fetches the `.swiftlint.yml` content from the selected ref using `git show <ref>:<path>` and compares it with the current file the way [Compare Configs](#compare-configs) does, with Current and the branch name in place of Left and Right. If the config file does not exist on the selected ref, an error is shown.
 
 ### Template Library
 
@@ -492,7 +491,23 @@ Auto-applicable steps can be applied in bulk. Manual steps are flagged for human
 
 ### Compare Configs
 
-The Compare Configs panel provides a side-by-side diff of two arbitrary config files (not limited to version history). Each config can be loaded from any path accessible to the app.
+The Compare Configs panel compares two configurations, typically from two projects. The left side starts as the open workspace's `.swiftlint.yml`. **Browse…** accepts either a project folder, whose `.swiftlint.yml` is used, or the YAML file itself; hidden files are shown so `.swiftlint.yml` can be picked directly.
+
+The comparison is by what SwiftLint does with each config, counting `opt_in_rules`, `disabled_rules`, `analyzer_rules` and `only_rules`, not just per-rule settings blocks:
+
+| Section | Content |
+|---------|---------|
+| **Runs only with Left / Right** | Rules SwiftLint runs with one config but not the other, including the rules `only_rules` or `all` switch on or off without naming them |
+| **Set Differently** | Rules treated alike by both but with different settings, one line per setting, naming the project that has each value |
+| **Paths** | Excluded or included paths that differ; a config with `included` lints only those paths, one without lints every path |
+| **Other Settings** | `only_rules`, `all`, the reporter and settings such as `custom_rules`, read Left → Right |
+| **Full YAML Diff** | Both files as written |
+
+Each side is named after the folder its file is in. When both folders have the same name, the sides are told apart by file name, or else by the folders above them.
+
+A rule's old name counts as the rule (`variable_name` is `identifier_name`), but a rule that another rule replaced and that still runs, such as `multiple_closures_with_trailing_closure`, is compared as a rule of its own. A rule's levels written as a list, `type_body_length: [300, 400]`, are the same as the block `warning: 300, error: 400`.
+
+Branch Diff uses the same comparison between the current config and another git branch or tag.
 
 ---
 
