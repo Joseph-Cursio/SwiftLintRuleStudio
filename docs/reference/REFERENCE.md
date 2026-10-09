@@ -151,7 +151,7 @@ The header shows the rule's human-readable name, its identifier beneath it, and 
 | Badge | Condition | Color |
 |-------|-----------|-------|
 | **Enabled** | Rule is active in the loaded config | Green |
-| **Opt-In Rule** | `isOptIn == true` | Orange |
+| **Opt-In Rule** | `isOptIn == true` | Secondary (gray) |
 | **Auto-correctable** | `supportsAutocorrection == true` | Blue |
 | **Swift X.X+** | A minimum Swift version is set | Secondary (gray) |
 
@@ -546,7 +546,7 @@ If the current workspace has no `.swiftlint.yml`, a `ConfigRecommendationView` b
 | **Disabled Rule** | A rule that is not currently producing violations. This includes rules explicitly listed under `disabled_rules` and opt-in rules that have not been added to `opt_in_rules`. |
 | **Enabled Rule** | A rule that is currently active and will be checked during a SwiftLint run. Default-on rules are enabled unless explicitly disabled; opt-in rules are enabled only when listed under `opt_in_rules`. |
 | **Health Score** | A 0–100 integer measuring the quality of the workspace `.swiftlint.yml` on five dimensions (coverage, balance, opt-in adoption, deprecation, path config). See [Configuration Health Score](#configuration-health-score). |
-| **Opt-In Rule** | A SwiftLint rule that is **off by default** across all projects. It must be explicitly enabled by adding its identifier to `opt_in_rules` in the config. Opt-in rules are visually distinguished with an orange "Opt-In Rule" badge. |
+| **Opt-In Rule** | A SwiftLint rule that is **off by default** across all projects. It must be explicitly enabled by adding its identifier to `opt_in_rules` in the config. Opt-in rules are marked with a neutral "Opt-In Rule" badge in the detail panel and an "Opt-In" tag in the rule list. |
 | **Severity** | The level at which a violation is reported. Options: `warning` (non-blocking, shown in orange), `error` (blocking, shown in red), `hint` (informational). The default severity for most rules is `warning`. |
 | **Simulation** | A dry-run of SwiftLint using a temporary config that includes a rule not currently in the workspace config. The result shows how many violations the rule would produce without actually modifying the config. |
 | **Suppressed Violation** | A violation that has been intentionally acknowledged via a `// swiftlint:disable:next <ruleID>` inline comment. Suppressed violations remain in the database but are excluded from counts. |

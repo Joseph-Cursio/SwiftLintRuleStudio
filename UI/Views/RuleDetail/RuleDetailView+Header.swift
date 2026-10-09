@@ -51,10 +51,13 @@ extension RuleDetailView {
             }
 
             HStack(spacing: 16) {
+                // Neutral, like the rule list's Opt-In tag: orange means "warning"
+                // elsewhere in the app, and opt-in is a rule's type, not a problem.
                 if rule.isOptIn {
                     Label("Opt-In Rule", systemImage: "star.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.secondary)
+                        .help("SwiftLint runs this rule only when a configuration enables it")
                 }
 
                 if viewModel.isEnabled {
