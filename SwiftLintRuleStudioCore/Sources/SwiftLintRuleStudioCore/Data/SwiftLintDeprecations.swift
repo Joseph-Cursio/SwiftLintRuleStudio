@@ -44,22 +44,16 @@ public enum SwiftLintDeprecations {
 
     // MARK: - Renamed Rules (old identifier -> new identifier)
 
-    /// Map of old rule identifiers to their renamed replacements
+    /// Map of old rule identifiers to their renamed replacements.
+    /// Migration and Version Check offer each entry as a one-click rename, so an old identifier
+    /// must no longer be a SwiftLint rule (a deprecated alias is fine) and a new one must be.
+    /// A rule retired in favor of a compiler warning has no rename; it belongs in `removedRules`.
+    /// `DeprecationDataTests` in SwiftLintInProcessBackend checks this against the linked SwiftLint.
     public static let renamedRules: [String: String] = [
-        // 0.25.0
+        // 0.17.0
         "variable_name": "identifier_name",
-        "variable_name_max_length": "identifier_name",
-        "variable_name_min_length": "identifier_name",
-        "type_name_max_length": "type_name",
-        "type_name_min_length": "type_name",
-        // 0.29.0
-        "generic_type_name": "identifier_name",
-        // 0.39.0
-        "unused_capture_list": "unused_closure_use",
-        // 0.46.0
-        "inert_defer": "no_empty_block",
         // 0.50.0
-        "multiple_closures_with_trailing_closure": "trailing_closure",
+        "if_let_shadowing": "shorthand_optional_binding",
         // 0.60.0
         "redundant_optional_initialization": "implicit_optional_initialization",
         // 0.61.0
@@ -73,49 +67,30 @@ public enum SwiftLintDeprecations {
     /// Map of deprecated rule identifiers to their deprecation details
     public static let deprecatedRules: [String: DeprecationEntry] = [
         "variable_name": DeprecationEntry(
-            deprecatedInVersion: "0.25.0",
+            deprecatedInVersion: "0.17.0",
             replacement: "identifier_name",
-            message: "Use 'identifier_name' instead."
+            message: "Renamed to 'identifier_name'. Kept as a deprecated alias."
         ),
-        "type_name_max_length": DeprecationEntry(
-            deprecatedInVersion: "0.25.0",
-            replacement: "type_name",
-            message: "Configure max_length on 'type_name' instead."
+        "if_let_shadowing": DeprecationEntry(
+            // Shipped only in 0.50.0-rc.1, then renamed before the 0.50.0 release.
+            deprecatedInVersion: "0.50.0",
+            replacement: "shorthand_optional_binding",
+            message: "Renamed to 'shorthand_optional_binding'. Kept as a deprecated alias."
         ),
-        "type_name_min_length": DeprecationEntry(
-            deprecatedInVersion: "0.25.0",
-            replacement: "type_name",
-            message: "Configure min_length on 'type_name' instead."
-        ),
-        "variable_name_max_length": DeprecationEntry(
-            deprecatedInVersion: "0.25.0",
-            replacement: "identifier_name",
-            message: "Configure max_length on 'identifier_name' instead."
-        ),
-        "variable_name_min_length": DeprecationEntry(
-            deprecatedInVersion: "0.25.0",
-            replacement: "identifier_name",
-            message: "Configure min_length on 'identifier_name' instead."
-        ),
-        "generic_type_name": DeprecationEntry(
-            deprecatedInVersion: "0.29.0",
-            replacement: "identifier_name",
-            message: "This rule is now part of 'identifier_name'."
+        "anyobject_protocol": DeprecationEntry(
+            deprecatedInVersion: "0.50.0",
+            replacement: nil,
+            message: "Deprecated because the Swift compiler now handles this."
         ),
         "unused_capture_list": DeprecationEntry(
-            deprecatedInVersion: "0.39.0",
-            replacement: "unused_closure_use",
-            message: "Use 'unused_closure_use' instead."
+            deprecatedInVersion: "0.51.0",
+            replacement: nil,
+            message: "Deprecated in favor of the Swift compiler's unused capture warning."
         ),
         "inert_defer": DeprecationEntry(
-            deprecatedInVersion: "0.46.0",
-            replacement: "no_empty_block",
-            message: "Use 'no_empty_block' instead."
-        ),
-        "multiple_closures_with_trailing_closure": DeprecationEntry(
-            deprecatedInVersion: "0.50.0",
-            replacement: "trailing_closure",
-            message: "Use 'trailing_closure' instead."
+            deprecatedInVersion: "0.51.0",
+            replacement: nil,
+            message: "Deprecated in favor of the Swift compiler's warning for a defer at the end of its scope."
         ),
         "redundant_optional_initialization": DeprecationEntry(
             deprecatedInVersion: "0.60.0",
@@ -138,30 +113,16 @@ public enum SwiftLintDeprecations {
 
     /// Map of removed rule identifiers to their removal details
     public static let removedRules: [String: RemovalEntry] = [
-        "variable_name": RemovalEntry(
-            removedInVersion: "0.35.0",
-            replacement: "identifier_name",
-            message: "This rule was removed. Use 'identifier_name' instead."
-        ),
+        // Merged into `variable_name` (now `identifier_name`) as its length limits.
         "variable_name_max_length": RemovalEntry(
-            removedInVersion: "0.35.0",
+            removedInVersion: "0.7.0",
             replacement: "identifier_name",
-            message: "Configure max_length on 'identifier_name' instead."
+            message: "Configure max_length on 'identifier_name' (named 'variable_name' before 0.17.0) instead."
         ),
         "variable_name_min_length": RemovalEntry(
-            removedInVersion: "0.35.0",
+            removedInVersion: "0.7.0",
             replacement: "identifier_name",
-            message: "Configure min_length on 'identifier_name' instead."
-        ),
-        "type_name_max_length": RemovalEntry(
-            removedInVersion: "0.35.0",
-            replacement: "type_name",
-            message: "Configure max_length on 'type_name' instead."
-        ),
-        "type_name_min_length": RemovalEntry(
-            removedInVersion: "0.35.0",
-            replacement: "type_name",
-            message: "Configure min_length on 'type_name' instead."
+            message: "Configure min_length on 'identifier_name' (named 'variable_name' before 0.17.0) instead."
         ),
         "anyobject_protocol": RemovalEntry(
             removedInVersion: "0.57.0",
@@ -170,45 +131,59 @@ public enum SwiftLintDeprecations {
         ),
         "inert_defer": RemovalEntry(
             removedInVersion: "0.58.0",
-            replacement: "no_empty_block",
-            message: "Removed after being deprecated. Use 'no_empty_block' instead."
+            replacement: nil,
+            message: "Removed after being deprecated. The Swift compiler warns about this instead."
         ),
         "unused_capture_list": RemovalEntry(
             removedInVersion: "0.58.0",
-            replacement: "unused_closure_use",
-            message: "Removed after being deprecated. Use 'unused_closure_use' instead."
+            replacement: nil,
+            message: "Removed after being deprecated. The Swift compiler warns about this instead."
+        ),
+        "opaque_over_existential": RemovalEntry(
+            removedInVersion: "0.59.1",
+            replacement: nil,
+            message: "Removed because it caused too many false positives."
         )
     ]
 
     // MARK: - Version Rule Additions (version -> new rules added)
 
-    /// Map of SwiftLint versions to rules introduced in that version
+    /// Map of SwiftLint versions to notable rules introduced in that version (not every rule).
+    /// Each version is the first release whose source declares the rule, checked against
+    /// SwiftLint's release tags (2026-10-09). The CHANGELOG is wrong about two: it lists
+    /// `file_name_no_space` under 0.34.0 and `attribute_name_spacing` under 0.56.0, but they
+    /// first shipped in 0.38.1 and 0.57.0. Versions 0.64.0, 0.64.1, and 0.65.0 added no new
+    /// rules. A rule added and later removed, like `opaque_over_existential` (0.59.0 only),
+    /// stays listed here; callers drop it with `isRemoved(_:by:)`.
     public static let versionRuleAdditions: [String: [String]] = [
-        "0.25.0": ["identifier_name", "file_name_no_space"],
-        "0.27.0": ["multiline_arguments", "multiline_parameters"],
-        "0.29.0": ["last_where", "contains_over_first_not_nil"],
-        "0.30.0": ["overridden_super_call", "prohibited_super_call"],
-        "0.31.0": ["anyobject_protocol", "collection_alignment"],
-        "0.33.0": ["computed_accessors_order", "reduce_boolean"],
-        "0.35.0": ["no_space_in_method_call", "optional_enum_case_matching"],
-        "0.38.0": ["indentation_width", "prefer_self_in_static_references"],
-        "0.39.0": ["unused_closure_use", "ibinspectable_in_extension"],
-        "0.42.0": ["test_case_accessibility", "balanced_xctest_lifecycle"],
-        "0.43.0": ["discouraged_none_name", "invalid_swiftlint_command"],
-        "0.44.0": ["non_overridable_class_declaration"],
-        "0.46.0": ["no_empty_block", "comma_inheritance"],
-        "0.48.0": ["direct_return", "period_spacing"],
-        "0.50.0": ["sorted_enum_cases", "self_binding", "shorthand_optional_binding"],
-        "0.52.0": ["superfluous_else"],
-        "0.54.0": ["blanket_disable_command"],
+        "0.13.0": ["overridden_super_call"],
+        "0.14.0": ["prohibited_super_call"],
+        "0.17.0": ["identifier_name"],
+        "0.20.0": ["multiline_parameters"],
+        "0.23.0": ["contains_over_first_not_nil", "multiline_arguments"],
+        "0.27.0": ["anyobject_protocol"],
+        "0.28.0": ["collection_alignment"],
+        "0.29.3": ["last_where"],
+        "0.32.0": ["reduce_boolean"],
+        "0.35.0": ["no_space_in_method_call"],
+        "0.38.1": ["file_name_no_space", "optional_enum_case_matching"],
+        "0.38.2": ["indentation_width"],
+        "0.40.0": ["computed_accessors_order", "ibinspectable_in_extension"],
+        "0.41.0": ["test_case_accessibility"],
+        "0.43.0": ["balanced_xctest_lifecycle"],
+        "0.44.0": ["discouraged_none_name"],
+        "0.45.1": ["prefer_self_in_static_references"],
+        "0.47.1": ["comma_inheritance"],
+        "0.49.1": ["self_binding"],
+        "0.50.0": ["shorthand_optional_binding"],
+        "0.51.0": ["blanket_disable_command", "direct_return", "invalid_swiftlint_command", "period_spacing"],
+        "0.52.0": ["sorted_enum_cases", "superfluous_else"],
+        "0.53.0": ["non_overridable_class_declaration"],
         "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"],
-        // Additions 0.56.0–0.63.3, verified against the realm/SwiftLint CHANGELOG (2026-07-07).
-        // Not listed: `no_empty_block` (changelog places it here but it is already tracked at
-        // 0.46.0), and `opaque_over_existential` (added in 0.59.0, removed again in 0.59.1 — it
-        // does not exist in 0.65.0). Versions 0.64.0, 0.64.1, and 0.65.0 added no new rules.
-        "0.56.0": ["attribute_name_spacing", "contrasted_opening_brace", "prefer_key_path", "unused_parameter"],
-        "0.57.0": ["optional_data_string_conversion"],
+        "0.56.0": ["contrasted_opening_brace", "no_empty_block", "prefer_key_path", "unused_parameter"],
+        "0.57.0": ["attribute_name_spacing", "optional_data_string_conversion"],
         "0.58.0": ["async_without_await", "redundant_sendable"],
+        "0.59.0": ["opaque_over_existential"],
         "0.60.0": ["implicit_optional_initialization", "prefer_condition_list"],
         "0.61.0": ["function_name_whitespace"],
         "0.62.0": ["prefer_asset_symbols"],
@@ -237,6 +212,12 @@ public enum SwiftLintDeprecations {
             if val1 > val2 { return false }
         }
         return false
+    }
+
+    /// Whether `rule` was removed at or before `version`.
+    public static func isRemoved(_ rule: String, by version: String) -> Bool {
+        guard let removedIn = removedRules[rule]?.removedInVersion else { return false }
+        return !isVersion(version, lessThan: removedIn)
     }
 
     /// Get all rules added between two versions (exclusive of fromVersion, inclusive of toVersion)

@@ -30,7 +30,7 @@ nonisolated let presetExpectations: [PresetExpectation] = [
     ),
     PresetExpectation(
         presetID: "concurrency_safety", expectedName: "Concurrency Safety",
-        expectedCategory: .concurrency, expectedRuleIDs: ["unavailable_from_async"]
+        expectedCategory: .concurrency, expectedRuleIDs: ["class_delegate_protocol"]
     ),
     PresetExpectation(
         presetID: "code_style", expectedName: "Code Style",
