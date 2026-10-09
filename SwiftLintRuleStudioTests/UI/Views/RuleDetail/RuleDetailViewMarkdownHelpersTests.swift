@@ -136,9 +136,9 @@ struct RuleDetailViewMarkdownHelpersTests {
         #expect(html.contains("<h3>Section</h3>"))
     }
 
-    @Test("Converts empty line to br tag")
-    func convertsEmptyLineToBr() {
-        let html = RuleDetailView.convertMarkdownToHTMLForTesting("")
+    @Test("A blank line between paragraphs becomes a break")
+    func convertsBlankLineBetweenParagraphsToBr() {
+        let html = RuleDetailView.convertMarkdownToHTMLForTesting("First.\n\nSecond.")
         #expect(html.contains("<br>"))
     }
 
