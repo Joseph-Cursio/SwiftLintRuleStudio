@@ -105,14 +105,37 @@ extension RuleDetailView {
         var processedLines: [String] = []
         var inCodeBlock = false
         var codeBlockLanguage = ""
+        var hasPendingBlankLines = false
+        var previousLine: ConvertedLineKind?  // nil until the first content line
 
         for line in lines {
+            // Markdown separates paragraphs with blank lines, but SwiftUI's Text drops the
+            // HTML paragraph margins: a gap only shows as an actual empty line. So a run of
+            // blank lines after a paragraph becomes "<br><br>" (one empty line). After a
+            // heading or other block it stays a single "<br>", and blank lines before any
+            // content, or at the end, add nothing. Blank lines inside code are kept as-is.
+            if !inCodeBlock && line.trimmingCharacters(in: .whitespaces).isEmpty {
+                hasPendingBlankLines = true
+                continue
+            }
+            if hasPendingBlankLines {
+                switch previousLine {
+                case nil: break
+                case .text: processedLines.append("<br><br>")
+                case .block: processedLines.append("<br>")
+                }
+                hasPendingBlankLines = false
+            }
+
+            let wasInCodeBlock = inCodeBlock
             let converted = convertMarkdownLine(
                 line: line,
                 inCodeBlock: &inCodeBlock,
                 codeBlockLanguage: &codeBlockLanguage
             )
             processedLines.append(contentsOf: converted)
+            let isBlock = wasInCodeBlock || inCodeBlock || isBlockLine(line)
+            previousLine = isBlock ? .block : .text
         }
 
         // Close any open code block
@@ -121,6 +144,21 @@ extension RuleDetailView {
         }
 
         return processedLines.joined(separator: "\n")
+    }
+
+    private enum ConvertedLineKind {
+        /// A line of paragraph text.
+        case text
+        /// A heading, raw HTML, or code: already ends its own line.
+        case block
+    }
+
+    /// Headings and lines that start with raw HTML are blocks; everything else is
+    /// paragraph text.
+    private func isBlockLine(_ line: String) -> Bool {
+        // Headings match convertMarkdownLine, which only recognises them unindented.
+        line.hasPrefix("# ") || line.hasPrefix("## ") || line.hasPrefix("### ")
+            || line.trimmingCharacters(in: .whitespaces).hasPrefix("<")
     }
 
     func wrapHTMLInDocument(body: String, colorScheme: ColorScheme) -> String {
@@ -197,10 +235,6 @@ extension RuleDetailView {
         if line.hasPrefix("### ") {
             let text = String(line.dropFirst(4)).trimmingCharacters(in: .whitespaces)
             return ["<h3>\(text)</h3>"]
-        }
-
-        if trimmed.isEmpty {
-            return ["<br>"]
         }
 
         return [inlineMarkdownHTML(from: line)]
