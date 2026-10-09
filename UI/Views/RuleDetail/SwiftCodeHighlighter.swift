@@ -15,6 +15,10 @@ import SwiftUI
 enum SwiftCodeHighlighter {
     /// Token colours, matching Xcode's default light and dark themes. Each adapts to the
     /// current appearance, so highlighted code doesn't need rebuilding when it changes.
+    ///
+    /// AppKit calls a dynamic colour's provider wherever it resolves the colour, which may
+    /// be off the main thread, so the provider is `@Sendable` and only calls nonisolated
+    /// code. Under this target's default main-actor isolation it would otherwise trap.
     enum Palette {
         static let keyword = adaptive(light: 0xAD3DA4, dark: 0xFF7AB2)
         static let type = adaptive(light: 0x0B4F79, dark: 0x6BDFFF)
@@ -24,13 +28,13 @@ enum SwiftCodeHighlighter {
         static let attribute = adaptive(light: 0x6C36A9, dark: 0xCC85D6)
 
         private static func adaptive(light: UInt32, dark: UInt32) -> Color {
-            Color(nsColor: NSColor(name: nil) { appearance in
+            Color(nsColor: NSColor(name: nil) { @Sendable appearance in
                 let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
                 return rgb(isDark ? dark : light)
             })
         }
 
-        private static func rgb(_ hex: UInt32) -> NSColor {
+        nonisolated private static func rgb(_ hex: UInt32) -> NSColor {
             NSColor(
                 srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
                 green: CGFloat((hex >> 8) & 0xFF) / 255,
