@@ -19,12 +19,6 @@ struct RuleBrowserListView: View {
     @State private var bulkSaveError: String?
     @State private var showBulkSaveError = false
 
-    private var hasActiveFilters: Bool {
-        !viewModel.searchText.isEmpty
-            || viewModel.selectedCategory != nil
-            || viewModel.selectedStatus != .all
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             // Both of these were computed properties until the Computed Property View rule
@@ -34,6 +28,7 @@ struct RuleBrowserListView: View {
             RuleBrowserSearchAndFilters(
                 searchText: Bindable(viewModel).searchText,
                 selectedStatus: Bindable(viewModel).selectedStatus,
+                selectedType: Bindable(viewModel).selectedType,
                 selectedCategory: Bindable(viewModel).selectedCategory,
                 selectedSortOption: Bindable(viewModel).selectedSortOption,
                 categoryCounts: viewModel.categoryCounts
@@ -83,6 +78,8 @@ struct RuleBrowserListView: View {
                 searchText: viewModel.searchText,
                 selectedCategory: viewModel.selectedCategory,
                 selectedStatus: viewModel.selectedStatus,
+                selectedType: viewModel.selectedType,
+                hasActivePreset: viewModel.activePreset != nil,
                 rulesAreEmpty: ruleRegistry.rules.isEmpty
             ) { viewModel.clearFilters() }
         } else if viewModel.isMultiSelectMode {
@@ -122,7 +119,7 @@ struct RuleBrowserListView: View {
             .accessibilityIdentifier("RuleBrowserMultiSelectButton")
         }
         ToolbarItem(placement: .primaryAction) {
-            RulePresetPicker { preset in
+            RulePresetPicker(activePreset: viewModel.activePreset, onTurnOff: viewModel.turnOffPreset) { preset in
                 viewModel.applyPreset(preset)
             }
         }
@@ -130,7 +127,7 @@ struct RuleBrowserListView: View {
             Button(action: viewModel.clearFilters) {
                 Label("Clear Filters", systemImage: "xmark.circle")
             }
-            .disabled(!hasActiveFilters)
+            .disabled(!viewModel.hasActiveFilters)
             .help("Clear the search and filters")
             .accessibilityIdentifier("RuleBrowserClearFiltersButton")
         }

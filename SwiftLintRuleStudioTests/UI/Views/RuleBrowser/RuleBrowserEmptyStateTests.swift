@@ -138,4 +138,30 @@ struct RuleBrowserEmptyStateTests {
         #expect((try? inspector.find(text: "Loading rules\u{2026}")) == nil,
                 "Filter branch should not show loading text")
     }
+
+    // MARK: - Type filter and presets
+
+    @Test("Shows filter guidance when the Type filter is narrowing the list")
+    func testTypeFilterCountsAsActive() throws {
+        let view = RuleBrowserEmptyState(
+            searchText: "",
+            selectedCategory: nil,
+            selectedStatus: .all,
+            selectedType: .optIn,
+            rulesAreEmpty: false
+        ) {}
+        #expect((try? view.inspect().find(button: "Clear Filters")) != nil)
+    }
+
+    @Test("Shows filter guidance when only a preset is narrowing the list")
+    func testActivePresetCountsAsActive() throws {
+        let view = RuleBrowserEmptyState(
+            searchText: "",
+            selectedCategory: nil,
+            selectedStatus: .all,
+            hasActivePreset: true,
+            rulesAreEmpty: false
+        ) {}
+        #expect((try? view.inspect().find(button: "Clear Filters")) != nil)
+    }
 }
