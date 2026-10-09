@@ -14,6 +14,7 @@ import Testing
 private final class RecordingWorkspaceBuilder: SimulationWorkspaceBuilding, @unchecked Sendable {
 
     private(set) var requests: [(workspace: Workspace, baseConfigPath: URL?)] = []
+    private(set) var built: [SimulationWorkspace] = []
     let root: URL
 
     init(root: URL) {
@@ -25,7 +26,9 @@ private final class RecordingWorkspaceBuilder: SimulationWorkspaceBuilding, @unc
         baseConfigPath: URL?
     ) throws -> SimulationWorkspace {
         requests.append((workspace, baseConfigPath))
-        return SimulationWorkspace(root: root, configs: [], fileManager: .default)
+        let shadow = SimulationWorkspace(root: root, configs: [], fileManager: .default)
+        built.append(shadow)
+        return shadow
     }
 }
 
@@ -39,9 +42,10 @@ struct ImpactSimulatorBuilderSeamTests {
         return dir
     }
 
-    /// The simulator lints **the root the builder returned**, and asks for it once, with the
-    /// workspace and base config path it was handed. Before the seam this could only be checked by
-    /// inspecting a directory that was about to be deleted.
+    /// The simulator lints **the mirror the builder returned** — at the path applying the rule
+    /// moved it to — and asks for it once, with the workspace and base config path it was handed.
+    /// Before the seam this could only be checked by inspecting a directory that was about to be
+    /// deleted.
     @Test func theSimulatorLintsTheRootTheBuilderReturned() async throws {
         let shadowRoot = try makeShadowRoot()
         let builder = RecordingWorkspaceBuilder(root: shadowRoot)
@@ -63,7 +67,11 @@ struct ImpactSimulatorBuilderSeamTests {
         #expect(builder.requests.count == 1)
         #expect(builder.requests.first?.workspace.path == workspace.path)
         #expect(builder.requests.first?.baseConfigPath == seed)
-        #expect(await lintedPaths.paths == [shadowRoot])
+
+        let shadow = try #require(builder.built.first)
+
+        #expect(await lintedPaths.paths == [shadow.root])
+        #expect(shadow.root.deletingLastPathComponent() == shadowRoot.deletingLastPathComponent())
     }
 }
 
