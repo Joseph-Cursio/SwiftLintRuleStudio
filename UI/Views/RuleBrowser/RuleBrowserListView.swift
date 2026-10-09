@@ -115,6 +115,10 @@ struct RuleBrowserListView: View {
                         ? "checklist.checked" : "checklist"
                 )
             }
+            .help(
+                viewModel.isMultiSelectMode
+                    ? "Stop selecting rules" : "Select multiple rules to change them together"
+            )
             .accessibilityIdentifier("RuleBrowserMultiSelectButton")
         }
         ToolbarItem(placement: .primaryAction) {
@@ -127,6 +131,7 @@ struct RuleBrowserListView: View {
                 Label("Clear Filters", systemImage: "xmark.circle")
             }
             .disabled(!hasActiveFilters)
+            .help("Clear the search and filters")
             .accessibilityIdentifier("RuleBrowserClearFiltersButton")
         }
     }

@@ -188,6 +188,7 @@ struct RulePresetPicker: View {
         } label: {
             Label("Presets", systemImage: "rectangle.stack")
         }
+        .help("Show only the rules in a preset")
     }
 
     /// The browser's entry point. Shown even while unfinished, under a heading

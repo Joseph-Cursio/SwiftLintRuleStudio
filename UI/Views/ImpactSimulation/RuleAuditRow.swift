@@ -168,7 +168,7 @@ struct RuleAuditRow: View {
             parts.append(entry.effortCategory.label)
         }
         if isUnavailable {
-            parts.append("not available in this edition")
+            parts.append("not checked in this app")
         }
         return parts.joined(separator: ", ")
     }
@@ -216,9 +216,9 @@ struct RuleAuditRow: View {
                         Image(systemName: "nosign")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
-                            .help("Relies on SourceKit — not evaluated in this edition. "
-                                + "Still writable to your configuration.")
-                            .accessibilityLabel("Not available in this edition")
+                            .help("Depends on SourceKit, so it isn't checked in this app. "
+                                + "You can still add it to your configuration.")
+                            .accessibilityLabel("Not checked in this app")
                     }
                 }
                 Text(entry.rule.description)

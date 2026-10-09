@@ -33,6 +33,7 @@ struct ConfigMapView: View {
                     Button(action: viewModel.load) {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
+                    .help("Reload the configuration map")
                     .accessibilityIdentifier("ConfigMapRefreshButton")
                 }
             }

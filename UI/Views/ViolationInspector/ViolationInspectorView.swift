@@ -143,6 +143,7 @@ struct ViolationInspectorView: View {
         } label: {
             Label("Refresh", systemImage: "arrow.clockwise")
         }
+        .help("Refresh violations for this workspace")
         .accessibilityIdentifier("ViolationInspectorRefreshButton")
     }
 
@@ -161,6 +162,7 @@ struct ViolationInspectorView: View {
         } label: {
             Label("Export", systemImage: "square.and.arrow.up")
         }
+        .help("Export violations as JSON or CSV")
     }
 
     private var navigationButtons: some View {
@@ -169,12 +171,14 @@ struct ViolationInspectorView: View {
                 Label("Next", systemImage: "chevron.right")
             }
             .keyboardShortcut(.rightArrow, modifiers: .command)
+            .help("Next violation (⌘→)")
             .accessibilityIdentifier("ViolationInspectorNextButton")
 
             Button { viewModel.selectPreviousViolation() } label: {
                 Label("Previous", systemImage: "chevron.left")
             }
             .keyboardShortcut(.leftArrow, modifiers: .command)
+            .help("Previous violation (⌘←)")
             .accessibilityIdentifier("ViolationInspectorPreviousButton")
         }
     }
@@ -189,6 +193,7 @@ struct ViolationInspectorView: View {
             Label("Selection", systemImage: "checkmark.circle")
         }
         .disabled(viewModel.filteredViolations.isEmpty)
+        .help("Select or deselect violations")
         .accessibilityIdentifier("ViolationInspectorSelectionMenu")
     }
 
@@ -213,6 +218,7 @@ struct ViolationInspectorView: View {
             } label: {
                 Label("Actions", systemImage: "ellipsis.circle")
             }
+            .help("Suppress or resolve the selected violations")
             .accessibilityIdentifier("ViolationInspectorActionsMenu")
         }
     }

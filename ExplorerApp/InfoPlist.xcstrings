@@ -1,0 +1,18 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleName" : {
+      "comment" : "Name macOS shows in the menu bar and in About, Hide, Quit and Help menu items. Without this it falls back to the product name, SwiftLintRuleExplorer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rule Explorer for SwiftLint"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

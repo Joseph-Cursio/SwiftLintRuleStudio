@@ -53,6 +53,7 @@ struct ConfigVersionHistoryView: View {
             Button(action: viewModel.loadBackups) {
                 Label("Refresh", systemImage: "arrow.clockwise")
             }
+            .help("Reload the list of saved versions")
             .accessibilityIdentifier("ConfigHistoryRefreshButton")
         }
         ToolbarItem(placement: .primaryAction) {
@@ -63,6 +64,7 @@ struct ConfigVersionHistoryView: View {
             } label: {
                 Label("Prune", systemImage: "trash")
             }
+            .help("Delete older saved versions, keeping the most recent")
             .accessibilityIdentifier("ConfigHistoryPruneMenu")
         }
     }

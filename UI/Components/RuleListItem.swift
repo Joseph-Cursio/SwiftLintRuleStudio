@@ -74,12 +74,11 @@ struct RuleListItem: View {
                     }
 
                     if isUnavailable {
-                        Label("Not available in this edition", systemImage: "nosign")
+                        Label("Not checked in this app", systemImage: "nosign")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
-                            .help("This rule relies on SourceKit, which the Mac App Store "
-                                + "edition can't run. You can still add it to your "
-                                + "configuration, but it won't be checked here.")
+                            .help("This rule depends on SourceKit, so it isn't checked in this "
+                                + "app. You can still add it to your configuration.")
                     }
                 }
             }

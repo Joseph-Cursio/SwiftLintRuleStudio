@@ -34,7 +34,7 @@ extension OnboardingView {
                 .symbolEffect(.bounce, value: onboardingManager.currentStep)
                 .accessibilityHidden(true)
 
-            Text("Welcome to SwiftLint Rule Studio")
+            Text("Welcome to \(Bundle.main.appDisplayName)")
                 .font(.system(size: headingFontSize, weight: .bold))
                 .accessibilityIdentifier("OnboardingWelcomeTitle")
 
@@ -71,14 +71,37 @@ extension OnboardingView {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: iconSizeStandard))
-                .foregroundStyle(swiftLintStatus == .installed(URL(fileURLWithPath: ""), "") ? .green : .orange)
+                .foregroundStyle(swiftLintStatus.isReady ? .green : .orange)
                 .accessibilityHidden(true)
 
-            Text("SwiftLint Installation")
+            Text(swiftLintStepTitle)
                 .font(.system(size: subheadingFontSize, weight: .bold))
 
             Group {
                 switch swiftLintStatus {
+                case .builtIn(let version):
+                    VStack(alignment: .leading, spacing: 16) {
+                        featureRow(
+                            icon: "shippingbox",
+                            title: version.map { "SwiftLint \($0) included" } ?? "SwiftLint included",
+                            description: "Runs inside the app, so there's nothing else to install."
+                        )
+                        featureRow(
+                            icon: "doc.badge.gearshape",
+                            title: "Uses your configuration",
+                            description: "Your project's .swiftlint.yml is read and applied as usual."
+                        )
+                        featureRow(
+                            icon: "info.circle",
+                            title: "SourceKit rules",
+                            description: """
+                            Rules that depend on SourceKit aren't checked here, \
+                            but you can still add them to your configuration.
+                            """
+                        )
+                    }
+                    .padding(.horizontal, 40)
+
                 case .checking:
                     VStack(spacing: 12) {
                         ProgressView()
@@ -168,33 +191,18 @@ extension OnboardingView {
         .padding(.vertical, 40)
     }
 
+    private var swiftLintStepTitle: String {
+        if case .builtIn = swiftLintStatus {
+            return "SwiftLint Is Built into Rule Explorer"
+        }
+        return "SwiftLint Installation"
+    }
+
     var workspaceSelectionStep: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "folder.badge.gearshape")
-                .font(.system(size: iconSizeStandard))
-                .foregroundStyle(.blue)
-                .accessibilityHidden(true)
-
-            Text("Select Your Workspace")
-                .font(.system(size: subheadingFontSize, weight: .bold))
-
-            Text("Choose a directory containing your Swift project to get started.")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            // Embed the workspace selection view
-            WorkspaceSelectionView(workspaceManager: workspaceManager)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, 40)
-        }
-        .padding(.vertical, 20)
-        .onChange(of: workspaceManager.currentWorkspace) { _, newValue in
-            if newValue != nil {
-                // Workspace selected, can proceed
-            }
-        }
+        // WorkspaceSelectionView brings its own icon, title and subtitle; a second
+        // header here stacked two near-identical titles and overflowed the step.
+        WorkspaceSelectionView(workspaceManager: workspaceManager)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     var completeStep: some View {
@@ -209,7 +217,8 @@ extension OnboardingView {
                 .font(.system(size: headingFontSize, weight: .bold))
 
             Text("""
-            SwiftLint Rule Studio is ready to use. Start by browsing rules or inspecting violations in your workspace.
+            \(Bundle.main.appDisplayName) is ready to use. Start by browsing rules or inspecting \
+            violations in your workspace.
             """)
                 .font(.body)
                 .foregroundStyle(.secondary)
