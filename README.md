@@ -6,7 +6,7 @@ I've  been vibe-coding this: the parts worth looking at are (1) where you can vi
 ## Introduction
 A native macOS application that puts a friendly graphical interface on top of the wonderful [SwiftLint](https://github.com/realm/SwiftLint) project. SwiftLint Rule Studio does **not** replace SwiftLint — it is simply a GUI front end that makes SwiftLint easier to explore, configure, and manage for individuals and teams.
 
-**Platform:** macOS 13.0 (Ventura) or later
+**Platform:** macOS 14.0 (Sonoma) or later
 **License:** MIT
 **Swift:** 6.0 with strict concurrency checking
 **Latest release:** [v1.2.1 — Config Map & nested config support](https://github.com/Joseph-Cursio/SwiftLintRuleStudio/releases/tag/v1.2.1)
@@ -51,7 +51,7 @@ See the [full release notes](https://github.com/Joseph-Cursio/SwiftLintRuleStudi
 
 ## Requirements
 
-- **macOS 13.0 (Ventura)** or later
+- **macOS 14.0 (Sonoma)** or later
 - **SwiftLint** installed and available on your `$PATH` (see [SwiftLint installation](https://github.com/realm/SwiftLint#installation))
 - Xcode 15 or later (to build from source)
 
