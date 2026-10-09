@@ -104,8 +104,8 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
         let allRuleIds = config.ruleIds
 
         // Check renamed rules. A rename is offered only once the target version has the new name:
-        // `variable_name` → `identifier_name` arrived in 0.25.0, so a 0.20 → 0.22 migration that
-        // renamed it would leave a rule 0.22 does not know. The deprecation table carries the version
+        // `variable_name` → `identifier_name` arrived in 0.17.0, so a 0.10 → 0.16 migration that
+        // renamed it would leave a rule 0.16 does not know. The deprecation table carries the version
         // a rule was renamed in, and supplies a target for any deprecated rule the rename table lacks.
         for ruleId in allRuleIds.sorted() {
             let deprecation = SwiftLintDeprecations.deprecatedRules[ruleId]
@@ -134,8 +134,10 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
             }
         }
 
-        // Check for new rules available (informational)
+        // Check for new rules available (informational). A rule the target version has removed
+        // is not available: `anyobject_protocol` arrived in 0.27.0 and was removed in 0.57.0.
         let newRules = SwiftLintDeprecations.rulesAdded(from: fromVersion, to: toVersion)
+            .filter { !SwiftLintDeprecations.isRemoved($0, by: toVersion) }
         if !newRules.isEmpty {
             steps.append(.manualAction(
                 description: "New rules available: \(newRules.joined(separator: ", ")). Consider enabling them."

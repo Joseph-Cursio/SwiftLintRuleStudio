@@ -182,7 +182,7 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
         for ruleId in ruleIds.sorted() {
             if let newId = SwiftLintDeprecations.renamedRules[ruleId], newId != ruleId {
                 // A rename is an issue only once the installed version has the new name:
-                // `identifier_name` replaced `variable_name` in 0.25.0, so a config for 0.22 that
+                // `identifier_name` replaced `variable_name` in 0.17.0, so a config for 0.16 that
                 // still says `variable_name` is current, not renamed. The deprecation table carries
                 // the version each rule was renamed in.
                 if let renamedIn = SwiftLintDeprecations.deprecatedRules[ruleId]?.deprecatedInVersion,
@@ -206,7 +206,11 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
             where !SwiftLintDeprecations.isVersion(version, lessThan: ver) {
             allAvailable.formUnion(rules)
         }
-        // Return rules that exist in SwiftLint but aren't in the config
-        return allAvailable.subtracting(configRuleIds).sorted()
+        // Return rules that exist in SwiftLint but aren't in the config. A rule added and later
+        // removed, like `anyobject_protocol`, no longer exists.
+        return allAvailable
+            .subtracting(configRuleIds)
+            .filter { !SwiftLintDeprecations.isRemoved($0, by: version) }
+            .sorted()
     }
 }
