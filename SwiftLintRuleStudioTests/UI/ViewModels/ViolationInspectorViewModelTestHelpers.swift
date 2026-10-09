@@ -14,6 +14,7 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
     /// Fires during `analyze`, letting a test simulate work that happens while an
     /// analysis is in flight (e.g. the user switching to another workspace).
     var onAnalyze: (@MainActor () -> Void)?
+    private(set) var analyzedWorkspaceIDs: Set<UUID> = []
     private let mockStorage: MockViolationStorageForViewModel
 
     init(mockStorage: MockViolationStorageForViewModel) {
@@ -29,6 +30,7 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
         }
 
         try mockStorage.storeViolations(mockViolations, for: workspace.id)
+        analyzedWorkspaceIDs.insert(workspace.id)
         onAnalyze?()
 
         return AnalysisResult(
@@ -38,6 +40,10 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
             startedAt: Date.now,
             completedAt: Date.now
         )
+    }
+
+    func hasAnalyzed(workspaceID: UUID) -> Bool {
+        analyzedWorkspaceIDs.contains(workspaceID)
     }
 }
 

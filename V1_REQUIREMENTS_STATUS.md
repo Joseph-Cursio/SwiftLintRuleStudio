@@ -310,16 +310,15 @@ they surfaced (see `docs/pbt-candidates.md`).
 
 ## ❌ Still missing
 
-### Dashboard ⚠️ **NOT IMPLEMENTED** (unchanged)
+### Dashboard ◐ **PARTIAL**
 
-`AppSection.dashboard` exists and the sidebar links to it, but
-`ContentView+Sections.swift:27` renders a bare `Text("Dashboard")` placeholder.
-No analytics, trends, or quality metrics.
+`DashboardView` shows the open workspace's rule counts (enabled, opt-in enabled),
+open errors and warnings from the last analysis, and the configuration health
+score (`ConfigHealthScoreView`, previously built but unused) with its breakdown and
+recommendations.
 
-*(Correction: the previous revision said "Dashboard folder exists but empty" —
-there is no Dashboard folder at all.)*
-
-**Priority: LOW** — deferred to v1.1 per PRD.
+What is **not** built: trends over time, per-rule violation charts, or any
+history — the Dashboard is a snapshot of the current state.
 
 ### Exclusion Path Recommendations ◐ **PARTIAL**
 
@@ -364,7 +363,7 @@ history, but it was never built as specified.
 | Export (HTML/JSON/CSV) | ✅ Complete | 100% |
 | Two-edition capability model | ✅ Complete | 100% |
 | Exclusion Path Recommendations | ◐ Partial | 25% |
-| Dashboard | ❌ Missing | 0% |
+| Dashboard (snapshot built; trends are v1.1) | ◐ Partial | 50% |
 
 **Overall v1.0 completion: ~97%.** Every P0 feature is implemented. What stands
 between here and a clean v1.0 is the 3-test regression, not missing features.
@@ -407,7 +406,8 @@ every one mutation-verified.
 3. **Rule-conflict + autocorrect-safety detection** — `docs/proposal-rule-conflict-and-autocorrect-safety.md`,
    confirmed unimplemented (no `RuleConflicts` / `AutocorrectSafety` symbols).
 4. **Finish exclusion path recommendations** — wire up `.configureExcludes`.
-5. **Dashboard** — v1.1.
+5. **Dashboard trends** — counts and health score over time; v1.1. The snapshot
+   view shipped.
 
 ---
 

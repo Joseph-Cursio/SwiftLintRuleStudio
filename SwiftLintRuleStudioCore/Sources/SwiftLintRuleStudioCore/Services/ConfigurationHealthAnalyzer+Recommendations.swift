@@ -33,7 +33,7 @@ extension ConfigurationHealthAnalyzer {
     ) {
         guard breakdown.optInAdoption < 50 else { return }
         let missingOptIn = recommendedOptInRules.subtracting(
-            Set(config.optInRules ?? [])
+            enabledRecommendedOptInRules(config: config)
         )
         guard !missingOptIn.isEmpty else { return }
         let ruleList = missingOptIn.prefix(3).joined(separator: ", ")

@@ -186,10 +186,13 @@ private struct RecommendationCard: View {
                     Button {
                         onApplyPreset(presetId)
                     } label: {
-                        Label("Apply Preset", systemImage: "wand.and.stars")
+                        // Shows the preset's rules in the rule browser; it doesn't change
+                        // the configuration, so it isn't labelled "Apply".
+                        Label("Review Preset Rules", systemImage: "arrow.right.circle")
                             .font(.caption)
                     }
                     .buttonStyle(.bordered)
+                    .help("Show this preset's rules in the rule list, where you can enable them")
                     .controlSize(.small)
                     .padding(.top, 4)
                 }

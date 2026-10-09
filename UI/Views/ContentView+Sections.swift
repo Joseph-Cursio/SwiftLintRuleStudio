@@ -25,8 +25,12 @@ extension ContentView {
         case .exportReport:
             ExportReportView()
         case .dashboard:
-            Text("Dashboard")
-                .navigationTitle("Dashboard")
+            DashboardView { preset in
+                // The rule browser restores this search when it appears, over the preset.
+                searchText = ""
+                ruleBrowserViewModel?.applyPreset(preset)
+                selection = .rules
+            }
         case .ruleAudit:
             RuleAuditView()
         case .versionHistory:

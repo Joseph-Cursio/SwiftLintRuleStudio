@@ -35,7 +35,7 @@ The main window uses a two-column `NavigationSplitView`:
 |------|-------|
 | Rules | Rule Browser |
 | Violations | Violation Inspector |
-| Dashboard | Summary statistics |
+| Dashboard | Rule and violation counts, and the configuration health score |
 | Safe Rules | Safe Rules Discovery (batch simulation) |
 | Version History | Configuration backup timeline |
 | Compare Configs | Side-by-side config comparison |
@@ -393,6 +393,18 @@ Right-click any backup row → **Restore This Version**. Before restoring, the s
 
 Older backups are deleted from disk. The Refresh button (↺) reloads the list from disk.
 
+### Dashboard
+
+The **Dashboard** sidebar link summarizes the open workspace:
+
+| Tile | What it shows |
+|------|---------------|
+| **Rules enabled** | Rules the workspace's `.swiftlint.yml` runs, out of all rules, e.g. "120 of 253" |
+| **Opt-in rules enabled** | How many opt-in rules the configuration turns on |
+| **Errors** / **Warnings** | Open violations from the last analysis: neither suppressed nor resolved. Shown in red / orange when above zero, and as "—" until the workspace has been analyzed (open **Violations** to analyze it). |
+
+Below the tiles is the [Configuration Health Score](#configuration-health-score) for the workspace's `.swiftlint.yml`, with its breakdown and recommendations. If the workspace has no `.swiftlint.yml`, the score reflects SwiftLint's defaults and the Dashboard says so. If `.swiftlint.yml` can't be read, the rule tiles show "—" and the Dashboard says why. It recalculates when the workspace changes, when a rule is enabled or disabled, when the workspace gains a `.swiftlint.yml`, when an analysis finishes, and from its **Refresh** toolbar button.
+
 ### Configuration Health Score
 
 The Health Score is an integer 0–100 with a letter grade. It is calculated as a weighted sum of five sub-scores:
@@ -415,7 +427,7 @@ The Health Score is an integer 0–100 with a letter grade. It is calculated as 
 | 40–59 | D | Needs Work | Orange |
 | 0–39 | F | Poor | Red |
 
-**Recommendations** are generated with High / Medium / Low priority and may include an "Apply Preset" button when a preset ID is associated with the recommendation.
+**Recommendations** are generated with High / Medium / Low priority and may include a **Review Preset Rules** button when a preset ID is associated with the recommendation. It opens the Rule Browser with that preset active, where the rules can be enabled; it doesn't change the configuration itself.
 
 ### Import Configuration
 
