@@ -65,7 +65,7 @@ Onboarding is complete. Click **Get Started** to open the main interface.
 
 ## 2. Browsing & Searching Rules
 
-Use the Rule Browser to find rules, filter by status or category, and navigate to their detail pages.
+Use the Rule Browser to find rules, filter by status, type or category, and navigate to their detail pages.
 
 The Rule Browser is a split view: the left panel shows the rule list and the right panel shows details for the selected rule.
 
@@ -79,9 +79,15 @@ Use the **Status** picker to show only:
 - **All** — every rule
 - **Enabled** — rules currently active in your config
 - **Disabled** — rules not yet active
+
+**Filtering by Type**
+
+Use the **Type** picker to show only:
+- **All** — every rule
+- **Default** — rules SwiftLint runs unless your config disables them
 - **Opt-In** — rules that are off by default in SwiftLint and must be explicitly enabled
 
-Each status shows a count badge.
+Status and Type combine: for example, **Disabled** + **Default** shows the default rules your config turns off.
 
 **Filtering by Category**
 
@@ -93,7 +99,7 @@ Use the **Sort** picker to order rules by Name, Identifier, or Category.
 
 **Clearing Filters**
 
-Click **Clear Filters** in the toolbar to reset all active filters at once. The button is disabled when no filters are applied.
+Click **Clear Filters** in the toolbar to reset all active filters at once, including an active preset. The button is disabled when no filters are applied.
 
 ---
 

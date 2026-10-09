@@ -144,9 +144,21 @@ struct RulePresetPickerTests {
 
     // MARK: - Active preset
 
+    /// Looks the item up by identifier: its title includes the preset's name, and
+    /// ViewInspector's `find(text:)` matches whole strings only.
+    private static func hasTurnOffItem(_ picker: RulePresetPicker) -> Bool {
+        (try? picker.inspect().find(viewWithAccessibilityIdentifier: "TurnOffPresetMenuItem")) != nil
+    }
+
     @Test("With no active preset, the menu offers no way to turn one off")
     func noTurnOffWithoutActivePreset() {
-        #expect(!Self.menuContains(Self.makePicker(), text: "Turn Off"))
+        #expect(!Self.hasTurnOffItem(Self.makePicker()))
+    }
+
+    @Test("With an active preset, the Turn Off item is shown")
+    func turnOffItemShownWithActivePreset() throws {
+        let active = try #require(RulePresets.allPresets.first)
+        #expect(Self.hasTurnOffItem(RulePresetPicker(activePreset: active) { _ in }))
     }
 
     @Test("With an active preset, the menu offers to turn it off")
