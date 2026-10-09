@@ -25,7 +25,7 @@ SwiftLint Rule Studio is a native macOS app that gives you a visual interface fo
 
 ### Prerequisites
 
-- **macOS 13.0 (Ventura)** or later
+- **macOS 14.0 (Sonoma)** or later
 - **SwiftLint installed and on your `$PATH`** — the app calls `swiftlint rules` and `swiftlint lint` under the hood. If you don't have SwiftLint yet, the onboarding wizard will show you installation options.
 
 ### First Launch — Onboarding Wizard

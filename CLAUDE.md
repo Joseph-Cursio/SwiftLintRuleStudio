@@ -33,7 +33,7 @@ Note: Two layers are local Swift packages — `SwiftLintRuleStudioCore/` and `Sw
 
 SwiftLint Rule Studio is a native macOS desktop application that provides a GUI interface for managing SwiftLint rules, discovering violations, simulating rule impact, and facilitating team coordination around code quality standards.
 
-**Platform:** macOS 13.0+ (Ventura or later)
+**Platform:** macOS 14.0+ (Sonoma or later)
 **Swift Version:** Swift 6.0 with strict concurrency checking
 **UI Framework:** SwiftUI
 
