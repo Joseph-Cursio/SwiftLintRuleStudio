@@ -12,11 +12,14 @@ struct RuleBrowserEmptyState: View {
     let searchText: String
     let selectedCategory: RuleCategory?
     let selectedStatus: RuleStatusFilter
+    var selectedType: RuleTypeFilter = .all
+    var hasActivePreset = false
     let rulesAreEmpty: Bool
     let onClearFilters: () -> Void
 
     private var hasActiveFilters: Bool {
         !searchText.isEmpty || selectedCategory != nil || selectedStatus != .all
+            || selectedType != .all || hasActivePreset
     }
 
     var body: some View {
@@ -47,7 +50,7 @@ struct RuleBrowserEmptyState: View {
         selectedCategory: nil,
         selectedStatus: .enabled,
         rulesAreEmpty: false
-    )        {}
+    ) {}
 }
 
 #Preview("Loading") {
@@ -56,5 +59,5 @@ struct RuleBrowserEmptyState: View {
         selectedCategory: nil,
         selectedStatus: .all,
         rulesAreEmpty: true
-    )        {}
+    ) {}
 }

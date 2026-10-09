@@ -168,27 +168,55 @@ struct PresetCard: View {
 
 /// A menu-based picker for selecting and applying rule presets
 struct RulePresetPicker: View {
+    /// The preset currently filtering the rule list, if any.
+    var activePreset: RulePreset?
+    /// Called to stop filtering by `activePreset`.
+    var onTurnOff: () -> Void = {}
     let onPresetSelected: (RulePreset) -> Void
 
     var body: some View {
         Menu {
+            if let activePreset {
+                SwiftUI.Section {
+                    Button(
+                        "Turn Off \u{201C}\(activePreset.name)\u{201D}",
+                        systemImage: "xmark.circle",
+                        action: onTurnOff
+                    )
+                    .accessibilityIdentifier("TurnOffPresetMenuItem")
+                }
+            }
+
             ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
                 SwiftUI.Section(category.displayName) {
                     ForEach(RulePresets.presets(in: category)) { preset in
-                        Button {
-                            onPresetSelected(preset)
-                        } label: {
-                            Label(preset.name, systemImage: preset.icon)
-                        }
+                        presetButton(preset)
                     }
                 }
             }
 
             browserEntry
         } label: {
-            Label("Presets", systemImage: "rectangle.stack")
+            Label("Presets", systemImage: activePreset == nil ? "rectangle.stack" : "rectangle.stack.fill")
         }
-        .help("Show only the rules in a preset")
+        .help(
+            activePreset.map { "Showing only the \u{201C}\($0.name)\u{201D} preset" }
+                ?? "Show only the rules in a preset"
+        )
+    }
+
+    /// Choosing the active preset again turns it off, so its checkmark toggles.
+    private func presetButton(_ preset: RulePreset) -> some View {
+        let isActive = preset.id == activePreset?.id
+        return Button {
+            if isActive {
+                onTurnOff()
+            } else {
+                onPresetSelected(preset)
+            }
+        } label: {
+            Label(preset.name, systemImage: isActive ? "checkmark" : preset.icon)
+        }
     }
 
     /// The browser's entry point. Shown even while unfinished, under a heading

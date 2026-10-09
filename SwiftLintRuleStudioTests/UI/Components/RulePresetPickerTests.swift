@@ -141,4 +141,77 @@ struct RulePresetPickerTests {
 
         #expect(chosen.count == 2)
     }
+
+    // MARK: - Active preset
+
+    /// Looks the item up by identifier: its title includes the preset's name, and
+    /// ViewInspector's `find(text:)` matches whole strings only.
+    private static func hasTurnOffItem(_ picker: RulePresetPicker) -> Bool {
+        (try? picker.inspect().find(viewWithAccessibilityIdentifier: "TurnOffPresetMenuItem")) != nil
+    }
+
+    @Test("With no active preset, the menu offers no way to turn one off")
+    func noTurnOffWithoutActivePreset() {
+        #expect(!Self.hasTurnOffItem(Self.makePicker()))
+    }
+
+    @Test("With an active preset, the Turn Off item is shown")
+    func turnOffItemShownWithActivePreset() throws {
+        let active = try #require(RulePresets.allPresets.first)
+        #expect(Self.hasTurnOffItem(RulePresetPicker(activePreset: active) { _ in }))
+    }
+
+    @Test("With an active preset, the menu offers to turn it off")
+    func offersTurnOffForActivePreset() throws {
+        let active = try #require(RulePresets.allPresets.first)
+
+        nonisolated(unsafe) var turnedOff = 0
+        let picker = RulePresetPicker(
+            activePreset: active,
+            onTurnOff: { turnedOff += 1 },
+            onPresetSelected: { _ in }
+        )
+
+        try picker.inspect().find(button: "Turn Off \u{201C}\(active.name)\u{201D}").tap()
+
+        #expect(turnedOff == 1)
+    }
+
+    @Test("Choosing the active preset again turns it off instead of reapplying it")
+    func choosingActivePresetTurnsItOff() throws {
+        let active = try #require(RulePresets.allPresets.first)
+
+        nonisolated(unsafe) var turnedOff = 0
+        nonisolated(unsafe) var chosen: [RulePreset] = []
+        let picker = RulePresetPicker(
+            activePreset: active,
+            onTurnOff: { turnedOff += 1 },
+            onPresetSelected: { chosen.append($0) }
+        )
+
+        try picker.inspect().find(button: active.name).tap()
+
+        #expect(turnedOff == 1)
+        #expect(chosen.isEmpty)
+    }
+
+    @Test("Choosing a different preset while one is active switches to it")
+    func choosingAnotherPresetSwitches() throws {
+        let active = try #require(RulePresets.allPresets.first)
+        let other = try #require(RulePresets.allPresets.last)
+        #expect(active.id != other.id)
+
+        nonisolated(unsafe) var turnedOff = 0
+        nonisolated(unsafe) var chosen: [RulePreset] = []
+        let picker = RulePresetPicker(
+            activePreset: active,
+            onTurnOff: { turnedOff += 1 },
+            onPresetSelected: { chosen.append($0) }
+        )
+
+        try picker.inspect().find(button: other.name).tap()
+
+        #expect(turnedOff == 0)
+        #expect(chosen.map(\.id) == [other.id])
+    }
 }

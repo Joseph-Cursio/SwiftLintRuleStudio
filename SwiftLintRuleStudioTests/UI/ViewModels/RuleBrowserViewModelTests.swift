@@ -105,7 +105,8 @@ struct RuleBrowserViewModelTests {
         viewModel.selectedStatus = .disabled
         #expect(viewModel.filteredRules.map(\.id).sorted() == ["opt_in_rule", "trailing_whitespace"])
 
-        viewModel.selectedStatus = .optIn
+        viewModel.selectedStatus = .all
+        viewModel.selectedType = .optIn
         #expect(viewModel.filteredRules.map(\.id) == ["opt_in_rule"])
     }
 

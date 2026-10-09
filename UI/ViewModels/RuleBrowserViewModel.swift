@@ -9,12 +9,14 @@ import Foundation
 import Observation
 import SwiftLintRuleStudioCore
 
-/// Filter options for rule status
+/// Filter on whether a rule is on in this workspace's configuration.
+///
+/// Independent of `RuleTypeFilter`, so the two combine: "Disabled" with
+/// "Default" lists the default rules this configuration turns off.
 enum RuleStatusFilter: String, CaseIterable, Identifiable {
     case all
     case enabled
     case disabled
-    case optIn
 
     var id: String { rawValue }
 
@@ -23,7 +25,15 @@ enum RuleStatusFilter: String, CaseIterable, Identifiable {
         case .all: return "All"
         case .enabled: return "Enabled"
         case .disabled: return "Disabled"
-        case .optIn: return "Opt-In"
+        }
+    }
+
+    func matches(_ rule: Rule) -> Bool {
+        switch self {
+        case .all: true
+        case .enabled: rule.isEnabled
+        // Not enabled, whether disabled explicitly or never configured.
+        case .disabled: !rule.isEnabled
         }
     }
 }
@@ -56,6 +66,14 @@ class RuleBrowserViewModel {
         didSet { updateFilteredRules() }
     }
     var selectedStatus: RuleStatusFilter = .all {
+        didSet { updateFilteredRules() }
+    }
+    var selectedType: RuleTypeFilter = .all {
+        didSet { updateFilteredRules() }
+    }
+    /// The preset narrowing the list, if any. It combines with the other filters
+    /// and stays on until turned off or cleared.
+    private(set) var activePreset: RulePreset? {
         didSet { updateFilteredRules() }
     }
     var selectedSortOption: SortOption = .name {
@@ -114,19 +132,13 @@ class RuleBrowserViewModel {
             rules = rules.filter { $0.category == category }
         }
 
-        // Apply status filter
-        switch selectedStatus {
-        case .all:
-            break // Show all rules
-        case .enabled:
-            // Show only rules that are explicitly enabled in config
-            rules = rules.filter(\.isEnabled)
-        case .disabled:
-            // Show rules that are not enabled (either disabled or not configured)
-            rules = rules.filter { !$0.isEnabled }
-        case .optIn:
-            // Show only opt-in rules (rules that must be explicitly enabled)
-            rules = rules.filter(\.isOptIn)
+        // Apply status and type filters
+        rules = rules.filter { selectedStatus.matches($0) && selectedType.matches($0) }
+
+        // Apply preset filter
+        if let activePreset {
+            let presetRuleIds = Set(activePreset.ruleIds)
+            rules = rules.filter { presetRuleIds.contains($0.id) }
         }
 
         // Apply sorting
@@ -162,16 +174,13 @@ class RuleBrowserViewModel {
             }
         }
 
-        // Apply status filter if active
-        switch selectedStatus {
-        case .all:
-            break
-        case .enabled:
-            rules = rules.filter(\.isEnabled)
-        case .disabled:
-            rules = rules.filter { !$0.isEnabled }
-        case .optIn:
-            rules = rules.filter(\.isOptIn)
+        // Apply status and type filters
+        rules = rules.filter { selectedStatus.matches($0) && selectedType.matches($0) }
+
+        // Apply preset filter if active
+        if let activePreset {
+            let presetRuleIds = Set(activePreset.ruleIds)
+            rules = rules.filter { presetRuleIds.contains($0.id) }
         }
 
         return Dictionary(grouping: rules) { $0.category }
@@ -182,29 +191,34 @@ class RuleBrowserViewModel {
         searchText = ""
         selectedCategory = nil
         selectedStatus = .all
+        selectedType = .all
+        activePreset = nil
         // updateFilteredRules() will be called automatically via Combine
     }
 
-    /// Apply a rule preset by filtering to show only the preset's rules
+    /// Whether any filter, or a preset, is narrowing the list.
+    var hasActiveFilters: Bool {
+        !searchText.isEmpty
+            || selectedCategory != nil
+            || selectedStatus != .all
+            || selectedType != .all
+            || activePreset != nil
+    }
+
+    /// Show only a preset's rules. Clears the other filters first so the whole
+    /// preset is visible; they can then narrow it further.
     /// - Parameter preset: The preset to apply
     func applyPreset(_ preset: RulePreset) {
-        // Clear existing filters first
+        searchText = ""
         selectedCategory = nil
         selectedStatus = .all
+        selectedType = .all
+        activePreset = preset
+    }
 
-        // Build search query from preset rule IDs
-        // We join with OR-style matching by searching for preset name
-        // This is a simple approach - a more sophisticated one would
-        // add a dedicated preset filter
-        searchText = ""
-
-        // Filter to show only preset rules by updating directly
-        let presetRuleIds = Set(preset.ruleIds)
-        let allRules = ruleRegistry.rules
-
-        filteredRules = allRules
-            .filter { rule in presetRuleIds.contains(rule.id) }
-            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    /// Stop filtering by preset, leaving the other filters as they are.
+    func turnOffPreset() {
+        activePreset = nil
     }
 
     /// Get rules matching a specific preset

@@ -75,13 +75,24 @@ The **Status** picker controls which rules are shown based on their configuratio
 | **All** | Every rule regardless of state |
 | **Enabled** | Rules where `isEnabled` is `true` in the loaded config |
 | **Disabled** | Rules where `isEnabled` is `false` (includes unconfigured default-off rules) |
-| **Opt-In** | Rules that are disabled by default in SwiftLint and must be explicitly added to `opt_in_rules` |
 
-`Opt-In` is a subset of the SwiftLint rule set, not the same as `Disabled`. An opt-in rule can be either enabled (if added to `opt_in_rules`) or disabled (if it has not been).
+### Type Filter
+
+The **Type** picker filters on how SwiftLint treats a rule out of the box, regardless of the loaded config.
+
+| Option | What it shows |
+|--------|---------------|
+| **All** | Every rule regardless of type |
+| **Default** | Rules SwiftLint runs unless a config disables them (`isOptIn == false`) |
+| **Opt-In** | Rules SwiftLint runs only when a config adds them to `opt_in_rules` (`isOptIn == true`) |
+
+Status and Type combine. **Disabled** + **Default** lists the default rules the config turns off; **Enabled** + **Opt-In** lists the opt-in rules it turns on. An opt-in rule can be either enabled or disabled.
+
+When the list panel is too narrow for all four pickers (Status, Type, Category, Sort) on one row, they wrap onto two: Status and Type above Category and Sort.
 
 ### Category Filter
 
-The **Category** picker filters to a single rule category. Categories include: Style, Idiomatic, Lint, Performance, Metrics, SwiftUI, and others. Each category entry shows a count of how many rules match the current status and search filters (i.e., counts respond to active filters).
+The **Category** picker filters to a single rule category. Categories include: Style, Idiomatic, Lint, Performance, Metrics, SwiftUI, and others. Each category entry shows a count of how many rules match the current search, status, type and preset filters (i.e., counts respond to active filters).
 
 ### Sort Options
 
@@ -95,7 +106,7 @@ The **Sort** picker orders the filtered rule list.
 
 ### Clear Filters
 
-The **Clear Filters** toolbar button resets all three filters (search text, category, and status) simultaneously. The button is disabled when no filters are active.
+The **Clear Filters** toolbar button resets every filter at once: search text, category, status, type, and the active preset. The button is disabled when no filters are active.
 
 ### Multi-Select Mode
 
@@ -125,7 +136,9 @@ All bulk actions generate a diff and show the YAML Diff Preview sheet before wri
 
 ### Rule Preset Picker
 
-A **Presets** toolbar menu applies curated rule sets as a filter overlay. Selecting a preset replaces the visible rule list with the preset's rules sorted alphabetically. Presets do not modify the config; they only change which rules are visible in the list.
+A **Presets** toolbar menu applies curated rule sets as a filter. Selecting a preset clears the other filters and shows only the preset's rules; the other filters can then narrow it further (for example, **Type: Opt-In** within a preset), and the list follows the **Sort** picker. The preset stays on until it's turned off. Presets do not modify the config; they only change which rules are visible in the list.
+
+While a preset is on, the Presets toolbar icon is filled, its tooltip names the preset, and the menu shows a checkmark next to it. Turn it off by choosing **Turn Off "<name>"** at the top of the menu, by choosing the checked preset again, or with **Clear Filters**.
 
 ---
 
