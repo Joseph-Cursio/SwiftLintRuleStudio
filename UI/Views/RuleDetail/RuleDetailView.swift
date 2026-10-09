@@ -95,7 +95,7 @@ struct RuleDetailView: View {
     @State var isSimulating = false
     @State var violationCount: Int = 0
     @State var isLoadingViolationCount = false
-    @State var cachedAttributedString: AttributedString?
+    @State var cachedDocSegments: [RuleDocSegment.Rendered]?
     // currentRule is only used within this file — private is correct
     @State private var currentRule: Rule
 
@@ -196,18 +196,34 @@ struct RuleDetailView: View {
         rebuildAttributedString()
     }
 
-    /// Builds the HTML attributed string for the description section on the main thread.
-    /// NSAttributedString(data:options:) with .html document type MUST be called on the
-    /// main thread only. Calling it inside a SwiftUI body can hit non-main threads during
-    /// layout passes and causes "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION".
+    /// Builds the documentation segments for the description section on the main thread.
+    /// Prose goes through HTML: NSAttributedString(data:options:) with .html document type
+    /// MUST be called on the main thread only. Calling it inside a SwiftUI body can hit
+    /// non-main threads during layout passes and causes
+    /// "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION". Code blocks skip HTML and are
+    /// highlighted directly, so each can be drawn as its own block.
     @MainActor
     private func rebuildAttributedString() {
         guard let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty else {
-            cachedAttributedString = nil
+            cachedDocSegments = nil
             return
         }
         let processedContent = processContentForDisplay(content: markdownDoc)
-        let htmlContent = convertMarkdownToHTML(content: processedContent, colorScheme: colorScheme)
+        cachedDocSegments = RuleDocSegment.split(processedContent).enumerated().map { index, segment in
+            switch segment {
+            case .prose(let markdown):
+                // If HTML parsing fails, show this piece as plain text rather than dropping it.
+                let text = renderProse(markdown) ?? AttributedString(markdown)
+                return RuleDocSegment.Rendered(id: index, isCode: false, text: text)
+            case .code(let code):
+                return RuleDocSegment.Rendered(id: index, isCode: true, text: SwiftCodeHighlighter.highlight(code))
+            }
+        }
+    }
+
+    @MainActor
+    private func renderProse(_ markdown: String) -> AttributedString? {
+        let htmlContent = convertMarkdownToHTML(content: markdown)
         let fullHTML = wrapHTMLInDocument(body: htmlContent, colorScheme: colorScheme)
         guard let htmlData = fullHTML.data(using: .utf8),
               let nsAttr = try? NSAttributedString(
@@ -221,12 +237,17 @@ struct RuleDetailView: View {
                   ],
                   documentAttributes: nil
               ) else {
-            cachedAttributedString = nil
-            return
+            return nil
         }
         // Convert to SwiftUI AttributedString so we can use pure Text() rendering
         // instead of NSViewRepresentable, avoiding AppKit layout cycle crashes
-        cachedAttributedString = try? AttributedString(nsAttr, including: \.appKit)
+        guard var text = try? AttributedString(nsAttr, including: \.appKit) else { return nil }
+        // The HTML import ends each piece with newlines; trim them so the gap before the
+        // next code block comes from the layout, not from blank lines.
+        while let last = text.characters.last, last.isNewline {
+            text.removeSubrange(text.characters.index(before: text.endIndex)..<text.endIndex)
+        }
+        return text
     }
 
     func simulateRule() {
