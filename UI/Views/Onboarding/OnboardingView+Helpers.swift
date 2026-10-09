@@ -112,11 +112,12 @@ extension OnboardingView {
         swiftLintStatus = .checking
 
         // Sandboxed / in-process edition: SwiftLint is linked in, not detected on
-        // disk. There is no external binary to find, so report it as ready and skip
-        // the path probing (which the sandbox would block anyway).
+        // disk. There is no external binary or path to report, so show the bundled
+        // version and skip the path probing (which the sandbox would block anyway).
         if !capabilities.contains(.detectInstalledSwiftLint) {
-            swiftLintVersion = "Built in"
-            swiftLintStatus = .installed(URL(fileURLWithPath: "in-process"), "Built in")
+            let version = try? await swiftLintCLI.getVersion()
+            swiftLintVersion = version
+            swiftLintStatus = .builtIn(version)
             return
         }
 

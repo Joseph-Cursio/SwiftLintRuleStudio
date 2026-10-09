@@ -30,24 +30,36 @@ struct OnboardingView: View {
     enum SwiftLintStatus: Equatable {
         case checking
         case installed(URL, String) // path and version
+        case builtIn(String?) // in-process edition: the bundled SwiftLint's version, if known
         case notInstalled
+
+        var isReady: Bool {
+            switch self {
+            case .installed, .builtIn: true
+            case .checking, .notInstalled: false
+            }
+        }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             progressIndicator
             // Scrollable so the step content (notably the "SwiftLint Not Found"
-            // branch) stays reachable at large Dynamic Type sizes instead of
-            // clipping against the fixed window height.
-            ScrollView {
-                stepContent
-                    .frame(maxWidth: .infinity)
-                    .animation(.easeInOut, value: onboardingManager.currentStep)
+            // branch) stays reachable at large Dynamic Type sizes or in a small
+            // window. The content is at least viewport-tall, so it stays centred,
+            // and it only scrolls or bounces when it actually overflows.
+            GeometryReader { proxy in
+                ScrollView {
+                    stepContent
+                        .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+                        .animation(.easeInOut, value: onboardingManager.currentStep)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             navigationButtons
         }
-        .frame(width: 700, height: 500)
+        // Fill the window instead of floating a fixed-size box inside it.
+        .frame(minWidth: 700, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
         .onAppear(perform: resetStepIfNeeded)
         .onChange(of: onboardingManager.currentStep) { _, newStep in
             handleStepChange(newStep)

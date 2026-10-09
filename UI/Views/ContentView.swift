@@ -97,7 +97,7 @@ struct ContentView: View {
     private var mainNavigationView: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(selection: $selection)
-                .navigationTitle("SwiftLint Rule Studio")
+                .navigationTitle(Bundle.main.appDisplayName)
                 .listStyle(.sidebar)
         } detail: {
             detailContent
@@ -138,10 +138,6 @@ struct ContentView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            Text("SwiftLint Rule Studio")
-                .font(.headline)
-        }
         ToolbarItemGroup(placement: .primaryAction) {
             if selection == .rules {
                 Button {

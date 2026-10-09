@@ -232,6 +232,54 @@ struct OnboardingViewTests {
         #expect(found, "Not-installed step should show 'Check Again' button")
     }
 
+    @Test("OnboardingView SwiftLint check step shows the bundled version when built in")
+    func testSwiftLintCheckStepShowsBuiltInVersion() async throws {
+        let view = (await createOnboardingView(
+            testName: #function,
+            step: .swiftLintCheck,
+            swiftLintStatus: .builtIn("0.63.0")
+        )).view
+
+        let (hasTitle, hasVersion, hasPath) = await MainActor.run {
+            (
+                (try? view.inspect().find(text: "SwiftLint Is Built into Rule Explorer")) != nil,
+                (try? view.inspect().find(text: "SwiftLint 0.63.0 included")) != nil,
+                (try? view.inspect().find(text: "Path:")) != nil
+            )
+        }
+        #expect(hasTitle, "Built-in step should say SwiftLint is built in")
+        #expect(hasVersion, "Built-in step should show the bundled version")
+        #expect(!hasPath, "Built-in step has no on-disk path to show")
+    }
+
+    @Test("OnboardingView SwiftLint check step explains SourceKit rules when built in")
+    func testSwiftLintCheckStepExplainsSourceKitWhenBuiltIn() async throws {
+        let view = (await createOnboardingView(
+            testName: #function,
+            step: .swiftLintCheck,
+            swiftLintStatus: .builtIn(nil)
+        )).view
+
+        let (hasFallbackTitle, hasSourceKit) = await MainActor.run {
+            (
+                (try? view.inspect().find(text: "SwiftLint included")) != nil,
+                (try? view.inspect().find(text: "SourceKit rules")) != nil
+            )
+        }
+        #expect(hasFallbackTitle, "An unknown version should fall back to 'SwiftLint included'")
+        #expect(hasSourceKit, "Built-in step should explain SourceKit rules")
+    }
+
+    @Test("SwiftLintStatus is ready only when SwiftLint is usable")
+    @MainActor
+    func testSwiftLintStatusIsReady() {
+        typealias Status = OnboardingView.SwiftLintStatus
+        #expect(Status.builtIn("0.63.0").isReady)
+        #expect(Status.installed(URL(fileURLWithPath: "/opt/homebrew/bin/swiftlint"), "x").isReady)
+        #expect(!Status.checking.isReady)
+        #expect(!Status.notInstalled.isReady)
+    }
+
     // MARK: - Workspace Selection Step Tests
 
     @Test("OnboardingView displays workspace selection step")
@@ -241,7 +289,7 @@ struct OnboardingViewTests {
         // Find workspace selection text
         // ViewInspector types aren't Sendable, so we do everything in one MainActor.run block
         let hasWorkspace = try await MainActor.run {
-            _ = try view.inspect().find(text: "Select Your Workspace")
+            _ = try view.inspect().find(text: "Open Workspace...")
             return true
         }
         #expect(hasWorkspace == true, "OnboardingView should display workspace selection step")

@@ -49,5 +49,13 @@ struct SwiftLintRuleExplorerApp: App {
         }
         .defaultSize(width: 1_100, height: 700)
         .windowResizability(.contentMinSize)
+        .commands { ExplorerHelpCommands() }
+
+        Window("\(Bundle.main.appDisplayName) Help", id: ExplorerHelpCommands.windowID) {
+            ExplorerHelpView()
+                .environment(\.dependencies, dependencyContainer)
+        }
+        .defaultSize(width: 620, height: 640)
+        .windowResizability(.contentMinSize)
     }
 }

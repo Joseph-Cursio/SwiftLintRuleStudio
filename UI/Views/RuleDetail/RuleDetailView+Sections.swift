@@ -36,9 +36,10 @@ extension RuleDetailView {
                         Image(systemName: "nosign")
                             .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
-                        Text("This rule relies on SourceKit, which this edition can't "
-                            + "run, so it won't be checked here. You can still add it to "
-                            + "your configuration for use with SwiftLint elsewhere.")
+                        Text("This rule depends on SourceKit, so it isn't checked in this "
+                            + "app. You can still add it to your configuration. SwiftLint "
+                            + "Rule Studio, the non-sandboxed edition, checks it using the "
+                            + "SwiftLint on your Mac.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
