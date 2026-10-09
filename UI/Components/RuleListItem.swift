@@ -20,12 +20,16 @@ struct RuleListItem: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Status indicator (decorative — status is also conveyed by the text
-            // labels below, so it's hidden from assistive technologies).
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-                .accessibilityHidden(true)
+            // Status: a filled check when the rule is on in this configuration, an
+            // empty circle when it's off, whether it's a default or an opt-in rule.
+            // The shape carries the state (colour only reinforces it), and VoiceOver
+            // reads it from the label.
+            Image(systemName: rule.isEnabled ? "checkmark.circle.fill" : "circle")
+                .font(.body)
+                .foregroundStyle(rule.isEnabled ? Color.green : Color.secondary)
+                .help(rule.isEnabled ? "Enabled in this configuration" : "Disabled in this configuration")
+                .accessibilityLabel(rule.isEnabled ? "Enabled" : "Disabled")
+                .accessibilityIdentifier("RuleStatusSymbol")
 
             VStack(alignment: .leading, spacing: 4) {
                 // Rule name and identifier
@@ -46,7 +50,9 @@ struct RuleListItem: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
 
-                // Category badge and opt-in indicator
+                // Category badge and opt-in tag. On/off is the status symbol's job;
+                // this row says what kind of rule it is. The tag stays neutral so
+                // orange keeps meaning "warning" across the app.
                 HStack(spacing: 8) {
                     CategoryBadge(
                         category: rule.category,
@@ -56,21 +62,8 @@ struct RuleListItem: View {
                     if rule.isOptIn {
                         Label("Opt-In", systemImage: "star.fill")
                             .font(.caption2)
-                            .foregroundStyle(.orange)
-                    }
-
-                    if rule.isEnabled {
-                        Label("Enabled", systemImage: "checkmark.circle.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.green)
-                    }
-
-                    // A rule that is neither enabled nor opt-in would otherwise show
-                    // only the (now-hidden) gray dot — give its state text too.
-                    if !rule.isEnabled && !rule.isOptIn {
-                        Label("Disabled", systemImage: "circle")
-                            .font(.caption2)
                             .foregroundStyle(.secondary)
+                            .help("SwiftLint runs this rule only when a configuration enables it")
                     }
 
                     if isUnavailable {
@@ -87,16 +80,6 @@ struct RuleListItem: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
-    }
-
-    private var statusColor: Color {
-        if rule.isEnabled {
-            return .green
-        }
-        if rule.isOptIn {
-            return .orange
-        }
-        return .gray
     }
 }
 

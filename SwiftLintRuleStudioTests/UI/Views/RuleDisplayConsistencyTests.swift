@@ -61,6 +61,17 @@ struct RuleDisplayConsistencyTests {
             .environment(\.dependencies, container))
     }
 
+    /// Whether the list row's status symbol reads "Enabled". The row shows state
+    /// with a symbol rather than text, so its VoiceOver label is what to check.
+    @MainActor
+    private func listStatusIsEnabled(_ listView: RuleListItem) -> Bool {
+        let label = try? listView.inspect()
+            .find(viewWithAccessibilityIdentifier: "RuleStatusSymbol")
+            .accessibilityLabel()
+            .string()
+        return label == "Enabled"
+    }
+
     // MARK: - Enabled State Consistency Tests
 
     @Test("RuleListItem shows enabled state")
@@ -72,9 +83,7 @@ struct RuleDisplayConsistencyTests {
 
         // Inspect the view to find the enabled label
         let hasEnabledLabel = await MainActor.run {
-            (try? view.inspect().find(ViewType.Text.self) { view in
-                try view.string() == "Enabled"
-            }) != nil
+            listStatusIsEnabled(view)
         }
         #expect(hasEnabledLabel == true, "RuleListItem should show 'Enabled' label for enabled rules")
     }
@@ -88,9 +97,7 @@ struct RuleDisplayConsistencyTests {
 
         // Try to find the enabled label - it should not exist
         let foundEnabled = await MainActor.run {
-            (try? view.inspect().find(ViewType.Text.self) { view in
-                try view.string() == "Enabled"
-            }) != nil
+            listStatusIsEnabled(view)
         }
         #expect(foundEnabled == false, "RuleListItem should not show 'Enabled' label for disabled rules")
     }
@@ -136,9 +143,7 @@ struct RuleDisplayConsistencyTests {
             let listView = RuleListItem(rule: enabledRule)
             let detailView = createRuleDetailViewSync(rule: enabledRule)
 
-            let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self) { view in
-                try view.string() == "Enabled"
-            }) != nil
+            let listShowsEnabled = listStatusIsEnabled(listView)
 
             let detailShowsEnabled = (try? detailView.inspect().find(ViewType.Text.self) { view in
                 try view.string() == "Enabled"
@@ -165,9 +170,7 @@ struct RuleDisplayConsistencyTests {
             let listView = RuleListItem(rule: disabledRule)
             let detailView = createRuleDetailViewSync(rule: disabledRule)
 
-            let listShowsEnabled = (try? listView.inspect().find(ViewType.Text.self) { view in
-                try view.string() == "Enabled"
-            }) != nil
+            let listShowsEnabled = listStatusIsEnabled(listView)
 
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
             let toggleIsOn = try toggle.isOn()
@@ -195,7 +198,7 @@ struct RuleDisplayConsistencyTests {
             let listView = RuleListItem(rule: duplicateImportsRule)
             let detailView = createRuleDetailViewSync(rule: duplicateImportsRule)
 
-            let listShowsEnabled = (try? listView.inspect().find(text: "Enabled")) != nil
+            let listShowsEnabled = listStatusIsEnabled(listView)
             let detailShowsEnabled = (try? detailView.inspect().find(text: "Enabled")) != nil
 
             let toggle = try detailView.inspect().find(ViewType.Toggle.self)
