@@ -147,15 +147,8 @@ struct ContentView: View {
                 }
                 .help("Reload SwiftLint rules")
                 .accessibilityIdentifier("ContentViewReloadRulesButton")
-            } else if selection == .violations {
-                Button {
-                    NotificationCenter.default.post(name: .violationInspectorRefreshRequested, object: nil)
-                } label: {
-                    Label("Refresh Violations", systemImage: "arrow.clockwise")
-                }
-                .help("Refresh violations for current workspace")
-                .accessibilityIdentifier("ContentViewRefreshViolationsButton")
             }
+            // No violations refresh here: ViolationInspectorView puts its own in the toolbar.
         }
     }
 

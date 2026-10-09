@@ -167,19 +167,21 @@ struct ViolationInspectorView: View {
 
     private var navigationButtons: some View {
         Group {
-            Button { viewModel.selectNextViolation() } label: {
-                Label("Next", systemImage: "chevron.right")
-            }
-            .keyboardShortcut(.rightArrow, modifiers: .command)
-            .help("Next violation (⌘→)")
-            .accessibilityIdentifier("ViolationInspectorNextButton")
-
             Button { viewModel.selectPreviousViolation() } label: {
                 Label("Previous", systemImage: "chevron.left")
             }
             .keyboardShortcut(.leftArrow, modifiers: .command)
+            .disabled(!viewModel.canSelectPreviousViolation)
             .help("Previous violation (⌘←)")
             .accessibilityIdentifier("ViolationInspectorPreviousButton")
+
+            Button { viewModel.selectNextViolation() } label: {
+                Label("Next", systemImage: "chevron.right")
+            }
+            .keyboardShortcut(.rightArrow, modifiers: .command)
+            .disabled(!viewModel.canSelectNextViolation)
+            .help("Next violation (⌘→)")
+            .accessibilityIdentifier("ViolationInspectorNextButton")
         }
     }
 
