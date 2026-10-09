@@ -67,6 +67,18 @@ struct DeprecationDataTests {
         }
     }
 
+    /// The config summary reads a rule under its alias as the same rule, so the table must be
+    /// exactly SwiftLint's aliases: no more, no fewer.
+    @Test
+    func ruleAliasesAreSwiftLintsDeprecatedAliases() {
+        var aliases: [String: String] = [:]
+        for ruleType in SwiftLintInProcessActor.sortedBuiltInRules() {
+            let rule = ruleType.description
+            for alias in rule.deprecatedAliases { aliases[alias] = rule.identifier }
+        }
+        #expect(SwiftLintDeprecations.ruleAliases == aliases)
+    }
+
     /// Version Check lists these as rules the config could enable.
     @Test
     func addedRulesExistOrWereRemoved() {
