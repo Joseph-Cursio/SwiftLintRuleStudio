@@ -9,6 +9,24 @@ import Foundation
 import SwiftLintRuleStudioCore
 
 extension ViolationInspectorViewModel {
+    /// Whether `selectNextViolation()` would move the selection. With nothing
+    /// selected it selects the first violation, so it counts as available.
+    var canSelectNextViolation: Bool {
+        guard !filteredViolations.isEmpty else { return false }
+        guard let currentId = selectedViolationId else { return true }
+        guard let currentIndex = filteredViolations.firstIndex(where: { $0.id == currentId }) else { return false }
+        return currentIndex < filteredViolations.count - 1
+    }
+
+    /// Whether `selectPreviousViolation()` would move the selection. With nothing
+    /// selected it selects the last violation, so it counts as available.
+    var canSelectPreviousViolation: Bool {
+        guard !filteredViolations.isEmpty else { return false }
+        guard let currentId = selectedViolationId else { return true }
+        guard let currentIndex = filteredViolations.firstIndex(where: { $0.id == currentId }) else { return false }
+        return currentIndex > 0
+    }
+
     func selectNextViolation() {
         guard !filteredViolations.isEmpty else { return }
         if let currentId = selectedViolationId,

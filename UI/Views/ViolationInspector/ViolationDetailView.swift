@@ -19,6 +19,7 @@ struct ViolationDetailView: View {
     @State private var errorMessage = ""
     @State private var isOpeningInXcode = false
     @Environment(\.dependencies) var dependencies: DependencyContainer
+    @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
 
     var body: some View {
         ScrollView {
@@ -30,6 +31,7 @@ struct ViolationDetailView: View {
                 ViolationDetailLocationView(
                     violation: violation,
                     isOpeningInXcode: $isOpeningInXcode,
+                    canOpenInXcode: capabilities.contains(.openInXcode),
                     openInXcode: openInXcode
                 )
 

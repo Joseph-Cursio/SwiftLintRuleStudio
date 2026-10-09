@@ -9,6 +9,8 @@ import SwiftUI
 struct ViolationDetailLocationView: View {
     let violation: Violation
     @Binding var isOpeningInXcode: Bool
+    /// False in the sandboxed edition, which can't launch `xed`.
+    let canOpenInXcode: Bool
     let openInXcode: () -> Void
 
     var body: some View {
@@ -16,7 +18,9 @@ struct ViolationDetailLocationView: View {
             Text("Location")
                 .font(.headline)
             locationDetails
-            openInXcodeButton
+            if canOpenInXcode {
+                openInXcodeButton
+            }
         }
     }
 

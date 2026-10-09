@@ -172,6 +172,24 @@ struct ViolationDetailViewTests {
         #expect(hasOpenButton == true, "ViolationDetailView should show 'Open in Xcode' button")
     }
 
+    @Test("Violation location hides Open in Xcode when the edition can't open Xcode")
+    func testHidesOpenInXcodeButtonWithoutCapability() async throws {
+        let violation = await ViolationDetailViewTestHelpers.makeTestViolation()
+        let shownWith = locationViewShowsOpenInXcode(violation, canOpenInXcode: true)
+        let shownWithout = locationViewShowsOpenInXcode(violation, canOpenInXcode: false)
+        #expect(shownWith, "Studio can open Xcode, so it should offer to")
+        #expect(!shownWithout, "The sandboxed edition can't open Xcode, so it shouldn't offer to")
+    }
+
+    private func locationViewShowsOpenInXcode(_ violation: Violation, canOpenInXcode: Bool) -> Bool {
+        let view = ViolationDetailLocationView(
+            violation: violation,
+            isOpeningInXcode: .constant(false),
+            canOpenInXcode: canOpenInXcode
+        ) {}
+        return (try? view.inspect().find(text: "Open in Xcode")) != nil
+    }
+
     // MARK: - Message Section Tests
 
     @Test("ViolationDetailView displays violation message")
