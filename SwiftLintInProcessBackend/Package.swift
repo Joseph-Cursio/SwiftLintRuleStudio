@@ -16,6 +16,9 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../SwiftLintRuleStudioCore"),
+        // Already in the graph through SwiftLint and Core; used directly to read
+        // `.swiftlint.yml` the way SwiftLint does (see InProcessConfiguration).
+        .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1"),
         // Pinned to the exact revision the sandbox spike proved viable on
         // Xcode 26.6 / Swift 6.3. This is the "hard-wired version" the App Store
         // edition ships; bump it (and re-verify) on a deliberate SwiftLint update.
@@ -31,7 +34,8 @@ let package = Package(
                 // Only the seam, not all of Core: this target implements the protocol and
                 // wants none of the app's MainActor isolation default.
                 .product(name: "SwiftLintCLISeam", package: "SwiftLintRuleStudioCore"),
-                .product(name: "SwiftLintFramework", package: "SwiftLint")
+                .product(name: "SwiftLintFramework", package: "SwiftLint"),
+                .product(name: "Yams", package: "Yams")
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),

@@ -62,20 +62,53 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         return Version.current.value
     }
 
-    public func executeLintCommand(configPath: URL?, workspacePath: URL) throws -> Data {
-        Self.prepare()
-        let configuration = Configuration(configurationFiles: configPath.map { [$0] } ?? [])
-        let files = configuration.lintableFiles(
-            inPath: workspacePath,
-            forceExclude: false,
-            excludeByPrefix: false
-        )
-        let storage = RuleStorage()
-        let violations = files
-            .map { Linter(file: $0, configuration: configuration) }
-            .map { $0.collect(into: storage) }
-            .flatMap { $0.styleViolations(using: storage) }
-        return Data(Self.jsonReport(for: violations).utf8)
+    public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
+        // SwiftLint lints synchronously and keeps every core busy. As a synchronous witness
+        // for this async requirement, the lint ran on the caller's executor — the main actor
+        // when the UI called in — and froze the app until it finished. A detached task runs
+        // it on the cooperative pool instead, so the UI stays live and can show progress.
+        try await Task.detached(priority: .userInitiated) {
+            try Self.lint(configPath: configPath, workspacePath: workspacePath)
+        }.value
+    }
+
+    /// Lints `workspacePath` the way `swiftlint lint` run in that directory would, except
+    /// where SwiftLint's path-keyed config caches would make the result stale:
+    ///
+    /// - With `configPath` — the app's workspace analysis — that config applies alone, as
+    ///   with `--config`. SwiftLint caches the root config merged with each nested config by
+    ///   path, so files beneath a nested config would keep being linted against the root
+    ///   config as it was at the first lint, hiding the app's own edits to `.swiftlint.yml`.
+    /// - Without one — rule simulation, which lints a mirror at a new path for every rule —
+    ///   the workspace's `.swiftlint.yml` and the nested configs beneath it apply, as they do
+    ///   for the subprocess backend.
+    static func lint(configPath: URL?, workspacePath: URL) throws -> Data {
+        prepare()
+        // SwiftLint looks for `.swiftlint.yml`, and stops its nested-config search, at the
+        // working directory. The app's isn't the workspace, so override it for this lint.
+        return try CurrentWorkingDirectory.$url.withValue(workspacePath) {
+            let root = try InProcessConfiguration.root(configPath: configPath, workspacePath: workspacePath)
+            let files = root.lintableFiles(
+                inPath: workspacePath,
+                forceExclude: false,
+                excludeByPrefix: false
+            )
+            let appliesNestedConfigs = configPath == nil
+            if appliesNestedConfigs {
+                try InProcessConfiguration.checkNestedConfigs(
+                    for: files.compactMap(\.path),
+                    workspacePath: workspacePath
+                )
+            }
+            let storage = RuleStorage()
+            let violations = files
+                .map { file in
+                    Linter(file: file, configuration: appliesNestedConfigs ? root.configuration(for: file) : root)
+                }
+                .map { $0.collect(into: storage) }
+                .flatMap { $0.styleViolations(using: storage) }
+            return Data(jsonReport(for: violations).utf8)
+        }
     }
 
     public func executeRulesCommand() throws -> Data {

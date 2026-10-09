@@ -20,8 +20,9 @@ final class SimulationWorkspace {
         let original: YAMLConfigurationEngine.YAMLConfig
     }
 
-    /// Root of the shadow tree.
-    let root: URL
+    /// Root of the shadow tree. It moves on every ``applyRule(_:isOptIn:isAnalyzer:parameterOverrides:)``,
+    /// so read it after applying a rule.
+    private(set) var root: URL
 
     private let configs: [ConfigEntry]
     private let fileManager: FileManager
@@ -36,12 +37,23 @@ final class SimulationWorkspace {
     /// root *and* every nested config. Each call starts fresh from the cached
     /// originals, so simulating rule B never leaves rule A enabled from a prior
     /// call (important for batch audits that reuse one workspace).
+    ///
+    /// Each call also moves the mirror to a new path. The sandboxed edition runs
+    /// SwiftLint in-process, where SwiftLint caches every config it loads from a file
+    /// by path, not contents, and offers no way to clear that cache. Linting the
+    /// same paths again would measure rule B with the nested configs written for
+    /// rule A. A rename is cheap and keeps the hardlinks.
     func applyRule(
         _ ruleId: String,
         isOptIn: Bool,
         isAnalyzer: Bool,
         parameterOverrides: [String: AnyCodable]?
     ) throws {
+        let freshRoot = root.deletingLastPathComponent()
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try fileManager.moveItem(at: root, to: freshRoot)
+        root = freshRoot
+
         for entry in configs {
             var config = entry.original
             ConfigRuleEnabler.enableRule(
@@ -67,8 +79,8 @@ final class SimulationWorkspace {
 }
 
 /// The YAML mutation that turns a rule on: sets it enabled, routes it into
-/// `opt_in_rules` / `analyzer_rules` as required, adds it to `only_rules` when a
-/// whitelist is present, and removes it from `disabled_rules`. Preserves the
+/// `analyzer_rules`, or `opt_in_rules` when there's no `only_rules` whitelist, adds it
+/// to `only_rules` when there is one, and removes it from `disabled_rules`. Preserves the
 /// config's `included:`/`excluded:` exactly as written — in the mirror those
 /// relative paths resolve correctly, so no absolutizing is needed.
 enum ConfigRuleEnabler {
@@ -93,7 +105,9 @@ enum ConfigRuleEnabler {
 
         if isAnalyzer {
             appendUnique(ruleId, to: &config.analyzerRules)
-        } else if isOptIn {
+        } else if isOptIn, config.onlyRules == nil {
+            // SwiftLint rejects `opt_in_rules` alongside `only_rules`, which turns
+            // an opt-in rule on by itself.
             appendUnique(ruleId, to: &config.optInRules)
         }
 
