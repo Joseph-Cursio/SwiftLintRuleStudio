@@ -22,6 +22,9 @@ public protocol WorkspaceAnalyzerProtocol: AnyObject {
     var isAnalyzingPublisher: AnyPublisher<Bool, Never> { get }
     /// Analyze a workspace for violations.
     func analyze(workspace: Workspace, configPath: URL?) async throws -> AnalysisResult
+    /// Whether an analysis of this workspace has finished since launch, so that no stored
+    /// violations means a clean workspace rather than one never analyzed.
+    func hasAnalyzed(workspaceID: UUID) -> Bool
 }
 
 /// Service for analyzing workspaces with SwiftLint
@@ -42,6 +45,8 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
     public let swiftLintCLI: SwiftLintCLIProtocol
     public let violationStorage: ViolationStorageProtocol
     public let fileTracker: FileTracker
+    /// Workspaces with a finished `analyze(workspace:configPath:)` since launch.
+    private var analyzedWorkspaceIDs: Set<UUID> = []
     // Stores a cancel action for the in-flight analyze() call so that
     // cancelAnalysis() can reach it even though analyze() returns a value.
     private var pendingAnalysisCancellation: (@Sendable () -> Void)?
@@ -118,6 +123,7 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
                     startedAt: startedAt,
                     configHash: configHash
                 )
+                self.analyzedWorkspaceIDs.insert(workspace.id)
                 self.finalizeAnalysisSuccess(result: result, violationsCount: violations.count)
                 return result
             } catch is CancellationError {
@@ -139,6 +145,10 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
         } onCancel: {
             task.cancel()
         }
+    }
+
+    public func hasAnalyzed(workspaceID: UUID) -> Bool {
+        analyzedWorkspaceIDs.contains(workspaceID)
     }
 
     /// Analyze specific files incrementally

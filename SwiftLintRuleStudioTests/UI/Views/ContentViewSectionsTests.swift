@@ -55,10 +55,11 @@ struct ContentViewSectionsTests {
         #expect(try await assertContainsText("Select a section", in: result))
     }
 
-    @Test(".dashboard case renders the Dashboard placeholder")
+    @Test(".dashboard case routes to DashboardView")
     func testDashboardCase() async throws {
         let result = await MainActor.run { makeView(selection: .dashboard) }
-        #expect(try await assertContainsText("Dashboard", in: result))
+        // The test container has no workspace open, so the Dashboard shows its empty state.
+        #expect(try await assertContainsText("No Workspace Open", in: result))
     }
 
     @Test(".exportReport case routes to ExportReportView")

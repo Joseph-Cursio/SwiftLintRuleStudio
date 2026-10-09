@@ -247,17 +247,8 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
     ) -> Int {
         guard !knownRules.isEmpty else { return 50 }
 
-        // Count enabled rules
-        let enabledRuleIds = Set(config.rules.filter(\.value.enabled).keys)
-        let optInRuleIds = Set(config.optInRules ?? [])
-        let disabledRuleIds = Set(config.disabledRules ?? [])
-
-        // Default enabled rules (non-opt-in that aren't disabled)
-        let defaultEnabledCount = knownRules.filter { !$0.isOptIn && !disabledRuleIds.contains($0.id) }.count
-        let explicitlyEnabledCount = enabledRuleIds.count + optInRuleIds.count
-
-        let totalEnabled = defaultEnabledCount + explicitlyEnabledCount
-        let coverage = Double(totalEnabled) / Double(knownRules.count)
+        let enabledCount = knownRules.filter { RuleEnablementResolver.isRuleEnabled($0, config: config) }.count
+        let coverage = Double(enabledCount) / Double(knownRules.count)
 
         // Target is around 40-60% of rules enabled (too many can be noisy)
         let optimalCoverage = min(coverage / 0.5, 1.0)
@@ -270,32 +261,19 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
     ) -> Int {
         guard !knownRules.isEmpty else { return 50 }
 
-        let disabledRuleIds = Set(config.disabledRules ?? [])
-        let optInRuleIds = Set(config.optInRules ?? [])
+        // Count the categories with at least one rule SwiftLint would run
+        let coveredCategories = Set(
+            knownRules
+                .filter { RuleEnablementResolver.isRuleEnabled($0, config: config) }
+                .map(\.category)
+        )
 
-        // Group rules by category and check if each category has coverage
-        let rulesByCategory = Dictionary(grouping: knownRules) { $0.category }
-
-        var categoriesWithCoverage = 0
-        for (_, rules) in rulesByCategory {
-            let enabledInCategory = rules.filter { rule in
-                if rule.isOptIn {
-                    return optInRuleIds.contains(rule.id)
-                }
-                return !disabledRuleIds.contains(rule.id)
-            }
-            if !enabledInCategory.isEmpty {
-                categoriesWithCoverage += 1
-            }
-        }
-
-        let balance = Double(categoriesWithCoverage) / Double(RuleCategory.allCases.count)
+        let balance = Double(coveredCategories.count) / Double(RuleCategory.allCases.count)
         return Int(balance * 100)
     }
 
     private func calculateOptInAdoption(config: YAMLConfigurationEngine.YAMLConfig) -> Int {
-        let optInRuleIds = Set(config.optInRules ?? [])
-        let enabledRecommended = optInRuleIds.intersection(recommendedOptInRules)
+        let enabledRecommended = enabledRecommendedOptInRules(config: config)
 
         if recommendedOptInRules.isEmpty { return 100 }
 
@@ -338,4 +316,13 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
         return min(score, 100)
     }
 
+    /// The recommended opt-in rules this config turns on. Under `only_rules:` that list is
+    /// the whole story; otherwise it's `opt_in_rules:`, less any entry switched off with
+    /// `enabled: false`, as `RuleEnablementResolver` decides for opt-in rules.
+    func enabledRecommendedOptInRules(config: YAMLConfigurationEngine.YAMLConfig) -> Set<String> {
+        let listed = Set(config.onlyRules ?? config.optInRules ?? [])
+        return recommendedOptInRules.intersection(listed).filter { id in
+            config.onlyRules != nil || config.rules[id]?.enabled != false
+        }
+    }
 }

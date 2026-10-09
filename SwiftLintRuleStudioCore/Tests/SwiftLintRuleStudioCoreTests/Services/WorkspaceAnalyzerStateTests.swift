@@ -41,6 +41,56 @@ struct WorkspaceAnalyzerStateTests {
         #expect(didEnterAnalyzing)
     }
 
+    @Test("WorkspaceAnalyzer remembers which workspaces it has finished analyzing")
+    func testHasAnalyzed() async throws {
+        let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
+        let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
+        let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
+        let other = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
+        defer {
+            Task {
+                WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace)
+                WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(other)
+            }
+        }
+        await WorkspaceAnalyzerTestHelpers.setupMockCLI(mockCLI, output: Data("[]".utf8))
+
+        let (before, after, otherAfter) = try await WorkspaceAnalyzerTestHelpers.withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
+            let before = analyzer.hasAnalyzed(workspaceID: workspace.id)
+            _ = try await analyzer.analyze(workspace: workspace)
+            return (
+                before,
+                analyzer.hasAnalyzed(workspaceID: workspace.id),
+                analyzer.hasAnalyzed(workspaceID: other.id)
+            )
+        }
+
+        #expect(!before)
+        #expect(after, "a clean run counts: no violations is a result")
+        #expect(!otherAfter)
+    }
+
+    @Test("A failed analysis doesn't count as analyzed")
+    func testFailedAnalysisIsNotAnalyzed() async throws {
+        let mockCLI = MockSwiftLintCLIActor(shouldFail: true)
+        let mockStorage = WorkspaceAnalyzerTestHelpers.createMockViolationStorage()
+        let workspace = try await WorkspaceAnalyzerTestHelpers.createTempWorkspace()
+        defer { Task { WorkspaceAnalyzerTestHelpers.cleanupTempWorkspace(workspace) } }
+
+        let analyzed = try await WorkspaceAnalyzerTestHelpers.withWorkspaceAnalyzer(
+            swiftLintCLI: mockCLI,
+            violationStorage: mockStorage
+        ) { analyzer in
+            _ = try? await analyzer.analyze(workspace: workspace)
+            return analyzer.hasAnalyzed(workspaceID: workspace.id)
+        }
+
+        #expect(!analyzed)
+    }
+
     @Test("WorkspaceAnalyzer can cancel analysis")
     func testCancelAnalysis() async throws {
         let mockCLI = WorkspaceAnalyzerTestHelpers.createMockSwiftLintCLIActor()
