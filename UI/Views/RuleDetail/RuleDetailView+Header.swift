@@ -51,10 +51,13 @@ extension RuleDetailView {
             }
 
             HStack(spacing: 16) {
+                // Neutral, like the rule list's Opt-In tag: orange means "warning"
+                // elsewhere in the app, and opt-in is a rule's type, not a problem.
                 if rule.isOptIn {
                     Label("Opt-In Rule", systemImage: "star.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.secondary)
+                        .help("SwiftLint runs this rule only when a configuration enables it")
                 }
 
                 if viewModel.isEnabled {
@@ -96,17 +99,25 @@ extension RuleDetailView {
                 // Determine top padding: only add spacing if we showed the short description above
                 let hasShortDescription = shouldShowShortDescription
 
-                // Use the pre-built attributed string cached by rebuildAttributedString().
+                // Use the pre-built segments cached by rebuildAttributedString().
                 // NSAttributedString HTML init must NOT be called here inside body - it
                 // requires the main thread and SwiftUI layout passes can evaluate body
                 // from non-main threads, causing the
                 // "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION" crash.
-                if let attributedString = cachedAttributedString {
-                    Text(attributedString)
-                        .textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding(.top, hasShortDescription ? 8 : 0)
+                if let segments = cachedDocSegments {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(segments) { segment in
+                            if segment.isCode {
+                                RuleDocCodeBlock(code: segment.text)
+                            } else {
+                                Text(segment.text)
+                                    .textSelection(.enabled)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                            }
+                        }
+                    }
+                    .padding(.top, hasShortDescription ? 8 : 0)
                 } else {
                     // Fallback to plain text (shown before cache is ready or on parse failure)
                     let processedContent = processContentForDisplay(content: markdownDoc)
@@ -136,34 +147,6 @@ extension RuleDetailView {
                 .buttonStyle(.plain)
                 .padding(.top, 4)
             }
-        }
-    }
-
-    func documentationView(markdown: String, colorScheme _: ColorScheme) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Documentation")
-                .font(.headline)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    if let attributedString = cachedAttributedString {
-                        Text(attributedString)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    } else {
-                        let processedContent = processContentForDisplay(content: markdown)
-                        Text(processedContent)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-                .padding(.vertical)
-                .padding(.trailing)
-                .padding(.leading)
-            }
-            .frame(maxHeight: 500)
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(.rect(cornerRadius: 8))
         }
     }
 

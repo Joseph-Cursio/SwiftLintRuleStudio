@@ -100,7 +100,7 @@ extension RuleDetailView {
         return (skipRationale, false)
     }
 
-    func convertMarkdownToHTML(content: String, colorScheme: ColorScheme? = nil) -> String {
+    func convertMarkdownToHTML(content: String) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
         var inCodeBlock = false
@@ -110,8 +110,7 @@ extension RuleDetailView {
             let converted = convertMarkdownLine(
                 line: line,
                 inCodeBlock: &inCodeBlock,
-                codeBlockLanguage: &codeBlockLanguage,
-                colorScheme: colorScheme
+                codeBlockLanguage: &codeBlockLanguage
             )
             processedLines.append(contentsOf: converted)
         }
@@ -150,8 +149,7 @@ extension RuleDetailView {
     private func convertMarkdownLine(
         line: String,
         inCodeBlock: inout Bool,
-        codeBlockLanguage: inout String,
-        colorScheme: ColorScheme? = nil
+        codeBlockLanguage: inout String
     ) -> [String] {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
 
@@ -176,9 +174,10 @@ extension RuleDetailView {
             return [openTag]
         }
 
+        // The detail view splits code blocks out before this runs and highlights them
+        // with SwiftCodeHighlighter; this path only escapes them.
         if inCodeBlock {
-            let escaped = HTMLEscaping.escape(line)
-            return [highlightSwiftSyntax(in: escaped, colorScheme: colorScheme)]
+            return [HTMLEscaping.escape(line)]
         }
 
         if hasHTMLTags {
