@@ -92,11 +92,14 @@ extension SwiftLintInProcessActor {
 
     static func markdownDoc(for description: RuleDescription) -> String {
         var markdown = "# \(description.name)\n\n\(description.description)\n\n"
-        if let rationale = description.rationale, !rationale.isEmpty {
-            markdown += "\(rationale)\n\n"
-        }
         markdown += "* **Identifier:** \(description.identifier)\n"
         markdown += "* **Kind:** \(description.kind.rawValue)\n\n"
+        // Same layout as SwiftLint's own generated docs: the rationale gets its own heading
+        // after the details. The app looks for that heading to show the rationale under
+        // "Why This Matters"; without it the rationale ran on as part of the description.
+        if let rationale = description.formattedRationale, !rationale.isEmpty {
+            markdown += "## Rationale\n\n\(rationale)\n\n"
+        }
         if !description.nonTriggeringExamples.isEmpty {
             markdown += "## Non Triggering Examples\n\n"
             markdown += description.nonTriggeringExamples

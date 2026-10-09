@@ -71,4 +71,25 @@ struct SwiftLintInProcessActorTests {
         let docs = try await backend.generateDocsForRule(ruleId: "type_name")
         #expect(docs.contains("#"))
     }
+
+    @Test("A rule's rationale gets its own heading, after the description")
+    func docsPutRationaleUnderItsOwnHeading() async throws {
+        // `attributes` has a rationale (a quote from Erica Sadun) that used to run on
+        // as part of the description.
+        let docs = try await SwiftLintInProcessActor().generateDocsForRule(ruleId: "attributes")
+        let heading = try #require(docs.range(of: "## Rationale"))
+        let rationale = try #require(docs.range(of: "Erica Sadun says:"))
+        let description = try #require(docs.range(of: "Attributes should be on their own lines"))
+        #expect(description.upperBound < heading.lowerBound)
+        #expect(heading.upperBound < rationale.lowerBound)
+        if let examples = docs.range(of: "## Non Triggering Examples") {
+            #expect(rationale.upperBound < examples.lowerBound, "the rationale ends before the examples")
+        }
+    }
+
+    @Test("A rule without a rationale gets no Rationale heading")
+    func docsOmitRationaleHeadingWithoutRationale() async throws {
+        let docs = try await SwiftLintInProcessActor().generateDocsForRule(ruleId: "type_name")
+        #expect(!docs.contains("## Rationale"))
+    }
 }

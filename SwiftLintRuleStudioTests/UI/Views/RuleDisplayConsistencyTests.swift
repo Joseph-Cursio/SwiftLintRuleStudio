@@ -239,19 +239,6 @@ struct RuleDisplayConsistencyTests {
         }
         #expect(toggleIsOn == true, "Toggle should sync to rule's enabled state")
     }
-
-    // MARK: - Helper Methods
-
-    private func findEnabledLabel(in view: InspectableView<ViewType.View<RuleListItem>>) -> Bool {
-        do {
-            _ = try view.find(ViewType.Text.self) { textView in
-                try textView.string() == "Enabled"
-            }
-            return true
-        } catch {
-            return false
-        }
-    }
 }
 
 // MARK: - ViewInspector Extensions
