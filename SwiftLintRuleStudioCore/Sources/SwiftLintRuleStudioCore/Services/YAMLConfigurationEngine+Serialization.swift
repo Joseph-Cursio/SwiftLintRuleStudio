@@ -18,6 +18,29 @@ extension YAMLConfigurationEngine {
         }
     }
 
+    /// Serialize `config` as an edit of `existing`, the text of the file it will replace.
+    ///
+    /// `serialize(_:)` rebuilds the whole file, keeping only the top-level key order and the
+    /// comments directly above top-level keys. Everything else a person wrote — comments inside
+    /// a list, blank lines, the order of a rule's settings — was lost on every save. Here each
+    /// top-level section whose value is unchanged is copied from `existing` verbatim, a changed
+    /// list or flat settings block is edited line by line, and only what's left is regenerated.
+    ///
+    /// Every edited section must parse to the same value as its regenerated form, and the whole
+    /// result to the same value as `serialize(_:)`; otherwise this returns `serialize(_:)`.
+    static func serialize(_ config: YAMLConfig, preservingLayoutOf existing: String?) throws -> String {
+        let regenerated = try serialize(config)
+        guard let existing,
+              let edited = LayoutPreservingEdit.text(editing: existing, toMatch: regenerated),
+              LayoutPreservingEdit.sameValue(
+                  LayoutPreservingEdit.load(edited),
+                  LayoutPreservingEdit.load(regenerated)
+              ) else {
+            return regenerated
+        }
+        return edited
+    }
+
     /// Re-indent block-sequence items two spaces under their parent key.
     ///
     /// Yams (via libyaml) emits block sequences "indentless" — each `- item`

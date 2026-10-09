@@ -172,13 +172,13 @@ Configuration files are different from source code in one important way: they do
 
 Version History is insurance against this. Every time you save a change through the app, a timestamped backup of your `.swiftlint.yml` is created automatically, before the new version is written. The filename includes a Unix timestamp, so you always know exactly when each backup was made. The backups live in the same directory as your config file, which means they're findable and understandable without any special tooling.
 
-The History panel shows all your backups in a list with date, time, and file size. You can select any two backups and compare them side by side — the same YAML diff format as the preview-before-save flow. This is useful for questions like "what did we change last week that made CI start complaining?" or "what did the config look like before we enabled all those performance rules?" The diff answer those questions precisely.
+The History panel lists your current config, labelled **Current**, above all your backups with their date, time, and file size. You can select any two and compare them — the same Summary and Full Diff tabs as the preview-before-save flow, with an arrow between the two versions that swaps before and after. This is useful for questions like "what did we change last week that made CI start complaining?" or "what did the config look like before we enabled all those performance rules?" The diff answer those questions precisely.
 
 Restoring a backup is a right-click away. The app creates a safety backup of your current config before performing the restore, so you can restore the restore if something goes wrong. This might sound paranoid, but config file restores have a way of happening under pressure when you least want to create new problems.
 
 You can also prune old backups if you don't want them accumulating indefinitely. The prune options let you keep the 5, 10, or 20 most recent versions. For most projects, keeping 10 is plenty — it gives you a window of several weeks or months depending on how frequently you make changes.
 
-One scenario where Version History is particularly valuable: you've been experimenting with different rule configurations over a few weeks, and you want to compare where you started versus where you are now. Select your oldest backup as version one and your current config as version two, and you have a complete audit trail of every rule change made through the app. That's the kind of record that's genuinely useful when your team is doing a quarterly code quality review.
+One scenario where Version History is particularly valuable: you've been experimenting with different rule configurations over a few weeks, and you want to compare where you started versus where you are now. Select your oldest backup and **Current**, then click the arrow so the comparison reads from the oldest backup to Current, and you have a complete audit trail of every rule change made through the app. That's the kind of record that's genuinely useful when your team is doing a quarterly code quality review.
 
 ---
 
@@ -234,13 +234,15 @@ Merge is more nuanced. It unions your existing config with the imported one: `di
 
 ### Git Branch Diff
 
+> Git Branch Diff is in SwiftLint Rule Studio only. Rule Explorer for SwiftLint, the App Store edition, doesn't include it.
+
 This feature solves a problem that comes up regularly on multi-developer teams: you're on your feature branch and you want to know whether your `.swiftlint.yml` has diverged from `main`. Or you're doing a code review and you want to quickly check whether the PR includes config changes without reading the raw YAML diff in GitHub.
 
-The Git Branch Diff panel lists all your local branches and tags, and when you select one, it fetches the `.swiftlint.yml` from that branch using `git show` and diffs it against your current config. The result is shown in the same YAML diff format as everywhere else in the app. It's a fast way to see "what would change if I merged main into my branch" from a linting perspective.
+The Git Branch Diff panel lists all your local branches and tags, and when you select one, it fetches the `.swiftlint.yml` from that branch using `git show` and compares it with your current config the same way Compare Configs does, below. It's a fast way to see "what would change if I merged main into my branch" from a linting perspective.
 
 ### Compare Configs
 
-Where Git Branch Diff compares your current config against a version in git, Compare Configs is a free-form comparison: you point it at any two config files on disk and it shows you the diff. This is useful for comparing configs across different projects, comparing a template against your current config to see what the template would add, or just comparing two configs that have no git relationship at all.
+Where Git Branch Diff compares your current config against a version in git, Compare Configs is a free-form comparison: you point it at any two projects, or their config files, and it shows which rules SwiftLint runs with one but not the other, which are set differently, and which paths differ. This is useful for comparing configs across different projects, comparing a template against your current config to see what the template would add, or just comparing two configs that have no git relationship at all.
 
 ---
 

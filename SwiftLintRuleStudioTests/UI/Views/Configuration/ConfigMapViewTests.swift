@@ -58,6 +58,9 @@ struct ConfigMapViewTests {
         #expect(rendered.contains("Tests"))
         // The inspector shows the auto-selected root's layer chain.
         #expect(rendered.contains("Layer chain: root"))
+        // Each side says what it lists.
+        #expect(rendered.contains("Folders with .swiftlint.yml"))
+        #expect(rendered.contains("Settings in effect here"))
     }
 
     @Test("renders the no-configs empty state for a workspace without .swiftlint.yml")

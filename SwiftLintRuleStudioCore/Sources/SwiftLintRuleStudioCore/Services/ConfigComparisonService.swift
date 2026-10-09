@@ -30,12 +30,20 @@ public struct RuleComparisonDiff: Identifiable, Sendable {
     }
 }
 
-/// Result of comparing two configurations
+/// Result of comparing two configurations, in terms of what SwiftLint does with each.
 public struct ConfigComparisonResult: Sendable {
+    /// Rules SwiftLint runs with the first config but not the second.
     public let onlyInFirst: [String]
+    /// Rules SwiftLint runs with the second config but not the first.
     public let onlyInSecond: [String]
+    /// Rules on, or off, under both, with settings that differ.
     public let inBothDifferent: [RuleComparisonDiff]
+    /// Rules either config names that SwiftLint treats the same way under both.
     public let inBothSame: [String]
+    /// Lines such as "Excluded only in Server: Tests".
+    public let pathDifferences: [String]
+    /// Other settings that differ, read first → second: `only_rules`, the reporter, `custom_rules`.
+    public let otherDifferences: [String]
     public let diff: YAMLConfigurationEngine.ConfigDiff
 
     public init(
@@ -43,17 +51,22 @@ public struct ConfigComparisonResult: Sendable {
         onlyInSecond: [String],
         inBothDifferent: [RuleComparisonDiff],
         inBothSame: [String],
-        diff: YAMLConfigurationEngine.ConfigDiff
+        diff: YAMLConfigurationEngine.ConfigDiff,
+        pathDifferences: [String] = [],
+        otherDifferences: [String] = []
     ) {
         self.onlyInFirst = onlyInFirst
         self.onlyInSecond = onlyInSecond
         self.inBothDifferent = inBothDifferent
         self.inBothSame = inBothSame
+        self.pathDifferences = pathDifferences
+        self.otherDifferences = otherDifferences
         self.diff = diff
     }
 
     public var totalDifferences: Int {
         onlyInFirst.count + onlyInSecond.count + inBothDifferent.count
+            + pathDifferences.count + otherDifferences.count
     }
 }
 
@@ -65,10 +78,24 @@ public protocol ConfigComparisonServiceProtocol: Sendable {
         config2: URL,
         label2: String
     ) throws -> ConfigComparisonResult
+
+    /// The comparison, with the rule catalog saying for certain which rules are opt-in.
+    func compare(
+        config1: URL,
+        label1: String,
+        config2: URL,
+        label2: String,
+        knownRules: [Rule]
+    ) throws -> ConfigComparisonResult
 }
 
-/// Service for comparing SwiftLint configurations from different workspaces
+/// Compares the SwiftLint configurations of two projects by what SwiftLint does with each: which
+/// rules run under one and not the other, which run under both but are set differently, and which
+/// paths and other settings differ. It reads every list a config uses to switch rules on and off —
+/// `opt_in_rules`, `disabled_rules`, `analyzer_rules`, `only_rules` — not just per-rule settings.
 public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
+
+    public init() {}
 
     public func compare(
         config1: URL,
@@ -76,64 +103,56 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
         config2: URL,
         label2: String
     ) throws -> ConfigComparisonResult {
+        try compare(config1: config1, label1: label1, config2: config2, label2: label2, knownRules: [])
+    }
+
+    public func compare(
+        config1: URL,
+        label1: String,
+        config2: URL,
+        label2: String,
+        knownRules: [Rule]
+    ) throws -> ConfigComparisonResult {
         let cfg1 = try YAMLConfigurationEngine.loadConfig(at: config1)
         let cfg2 = try YAMLConfigurationEngine.loadConfig(at: config2)
+        let summary = ConfigChangeSummary(from: cfg1, to: cfg2, knownRules: knownRules)
 
-        let rules1 = Set(cfg1.rules.keys)
-        let rules2 = Set(cfg2.rules.keys)
-
-        let onlyInFirst = Array(rules1.subtracting(rules2)).sorted()
-        let onlyInSecond = Array(rules2.subtracting(rules1)).sorted()
-
-        let (inBothDifferent, inBothSame) = compareCommonRules(
-            rules1.intersection(rules2), cfg1: cfg1, cfg2: cfg2,
-            label1: label1, label2: label2
-        )
+        let settings1 = cfg1.ruleSettings
+        let settings2 = cfg2.ruleSettings
+        let inBothDifferent = summary.settingsChanged.map { change in
+            buildRuleDiff(
+                ruleId: change.ruleId,
+                rc1: settings1[change.ruleId],
+                rc2: settings2[change.ruleId],
+                label1: label1,
+                label2: label2
+            )
+        }
+        let differing = Set(summary.turnedOn + summary.turnedOff + summary.settingsChanged.map(\.ruleId))
+        let named = cfg1.namedRuleIds.union(cfg2.namedRuleIds)
 
         let content1 = (try? String(contentsOf: config1, encoding: .utf8)) ?? ""
         let content2 = (try? String(contentsOf: config2, encoding: .utf8)) ?? ""
 
         return ConfigComparisonResult(
-            onlyInFirst: onlyInFirst,
-            onlyInSecond: onlyInSecond,
+            onlyInFirst: summary.turnedOff,
+            onlyInSecond: summary.turnedOn,
             inBothDifferent: inBothDifferent,
-            inBothSame: inBothSame,
+            inBothSame: named.subtracting(differing).sorted(),
             diff: YAMLConfigurationEngine.ConfigDiff(
-                addedRules: onlyInSecond,
-                removedRules: onlyInFirst,
+                addedRules: summary.turnedOn,
+                removedRules: summary.turnedOff,
                 modifiedRules: inBothDifferent.map(\.ruleId),
                 before: content1,
                 after: content2
-            )
+            ),
+            pathDifferences: Self.listDifferences(cfg1.excluded, cfg2.excluded, noun: "Excluded", label1, label2)
+                + Self.includedDifferences(cfg1.included, cfg2.included, label1, label2),
+            otherDifferences: summary.otherChanges
         )
     }
 
-    private func compareCommonRules(
-        _ commonRules: Set<String>,
-        cfg1: YAMLConfigurationEngine.YAMLConfig,
-        cfg2: YAMLConfigurationEngine.YAMLConfig,
-        label1: String,
-        label2: String
-    ) -> (different: [RuleComparisonDiff], same: [String]) {
-        var different: [RuleComparisonDiff] = []
-        var same: [String] = []
-
-        for ruleId in commonRules.sorted() {
-            let rc1 = cfg1.rules[ruleId]
-            let rc2 = cfg2.rules[ruleId]
-
-            if rc1 == rc2 {
-                same.append(ruleId)
-            } else {
-                different.append(buildRuleDiff(
-                    ruleId: ruleId, rc1: rc1, rc2: rc2,
-                    label1: label1, label2: label2
-                ))
-            }
-        }
-        return (different, same)
-    }
-
+    /// One line per setting that differs, naming the config that has each value.
     func buildRuleDiff(
         ruleId: String,
         rc1: RuleConfiguration?,
@@ -142,23 +161,81 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
         label2: String
     ) -> RuleComparisonDiff {
         var differences: [String] = []
-        if rc1?.enabled != rc2?.enabled {
-            let state1 = rc1?.enabled == true ? "enabled" : "disabled"
-            let state2 = rc2?.enabled == true ? "enabled" : "disabled"
-            differences.append("\(label1): \(state1), \(label2): \(state2)")
-        }
         if rc1?.severity != rc2?.severity {
             let sev1 = rc1?.severity?.rawValue ?? "default"
             let sev2 = rc2?.severity?.rawValue ?? "default"
-            differences.append("Severity: \(label1)=\(sev1), \(label2)=\(sev2)")
+            differences.append("severity: \(label1) \(sev1), \(label2) \(sev2)")
         }
-        if rc1?.parameters != rc2?.parameters {
-            differences.append("Parameters differ")
+        let parameters1 = rc1?.parameters ?? [:]
+        let parameters2 = rc2?.parameters ?? [:]
+        for key in Set(parameters1.keys).union(parameters2.keys).sorted() {
+            switch (parameters1[key], parameters2[key]) {
+            case let (value1?, value2?) where value1 != value2:
+                differences.append("\(key): \(label1) \(value1.displayText), \(label2) \(value2.displayText)")
+            case let (value1?, nil):
+                differences.append("\(key): only \(label1) sets it (\(value1.displayText))")
+            case let (nil, value2?):
+                differences.append("\(key): only \(label2) sets it (\(value2.displayText))")
+            default:
+                break
+            }
         }
         return RuleComparisonDiff(
             id: ruleId, ruleId: ruleId,
             firstConfig: rc1, secondConfig: rc2,
             differences: differences
         )
+    }
+
+    // MARK: - Helpers
+
+    private static func listDifferences(
+        _ list1: [String]?,
+        _ list2: [String]?,
+        noun: String,
+        _ label1: String,
+        _ label2: String
+    ) -> [String] {
+        let first = list1 ?? []
+        let second = list2 ?? []
+        let onlyFirst = first.filter { !second.contains($0) }
+        let onlySecond = second.filter { !first.contains($0) }
+        return (onlyFirst.isEmpty ? [] : ["\(noun) only in \(label1): \(onlyFirst.joined(separator: ", "))"])
+            + (onlySecond.isEmpty ? [] : ["\(noun) only in \(label2): \(onlySecond.joined(separator: ", "))"])
+    }
+
+    /// `included` limits linting to its paths; without it every path is linted, so a config
+    /// with the list and one without differ in far more than the paths it names.
+    private static func includedDifferences(
+        _ list1: [String]?,
+        _ list2: [String]?,
+        _ label1: String,
+        _ label2: String
+    ) -> [String] {
+        let first = list1 ?? []
+        let second = list2 ?? []
+        switch (first.isEmpty, second.isEmpty) {
+        case (true, true):
+            return []
+        case (false, true):
+            return ["\(label1) lints only \(first.joined(separator: ", ")); \(label2) lints every path"]
+        case (true, false):
+            return ["\(label2) lints only \(second.joined(separator: ", ")); \(label1) lints every path"]
+        case (false, false):
+            return listDifferences(first, second, noun: "Included", label1, label2)
+        }
+    }
+}
+
+public extension ConfigComparisonServiceProtocol {
+    /// Without the catalog, which rules are opt-in is inferred from the configs themselves.
+    func compare(
+        config1: URL,
+        label1: String,
+        config2: URL,
+        label2: String,
+        knownRules _: [Rule]
+    ) throws -> ConfigComparisonResult {
+        try compare(config1: config1, label1: label1, config2: config2, label2: label2)
     }
 }

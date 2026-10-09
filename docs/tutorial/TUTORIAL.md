@@ -257,17 +257,18 @@ Every time you save a rule change, the app automatically creates a timestamped b
 
 **Viewing Backups**
 
-Open **Version History** from the sidebar or configuration panel. The backup list shows each version's date, time, and file size.
+Open **Version History** from the sidebar or configuration panel. The list starts with **Current**, your `.swiftlint.yml` as it is now, followed by each backup's date, time, and file size.
 
 **Comparing Two Versions**
 
-1. Click a backup to mark it as version **①** (highlighted in blue).
-2. Click a second backup to mark it as version **②** (highlighted in green).
-3. The diff panel on the right shows exactly what changed between the two versions.
+1. Click one version, then a second. Clicking a version again before choosing the second deselects it.
+2. Version **①** (blue) is "before" and **②** (green) is "after". The older backup goes first, and **Current** always goes first, so a comparison with Current shows what restoring the backup would change.
+3. The panel on the right shows what changed from ① to ②. The **Summary** tab lists rules turned on and off, changed settings, and path changes; **Full Diff** shows the raw YAML.
+4. Click the **→** arrow between the two dates to swap before and after.
 
 **Restoring a Version**
 
-Right-click any backup row and choose **Restore This Version**. A confirmation alert reminds you that a safety backup of your current config will be created first before the restore happens.
+The button under the comparison restores the "after" version and says which one: **Restore Older Version** or **Restore Newer Version**. It's hidden when **Current** is the "after" version. You can also right-click any backup row and choose **Restore This Version**. A confirmation alert reminds you that a safety backup of your current config will be created first before the restore happens.
 
 **Pruning Old Backups**
 

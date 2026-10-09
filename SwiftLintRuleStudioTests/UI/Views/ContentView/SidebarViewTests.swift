@@ -184,6 +184,18 @@ struct SidebarViewTests {
         #expect(hasDashboardText == true, "SidebarView should display Dashboard navigation link")
     }
 
+    @Test("Branch Diff is listed only when the edition offers it")
+    func testBranchDiffNeedsCapability() throws {
+        // The sidebar decides with `AppSection.isAvailable(with:)`, covered in AppSectionTests;
+        // ViewInspector doesn't pass a custom environment value down to the sidebar itself.
+        let full = ConfigurationSection(showsBranchDiff: true)
+        let sandboxed = ConfigurationSection(showsBranchDiff: false)
+
+        #expect((try? full.inspect().find(text: "Branch Diff")) != nil)
+        #expect((try? sandboxed.inspect().find(text: "Branch Diff")) == nil)
+        #expect((try? sandboxed.inspect().find(text: "Compare Configs")) != nil)
+    }
+
     @Test("SidebarView displays Disabled Rule Audit navigation link")
     func testDisplaysRuleAuditLink() async throws {
         // Workaround: Use ViewResult to bypass Sendable check
