@@ -121,6 +121,17 @@ struct SimulationWorkspaceBuilderTests {
         #expect(nestedConfig.onlyRules?.contains("line_length") == true)
     }
 
+    @Test("an opt-in rule goes in only_rules alone when there is one, which SwiftLint requires")
+    func optInRuleUnderOnlyRulesSkipsOptInList() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = ["line_length"]
+
+        ConfigRuleEnabler.enableRule("empty_count", in: &config, isOptIn: true, isAnalyzer: false)
+
+        #expect(config.onlyRules == ["line_length", "empty_count"])
+        #expect(config.optInRules == nil)
+    }
+
     @Test("preserves relative excluded/included entries verbatim in the mirror")
     func preservesExcludedAndIncludedVerbatim() throws {
         let workspaceRoot = try makeTempWorkspace()
@@ -180,5 +191,43 @@ struct SimulationWorkspaceBuilderTests {
         let rootConfig = try loadConfig(at: shadow.root.appendingPathComponent(".swiftlint.yml"))
         #expect(rootConfig.optInRules?.contains("explicit_init") == true)
         #expect(rootConfig.rules["force_cast"] == nil)
+    }
+
+    /// SwiftLint run in-process caches configs by path, so a batch audit that lints the
+    /// same paths for every rule would measure later rules with earlier rules' configs.
+    @Test("applyRule moves the mirror to a new path each call, taking its files along")
+    func applyRuleMovesTheMirror() throws {
+        let workspaceRoot = try makeTempWorkspace()
+        defer { try? FileManager.default.removeItem(at: workspaceRoot) }
+
+        try write("let a = 1\n", to: workspaceRoot.appendingPathComponent("Sources/A.swift"))
+        try write("disabled_rules:\n  - todo\n", to: workspaceRoot.appendingPathComponent("Sub/.swiftlint.yml"))
+
+        let workspace = Workspace(path: workspaceRoot)
+        let shadow = try SimulationWorkspaceBuilder().makeWorkspace(for: workspace, baseConfigPath: nil)
+        defer { shadow.cleanup() }
+
+        try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
+        let firstRoot = shadow.root
+        try shadow.applyRule("todo", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
+
+        #expect(shadow.root != firstRoot)
+        #expect(!fileExists(firstRoot), "the old path is gone, not copied")
+        #expect(fileExists(shadow.root.appendingPathComponent("Sources/A.swift")))
+        #expect(fileExists(shadow.root.appendingPathComponent("Sub/.swiftlint.yml")))
+    }
+
+    @Test("cleanup removes the mirror wherever it has moved to")
+    func cleanupRemovesTheMovedMirror() throws {
+        let workspaceRoot = try makeTempWorkspace()
+        defer { try? FileManager.default.removeItem(at: workspaceRoot) }
+
+        let workspace = Workspace(path: workspaceRoot)
+        let shadow = try SimulationWorkspaceBuilder().makeWorkspace(for: workspace, baseConfigPath: nil)
+        try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
+        let movedRoot = shadow.root
+        shadow.cleanup()
+
+        #expect(!fileExists(movedRoot))
     }
 }
