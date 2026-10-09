@@ -105,11 +105,47 @@ nonisolated public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        String(describing: lhs.value) == String(describing: rhs.value)
+        canonical(lhs.value) == canonical(rhs.value)
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(String(describing: value))
+        hasher.combine(Self.canonical(value))
+    }
+
+    /// The value as a reader sees it in YAML: `[a, b]` for a list, `{error: 1, warning: 2}` for
+    /// a block, with its keys sorted so the same value always reads the same.
+    public var displayText: String {
+        Self.display(value)
+    }
+
+    /// The value's description, with a dictionary's keys sorted at every level. A dictionary
+    /// describes itself in hash order, which differs from one parse of a file to the next, so
+    /// comparing plain descriptions made a nested block like `min_length: {warning: 2, error: 1}`
+    /// differ from itself.
+    private static func canonical(_ value: Any, nested: Bool = false) -> String {
+        switch value {
+        case let dictionary as [String: Any]:
+            let entries = dictionary.sorted { $0.key < $1.key }
+                .map { "\(String(reflecting: $0.key)): \(canonical($0.value, nested: true))" }
+            return "[" + (entries.isEmpty ? ":" : entries.joined(separator: ", ")) + "]"
+        case let array as [Any]:
+            return "[" + array.map { canonical($0, nested: true) }.joined(separator: ", ") + "]"
+        default:
+            // Inside a collection, as in the collection's own description, a string keeps its quotes.
+            return nested ? String(reflecting: value) : String(describing: value)
+        }
+    }
+
+    private static func display(_ value: Any) -> String {
+        switch value {
+        case let dictionary as [String: Any]:
+            let entries = dictionary.sorted { $0.key < $1.key }.map { "\($0.key): \(display($0.value))" }
+            return "{" + entries.joined(separator: ", ") + "}"
+        case let array as [Any]:
+            return "[" + array.map(display).joined(separator: ", ") + "]"
+        default:
+            return String(describing: value)
+        }
     }
 }
 

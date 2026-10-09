@@ -72,7 +72,8 @@ class GitBranchDiffViewModel {
         }
     }
 
-    func compareWithSelected() {
+    /// `knownRules` is the rule catalog, which says for certain which rules are opt-in.
+    func compareWithSelected(knownRules: [Rule] = []) {
         guard let workspacePath = workspacePath,
               let selectedRef = selectedRef else { return }
 
@@ -86,7 +87,8 @@ class GitBranchDiffViewModel {
                 let result = try await service.compareConfigWithBranch(
                     repoPath: workspacePath,
                     branch: selectedRef,
-                    configRelativePath: configRelativePath
+                    configRelativePath: configRelativePath,
+                    knownRules: knownRules
                 )
                 // Superseded by a newer comparison — leave the newer run's state alone.
                 guard !Task.isCancelled else { return }

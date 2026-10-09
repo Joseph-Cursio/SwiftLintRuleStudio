@@ -12,18 +12,24 @@ struct BackupRow: View {
     let backup: ConfigBackup
     let isSelected: Bool
     let isComparison: Bool
+    /// The configuration as it is now, rather than a backup: nothing to restore.
+    var isCurrent = false
     let onSelect: () -> Void
     let onRestore: () -> Void
+
+    private var subtitle: String {
+        isCurrent ? "Your .swiftlint.yml as it is now · \(backup.formattedSize)" : backup.formattedSize
+    }
 
     var body: some View {
         Button(action: onSelect) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(backup.formattedDate)
+                    Text(isCurrent ? "Current" : backup.formattedDate)
                         .font(.body)
                         .fontWeight(isSelected || isComparison ? .bold : .regular)
 
-                    Text(backup.formattedSize)
+                    Text(subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -49,7 +55,9 @@ struct BackupRow: View {
         .buttonStyle(.plain)
         .contentShape(Rectangle())
         .contextMenu {
-            Button("Restore This Version", systemImage: "arrow.uturn.backward", action: onRestore)
+            if !isCurrent {
+                Button("Restore This Version", systemImage: "arrow.uturn.backward", action: onRestore)
+            }
         }
     }
 }

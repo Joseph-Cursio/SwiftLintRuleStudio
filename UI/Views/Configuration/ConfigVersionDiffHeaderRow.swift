@@ -27,13 +27,16 @@ struct ConfigVersionHistoryEmptyState: View {
     }
 }
 
-/// The two backup timestamps a comparison is between.
+/// The two versions a comparison is between, with the arrow between them as the button that
+/// swaps them.
 ///
-/// Takes the two formatted dates rather than the view model, so it does not rebuild when anything
-/// else on the model changes — the backup list, the restore confirmation, the load state.
+/// Takes the two labels and the swap action rather than the view model, so it does not rebuild
+/// when anything else on the model changes — the backup list, the restore confirmation, the load
+/// state.
 struct ConfigVersionDiffHeaderRow: View {
     let before: String?
     let after: String?
+    var onSwap: (() -> Void)?
 
     var body: some View {
         HStack {
@@ -42,9 +45,20 @@ struct ConfigVersionDiffHeaderRow: View {
                     .font(.caption)
                     .foregroundStyle(.blue)
             }
-            Image(systemName: "arrow.right")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            if let onSwap {
+                Button(action: onSwap) {
+                    Image(systemName: "arrow.right")
+                        .accessibilityLabel("Swap before and after")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .help("Swap before and after")
+                .accessibilityIdentifier("ConfigHistorySwapButton")
+            } else {
+                Image(systemName: "arrow.right")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
             if let after {
                 Label(after, systemImage: "clock")
                     .font(.caption)

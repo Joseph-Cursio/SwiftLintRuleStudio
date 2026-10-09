@@ -11,17 +11,19 @@ import Foundation
 import Testing
 
 @MainActor
-private final class SpyVersionHistoryService: ConfigVersionHistoryServiceProtocol {
-    private let backupsToReturn: [ConfigBackup]
+final class SpyVersionHistoryService: ConfigVersionHistoryServiceProtocol {
+    var backupsToReturn: [ConfigBackup]
     private let diffResult: YAMLConfigurationEngine.ConfigDiff?
     private let shouldThrowOnRestore: Bool
     private let shouldThrowOnPrune: Bool
-    private let shouldThrowOnDiff: Bool
+    var shouldThrowOnDiff: Bool
 
     var listBackupsCallCount = 0
     var lastListBackupsPath: URL?
     var restoreCallCount = 0
     var pruneCallCount = 0
+    /// The (before, after) backup ids of each diff asked for.
+    var diffCalls: [(before: String, after: String)] = []
     var lastPruneKeepCount: Int?
 
     init(
@@ -53,7 +55,8 @@ private final class SpyVersionHistoryService: ConfigVersionHistoryServiceProtoco
         }
     }
 
-    func diffBetween(_: ConfigBackup, _: ConfigBackup) throws -> YAMLConfigurationEngine.ConfigDiff {
+    func diffBetween(_ first: ConfigBackup, _ second: ConfigBackup) throws -> YAMLConfigurationEngine.ConfigDiff {
+        diffCalls.append((first.id, second.id))
         if shouldThrowOnDiff {
             throw NSError(domain: "SpyError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Diff failed"])
         }
@@ -203,8 +206,8 @@ struct ConfigVersionHistoryViewModelTests {
 
     @Test("Diff generation error is stored in error property")
     func testDiffGenerationErrorStoredInError() {
-        let backup1 = makeBackup()
-        let backup2 = makeBackup()
+        let backup1 = makeBackup(timestamp: Date(timeIntervalSince1970: 1_000))
+        let backup2 = makeBackup(timestamp: Date(timeIntervalSince1970: 2_000))
         let service = SpyVersionHistoryService(shouldThrowOnDiff: true)
         let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
@@ -219,14 +222,15 @@ struct ConfigVersionHistoryViewModelTests {
 
     @Test("clearComparison resets all selection state to nil")
     func testClearComparison() {
-        let backup1 = makeBackup()
-        let backup2 = makeBackup()
+        let backup1 = makeBackup(timestamp: Date(timeIntervalSince1970: 1_000))
+        let backup2 = makeBackup(timestamp: Date(timeIntervalSince1970: 2_000))
         let diff = makeDiff()
         let service = SpyVersionHistoryService(diffResult: diff)
         let viewModel = ConfigVersionHistoryViewModel(service: service, configPath: Self.configPath)
 
         viewModel.selectForComparison(backup1)
         viewModel.selectForComparison(backup2)
+        #expect(viewModel.comparisonBackup != nil && viewModel.currentDiff != nil, "a comparison to clear")
         viewModel.clearComparison()
 
         #expect(viewModel.selectedBackup == nil)
