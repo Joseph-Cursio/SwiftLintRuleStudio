@@ -16,11 +16,11 @@ public struct DateProvider: Sendable {
         self.make = make
     }
 
+    // swiftprojectlint:disable:next non-injected-nondeterminism
     /// Reads the wall clock. The production default.
     ///
     /// This is the one place in the package that is allowed to read it. Every other clock
     /// read was a hidden input; this one is the seam they were moved to.
-    // swiftprojectlint:disable:next non-injected-nondeterminism
     public static let system = Self { Date() }
 
     /// Always the same instant.
@@ -83,10 +83,10 @@ public struct IDProvider: Sendable {
         self.make = make
     }
 
+    // swiftprojectlint:disable:next non-injected-nondeterminism
     /// Fresh random identifiers. The production default.
     ///
     /// As with `DateProvider.system`, the nondeterminism is deliberate and confined here.
-    // swiftprojectlint:disable:next non-injected-nondeterminism
     public static let random = Self { UUID() }
 
     /// Counts up from zero, so the nth identifier is the same on every run.
