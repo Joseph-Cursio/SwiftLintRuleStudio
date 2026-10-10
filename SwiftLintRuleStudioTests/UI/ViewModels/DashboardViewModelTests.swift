@@ -32,6 +32,7 @@ private final class StubWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
     var analyzed: Set<UUID> = []
     let isAnalyzing = false
     var isAnalyzingPublisher: AnyPublisher<Bool, Never> { Just(false).eraseToAnyPublisher() }
+    var progressPublisher: AnyPublisher<AnalysisProgress?, Never> { Just(nil).eraseToAnyPublisher() }
 
     func analyze(workspace _: Workspace, configPath _: URL?) async throws -> AnalysisResult {
         AnalysisResult(violations: [], filesAnalyzed: 0, duration: 0, startedAt: .now, completedAt: .now)

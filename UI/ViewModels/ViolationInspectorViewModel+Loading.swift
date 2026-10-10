@@ -26,6 +26,25 @@ extension ViolationInspectorViewModel {
             _ = try? await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
         }
 
+        try await showStoredViolations(for: workspaceId)
+    }
+
+    func refreshViolations() async throws {
+        guard let workspaceId = workspaceId,
+              let workspace = currentWorkspace,
+              let analyzer = workspaceAnalyzer else {
+            try await reloadViolationsFromStorage()
+            return
+        }
+
+        _ = try await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
+        // Not `loadViolations`: it analyzes too, and a refresh linted the workspace twice.
+        try await showStoredViolations(for: workspaceId)
+    }
+
+    /// Shows the violations stored for `workspaceId`, badges the dock with their count and
+    /// announces that the analysis finished.
+    private func showStoredViolations(for workspaceId: UUID) async throws {
         let fetched = try await violationStorage.fetchViolations(
             filter: ViolationFilter(),
             workspaceId: workspaceId
@@ -39,23 +58,6 @@ extension ViolationInspectorViewModel {
         NSApp.dockTile.badgeLabel = fetched.isEmpty ? nil : "\(fetched.count)"
         await postAnalysisCompleteNotification(count: fetched.count)
 #endif
-    }
-
-    func refreshViolations() async throws {
-        guard let workspaceId = workspaceId,
-              let workspace = currentWorkspace,
-              let analyzer = workspaceAnalyzer else {
-            try await reloadViolationsFromStorage()
-            return
-        }
-
-        do {
-            _ = try await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
-        } catch {
-            throw error
-        }
-
-        try await loadViolations(for: workspaceId, workspace: workspace)
     }
 
     func clearViolations() {
@@ -90,6 +92,12 @@ private extension ViolationInspectorViewModel {
             .receive(on: RunLoop.main)
             .sink { [weak self] analyzing in
                 self?.isAnalyzing = analyzing
+            }
+            .store(in: &cancellables)
+        analyzer.progressPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] progress in
+                self?.analysisProgress = progress
             }
             .store(in: &cancellables)
     }
