@@ -219,9 +219,7 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
         self.defaultSeverity = defaultSeverity
         self.markdownDocumentation = markdownDocumentation
     }
-}
 
-public extension Rule {
     /// Whether the current app edition's in-app linter cannot evaluate this rule.
     ///
     /// The sandboxed (Mac App Store) edition disables SourceKit, so SourceKit-backed
@@ -229,7 +227,7 @@ public extension Rule {
     /// written to `.swiftlint.yml` — the generated config stays portable and a
     /// full command-line SwiftLint elsewhere will still honor it — it only signals
     /// that *this* edition won't check it, so the UI can say so honestly.
-    func isUnavailableForLinting(capabilities: Set<AppCapability>) -> Bool {
+    public func isUnavailableForLinting(capabilities: Set<AppCapability>) -> Bool {
         usesSourceKit && !capabilities.contains(.sourceKitRules)
     }
 }
