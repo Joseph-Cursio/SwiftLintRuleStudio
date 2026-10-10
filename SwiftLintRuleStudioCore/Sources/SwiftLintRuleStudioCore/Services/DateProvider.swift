@@ -16,11 +16,11 @@ public struct DateProvider: Sendable {
         self.make = make
     }
 
+    // swiftprojectlint:disable:next non-injected-nondeterminism
     /// Reads the wall clock. The production default.
     ///
     /// This is the one place in the package that is allowed to read it. Every other clock
     /// read was a hidden input; this one is the seam they were moved to.
-    // swiftprojectlint:disable:next non-injected-nondeterminism
     public static let system = Self { Date() }
 
     /// Always the same instant.
@@ -65,51 +65,6 @@ public struct DateProvider: Sendable {
             let date = dates[min(index, dates.count - 1)]
             index += 1
             return date
-        }
-    }
-}
-
-/// A source of identifiers, injected for the same reason as ``DateProvider``.
-///
-/// Only worth injecting where the identifier is *observable* — where a test compares two
-/// values that carry one, so a fresh `UUID()` on each run would make equal records unequal.
-/// A `UUID()` used to name a scratch directory is not that: nothing asserts on the name, and
-/// injecting one there buys indirection and no testability.
-public struct IDProvider: Sendable {
-
-    private let make: @Sendable () -> UUID
-
-    public init(_ make: @escaping @Sendable () -> UUID) {
-        self.make = make
-    }
-
-    /// Fresh random identifiers. The production default.
-    ///
-    /// As with `DateProvider.system`, the nondeterminism is deliberate and confined here.
-    // swiftprojectlint:disable:next non-injected-nondeterminism
-    public static let random = Self { UUID() }
-
-    /// Counts up from zero, so the nth identifier is the same on every run.
-    public static func sequential() -> Self {
-        let counter = Counter()
-        return Self { counter.next() }
-    }
-
-    public func callAsFunction() -> UUID { make() }
-
-    nonisolated private final class Counter: @unchecked Sendable {
-        private var value: UInt32 = 0
-        private let lock = NSLock()
-
-        func next() -> UUID {
-            lock.lock()
-            defer { lock.unlock() }
-            value += 1
-            let hex = String(format: "%08x", value)
-            // The fallback is unreachable — the string above is always a valid UUID — and
-            // exists only so this stays total rather than force-unwrapping.
-            // swiftprojectlint:disable:next non-injected-nondeterminism
-            return UUID(uuidString: "\(hex)-0000-0000-0000-000000000000") ?? UUID()
         }
     }
 }

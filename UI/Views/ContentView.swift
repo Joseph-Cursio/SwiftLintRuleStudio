@@ -250,8 +250,8 @@ struct ContentView: View {
     let swiftLintCLI = UnconfiguredSwiftLintBackend()
     let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
     let container = DependencyContainer(
-        ruleRegistry: ruleRegistry,
         swiftLintCLI: swiftLintCLI,
+        ruleRegistry: ruleRegistry,
         cacheManager: cacheManager
     )
 

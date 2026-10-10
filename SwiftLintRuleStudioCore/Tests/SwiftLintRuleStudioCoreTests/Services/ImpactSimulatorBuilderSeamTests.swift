@@ -32,6 +32,12 @@ private final class RecordingWorkspaceBuilder: SimulationWorkspaceBuilding, @unc
     }
 }
 
+private actor LintedPathStore {
+    private(set) var paths: [URL] = []
+
+    func record(_ path: URL) { paths.append(path) }
+}
+
 struct ImpactSimulatorBuilderSeamTests {
 
     private func makeShadowRoot() throws -> URL {
@@ -73,9 +79,4 @@ struct ImpactSimulatorBuilderSeamTests {
         #expect(await lintedPaths.paths == [shadow.root])
         #expect(shadow.root.deletingLastPathComponent() == shadowRoot.deletingLastPathComponent())
     }
-}
-
-private actor LintedPathStore {
-    private(set) var paths: [URL] = []
-    func record(_ path: URL) { paths.append(path) }
 }
