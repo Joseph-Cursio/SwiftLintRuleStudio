@@ -92,6 +92,12 @@ private extension ViolationInspectorViewModel {
                 self?.isAnalyzing = analyzing
             }
             .store(in: &cancellables)
+        analyzer.progressPublisher
+            .receive(on: RunLoop.main)
+            .sink { [weak self] progress in
+                self?.analysisProgress = progress
+            }
+            .store(in: &cancellables)
     }
 
 #if os(macOS)
