@@ -45,16 +45,6 @@ public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async thr
 /// Closure type for checking file existence
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
 
-/// Protocol for SwiftLint CLI operations
-public protocol SwiftLintCLIProtocol: Sendable {
-    func detectSwiftLintPath() async throws -> URL
-    func executeRulesCommand() async throws -> Data
-    func executeRuleDetailCommand(ruleId: String) async throws -> Data
-    func generateDocsForRule(ruleId: String) async throws -> String
-    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data
-    func getVersion() async throws -> String
-}
-
 public enum SwiftLintError: LocalizedError, Sendable {
     case notFound
     case invalidVersion
@@ -88,4 +78,14 @@ public enum SwiftLintError: LocalizedError, Sendable {
             return nil
         }
     }
+}
+
+/// Protocol for SwiftLint CLI operations
+public protocol SwiftLintCLIProtocol: Sendable {
+    func detectSwiftLintPath() async throws -> URL
+    func executeRulesCommand() async throws -> Data
+    func executeRuleDetailCommand(ruleId: String) async throws -> Data
+    func generateDocsForRule(ruleId: String) async throws -> String
+    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data
+    func getVersion() async throws -> String
 }
