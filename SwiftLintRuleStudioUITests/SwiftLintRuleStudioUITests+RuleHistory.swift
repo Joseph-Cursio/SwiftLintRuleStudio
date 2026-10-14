@@ -47,19 +47,37 @@ extension SwiftLintRuleStudioUITests {
     /// Scrolls through `scrollView` both ways and returns which of `labels` were on screen
     /// at some point. The new-rules grid is lazy, so a rule below the fold is not in the
     /// accessibility tree until it scrolls into view.
+    ///
+    /// Each step reads one snapshot of the scroll view, not the elements of a query. An element
+    /// from `allElementsBoundByIndex` is found again by its index on every property read, and
+    /// the lazy grid can rebuild between the count and the read, which failed the test with
+    /// "Failed to get matching snapshot". A snapshot is a fixed copy of the tree, so reading
+    /// it finds nothing again.
     private func labelsSeenScrolling(_ scrollView: XCUIElement, for labels: [String]) -> Set<String> {
+        let wanted = Set(labels)
         var seen: Set<String> = []
         for delta in Array(repeating: -300.0, count: 6) + Array(repeating: 300.0, count: 12) {
-            for element in texts(in: scrollView, matching: labels).allElementsBoundByIndex {
-                if let value = element.value as? String, labels.contains(value) {
-                    seen.insert(value)
-                } else {
-                    seen.insert(element.label)
-                }
+            if let snapshot = try? scrollView.snapshot() {
+                seen.formUnion(staticTextLabels(in: snapshot).intersection(wanted))
             }
             scrollView.scroll(byDeltaX: 0, deltaY: delta)
         }
         return seen
+    }
+
+    /// The label and string value of every static text in `snapshot`'s subtree.
+    private func staticTextLabels(in snapshot: XCUIElementSnapshot) -> Set<String> {
+        var found: Set<String> = []
+        if snapshot.elementType == .staticText {
+            found.insert(snapshot.label)
+            if let value = snapshot.value as? String {
+                found.insert(value)
+            }
+        }
+        for child in snapshot.children {
+            found.formUnion(staticTextLabels(in: child))
+        }
+        return found
     }
 
     // MARK: - Version Check
