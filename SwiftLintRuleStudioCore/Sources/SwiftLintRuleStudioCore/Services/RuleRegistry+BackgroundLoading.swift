@@ -11,13 +11,19 @@ extension RuleRegistry {
         backgroundLoadingTask?.cancel()
 
         let rulesData = buildRulesData(from: rules, startingIndex: startingIndex)
+        // Build the update callback outside the Task so its `[weak self]` captures the
+        // method's immutable `self`. Capturing `weak self` on the Task and again on a
+        // nested @Sendable closure would read a mutable captured var across isolation,
+        // which Swift 6 rejects.
+        let update: @Sendable (Int, Rule) async -> Void = { [weak self] index, rule in
+            await self?.updateRule(at: index, with: rule)
+        }
         backgroundLoadingTask = Task { [swiftLintCLI] in
             await Self.runBackgroundBatches(
                 rulesData: rulesData,
-                swiftLintCLI: swiftLintCLI
-            ) { [weak self] index, rule in
-                await self?.updateRule(at: index, with: rule)
-            }
+                swiftLintCLI: swiftLintCLI,
+                update: update
+            )
         }
     }
 
