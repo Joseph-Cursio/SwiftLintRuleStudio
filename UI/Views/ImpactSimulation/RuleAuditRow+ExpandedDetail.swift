@@ -4,7 +4,8 @@
 //
 //  The expandable per-rule detail panel rendered below a RuleAuditRow
 //  when the user taps to expand: file breakdown on the left and an
-//  example violation on the right.
+//  example violation on the right — or, for a rule the audit has no
+//  count for, why not.
 //
 
 import SwiftLintRuleStudioCore
@@ -13,10 +14,16 @@ import SwiftUI
 extension RuleAuditRow {
     var expandedDetail: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 24) {
-                fileBreakdown
-                Divider()
-                exampleViolation
+            Group {
+                if let explanation = entry.unmeasuredExplanation {
+                    unmeasuredDetail(explanation)
+                } else {
+                    HStack(alignment: .top, spacing: 24) {
+                        fileBreakdown
+                        Divider()
+                        exampleViolation
+                    }
+                }
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
@@ -24,6 +31,28 @@ extension RuleAuditRow {
         }
         .padding(.leading, 46)
         .padding(.vertical, 4)
+    }
+
+    /// Why the audit has no count for this rule — for a failure, the error itself — and what
+    /// that means for enabling it.
+    private func unmeasuredDetail(_ explanation: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(entry.effortCategory.label, systemImage: entry.effortCategory.iconName)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(entry.effortCategory.color)
+
+            Text(explanation)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+
+            Text("It isn't counted as safe, so Enable All Safe Rules leaves it off. "
+                + "You can still enable it on its own.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var fileBreakdown: some View {
@@ -128,9 +157,9 @@ extension RuleAuditRow {
                 .background(Color(NSColor.textBackgroundColor))
                 .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                if entry.rule.supportsAutocorrection {
+                if entry.rule.supportsAutocorrection, let violationCount = entry.violationCount {
                     Label(
-                        "All \(entry.violationCount) violations are auto-fixable",
+                        "All \(violationCount) violations are auto-fixable",
                         systemImage: "wrench.and.screwdriver.fill"
                     )
                     .font(.caption)

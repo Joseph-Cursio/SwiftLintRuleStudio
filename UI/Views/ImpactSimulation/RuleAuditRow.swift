@@ -60,21 +60,25 @@ private struct AutoFixIndicator: View {
     }
 }
 
-/// Affected files, as a count or a fraction of the workspace.
+/// Affected files, as a count or a fraction of the workspace — or a dash when there is no
+/// count, since "0 / 40" reads as clean.
 private struct AffectedFilesDisplay: View {
     let isCurrentlyEnabled: Bool
-    let affectedFileCount: Int
+    let affectedFileCount: Int?
     let totalSwiftFiles: Int
+
+    private var countText: String? {
+        guard !isCurrentlyEnabled, let affectedFileCount else { return nil }
+        return totalSwiftFiles > 0 ? "\(affectedFileCount) / \(totalSwiftFiles)" : "\(affectedFileCount)"
+    }
 
     var body: some View {
         Group {
-            if isCurrentlyEnabled {
+            if let countText {
+                Text(countText)
+            } else {
                 Text("—")
                     .foregroundStyle(.secondary)
-            } else if totalSwiftFiles > 0 {
-                Text("\(affectedFileCount) / \(totalSwiftFiles)")
-            } else {
-                Text("\(affectedFileCount)")
             }
         }
         .font(.caption)
@@ -120,8 +124,10 @@ struct RuleAuditRow: View {
     let onEnable: () -> Void
     @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
 
+    /// A row expands to show its file breakdown, or — when it has no count — why not.
     private var isExpandable: Bool {
-        !entry.isCurrentlyEnabled && entry.violationCount > 0
+        guard !entry.isCurrentlyEnabled else { return false }
+        return (entry.violationCount ?? 0) > 0 || entry.unmeasuredExplanation != nil
     }
 
     private var isUnavailable: Bool {
@@ -141,7 +147,7 @@ struct RuleAuditRow: View {
                 // separate stops. `.isButton` only when the row can be expanded.
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(rowAccessibilityLabel)
-                .accessibilityHint(isExpandable ? "Double tap to expand the file breakdown" : "")
+                .accessibilityHint(accessibilityHint)
                 .accessibilityAddTraits(.isButton)
                 .accessibilityActions {
                     if isExpandable {
@@ -159,15 +165,34 @@ struct RuleAuditRow: View {
         .opacity(entry.isCurrentlyEnabled ? 0.5 : 1.0)
     }
 
+    private var accessibilityHint: String {
+        guard isExpandable else { return "" }
+        return entry.violationCount == nil
+            ? "Double tap to see why"
+            : "Double tap to expand the file breakdown"
+    }
+
     private var rowAccessibilityLabel: String {
+        Self.accessibilityLabel(for: entry, isUnavailable: isUnavailable)
+    }
+
+    /// The row's single VoiceOver label. Static so it can be checked without rendering a row
+    /// in an edition that lacks SourceKit.
+    static func accessibilityLabel(for entry: RuleAuditEntry, isUnavailable: Bool) -> String {
         var parts = [entry.rule.id, entry.rule.description]
         if entry.isCurrentlyEnabled {
             parts.append("already enabled")
         } else {
-            parts.append("\(entry.violationCount) violations")
+            if let violationCount = entry.violationCount {
+                parts.append("\(violationCount) violations")
+            }
             parts.append(entry.effortCategory.label)
+            if let explanation = entry.unmeasuredExplanation {
+                parts.append(explanation)
+            }
         }
-        if isUnavailable {
+        // An explanation already says why there's no count; VoiceOver needn't hear it twice.
+        if isUnavailable, entry.unmeasuredExplanation == nil {
             parts.append("not checked in this app")
         }
         return parts.joined(separator: ", ")
@@ -278,8 +303,32 @@ struct RuleAuditRow: View {
     }
 
     private var violationDisplay: some View {
+        Group {
+            // Enabled first: a rule enabled from this audit keeps its result, and must look
+            // like one that was enabled before it — a dash, not a green count and bar.
+            if entry.isCurrentlyEnabled {
+                Text("—")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if let violationCount = entry.violationCount {
+                measuredViolations(violationCount)
+            } else {
+                // No count, so no number: a 0 here is what "safe to enable" looks like.
+                Label(
+                    entry.effortCategory == .failed ? "Failed" : "Can't measure",
+                    systemImage: entry.effortCategory.iconName
+                )
+                .font(.caption)
+                .foregroundStyle(entry.effortCategory.color)
+                .help(entry.unmeasuredExplanation ?? entry.effortCategory.label)
+            }
+        }
+        .frame(width: AuditColumnWidths.violations)
+    }
+
+    private func measuredViolations(_ violationCount: Int) -> some View {
         HStack(spacing: 6) {
-            Text("\(entry.violationCount)")
+            Text("\(violationCount)")
                 .font(.system(.body, design: .monospaced))
                 .fontWeight(.bold)
                 .foregroundStyle(entry.effortCategory.color)
@@ -292,11 +341,11 @@ struct RuleAuditRow: View {
                         .fill(Color(NSColor.separatorColor))
                         .frame(height: 6)
 
-                    if entry.violationCount > 0 {
+                    if violationCount > 0 {
                         RoundedRectangle(cornerRadius: 3)
                             .fill(entry.effortCategory.color)
                             .frame(
-                                width: barWidth(in: geometry.size.width),
+                                width: barWidth(for: violationCount, in: geometry.size.width),
                                 height: 6
                             )
                     }
@@ -306,12 +355,11 @@ struct RuleAuditRow: View {
             .frame(width: 60, height: 16)
             .accessibilityHidden(true)
         }
-        .frame(width: AuditColumnWidths.violations)
     }
 
-    private func barWidth(in totalWidth: CGFloat) -> CGFloat {
+    private func barWidth(for violationCount: Int, in totalWidth: CGFloat) -> CGFloat {
         guard maxViolationCount > 0 else { return 0 }
-        let proportion = CGFloat(entry.violationCount) / CGFloat(maxViolationCount)
+        let proportion = CGFloat(violationCount) / CGFloat(maxViolationCount)
         return max(proportion * totalWidth, 3)
     }
 }

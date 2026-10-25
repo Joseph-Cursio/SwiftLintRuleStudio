@@ -34,6 +34,10 @@ extension RuleAuditView {
                 )
                 .frame(width: 180, height: 70)
 
+                // Beside the count it acts on, so cards added after it can't push it off the
+                // right edge of the scroller at the default window width.
+                enableAllSafeButton(safeCount: summary.safeCount)
+
                 SummaryCard(
                     title: "LOW EFFORT",
                     count: summary.lowCount,
@@ -58,9 +62,34 @@ extension RuleAuditView {
                 )
                 .frame(width: 180, height: 70)
 
-                enableAllSafeButton(safeCount: summary.safeCount)
+                unmeasuredCards(summary: summary)
             }
             .padding()
+        }
+    }
+
+    /// Cards for the rules the audit has no count for, shown only when there are some.
+    /// They sit apart from the effort cards because their impact is unknown, not zero.
+    @ViewBuilder
+    private func unmeasuredCards(summary: AuditSummary) -> some View {
+        if summary.failedCount > 0 {
+            SummaryCard(
+                title: "SIMULATION FAILED",
+                count: summary.failedCount,
+                subtitle: "impact unknown",
+                color: EffortCategory.failed.color
+            )
+            .frame(width: 180, height: 70)
+        }
+
+        if summary.unmeasurableCount > 0 {
+            SummaryCard(
+                title: "CAN'T MEASURE",
+                count: summary.unmeasurableCount,
+                subtitle: "not measurable here",
+                color: .gray
+            )
+            .frame(width: 180, height: 70)
         }
     }
 
@@ -141,7 +170,7 @@ extension RuleAuditView {
     }
 
     private var maxViolationCount: Int {
-        auditEntries.map(\.violationCount).max() ?? 1
+        auditEntries.compactMap(\.violationCount).max() ?? 1
     }
 
     func toggleExpanded(_ ruleId: String) {

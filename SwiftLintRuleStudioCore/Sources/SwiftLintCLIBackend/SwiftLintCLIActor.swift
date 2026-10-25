@@ -23,6 +23,9 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
     public let cacheManager: any CacheManagerProtocol
     private let tool: CLIToolActor
     private let fileExists: SwiftLintFileExists
+    private let timeoutSeconds: UInt64
+    /// Whether a test supplied the command runner, which a simulation lint must go through too.
+    private let runsInjectedCommands: Bool
     /// Directory that holds the generated `rule_docs/<version>/` subtree. Injected
     /// in tests to a temp directory so doc generation doesn't write into the real
     /// Application Support folder; defaults to `.../SwiftLintRuleStudio` there.
@@ -41,6 +44,8 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         // discarded in favor of a fresh `CacheManager`.
         self.cacheManager = cacheManager ?? CacheManager()
         self.fileExists = fileExists ?? { FileManager.default.fileExists(atPath: $0) }
+        self.timeoutSeconds = timeoutSeconds
+        self.runsInjectedCommands = commandRunner != nil
 
         // Default docs root to the real Application Support location (temp dir as a
         // last resort). Tests inject a temp directory to stay isolated.
@@ -103,7 +108,41 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         // it does on the command line. Without this the app inherits cwd `/`,
         // SwiftLint finds no config, and lints excluded trees (e.g. SwiftSyntax
         // checkouts under .build) — thousands of phantom violations, far slower.
-        return try await runSwiftLint(arguments: arguments, workingDirectory: workspacePath)
+        return try await runLint(arguments: arguments, workingDirectory: workspacePath)
+    }
+
+    /// Lints a rule simulation's mirror with no cache, in a process a cancelled caller
+    /// terminates — so an audit cancelled midway stops the lint it was waiting on.
+    public func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
+        try await runLint(
+            arguments: Self.buildSimulationLintArguments(workspacePath: workspacePath),
+            workingDirectory: workspacePath
+        )
+    }
+
+    /// Runs a lint in `workingDirectory` with `PWD` naming it — a GUI app has no `PWD`, and
+    /// SwiftLint expands `${PWD}` in a config from it — in a process a cancelled caller
+    /// terminates.
+    private func runLint(arguments: [String], workingDirectory: URL) async throws -> Data {
+        guard !runsInjectedCommands else {
+            return try await runSwiftLint(arguments: arguments, workingDirectory: workingDirectory)
+        }
+        if let binary = try? await tool.detectPath() {
+            return try await CancellableSwiftLintRun.run(
+                binary: binary,
+                arguments: arguments,
+                workingDirectory: workingDirectory,
+                timeoutSeconds: timeoutSeconds
+            )
+        }
+        // Not where it's usually installed: found through the shell's PATH, as `CLIToolActor`'s
+        // fallback does — a swiftlint from Mint, mise, asdf or Nix — and cancellable all the same.
+        return try await CancellableSwiftLintRun.run(
+            binary: URL(fileURLWithPath: "/bin/zsh"),
+            arguments: ["-c", CLIToolActor.buildShellCommand(command: "swiftlint", arguments: arguments)],
+            workingDirectory: workingDirectory,
+            timeoutSeconds: timeoutSeconds
+        )
     }
 
     public func getVersion() async throws -> String {

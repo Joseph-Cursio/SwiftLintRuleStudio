@@ -8,59 +8,6 @@
 import Foundation
 import SwiftLintCLISeam
 
-/// Result of simulating a rule's impact
-public struct RuleImpactResult: Sendable, Identifiable {
-    nonisolated public let ruleId: String
-    nonisolated public var id: String { ruleId }
-    nonisolated public let violationCount: Int
-    nonisolated public let violations: [Violation]
-    nonisolated public let affectedFiles: Set<String>
-    nonisolated public let simulationDuration: TimeInterval
-
-    public init(
-        ruleId: String,
-        violationCount: Int,
-        violations: [Violation],
-        affectedFiles: Set<String>,
-        simulationDuration: TimeInterval
-    ) {
-        self.ruleId = ruleId
-        self.violationCount = violationCount
-        self.violations = violations
-        self.affectedFiles = affectedFiles
-        self.simulationDuration = simulationDuration
-    }
-
-    nonisolated public var hasViolations: Bool {
-        violationCount > 0
-    }
-
-    nonisolated public var isSafe: Bool {
-        violationCount == 0
-    }
-}
-
-/// Result of batch simulation
-public struct BatchSimulationResult: Sendable {
-    nonisolated public let results: [RuleImpactResult]
-    nonisolated public let totalDuration: TimeInterval
-    nonisolated public let completedAt: Date
-
-    public init(results: [RuleImpactResult], totalDuration: TimeInterval, completedAt: Date) {
-        self.results = results
-        self.totalDuration = totalDuration
-        self.completedAt = completedAt
-    }
-
-    nonisolated public var safeRules: [RuleImpactResult] {
-        results.filter(\.isSafe)
-    }
-
-    nonisolated public var rulesWithViolations: [RuleImpactResult] {
-        results.filter(\.hasViolations)
-    }
-}
-
 /// Service for simulating the impact of enabling rules
 public class ImpactSimulator: ImpactSimulatorProtocol {
 
@@ -124,27 +71,71 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         baseConfigPath: URL?,
         options: RuleSimulationOptions = RuleSimulationOptions()
     ) async throws -> RuleImpactResult {
-        // Mirror the workspace once, enable the rule everywhere, lint the mirror.
-        let shadow = try workspaceBuilder.makeWorkspace(for: workspace, baseConfigPath: baseConfigPath)
-        defer { shadow.cleanup() }
+        if let result = Self.unmeasurableResult(
+            for: ruleId,
+            isAnalyzer: options.isAnalyzer,
+            isSourceKitUnavailable: options.isSourceKitUnavailable
+        ) {
+            return result
+        }
+
+        // Mirror the workspace once, enable the rule as Enable will, lint the mirror.
+        let shadow = try await workspaceBuilder.makeWorkspace(for: workspace, baseConfigPath: baseConfigPath)
+        defer { release(shadow) }
 
         return try await measureRule(
             ruleId,
             on: shadow,
             isOptIn: options.isOptIn,
-            isAnalyzer: options.isAnalyzer,
             parameterOverrides: options.parameterOverrides
         )
     }
 
-    /// Enables `ruleId` across the mirror's configs, lints it, and tallies the
+    /// The result for a rule linting cannot measure here, or nil when it can.
+    ///
+    /// Linting such a rule would report 0 whatever the code holds, and 0 is what "safe to
+    /// enable" means, so it is reported as unmeasurable without spending a lint of the whole
+    /// workspace on it. Both reasons (see ``UnmeasurableReason``) are decided here, so the
+    /// single-rule sheet and the audit can't disagree. The analyzer reason is checked first:
+    /// it holds in every edition, SourceKit's only in the sandboxed one.
+    private static func unmeasurableResult(
+        for ruleId: String,
+        isAnalyzer: Bool,
+        isSourceKitUnavailable: Bool
+    ) -> RuleImpactResult? {
+        if isAnalyzer {
+            return .unmeasurable(ruleId: ruleId, reason: .analyzerRule)
+        }
+        if isSourceKitUnavailable {
+            return .unmeasurable(ruleId: ruleId, reason: .sourceKitUnavailable)
+        }
+        return nil
+    }
+
+    /// Removes `shadow` — at once, unless the simulation was cancelled. A backend may then
+    /// still be reading it in a lint it stopped waiting for, and SwiftLint treats a config that
+    /// vanishes mid-read as fatal, which in-process is the app; so it goes once that lint is over.
+    private func release(_ shadow: SimulationWorkspace) {
+        guard Task.isCancelled else {
+            shadow.cleanupInBackground()
+            return
+        }
+        let root = shadow.root
+        let swiftLintCLI = swiftLintCLI
+        Task {
+            await swiftLintCLI.waitForAbandonedLints(at: root)
+            shadow.cleanupInBackground()
+        }
+    }
+
+    /// Enables `ruleId` in the mirror's root config, as Enable will, lints it, and tallies the
     /// violations attributable to that rule. Shared by single and batch paths so
-    /// a batch audit can reuse one mirror across many rules.
+    /// a batch audit can reuse one mirror across many rules. Never handed a rule linting
+    /// can't measure — see `unmeasurableResult(for:isAnalyzer:isSourceKitUnavailable:)`.
     private func measureRule(
         _ ruleId: String,
         on shadow: SimulationWorkspace,
         isOptIn: Bool,
-        isAnalyzer: Bool,
         parameterOverrides: [String: AnyCodable]?
     ) async throws -> RuleImpactResult {
         let startTime = now()
@@ -152,22 +143,26 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         try shadow.applyRule(
             ruleId,
             isOptIn: isOptIn,
-            isAnalyzer: isAnalyzer,
+            isAnalyzer: false,
             parameterOverrides: parameterOverrides
         )
 
         // `.effective` mode with `cwd` = the mirror root: SwiftLint discovers the
         // mirror's (rule-enabled) root and nested configs itself. `configPath` is
         // deliberately nil — passing `--config` would disable nested resolution.
-        let lintData = try await swiftLintCLI.executeLintCommand(
-            configPath: nil,
-            workspacePath: shadow.root
-        )
+        let lintData = try await swiftLintCLI.executeSimulationLintCommand(workspacePath: shadow.root)
 
         // Paths come back rooted at the mirror; stripping that prefix yields the
-        // same workspace-relative paths the real workspace would produce.
-        let allViolations = try parseViolations(from: lintData, workspacePath: shadow.root)
-        let ruleViolations = allViolations.filter { $0.ruleID == ruleId }
+        // same workspace-relative paths the real workspace would produce. A file
+        // reached through a link to a folder outside the workspace comes back at its
+        // mirror copy's path, and is put back at its real one.
+        let decoded = try await LintReportDecoder.decodeOffMainActor(
+            lintData,
+            workspacePath: shadow.root,
+            mapping: shadow.pathMapping,
+            ruleIds: shadow.reportedRuleIds(for: ruleId)
+        )
+        let ruleViolations = decoded.map(makeViolation)
         let affectedFiles = Set(ruleViolations.map(\.filePath))
 
         return RuleImpactResult(
@@ -198,34 +193,59 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         let startTime = now()
         var results: [RuleImpactResult] = []
 
-        // Mirror the workspace once; each rule only rewrites the mirror's configs.
-        let shadow = try workspaceBuilder.makeWorkspace(for: workspace, baseConfigPath: baseConfigPath)
-        defer { shadow.cleanup() }
+        // Mirror the workspace once; each rule only rewrites the mirror's configs. A workspace
+        // that can't be mirrored fails each rule that needed a lint, with the reason, rather
+        // than the whole batch, so the rules linting can't measure are still told apart.
+        let shadow: SimulationWorkspace?
+        var mirrorFailure: String?
+        do {
+            shadow = try await workspaceBuilder.makeWorkspace(for: workspace, baseConfigPath: baseConfigPath)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            shadow = nil
+            mirrorFailure = error.localizedDescription
+        }
+        defer {
+            if let shadow { release(shadow) }
+        }
 
         for (index, ruleId) in ruleIds.enumerated() {
-            // Report progress
-            progressHandler?(index, ruleIds.count, ruleId)
+            // An audit that was cancelled — its workspace closed, say — stops here rather
+            // than linting every remaining rule for a result nobody will see.
+            try Task.checkCancellation()
+
+            // Counted from 1: the rule now being simulated, so the last reads "N of N".
+            progressHandler?(index + 1, ruleIds.count, ruleId)
+
+            if let result = Self.unmeasurableResult(
+                for: ruleId,
+                isAnalyzer: classification.analyzerRuleIds.contains(ruleId),
+                isSourceKitUnavailable: classification.sourceKitUnavailableRuleIds.contains(ruleId)
+            ) {
+                results.append(result)
+                continue
+            }
+
+            guard let shadow else {
+                results.append(.failed(ruleId: ruleId, reason: mirrorFailure))
+                continue
+            }
 
             do {
                 let result = try await measureRule(
                     ruleId,
                     on: shadow,
                     isOptIn: classification.optInRuleIds.contains(ruleId),
-                    isAnalyzer: classification.analyzerRuleIds.contains(ruleId),
                     parameterOverrides: nil
                 )
                 results.append(result)
+            } catch is CancellationError {
+                throw CancellationError()
             } catch {
-                // If simulation fails for a rule, create a result with error indication
-                // We'll use a violation count of -1 to indicate error
-                let errorResult = RuleImpactResult(
-                    ruleId: ruleId,
-                    violationCount: -1, // Error indicator
-                    violations: [],
-                    affectedFiles: [],
-                    simulationDuration: 0
-                )
-                results.append(errorResult)
+                // One rule failing must not sink the batch, but it must not pass for a clean
+                // run either: record the failure and why, so the audit can show it as one.
+                results.append(.failed(ruleId: ruleId, reason: error.localizedDescription))
             }
         }
 
@@ -244,7 +264,7 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
     ///   - baseConfigPath: Path to the base SwiftLint configuration
     ///   - disabledRuleIds: Array of disabled rule identifiers to check
     ///   - progressHandler: Optional callback for progress updates
-    /// - Returns: Array of rule IDs that are safe to enable (zero violations)
+    /// - Returns: Array of rule IDs that are safe to enable (measured, with zero violations)
     public func findSafeRules(
         workspace: Workspace,
         baseConfigPath: URL?,
@@ -260,63 +280,35 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
             progressHandler: progressHandler
         )
 
-        // Filter to rules with zero violations (and no errors)
-        return batchResult.safeRules
-            .filter { $0.violationCount >= 0 } // Exclude error cases
-            .map(\.ruleId)
+        // `safeRules` holds measured, clean rules only. A failed or unmeasurable simulation
+        // has no count to call clean.
+        return batchResult.safeRules.map(\.ruleId)
     }
 
     // MARK: - Helper Methods
 
     /// Parse violations from SwiftLint JSON output
-    func parseViolations(from data: Data, workspacePath: URL) throws -> [Violation] {
-        guard let json = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
-            return []
-        }
+    ///
+    /// - Parameter mapping: Puts a path in a mirrored outside folder back at the real one.
+    func parseViolations(
+        from data: Data,
+        workspacePath: URL,
+        mapping: MirrorPathMapping? = nil
+    ) throws -> [Violation] {
+        try LintReportDecoder.decode(data, workspacePath: workspacePath, mapping: mapping, ruleIds: nil)
+            .map(makeViolation)
+    }
 
-        var violations: [Violation] = []
-
-        for item in json {
-            guard let ruleId = item["rule_id"] as? String,
-                  let reason = item["reason"] as? String,
-                  let severityString = item["severity"] as? String,
-                  let file = item["file"] as? String else {
-                continue
-            }
-
-            // Parse line and column. SwiftLint's JSON reporter names the column
-            // "character" (matching WorkspaceAnalyzer); a nil means a line-level
-            // violation with no column.
-            let line = item["line"] as? Int ?? 0
-            let column = item["character"] as? Int
-
-            // Parse severity
-            let severity = Severity(rawValue: severityString.lowercased()) ?? .warning
-
-            // Convert file path to relative path
-            let fullPath = URL(fileURLWithPath: file)
-            let relativePath: String
-            if fullPath.path.hasPrefix(workspacePath.path) {
-                let relative = fullPath.path.dropFirst(workspacePath.path.count)
-                relativePath = relative.hasPrefix("/") ? String(relative.dropFirst()) : String(relative)
-            } else {
-                relativePath = file
-            }
-
-            let violation = Violation(
-                ruleID: ruleId,
-                filePath: relativePath,
-                line: line,
-                severity: severity,
-                message: reason,
-                id: makeID(),
-                column: column,
-                detectedAt: now()
-            )
-
-            violations.append(violation)
-        }
-
-        return violations
+    private func makeViolation(_ decoded: DecodedViolation) -> Violation {
+        Violation(
+            ruleID: decoded.ruleID,
+            filePath: decoded.filePath,
+            line: decoded.line,
+            severity: Severity(rawValue: decoded.severity) ?? .warning,
+            message: decoded.message,
+            id: makeID(),
+            column: decoded.column,
+            detectedAt: now()
+        )
     }
 }

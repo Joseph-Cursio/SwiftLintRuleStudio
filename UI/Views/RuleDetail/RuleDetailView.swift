@@ -88,7 +88,6 @@ struct RuleDetailView: View {
     @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
     @State private var showSaveConfirmation = false
     @State private var showError = false
-    @State private var errorMessage: String?
     @State private var impactResult: RuleImpactResult?
     // These four properties are read by RuleDetailView+Sections.swift (a separate file),
     // so they cannot be private. internal is the minimum viable access level here.
@@ -257,30 +256,56 @@ struct RuleDetailView: View {
 
         isSimulating = true
 
-        // Pass the editor's in-memory parameter values so the simulation reflects
-        // the user's current (possibly-unsaved) edits, not the workspace YAML's
-        // last-saved values.
-        let overrides = viewModel.parameterValues.isEmpty ? nil : viewModel.parameterValues
+        let simulator = dependencies.impactSimulator
+        let ruleId = rule.id
+        let options = Self.simulationOptions(
+            for: rule,
+            capabilities: capabilities,
+            parameterValues: viewModel.parameterValues
+        )
+        let simulate = {
+            try await simulator.simulateRule(
+                ruleId: ruleId,
+                workspace: workspace,
+                baseConfigPath: workspace.configPath,
+                options: options
+            )
+        }
         Task {
-            do {
-                let result = try await dependencies.impactSimulator.simulateRule(
-                    ruleId: rule.id,
-                    workspace: workspace,
-                    baseConfigPath: workspace.configPath,
-                    options: RuleSimulationOptions(
-                        isOptIn: rule.isOptIn,
-                        isAnalyzer: rule.isAnalyzer,
-                        parameterOverrides: overrides
-                    )
-                )
+            impactResult = await Self.simulationResult(ruleId: ruleId, simulate: simulate)
+            isSimulating = false
+        }
+    }
 
-                impactResult = result
-                isSimulating = false
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-                isSimulating = false
-            }
+    /// The options for simulating `rule` from the editor. Built from the edition's
+    /// capabilities, so a SourceKit rule where SourceKit can't load comes back unmeasurable
+    /// rather than as a "safe" 0; and carrying the editor's in-memory parameter values, so the
+    /// simulation reflects edits not yet saved rather than the workspace YAML.
+    static func simulationOptions(
+        for rule: Rule,
+        capabilities: Set<AppCapability>,
+        parameterValues: [String: AnyCodable]
+    ) -> RuleSimulationOptions {
+        RuleSimulationOptions(
+            rule: rule,
+            capabilities: capabilities,
+            parameterOverrides: parameterValues.isEmpty ? nil : parameterValues
+        )
+    }
+
+    /// What the Impact Simulation sheet shows: the simulator's result, or — when it threw — a
+    /// failure carrying why, which the sheet shows as "The simulation failed".
+    ///
+    /// A throw used to raise the save-error alert, which said saving the configuration had
+    /// failed and dropped the real error.
+    static func simulationResult(
+        ruleId: String,
+        simulate: () async throws -> RuleImpactResult
+    ) async -> RuleImpactResult {
+        do {
+            return try await simulate()
+        } catch {
+            return .failed(ruleId: ruleId, reason: error.localizedDescription)
         }
     }
 

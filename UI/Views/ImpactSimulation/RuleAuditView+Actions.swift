@@ -13,6 +13,9 @@ import SwiftUI
 
 extension RuleAuditView {
     func resetAuditState() {
+        // Stops a running audit, whose results belong to the workspace that just closed —
+        // even when the same folder was reopened, which keeps its workspace's identity.
+        auditRunner.cancel()
         auditEntries = []
         selectedRules.removeAll()
         expandedRuleId = nil
@@ -30,8 +33,9 @@ extension RuleAuditView {
         enableSelectedRules()
     }
 
-    /// The ids of entries that are currently disabled and carry no violations,
-    /// i.e. the rules that can be turned on without creating work.
+    /// The ids of entries that are currently disabled and were measured with no
+    /// violations, i.e. the rules that can be turned on without creating work. A
+    /// failed or unmeasurable simulation is never `.safe`: its impact is unknown.
     static func safeDisabledRuleIds(in entries: [RuleAuditEntry]) -> [String] {
         entries
             .filter { !$0.isCurrentlyEnabled && $0.effortCategory == .safe }

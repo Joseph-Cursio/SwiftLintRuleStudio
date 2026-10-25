@@ -82,6 +82,22 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         }.value
     }
 
+    /// Lints a rule simulation's mirror, as ``executeLintCommand(configPath:workspacePath:)``
+    /// does with no config path — except that a cancelled caller stops waiting at once. The lint
+    /// can't be interrupted, so it runs on and its result is discarded; see ``InFlightLints``.
+    public func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
+        try await Self.simulationLints.run(at: workspacePath) {
+            try Self.lint(configPath: nil, workspacePath: workspacePath)
+        }
+    }
+
+    public func waitForAbandonedLints(at workspacePath: URL) async {
+        await Self.simulationLints.waitForLints(at: workspacePath)
+    }
+
+    /// Shared by every instance: a lint outlives the backend that started it.
+    private static let simulationLints = InFlightLints()
+
     /// Lints `workspacePath` the way `swiftlint lint` run in that directory would, except
     /// where SwiftLint's path-keyed config caches would make the result stale:
     ///
@@ -109,6 +125,16 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
                 forceExclude: false,
                 excludeByPrefix: false
             )
+            // `swiftlint lint` fails when there is nothing to lint, unless the config sets
+            // `allow_zero_lintable_files` (Configuration+CommandLine's `groupFiles`). This
+            // returned no violations instead, so a folder nobody linted read as clean — and in
+            // a rule simulation, every rule read as safe to enable. Done for every lint, not
+            // just simulations, so both editions say the same thing about the same folder.
+            if files.isEmpty, !root.allowZeroLintableFiles {
+                throw SwiftLintError.executionFailed(
+                    message: "No lintable files found at paths: '\(workspacePath.path)'"
+                )
+            }
             let appliesNestedConfigs = configPath == nil
             if appliesNestedConfigs {
                 try InProcessConfiguration.checkNestedConfigs(

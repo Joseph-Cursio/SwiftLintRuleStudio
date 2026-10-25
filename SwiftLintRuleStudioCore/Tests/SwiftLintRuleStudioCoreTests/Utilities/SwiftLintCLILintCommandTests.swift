@@ -67,4 +67,23 @@ struct SwiftLintCLILintCommandTests {
         #expect(calls.first?.1.contains("--config") == false)
         #expect(calls.first?.1.contains(missingConfigURL.path) == false)
     }
+
+    @Test("A simulation lint asks SwiftLint for no cache, which would never be read again")
+    func simulationLintSkipsTheCache() async throws {
+        let recorder = CommandRecorderActor()
+        let runner: SwiftLintCommandRunner = { command, arguments in
+            await recorder.record(command, arguments)
+            return SwiftLintCommandOutput(stdout: Data("[]".utf8), stderr: Data(), exitCode: 0)
+        }
+        let mirror = FileManager.default.temporaryDirectory.appendingPathComponent("Mirror-\(UUID().uuidString)")
+        let cacheManager = await MainActor.run { CacheManager.createForTesting() }
+        let cli = SwiftLintCLIActor(cacheManager: cacheManager, commandRunner: runner)
+
+        _ = try await cli.executeSimulationLintCommand(workspacePath: mirror)
+        _ = try await cli.executeLintCommand(configPath: nil, workspacePath: mirror)
+
+        let calls = await recorder.calls
+        #expect(calls.first?.1 == ["lint", "--no-cache", "--reporter", "json", mirror.path])
+        #expect(calls.last?.1.contains("--no-cache") == false, "analysis keeps its cache")
+    }
 }

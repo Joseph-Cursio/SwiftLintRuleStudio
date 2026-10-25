@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Configuration backups are kept in the app's own folder (`~/Library/Application Support/SwiftLintRuleStudio/Config Backups/`, inside the container for the sandboxed Explorer edition) instead of beside `.swiftlint.yml`, where each save left an untracked `.swiftlint.yml.<timestamp>.backup` in the project. Each configuration keeps 50 backups in all: the oldest plus the 49 newest. Version History still lists backups an earlier version left in the project folder, and offers to move them out (the originals go to the Trash, and the moved copies are never pruned automatically); nothing moves them automatically.
 - No backup is taken when the file hasn't changed since the newest backup, two backups in the same second no longer overwrite each other, and a backup holds the configuration's bytes even when `.swiftlint.yml` is a symlink.
+- Simulation copies of a workspace are now kept in `~/Library/Caches` (the app's caches folder) rather than the temp folder, except for workspaces under `/tmp` or `/var`, which are copied into the temp folder. A workspace on a volume that treats letter case differently is copied onto that volume
+- Workspace analysis lints now run through the same cancellable runner as simulations, with `PWD` set to the workspace
+- When a workspace can't be simulated faithfully, each affected rule shows why instead of a count. Examples: an absolute or remote `parent_config`; an `included` path more than eight folders above the workspace; a symlink loop SwiftLint would crash on; a config SwiftLint can't read; a workspace opened through a symlink; more than 20,000 files reached outside the workspace
 
 ### Fixed
 - Saving no longer writes a `.swiftlint.yml` SwiftLint rejects (#83). With `only_rules` in use, enabling a rule added it to `opt_in_rules` (and an analyzer rule to both `only_rules` and `analyzer_rules`); SwiftLint refuses `opt_in_rules` or `disabled_rules` beside `only_rules` and falls back to its defaults, ignoring `included` and `excluded`. Rules now go to the list SwiftLint reads in each mode, and a save that would produce a rejected file is refused.
@@ -22,6 +25,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Renaming a rule whose new name is already configured merges the two configurations instead of dropping the old one's settings.
 - A pre-release SwiftLint (`0.50.0-rc.1`) is treated as older than its release, so it isn't told to rename to, or enable, a rule that only exists from the release on. A leading `v` is ignored.
 - `enabled_rules` and `indentation` are no longer reported as rules.
+- Rule Audit no longer reports a rule as "Safe to enable" when its simulation failed. A failed simulation used to count as 0 violations; it now shows as an error with its reason and is never counted safe or enabled by "Enable all safe rules"
+- Analyzer rules, which `swiftlint lint` never runs, are shown as "Can't be measured here" instead of measuring 0; in the sandboxed edition, so are rules that need SourceKit
+- Simulations now count what enabling a rule really does in workspaces that use symlinks, `included`/`excluded` (list or single-string form), `**` and brace globs, `parent_config`/`child_config`, folders beside the workspace (`../Shared`), or a repository config pulled in by a package opened on its own (`parent_config: ../../.swiftlint.yml`)
+- A rule is simulated as Enable enables it: in the root config and the configs it pulls in. A nested config that disables the rule still disables it beneath it, as it will after Enable
+- A rule disabled under a deprecated name (`variable_name`, `if_let_shadowing`, `redundant_optional_initialization`, `operator_whitespace`, `redundant_self_in_closure`) is now enabled and counted
+- `custom_rules` now counts the violations of every custom rule; it used to measure 0
+- A config's `baseline:` filters simulated violations as it filters real ones, and `write_baseline:` is never written by a simulation, so the user's baseline file is left alone
+- An `included`/`excluded` list containing a non-string entry is ignored, as SwiftLint ignores it
+- `${PWD}` in `included`/`excluded` now refers to the workspace in both analysis and simulation lints
+- On a case-sensitive volume, files whose names differ only in case are no longer merged in the simulation's copy
+- Cancelling an audit, closing the workspace or leaving the audit stops the SwiftLint run in progress (SIGTERM, then SIGKILL) and removes its temporary copy; abandoned copies from a crash are cleaned up after a day, and a copy still in use is never removed
 
 ---
 

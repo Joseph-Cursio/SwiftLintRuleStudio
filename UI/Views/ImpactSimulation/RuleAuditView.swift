@@ -40,6 +40,8 @@ private struct AuditProgressView: View {
 
 struct RuleAuditView: View {
     @Environment(\.dependencies) var dependencies: DependencyContainer
+    /// Read by +Audit, which tells the simulator which rules this edition can't lint.
+    @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
 
     @State var isAuditing = false
     @State var auditProgress: AuditProgress?
@@ -51,6 +53,8 @@ struct RuleAuditView: View {
     @State var isEnabling = false
     @State var showError = false
     @State var errorMessage: String?
+    /// Runs the audit, so a new run, a workspace change or leaving the view can cancel it.
+    @State var auditRunner = RuleAuditRunner()
 
     init() {}
 
@@ -79,6 +83,13 @@ struct RuleAuditView: View {
         .navigationTitle("Disabled Rule Audit")
         .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
             resetAuditState()
+        }
+        // Leaving the section discards this view and its state; an audit left running would
+        // lint every remaining rule for nobody, beside any audit started on coming back.
+        .onDisappear {
+            auditRunner.cancel()
+            isAuditing = false
+            auditProgress = nil
         }
         .alert("Error", isPresented: TestGuard.alertBinding($showError)) {
             Button("OK") {
@@ -185,9 +196,9 @@ struct RuleAuditView: View {
     func sortEntries(by order: SortOrder) {
         switch order {
         case .violationsAscending:
-            auditEntries.sort { $0.violationCount < $1.violationCount }
+            auditEntries.sort { RuleAuditEntry.isOrderedByViolations($0, $1, ascending: true) }
         case .violationsDescending:
-            auditEntries.sort { $0.violationCount > $1.violationCount }
+            auditEntries.sort { RuleAuditEntry.isOrderedByViolations($0, $1, ascending: false) }
         case .name:
             auditEntries.sort { $0.rule.id < $1.rule.id }
         case .category:

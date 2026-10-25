@@ -92,6 +92,8 @@ struct ImpactSimulatorBatchTests {
 
         #expect(progressValues.count == 3)
         #expect(progressValues.events.last?.total == 3)
+        // Counted from 1, so the audit reads "Analyzing rule 1 of 3" first and ends at "3 of 3".
+        #expect(progressValues.events.map(\.current) == [1, 2, 3])
     }
 
     @Test("ImpactSimulator finds safe rules with zero violations")
