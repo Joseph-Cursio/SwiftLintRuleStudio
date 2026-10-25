@@ -45,7 +45,7 @@ struct YAMLConfigEngineSavingDiffTests {
         #expect(included == ["Sources"])
     }
 
-    @Test("YAMLConfigurationEngine creates backup when saving")
+    @Test("Saving backs the previous file up into the store, and leaves nothing beside it")
     func testSaveCreatesBackup() throws {
         let yamlContent = """
         rules:
@@ -54,6 +54,7 @@ struct YAMLConfigEngineSavingDiffTests {
 
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(content: yamlContent)
         defer { YAMLConfigurationEngineTestHelpers.cleanupTempFile(configFile) }
+        let store = ConfigBackupStore(root: TestTempDirectory.make("backups"))
 
         let config = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
             try engine.load()
@@ -62,22 +63,16 @@ struct YAMLConfigEngineSavingDiffTests {
             return config
         }
 
-        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
+        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile, backups: store) { engine in
             try engine.save(config: config, createBackup: true)
         }
 
+        let backups = store.backups(for: configFile)
+        #expect(backups.count == 1)
+        #expect(try backups.first.map { try String(contentsOf: $0.path, encoding: .utf8) } == yamlContent)
+        // Each save used to leave a `.swiftlint.yml.<seconds>.backup` here (issue #83).
         let configDir = configFile.deletingLastPathComponent()
-        let backupFiles = try FileManager.default
-            .contentsOfDirectory(at: configDir, includingPropertiesForKeys: nil)
-            .filter {
-                $0.lastPathComponent.hasPrefix(configFile.lastPathComponent)
-                    && $0.lastPathComponent.hasSuffix(".backup")
-            }
-        #expect(backupFiles.isEmpty == false, "Backup file should be created")
-
-        for backupFile in backupFiles {
-            try? FileManager.default.removeItem(at: backupFile)
-        }
+        #expect(try FileManager.default.contentsOfDirectory(atPath: configDir.path) == [".swiftlint.yml"])
     }
 
     @Test("YAMLConfigurationEngine performs atomic write")

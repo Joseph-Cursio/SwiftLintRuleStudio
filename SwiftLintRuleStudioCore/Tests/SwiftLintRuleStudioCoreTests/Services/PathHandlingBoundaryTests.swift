@@ -77,23 +77,48 @@ struct PathHandlingBoundaryTests {
 
     // MARK: - Config backups
 
-    @Test("only `<config>.<timestamp>.backup` files are backups")
+    @Test("only `<config>.<ten-digit seconds>.backup` files are backups, beside the config or in the store")
     func backupsAreNamedExactly() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("PathHandlingBoundaryTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let config = directory.appendingPathComponent(".swiftlint.yml")
-        let names = [
+        let store = ConfigBackupStore(root: directory.appendingPathComponent("store", isDirectory: true))
+        let storeFolder = store.directory(for: config)
+        try FileManager.default.createDirectory(at: storeFolder, withIntermediateDirectories: true)
+        // Not the app's: another file's backup, another suffix, a backup made by hand with a
+        // date in the name, and numbers TimeInterval would have read.
+        let notBackups = [
             ".swiftlint.yml",
-            ".swiftlint.yml.1700000000.backup",
             ".swiftlint.yml.1700000001.restore",
-            "other.yml.1700000002.backup"
+            "other.yml.1700000002.backup",
+            ".swiftlint.yml.20240115.backup",
+            ".swiftlint.yml.1700000000.5.backup",
+            ".swiftlint.yml.1e9.backup",
+            ".swiftlint.yml.nan.backup",
+            "config-path.txt"
         ]
-        for name in names {
-            try "rules: {}".write(to: directory.appendingPathComponent(name), atomically: true, encoding: .utf8)
+        for folder in [directory, storeFolder] {
+            for name in notBackups {
+                try "rules: {}".write(to: folder.appendingPathComponent(name), atomically: true, encoding: .utf8)
+            }
         }
-        let backups = ConfigVersionHistoryService().listBackups(for: config)
-        #expect(backups.map(\.path.lastPathComponent) == [".swiftlint.yml.1700000000.backup"])
+        try "rules: {}".write(
+            to: directory.appendingPathComponent(".swiftlint.yml.1700000000.backup"),
+            atomically: true,
+            encoding: .utf8
+        )
+        try "rules: {}".write(
+            to: storeFolder.appendingPathComponent(".swiftlint.yml.1700000003.backup"),
+            atomically: true,
+            encoding: .utf8
+        )
+        let backups = ConfigVersionHistoryService(backups: store).listBackups(for: config)
+        // Directory listings spell the temporary folder as /private/var, so compare resolved.
+        #expect(backups.map { $0.path.resolvingSymlinksInPath() } == [
+            storeFolder.appendingPathComponent(".swiftlint.yml.1700000003.backup"),
+            directory.appendingPathComponent(".swiftlint.yml.1700000000.backup")
+        ].map { $0.resolvingSymlinksInPath() })
     }
 }

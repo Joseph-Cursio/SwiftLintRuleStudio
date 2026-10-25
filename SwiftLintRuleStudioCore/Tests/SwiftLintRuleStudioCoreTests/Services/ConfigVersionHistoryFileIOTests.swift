@@ -21,6 +21,11 @@ struct ConfigVersionHistoryFileIOTests {
     private static let instant = Date(timeIntervalSince1970: 1_700_000_000)
     private static let configPath = URL(fileURLWithPath: "/cfg/.swiftlint.yml")
     private static let backupPath = URL(fileURLWithPath: "/cfg/.swiftlint.yml.1699000000.backup")
+    /// Never touched on disk: the store only computes paths here, and `FakeDisk` holds the files.
+    private static let store = ConfigBackupStore(root: URL(fileURLWithPath: "/backups"))
+    /// Where the restore's safety copy goes: the store, stamped with the injected instant.
+    private static let safetyPath = store.directory(for: configPath)
+        .appendingPathComponent(".swiftlint.yml.1700000000.backup")
 
     private struct IOError: Error {}
 
@@ -64,7 +69,7 @@ struct ConfigVersionHistoryFileIOTests {
     @Test("restoring writes the backup's content over the config")
     func restoreReplacesTheConfig() throws {
         let disk = FakeDisk([Self.configPath: "current", Self.backupPath: "restored"])
-        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io())
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
 
         try service.restoreBackup(backup(), to: Self.configPath)
 
@@ -76,13 +81,28 @@ struct ConfigVersionHistoryFileIOTests {
         // The safety copy exists so the restore is undoable. If it captured the *new* content it
         // would be worthless, and nothing said which it was.
         let disk = FakeDisk([Self.configPath: "current", Self.backupPath: "restored"])
-        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io())
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
 
         try service.restoreBackup(backup(), to: Self.configPath)
 
-        let safety = Self.configPath.deletingLastPathComponent()
-            .appendingPathComponent(".swiftlint.yml.1700000000.backup")
-        #expect(disk.contents[safety] == "current")
+        #expect(disk.contents[Self.safetyPath] == "current")
+        // In the store, not beside the configuration (issue #83).
+        let configFolder = Self.configPath.deletingLastPathComponent()
+        let besideConfig = disk.contents.keys.filter { $0.deletingLastPathComponent() == configFolder }
+        #expect(Set(besideConfig) == [Self.configPath, Self.backupPath])
+    }
+
+    @Test("a safety copy never overwrites a backup taken in the same second")
+    func safetyBackupTakesTheNextFreeSecond() throws {
+        let disk = FakeDisk([Self.configPath: "current", Self.backupPath: "restored", Self.safetyPath: "saved"])
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
+
+        try service.restoreBackup(backup(), to: Self.configPath)
+
+        let nextSecond = Self.store.directory(for: Self.configPath)
+            .appendingPathComponent(".swiftlint.yml.1700000001.backup")
+        #expect(disk.contents[Self.safetyPath] == "saved")
+        #expect(disk.contents[nextSecond] == "current")
     }
 
     // MARK: - The failure paths, which are why the seam exists
@@ -91,7 +111,7 @@ struct ConfigVersionHistoryFileIOTests {
     func unreadableBackupDoesNotDestroyTheConfig() {
         let disk = FakeDisk([Self.configPath: "current", Self.backupPath: "restored"])
         disk.failingReads = [Self.backupPath]
-        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io())
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
 
         #expect(throws: (any Error).self) {
             try service.restoreBackup(backup(), to: Self.configPath)
@@ -103,17 +123,16 @@ struct ConfigVersionHistoryFileIOTests {
     func unreadableBackupLeavesNoSafetyCopy() {
         // This is the behaviour change: the read now happens before the copy. Previously the
         // safety copy was made first, so a restore that then failed to read its backup left a
-        // spurious `.backup` file in the user's config directory. The configuration was never at
-        // risk either way — the write was always last — but the litter was real.
+        // spurious `.backup` file behind (in the user's config directory, as it was then). The
+        // configuration was never at risk either way — the write was always last — but the
+        // litter was real.
         let disk = FakeDisk([Self.configPath: "current", Self.backupPath: "restored"])
         disk.failingReads = [Self.backupPath]
-        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io())
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
 
         try? service.restoreBackup(backup(), to: Self.configPath)
 
-        let safety = Self.configPath.deletingLastPathComponent()
-            .appendingPathComponent(".swiftlint.yml.1700000000.backup")
-        #expect(disk.contents[safety] == nil)
+        #expect(disk.contents[Self.safetyPath] == nil)
         #expect(disk.contents.count == 2, "only the config and the backup should remain")
     }
 
@@ -123,21 +142,19 @@ struct ConfigVersionHistoryFileIOTests {
         // because that is the only record of what the config said.
         let disk = FakeDisk([Self.configPath: "current", Self.backupPath: "restored"])
         disk.failingWrites = [Self.configPath]
-        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io())
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
 
         #expect(throws: (any Error).self) {
             try service.restoreBackup(backup(), to: Self.configPath)
         }
 
-        let safety = Self.configPath.deletingLastPathComponent()
-            .appendingPathComponent(".swiftlint.yml.1700000000.backup")
-        #expect(disk.contents[safety] == "current")
+        #expect(disk.contents[Self.safetyPath] == "current")
     }
 
     @Test("restoring over a config that does not exist makes no safety copy")
     func absentConfigNeedsNoSafetyCopy() throws {
         let disk = FakeDisk([Self.backupPath: "restored"])
-        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io())
+        let service = ConfigVersionHistoryService(now: .fixed(Self.instant), files: disk.io(), backups: Self.store)
 
         try service.restoreBackup(backup(), to: Self.configPath)
 
@@ -150,7 +167,7 @@ struct ConfigVersionHistoryFileIOTests {
     @Test("loading a backup returns its content and propagates a read failure")
     func loadBackupReadsThrough() throws {
         let disk = FakeDisk([Self.backupPath: "stored"])
-        let service = ConfigVersionHistoryService(files: disk.io())
+        let service = ConfigVersionHistoryService(files: disk.io(), backups: Self.store)
         #expect(try service.loadBackup(backup()) == "stored")
 
         disk.failingReads = [Self.backupPath]

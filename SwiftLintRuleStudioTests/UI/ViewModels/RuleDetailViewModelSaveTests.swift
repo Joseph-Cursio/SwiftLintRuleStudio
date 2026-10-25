@@ -143,7 +143,7 @@ struct RuleDetailViewModelSaveTests {
         #expect(severity == .error)
     }
 
-    @Test("RuleDetailViewModel creates backup when saving")
+    @Test("RuleDetailViewModel backs the previous file up into the store when saving, not beside it")
     func testSaveConfigurationCreatesBackup() async throws {
         let configContent = """
         rules:
@@ -152,8 +152,12 @@ struct RuleDetailViewModelSaveTests {
         """
         let configPath = try RuleDetailViewModelTestHelpers.createTempConfigFile(content: configContent)
         defer { RuleDetailViewModelTestHelpers.cleanupTempFile(configPath) }
+        let store = ConfigBackupStore(root: TestTempDirectory.make("ruledetail-backups"))
 
-        let yamlEngine = await RuleDetailViewModelTestHelpers.createYAMLConfigurationEngine(configPath: configPath)
+        let yamlEngine = await RuleDetailViewModelTestHelpers.createYAMLConfigurationEngine(
+            configPath: configPath,
+            backups: store
+        )
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
         let viewModel = await RuleDetailViewModelTestHelpers.createRuleDetailViewModel(
             rule: rule,
@@ -171,17 +175,13 @@ struct RuleDetailViewModelSaveTests {
             try viewModel.saveConfiguration()
         }
 
-        let backupDir = configPath.deletingLastPathComponent()
-        let backupFiles = try FileManager.default.contentsOfDirectory(
-            at: backupDir,
-            includingPropertiesForKeys: nil
-        )
-        .filter {
-            let name = $0.lastPathComponent
-            return name.hasPrefix(".swiftlint.yml.") && name.hasSuffix(".backup")
-        }
-
-        #expect(backupFiles.count >= 1, "Expected at least one backup file, found \(backupFiles.count)")
+        let backups = await MainActor.run { store.backups(for: configPath) }
+        #expect(backups.count == 1)
+        #expect(try backups.first.map { try String(contentsOf: $0.path, encoding: .utf8) } == configContent)
+        // Each save used to leave a `.swiftlint.yml.<seconds>.backup` in the project (issue #83).
+        let projectFolder = configPath.deletingLastPathComponent().path
+        let projectFiles = try FileManager.default.contentsOfDirectory(atPath: projectFolder)
+        #expect(projectFiles == [".swiftlint.yml"])
     }
 
     @Test("RuleDetailViewModel throws error when saving without workspace")
