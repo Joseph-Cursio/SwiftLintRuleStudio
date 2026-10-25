@@ -96,17 +96,11 @@ extension SimulationWorkspaceBuilder {
     }
 
     /// Readies a config read from `source` for the mirror:
-    /// - puts back `excluded: Pods` and `included: Sources` — SwiftLint's single-string form —
-    ///   which the engine reads as nothing and would write back as nothing (until it reads them);
     /// - drops `write_baseline`, which would have a simulation overwrite the user's baseline
     ///   when the path is absolute, and write one nobody reads when it isn't;
     /// - points `baseline` at the user's file, by its absolute path — SwiftLint only reads it —
     ///   until each rule's write puts a copy of it in the mirror (see ``MirrorBaseline``).
     static func prepare(_ config: inout YAMLConfigurationEngine.YAMLConfig, readFrom source: URL) {
-        if let raw = RawConfigKeys.read(source) {
-            if config.excluded == nil, !raw.excluded.isEmpty { config.excluded = raw.excluded }
-            if config.included == nil, !raw.included.isEmpty { config.included = raw.included }
-        }
         config.passthroughNodes["write_baseline"] = nil
         config.keyOrder.removeAll { $0 == "write_baseline" }
         if let baseline = config.passthroughNodes["baseline"]?.string, !baseline.hasPrefix("/") {

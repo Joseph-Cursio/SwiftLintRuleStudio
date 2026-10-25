@@ -1,6 +1,8 @@
 import Foundation
 // Scoped imports: pull ONLY the seam symbols from Core. A broad import would make
 // `Rule`/`RuleRegistry`/`Configuration` ambiguous, since Core declares its own.
+import struct SwiftLintCLISeam.LintProgress
+import typealias SwiftLintCLISeam.LintProgressHandler
 import protocol SwiftLintCLISeam.SwiftLintCLIProtocol
 import enum SwiftLintCLISeam.SwiftLintError
 import SwiftLintFramework
@@ -63,12 +65,20 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     }
 
     public func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data {
+        try await executeLintCommand(configPath: configPath, workspacePath: workspacePath) { _ in }
+    }
+
+    public func executeLintCommand(
+        configPath: URL?,
+        workspacePath: URL,
+        progress: @escaping LintProgressHandler
+    ) async throws -> Data {
         // SwiftLint lints synchronously and keeps every core busy. As a synchronous witness
         // for this async requirement, the lint ran on the caller's executor — the main actor
         // when the UI called in — and froze the app until it finished. A detached task runs
         // it on the cooperative pool instead, so the UI stays live and can show progress.
         try await Task.detached(priority: .userInitiated) {
-            try Self.lint(configPath: configPath, workspacePath: workspacePath)
+            try Self.lint(configPath: configPath, workspacePath: workspacePath, progress: progress)
         }.value
     }
 
@@ -98,7 +108,13 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// - Without one — rule simulation, which lints a mirror at a new path for every rule —
     ///   the workspace's `.swiftlint.yml` and the nested configs beneath it apply, as they do
     ///   for the subprocess backend.
-    static func lint(configPath: URL?, workspacePath: URL) throws -> Data {
+    ///
+    /// `progress` hears once the files are found, then again as each one is linted.
+    static func lint(
+        configPath: URL?,
+        workspacePath: URL,
+        progress: LintProgressHandler = { _ in }
+    ) throws -> Data {
         prepare()
         // SwiftLint looks for `.swiftlint.yml`, and stops its nested-config search, at the
         // working directory. The app's isn't the workspace, so override it for this lint.
@@ -126,13 +142,20 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
                     workspacePath: workspacePath
                 )
             }
+            progress(LintProgress(filesLinted: 0, totalFiles: files.count))
             let storage = RuleStorage()
-            let violations = files
+            // Every file is collected before any is linted: collecting rules need what the
+            // whole workspace holds before they can judge one file.
+            let linters = files
                 .map { file in
                     Linter(file: file, configuration: appliesNestedConfigs ? root.configuration(for: file) : root)
                 }
                 .map { $0.collect(into: storage) }
-                .flatMap { $0.styleViolations(using: storage) }
+            var violations: [StyleViolation] = []
+            for (index, linter) in linters.enumerated() {
+                violations += linter.styleViolations(using: storage)
+                progress(LintProgress(filesLinted: index + 1, totalFiles: linters.count))
+            }
             return Data(jsonReport(for: violations).utf8)
         }
     }

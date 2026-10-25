@@ -67,6 +67,7 @@ Located in `Core/Services/`:
 - **WorkspaceAnalyzer** - Background analysis engine, runs SwiftLint and parses violations
 - **ViolationStorage** - Actor-based SQLite database for violations with thread safety
 - **YAMLConfigurationEngine** - Safe YAML editing with comment preservation, diffs, validation
+- **ConfigBackupStore** - Backups taken before each save, kept in Application Support (never in the user's project)
 - **WorkspaceManager** - Workspace opening, validation, and recent workspace persistence
 - **ImpactSimulator** - Simulates violations for disabled rules, discovers zero-violation rules
 - **OnboardingManager** - First-run experience and SwiftLint detection
@@ -137,7 +138,7 @@ Services use protocols for testability:
 - **Framework:** Swift Testing (migrated from XCTest); UI tests use XCTest
 - **Test Location:** `SwiftLintRuleStudioCore/Tests/`, `SwiftLintInProcessBackend/Tests/`, `SwiftLintRuleStudioTests/`, and `SwiftLintRuleStudioUITests/`
 - **Coverage:** 1,400+ tests, organized by Core/ and UI/
-- **Isolation:** Tests use isolated UserDefaults, file system, and workspace instances
+- **Isolation:** Tests use isolated UserDefaults, file system, and workspace instances. `ConfigBackupStore.standard` resolves to a temporary folder in any test run; a test that asserts on backups injects its own store (`ConfigBackupStore(root:)`)
 
 ### Testing the sandboxed Explorer edition
 
@@ -167,7 +168,7 @@ resolves under the App Store sandbox — still needs a manual check before submi
 3. User clicks "Apply Changes"
 4. YAMLConfigurationEngine generates new YAML with diff
 5. User confirms changes in diff preview
-6. Engine writes to .swiftlint.yml (atomic write with backup)
+6. Engine writes to .swiftlint.yml (atomic write; the previous file is backed up into ConfigBackupStore first)
 7. Notification triggers re-analysis
 8. WorkspaceAnalyzer runs SwiftLint
 9. ViolationStorage updated with new violations

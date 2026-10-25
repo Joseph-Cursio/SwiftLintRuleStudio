@@ -9,13 +9,12 @@
 import Foundation
 import Yams
 
-/// The keys of a config that decide which files SwiftLint lints and which other configs it
-/// loads, read from the raw YAML.
+/// The keys of a config that decide which files SwiftLint lints, which other configs it loads,
+/// and which custom rules it defines, read from the raw YAML.
 ///
-/// SwiftLint takes `excluded: Pods` as well as `excluded: [Pods]`, and so with `included`;
-/// `YAMLConfigurationEngine` reads only the list form and drops the other. The mirror can't
-/// lose them — `excluded` alone switches SwiftLint to the walk that follows links — so they
-/// are read here. (Duplicated until the engine reads the scalar form itself.)
+/// `YAMLConfigurationEngine` reads `included` and `excluded` the same way, but it is bound to
+/// the main actor, and the mirror is planned off it; so the few keys the plan needs are read
+/// here, as SwiftLint reads them: a list of strings, or one string as a list of one.
 nonisolated struct RawConfigKeys: Sendable {
     let excluded: [String]
     let included: [String]

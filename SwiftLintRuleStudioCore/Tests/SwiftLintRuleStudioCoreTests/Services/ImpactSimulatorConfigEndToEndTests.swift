@@ -191,12 +191,13 @@ struct ImpactSimulatorConfigEndToEndTests {
         #expect(result.affectedFiles == ["2024/B.swift"], "SwiftLint lints the whole workspace")
     }
 
-    @Test("a config the simulation can't write readably fails the rule rather than lint with the defaults")
-    func unwritableConfig() async throws {
+    @Test("a config holding a list of mappings is written readably, and the rule measured")
+    func listOfMappingsConfig() async throws {
         guard isSwiftLintAvailable() else { return }
         let workspace = try makeTempFolder()
         defer { try? FileManager.default.removeItem(at: workspace) }
-        // The engine once wrote this list of mappings misaligned, which SwiftLint can't read.
+        // The engine once wrote this list of mappings misaligned, which SwiftLint can't read; the
+        // read-back check would then fail the rule rather than lint with SwiftLint's defaults.
         try write(
             "disabled_rules:\n  - force_cast\nnumber_separator:\n  minimum_length: 3\n  exclude_ranges:\n"
                 + "    - min: 1900\n      max: 2030\n",
@@ -204,12 +205,9 @@ struct ImpactSimulatorConfigEndToEndTests {
         )
         try write("let casted = (1 as Any) as! Int\n", to: workspace.appendingPathComponent("Sources/A.swift"))
 
-        do {
-            let result = try await simulate("force_cast", in: workspace)
-            // Once the engine writes it readably, the rule is measured — never 0 by the defaults.
-            #expect(result.violationCount == 1)
-        } catch let error as MirrorConfigWriteError {
-            #expect(error.path == ".swiftlint.yml")
-        }
+        let result = try await simulate("force_cast", in: workspace)
+
+        #expect(result.isMeasured)
+        #expect(result.violationCount == 1)
     }
 }

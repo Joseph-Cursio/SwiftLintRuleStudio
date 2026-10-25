@@ -18,16 +18,22 @@
 //      removed r      r is configured and removed at or before v
 //      renamed r → t  r is configured, t is its rename, and v has t: not below
 //                     the version r was renamed in
-//      new rules      every rule added at or before v that the config does not
-//                     mention
+//      new rules      every rule added at or before v, neither removed nor
+//                     deprecated without a replacement by v, that the config
+//                     does not use under its own name or an alias
 //
 //  `hasIssues == (totalIssueCount > 0)` is not stated here: swift-infer proposes
 //  it (`emptiness-agreement`) and its generated stub states it.
 //
 //  Writing the rename law found the defect MigrationAssistant had, fixed in the
 //  same change: renames ignored the installed version, so a config checked
-//  against 0.22 reported `variable_name` as renamed to `identifier_name`, which
-//  only exists from 0.25.
+//  against 0.16 reported `variable_name` as renamed to `identifier_name`, which
+//  only exists from 0.17.
+//
+//  The laws read the tables, so they cannot catch a wrong row: the tables once
+//  listed live rules (`generic_type_name`) as renamed, and every law here held.
+//  DeprecationDataTests in SwiftLintInProcessBackend checks the rows against the
+//  linked SwiftLint.
 //
 
 import Foundation
@@ -73,7 +79,10 @@ struct VersionCompatibilityCheckerPropertyLawTests {
             + Array(SwiftLintDeprecations.versionRuleAdditions.keys)
         let below = turning.compactMap { version -> String? in
             let parts = version.split(separator: ".").compactMap { Int($0) }
-            guard parts.count == 3, parts[1] > 0 else { return nil }
+            guard parts.count == 3 else { return nil }
+            // 0.59.1 removed a rule 0.59.0 still had: the edge of a patch release is a patch below.
+            if parts[2] > 0 { return "0.\(parts[1]).\(parts[2] - 1)" }
+            guard parts[1] > 0 else { return nil }
             return "0.\(parts[1] - 1).0"
         }
         return Set(turning + below + ["0.20.0", "0.70.0"]).sorted {
@@ -195,23 +204,36 @@ struct VersionCompatibilityCheckerPropertyLawTests {
         }
     }
 
-    @Test("the new rules are every rule added by v that the config does not mention")
+    @Test("the new rules are every rule added by v and not retired by v that the config does not use")
     func newRulesFollowTheAdditions() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
             let version = Self.versions[spec.versionIndex]
             let added = SwiftLintDeprecations.versionRuleAdditions
                 .filter { Self.reached($0.key, by: version) }
                 .flatMap(\.value)
-            let expected = Set(added).subtracting(Self.configuredIds(Self.config(for: spec))).sorted()
-            #expect(Self.report(for: spec).availableNewRules == expected)
+                .filter { !Self.retired($0, by: version) }
+            let configured = Self.configuredIds(Self.config(for: spec))
+            let used = configured.union(configured.compactMap { SwiftLintDeprecations.ruleAliases[$0] })
+            #expect(Self.report(for: spec).availableNewRules == Set(added).subtracting(used).sorted())
         }
+    }
+
+    /// Whether `version` no longer offers `rule`: removed by then, or deprecated with no replacement.
+    private static func retired(_ rule: String, by version: String) -> Bool {
+        if let removal = SwiftLintDeprecations.removedRules[rule], reached(removal.removedInVersion, by: version) {
+            return true
+        }
+        guard let deprecation = SwiftLintDeprecations.deprecatedRules[rule], deprecation.replacement == nil else {
+            return false
+        }
+        return reached(deprecation.deprecatedInVersion, by: version)
     }
 
     // MARK: - The version gate, pinned
 
-    /// The defect the rename law found: `identifier_name` arrived in 0.25.0.
+    /// The defect the rename law found: `identifier_name` arrived in 0.17.0.
     @Test("a rename is not reported before the installed version has the new name", arguments: [
-        ("0.22.0", false), ("0.24.0", false), ("0.25.0", true), ("0.40.0", true)
+        ("0.15.0", false), ("0.16.0", false), ("0.17.0", true), ("0.40.0", true)
     ])
     func renameWaitsForTheInstalledVersion(version: String, renamed: Bool) {
         var config = YAMLConfigurationEngine.YAMLConfig()
@@ -220,15 +242,27 @@ struct VersionCompatibilityCheckerPropertyLawTests {
         #expect(report.renamedRules.contains { $0.oldRuleId == "variable_name" } == renamed)
     }
 
-    /// Deprecated in 0.25.0, removed in 0.35.0: the three sides of that window.
-    @Test("variable_name is deprecated inside its window and removed after it", arguments: [
-        ("0.24.0", false, false), ("0.25.0", true, false), ("0.34.0", true, false), ("0.35.0", false, true)
+    /// Deprecated in 0.51.0, removed in 0.58.0: the three sides of that window.
+    @Test("unused_capture_list is deprecated inside its window and removed after it", arguments: [
+        ("0.50.0", false, false), ("0.51.0", true, false), ("0.57.0", true, false), ("0.58.0", false, true)
     ])
     func deprecationWindow(version: String, deprecated: Bool, removed: Bool) {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.optInRules = ["unused_capture_list"]
+        let report = Self.checker.checkCompatibility(config: config, swiftLintVersion: version)
+        #expect(report.deprecatedRules.contains { $0.ruleId == "unused_capture_list" } == deprecated)
+        #expect(report.removedRules.contains { $0.ruleId == "unused_capture_list" } == removed)
+    }
+
+    /// A rename is an alias SwiftLint keeps resolving: deprecated from 0.17.0 on, never removed.
+    @Test("variable_name stays deprecated, and is never removed", arguments: [
+        ("0.16.0", false), ("0.17.0", true), ("0.35.0", true), ("0.70.0", true)
+    ])
+    func aliasIsNeverRemoved(version: String, deprecated: Bool) {
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.optInRules = ["variable_name"]
         let report = Self.checker.checkCompatibility(config: config, swiftLintVersion: version)
         #expect(report.deprecatedRules.contains { $0.ruleId == "variable_name" } == deprecated)
-        #expect(report.removedRules.contains { $0.ruleId == "variable_name" } == removed)
+        #expect(report.removedRules.isEmpty)
     }
 }

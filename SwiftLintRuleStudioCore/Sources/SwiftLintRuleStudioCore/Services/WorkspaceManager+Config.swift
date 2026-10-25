@@ -22,6 +22,23 @@ public extension WorkspaceManager {
         )
     }
 
+    /// Re-read the current workspace's `.swiftlint.yml` and record any rule-list problem in
+    /// `configRuleListsProblem`. A missing or unreadable file records none: the missing-file
+    /// banner and the parse error cover those.
+    func checkConfigRuleLists() {
+        guard let workspace = currentWorkspace else {
+            configRuleListsProblem = nil
+            return
+        }
+        let configPath = workspace.configPath
+            ?? workspace.path.appendingPathComponent(".swiftlint.yml")
+        guard let config = try? YAMLConfigurationEngine.loadConfig(at: configPath) else {
+            configRuleListsProblem = nil
+            return
+        }
+        configRuleListsProblem = ConfigRuleListsProblem(config)
+    }
+
     /// Create a default SwiftLint configuration file for the current workspace
     /// - Returns: URL of the created config file, or nil if creation failed
     @discardableResult

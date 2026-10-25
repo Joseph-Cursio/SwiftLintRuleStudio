@@ -5,6 +5,7 @@
 //  Created by joe cursio on 12/24/25.
 //
 
+import AppKit
 import SwiftLintRuleStudioCore
 import SwiftUI
 import UniformTypeIdentifiers
@@ -47,6 +48,7 @@ private struct ContentStatusBar: View {
 struct ContentView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     @Environment(\.dependencies) var dependencies: DependencyContainer
+    @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
     @State private var errorMessage: String?
     @State private var showError: Bool = false
     @State private var didApplyUITestOverrides = false
@@ -85,8 +87,20 @@ struct ContentView: View {
         .task { await loadRulesOnLaunch() }
         .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
             dependencies.workspaceManager.checkConfigFileExists()
+            dependencies.workspaceManager.checkConfigRuleLists()
         }
         .onAppear(perform: handleOnAppear)
+        // The rule-lists banner follows the file: after the app saves it, after a backup is
+        // restored over it, and on returning to the app, which covers edits made elsewhere.
+        .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { _ in
+            dependencies.workspaceManager.checkConfigRuleLists()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .configurationDidRestore)) { _ in
+            dependencies.workspaceManager.checkConfigRuleLists()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            dependencies.workspaceManager.checkConfigRuleLists()
+        }
         .alert("Error Loading Rules", isPresented: TestGuard.alertBinding($showError)) {
             errorAlertActions
         } message: {
@@ -94,24 +108,20 @@ struct ContentView: View {
         }
     }
 
+    /// The status bar sits *below* the split view rather than in its bottom safe area. As a
+    /// `safeAreaInset` it covered the bottom of every screen built on `HSplitView` — Violations,
+    /// Version History, Config Map — because the AppKit-backed split view ignores SwiftUI's safe
+    /// area, and Version History's Cancel and Save Changes buttons ended up under the bar.
     private var mainNavigationView: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            SidebarView(selection: $selection)
-                .navigationTitle(Bundle.main.appDisplayName)
-                .listStyle(.sidebar)
-        } detail: {
-            detailContent
-        }
-        .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
-        .toolbar { toolbarContent }
-        .safeAreaInset(edge: .bottom) {
+        VStack(spacing: 0) {
+            splitView
             ContentStatusBar(
                 workspacePath: dependencies.workspaceManager.currentWorkspace?.path.path(),
                 isLoadingRules: ruleRegistry.isLoading,
                 ruleCount: ruleRegistry.rules.count
             )
         }
-        .navigationSubtitle(dependencies.workspaceManager.currentWorkspace?.name ?? "")
+        // On the whole window, status bar included, so a folder can be dropped anywhere.
         .fileImporter(
             isPresented: $showWorkspacePicker,
             allowedContentTypes: [.folder],
@@ -122,6 +132,19 @@ struct ContentView: View {
             showWorkspacePicker = true
         }
         .onDrop(of: [UTType.fileURL], isTargeted: nil, perform: handleDrop)
+    }
+
+    private var splitView: some View {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            SidebarView(selection: $selection)
+                .navigationTitle(Bundle.main.appDisplayName)
+                .listStyle(.sidebar)
+        } detail: {
+            detailContent
+        }
+        .navigationSplitViewColumnWidth(min: 200, ideal: 260, max: 340)
+        .toolbar { toolbarContent }
+        .navigationSubtitle(dependencies.workspaceManager.currentWorkspace?.name ?? "")
         .toolbarTitleMenu { titleMenuContent }
     }
 
@@ -130,6 +153,12 @@ struct ContentView: View {
             if dependencies.workspaceManager.configFileMissing {
                 ConfigRecommendationView(workspaceManager: dependencies.workspaceManager)
                     .padding()
+            }
+            if let problem = dependencies.workspaceManager.configRuleListsProblem,
+               let configPath = dependencies.workspaceManager.currentWorkspace?.configPath {
+                RuleListsProblemBanner(problem: problem, configPath: configPath)
+                    .padding()
+                    .id(configPath)
             }
             sectionDetailView
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -156,10 +185,11 @@ struct ContentView: View {
     ///
     /// It used to be eleven hand-written buttons, and it listed eleven of the twelve sections —
     /// Config Map was missing, reachable only from the sidebar. Deriving the menu is what stops
-    /// that happening again: adding a case to the enum now adds the destination here.
+    /// that happening again: adding a case to the enum now adds the destination here. Sections
+    /// this edition doesn't offer are left out, as they are in the sidebar.
     @ViewBuilder
     private var titleMenuContent: some View {
-        ForEach(AppSection.allCases, id: \.self) { section in
+        ForEach(AppSection.allCases.filter { $0.isAvailable(with: capabilities) }, id: \.self) { section in
             Button(section.title) { selection = section }
         }
     }
@@ -193,6 +223,7 @@ struct ContentView: View {
 
     private func handleOnAppear() {
         dependencies.workspaceManager.checkConfigFileExists()
+        dependencies.workspaceManager.checkConfigRuleLists()
         if ruleBrowserViewModel == nil {
             ruleBrowserViewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
         }
@@ -239,8 +270,8 @@ struct ContentView: View {
     let swiftLintCLI = UnconfiguredSwiftLintBackend()
     let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
     let container = DependencyContainer(
-        ruleRegistry: ruleRegistry,
         swiftLintCLI: swiftLintCLI,
+        ruleRegistry: ruleRegistry,
         cacheManager: cacheManager
     )
 

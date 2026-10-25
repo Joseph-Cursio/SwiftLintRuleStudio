@@ -43,7 +43,9 @@ let package = Package(
             name: "SwiftLintInProcessBackendTests",
             dependencies: [
                 "SwiftLintInProcessBackend",
-                .product(name: "SwiftLintRuleStudioCore", package: "SwiftLintRuleStudioCore")
+                .product(name: "SwiftLintRuleStudioCore", package: "SwiftLintRuleStudioCore"),
+                // The rule-list agreement tests read SwiftLint's own resolved configuration.
+                .product(name: "SwiftLintFramework", package: "SwiftLint")
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         )

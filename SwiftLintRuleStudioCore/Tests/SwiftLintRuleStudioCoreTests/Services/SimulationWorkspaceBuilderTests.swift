@@ -132,6 +132,51 @@ struct SimulationWorkspaceBuilderTests {
         #expect(config.optInRules == nil)
     }
 
+    @Test("an analyzer rule under only_rules goes in analyzer_rules alone, never listed twice")
+    func analyzerRuleUnderOnlyRulesIsNotDuplicated() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = ["line_length"]
+
+        ConfigRuleEnabler.enableRule("unused_import", in: &config, isOptIn: true, isAnalyzer: true)
+
+        #expect(config.onlyRules == ["line_length"])
+        #expect(config.analyzerRules == ["unused_import"])
+    }
+
+    @Test("an empty only_rules is default mode, so the rule doesn't become the only one that runs")
+    func emptyOnlyRulesIsDefaultMode() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = []
+        config.disabledRules = ["todo"]
+
+        ConfigRuleEnabler.enableRule("empty_count", in: &config, isOptIn: true, isAnalyzer: false)
+
+        #expect(config.onlyRules?.isEmpty == true)
+        #expect(config.optInRules == ["empty_count"])
+        #expect(!config.hasOnlyRulesConflict)
+    }
+
+    @Test("a root config SwiftLint rejects is mirrored as its repair, so the simulation still runs")
+    func conflictedRootConfigIsMirroredRepaired() throws {
+        let workspaceRoot = try makeTempWorkspace()
+        defer { try? FileManager.default.removeItem(at: workspaceRoot) }
+
+        try write(
+            "only_rules:\n  - line_length\nopt_in_rules:\n  - empty_count\n",
+            to: workspaceRoot.appendingPathComponent(".swiftlint.yml")
+        )
+
+        let workspace = Workspace(path: workspaceRoot)
+        let shadow = try SimulationWorkspaceBuilder().makeWorkspace(for: workspace, baseConfigPath: nil)
+        defer { shadow.cleanup() }
+
+        try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
+
+        let rootConfig = try loadConfig(at: shadow.root.appendingPathComponent(".swiftlint.yml"))
+        #expect(rootConfig.onlyRules == ["line_length", "empty_count", "force_cast"])
+        #expect(rootConfig.optInRules == nil)
+    }
+
     @Test("preserves relative excluded/included entries verbatim in the mirror")
     func preservesExcludedAndIncludedVerbatim() throws {
         let workspaceRoot = try makeTempWorkspace()

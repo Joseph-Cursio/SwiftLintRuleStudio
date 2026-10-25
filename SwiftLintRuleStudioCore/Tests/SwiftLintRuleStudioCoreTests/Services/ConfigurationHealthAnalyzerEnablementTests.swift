@@ -69,4 +69,25 @@ struct ConfigurationHealthAnalyzerEnablementTests {
         #expect(optInRecommendation?.description.contains("first_where") != true)
         #expect(optInRecommendation?.description.contains("empty_count") != true)
     }
+
+    @Test("An empty only_rules is no allowlist: opt_in_rules decides adoption")
+    func testOptInAdoptionWithEmptyOnlyRules() {
+        let analyzer = ConfigurationHealthAnalyzer()
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = []
+        config.optInRules = ["first_where"]
+
+        #expect(analyzer.enabledRecommendedOptInRules(config: config) == ["first_where"])
+    }
+
+    @Test("A file SwiftLint rejects counts adoption as its repair will write it, like the toggles")
+    func testOptInAdoptionWithConflict() {
+        let analyzer = ConfigurationHealthAnalyzer()
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = ["force_cast", "first_where"]
+        config.disabledRules = ["first_where"]
+        config.optInRules = ["empty_count"]
+
+        #expect(analyzer.enabledRecommendedOptInRules(config: config) == ["empty_count"])
+    }
 }

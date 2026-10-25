@@ -31,8 +31,8 @@ struct YAMLConfigEngineKeyOrderTests {
     reporter: xcode
     """
 
-    @Test("Round-trip preserves the original top-level key order")
-    func testRoundTripPreservesKeyOrder() throws {
+    @Test("Round-trip preserves the original top-level key order", arguments: ConfigWriter.allCases)
+    func testRoundTripPreservesKeyOrder(writer: ConfigWriter) throws {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(
             content: Self.swiftAssistStyleYAML
         )
@@ -43,11 +43,7 @@ struct YAMLConfigEngineKeyOrderTests {
             return engine.getConfig()
         }
 
-        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
-            try engine.save(config: loadedConfig, createBackup: false)
-        }
-
-        let savedContent = try String(contentsOf: configFile, encoding: .utf8)
+        let savedContent = try writer.text(of: loadedConfig, over: configFile)
         let keysInOrder = topLevelKeys(in: savedContent)
 
         #expect(
@@ -56,8 +52,8 @@ struct YAMLConfigEngineKeyOrderTests {
         )
     }
 
-    @Test("Adding an opt-in rule does not duplicate analyzer rules into opt_in_rules")
-    func testAddingOptInRuleDoesNotDuplicateAnalyzerRules() throws {
+    @Test("Adding an opt-in rule does not duplicate analyzer rules into opt_in_rules", arguments: ConfigWriter.allCases)
+    func testAddingOptInRuleDoesNotDuplicateAnalyzerRules(writer: ConfigWriter) throws {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(
             content: Self.swiftAssistStyleYAML
         )
@@ -72,14 +68,7 @@ struct YAMLConfigEngineKeyOrderTests {
         optIn.append("accessibility_label_for_image")
         config.optInRules = optIn
 
-        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
-            try engine.save(config: config, createBackup: false)
-        }
-
-        let reloaded = try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
-            try engine.load()
-            return engine.getConfig()
-        }
+        let reloaded = try YAMLConfigurationEngine.parse(writer.text(of: config, over: configFile))
 
         let optInRules = Set(reloaded.optInRules ?? [])
         let analyzerRules = Set(reloaded.analyzerRules ?? [])
@@ -96,8 +85,8 @@ struct YAMLConfigEngineKeyOrderTests {
         )
     }
 
-    @Test("Adding an opt-in rule preserves original key order")
-    func testAddingOptInRulePreservesKeyOrder() throws {
+    @Test("Adding an opt-in rule preserves original key order", arguments: ConfigWriter.allCases)
+    func testAddingOptInRulePreservesKeyOrder(writer: ConfigWriter) throws {
         let configFile = try YAMLConfigurationEngineTestHelpers.createTempConfigFile(
             content: Self.swiftAssistStyleYAML
         )
@@ -110,11 +99,7 @@ struct YAMLConfigEngineKeyOrderTests {
 
         config.optInRules = (config.optInRules ?? []) + ["accessibility_label_for_image"]
 
-        try YAMLConfigurationEngineTestHelpers.withEngine(configPath: configFile) { engine in
-            try engine.save(config: config, createBackup: false)
-        }
-
-        let savedContent = try String(contentsOf: configFile, encoding: .utf8)
+        let savedContent = try writer.text(of: config, over: configFile)
         let keysInOrder = topLevelKeys(in: savedContent)
 
         #expect(

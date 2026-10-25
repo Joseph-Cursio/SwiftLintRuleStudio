@@ -122,7 +122,7 @@ struct ViolationInspectorViewModelLoadingTests {
             (viewModel.violations.count, mockAnalyzer.analyzeCallCount)
         }
         #expect(violationsCount >= 1)
-        #expect(analyzeCallCount > initialCallCount)
+        #expect(analyzeCallCount == initialCallCount + 1, "a refresh lints the workspace once")
     }
 
     @Test("ViolationInspectorViewModel loads violations with automatic analysis")

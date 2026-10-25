@@ -3,6 +3,16 @@ import Foundation
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
+/// The shape as it was persisted before the rename, so the test writes real legacy data rather
+/// than a hand-built string with a guessed date encoding.
+private struct LegacyWorkspaceData: Codable {
+    let id: UUID
+    let path: String
+    let name: String
+    let configPath: String?
+    let lastAnalyzed: Date?
+}
+
 /// `Workspace.lastOpened` records what actually writes it.
 ///
 /// It was `lastAnalyzed`, and **no analysis ever wrote it**. The only assignment in the package was
@@ -65,10 +75,12 @@ struct WorkspaceLastOpenedTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(path) }
 
         let defaults = IsolatedUserDefaults.create(for: #function)
-        let legacy = [LegacyWorkspaceData(
-            id: UUID(), path: path.path, name: path.lastPathComponent,
-            configPath: nil, lastAnalyzed: Self.opened
-        )]
+        let legacy = [
+            LegacyWorkspaceData(
+                id: UUID(), path: path.path, name: path.lastPathComponent,
+                configPath: nil, lastAnalyzed: Self.opened
+            )
+        ]
         defaults.set(
             try JSONEncoder().encode(legacy),
             forKey: WorkspaceManager(userDefaults: defaults).recentWorkspacesKey
@@ -98,14 +110,4 @@ struct WorkspaceLastOpenedTests {
         #expect(json.contains("lastOpened"))
         #expect(!json.contains("lastAnalyzed"))
     }
-}
-
-/// The shape as it was persisted before the rename, so the test writes real legacy data rather
-/// than a hand-built string with a guessed date encoding.
-private struct LegacyWorkspaceData: Codable {
-    let id: UUID
-    let path: String
-    let name: String
-    let configPath: String?
-    let lastAnalyzed: Date?
 }

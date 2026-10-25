@@ -28,6 +28,13 @@ class MigrationAssistantViewModel {
     var previousVersion: String = ""
     var migrationPlan: MigrationPlan?
     var previewDiff: YAMLConfigurationEngine.ConfigDiff?
+    /// Whether applying the previewed plan rewrites the file. Renaming an alias inside a rule
+    /// list changes nothing SwiftLint checks, so the diff reports no change, yet the plan's
+    /// rename still has to be written to take effect.
+    var previewRewritesConfig: Bool {
+        guard let previewDiff else { return false }
+        return previewDiff.hasChanges || previewDiff.before != previewDiff.after
+    }
     var isDetecting: Bool = false
     var isMigrating: Bool = false
     var error: Error?
@@ -97,6 +104,12 @@ class MigrationAssistantViewModel {
 
         do {
             let current = try YAMLConfigurationEngine.loadConfig(at: configPath)
+            // Saving a file SwiftLint rejects is refused, so say so before the preview
+            // rather than after it has been approved.
+            guard !current.hasOnlyRulesConflict else {
+                self.error = YAMLConfigError.onlyRulesConflict
+                return
+            }
             var config = current
 
             assistant.applyMigration(plan, to: &config)
@@ -120,6 +133,11 @@ class MigrationAssistantViewModel {
             try YAMLConfigurationEngine.save(config, to: configPath)
 
             migrationComplete = true
+            NotificationCenter.default.post(
+                name: .ruleConfigurationDidChange,
+                object: nil,
+                userInfo: ["migration": true]
+            )
         } catch {
             self.error = error
         }

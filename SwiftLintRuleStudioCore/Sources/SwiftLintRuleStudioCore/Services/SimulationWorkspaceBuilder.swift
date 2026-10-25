@@ -121,7 +121,10 @@ final class SimulationWorkspace {
         root = rootInMovingFolder.map { freshFolder.appendingPathComponent($0, isDirectory: true) } ?? freshFolder
 
         for (index, entry) in configs.enumerated() {
-            var config = entry.original
+            // A rejected root configuration is measured as the app will repair it, which is also
+            // how `RuleEnablementResolver` shows it; as written it couldn't be saved. A nested
+            // config Enable doesn't touch is mirrored as it is.
+            var config = entry.isRootConfiguration ? entry.original.normalizedRuleLists() : entry.original
             let destination = root.appendingPathComponent(entry.relativePath)
             try fileManager.createDirectory(
                 at: destination.deletingLastPathComponent(),
@@ -180,11 +183,12 @@ final class SimulationWorkspace {
     }
 }
 
-/// The YAML mutation that turns a rule on: sets it enabled, routes it into
-/// `analyzer_rules`, or `opt_in_rules` when there's no `only_rules` whitelist, adds it
-/// to `only_rules` when there is one, and removes it from `disabled_rules` — under its own
-/// name and its deprecated ones, which SwiftLint still reads as it. Preserves the
-/// config's `included:`/`excluded:` exactly as written — in the mirror those
+/// The YAML mutation that turns a rule on: sets it enabled, applies any parameter
+/// overrides, and routes it through the rule lists with
+/// `YAMLConfig.enableRule(_:kind:)` — `only_rules` when the file has one, otherwise
+/// `opt_in_rules` / `analyzer_rules` — so the mirror stays a file SwiftLint accepts; and
+/// takes the rule's deprecated names off every list, as SwiftLint still reads them as it.
+/// Preserves the config's `included:`/`excluded:` exactly as written — in the mirror those
 /// relative paths resolve correctly, so no absolutizing is needed.
 enum ConfigRuleEnabler {
 
@@ -205,48 +209,26 @@ enum ConfigRuleEnabler {
             ruleConfig.parameters = merged
         }
         config.rules[ruleId] = ruleConfig
-
-        if isAnalyzer {
-            appendUnique(ruleId, to: &config.analyzerRules)
-        } else if isOptIn, config.onlyRules == nil {
-            // SwiftLint rejects `opt_in_rules` alongside `only_rules`, which turns
-            // an opt-in rule on by itself.
-            appendUnique(ruleId, to: &config.optInRules)
-        }
-
-        if config.onlyRules != nil {
-            appendUnique(ruleId, to: &config.onlyRules)
-        }
+        config.enableRule(ruleId, kind: RuleListKind(isOptIn: isOptIn, isAnalyzer: isAnalyzer))
 
         // `disabled_rules: [variable_name]` still turns `identifier_name` off, so a deprecated
         // name goes from every list too; the rule's own name is listed where it belongs.
         let aliases = Set(Self.aliases(of: ruleId))
-        for list in [\YAMLConfigurationEngine.YAMLConfig.optInRules, \.analyzerRules, \.onlyRules] {
-            if let names = config[keyPath: list] {
-                config[keyPath: list] = names.filter { !aliases.contains($0) }
+        for list in [
+            \YAMLConfigurationEngine.YAMLConfig.disabledRules, \.optInRules, \.analyzerRules, \.onlyRules
+        ] {
+            // A list without them stays exactly as it is: an empty `only_rules` means default mode.
+            if let names = config[keyPath: list], names.contains(where: aliases.contains) {
+                let kept = names.filter { !aliases.contains($0) }
+                config[keyPath: list] = kept.isEmpty ? nil : kept
             }
         }
-        if var disabledRules = config.disabledRules {
-            disabledRules.removeAll { $0 == ruleId || aliases.contains($0) }
-            config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
-        }
     }
 
-    /// The deprecated names SwiftLint still reads as `ruleId`, by a reverse lookup of
-    /// ``SwiftLintDeprecations/renamedRules``. Some of that table's entries are wrong today —
-    /// names that were never aliases, or are rules of their own — but a wrong one only takes
-    /// some other id off a list, which can't change this rule's count, as counts are kept by
-    /// rule id. Once the table holds exactly SwiftLint's aliases this is exact.
+    /// The deprecated names SwiftLint still reads as `ruleId`
+    /// (``SwiftLintDeprecations/ruleAliases``).
     static func aliases(of ruleId: String) -> [String] {
-        SwiftLintDeprecations.renamedRules.filter { $0.value == ruleId }.map(\.key).sorted()
-    }
-
-    private static func appendUnique(_ ruleId: String, to list: inout [String]?) {
-        var current = list ?? []
-        if !current.contains(ruleId) {
-            current.append(ruleId)
-            list = current
-        }
+        SwiftLintDeprecations.ruleAliases.filter { $0.value == ruleId }.map(\.key).sorted()
     }
 }
 

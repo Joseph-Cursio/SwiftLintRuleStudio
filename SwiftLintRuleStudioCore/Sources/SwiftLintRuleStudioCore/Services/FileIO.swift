@@ -35,10 +35,20 @@ nonisolated public struct FileIO: Sendable {
     }
 
     /// The real file system. The production default.
+    ///
+    /// `copy` copies the bytes, not the file — so a symlink or a Finder lock doesn't come along
+    /// into a backup — creates the destination's folder if need be, and never overwrites.
     public static let live = Self(
         read: { try String(contentsOf: $0, encoding: .utf8) },
         write: { try $0.write(to: $1, atomically: true, encoding: .utf8) },
         exists: { FileManager.default.fileExists(atPath: $0.path) },
-        copy: { try FileManager.default.copyItem(at: $0, to: $1) }
+        copy: { source, destination in
+            let contents = try Data(contentsOf: source)
+            try FileManager.default.createDirectory(
+                at: destination.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try contents.write(to: destination, options: .withoutOverwriting)
+        }
     )
 }

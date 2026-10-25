@@ -178,10 +178,9 @@ struct SimulationWorkspaceEnableTests {
         }
     }
 
-    @Test("a config with exclude_ranges is written readably, or the rule is refused before it lints")
+    @Test("a config with exclude_ranges is written readably, with the ranges intact")
     func excludeRangesConfig() throws {
-        // The engine once misaligned a list of mappings like this one. Until its fix lands here
-        // the rule is refused; after, the config reads back with the ranges intact.
+        // The engine once misaligned a list of mappings like this one, which SwiftLint can't read.
         let workspace = try makeTempFolder()
         defer { try? FileManager.default.removeItem(at: workspace) }
         try write(
@@ -193,18 +192,10 @@ struct SimulationWorkspaceEnableTests {
             .makeWorkspace(for: Workspace(path: workspace), baseConfigPath: nil)
         defer { shadow.cleanup() }
 
-        do {
-            try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
-            let written = try text(shadow.root.appendingPathComponent(".swiftlint.yml"))
-            #expect(throws: Never.self) {
-                try MirrorConfigWriteError.checkReadable(
-                    shadow.root.appendingPathComponent(".swiftlint.yml"),
-                    writtenFor: ".swiftlint.yml"
-                )
-            }
-            #expect(written.contains("1900"))
-        } catch let error as MirrorConfigWriteError {
-            #expect(error.path == ".swiftlint.yml")
-        }
+        try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
+
+        let written = try text(shadow.root.appendingPathComponent(".swiftlint.yml"))
+        #expect(written.contains("1900"))
+        #expect(written.contains("2030"))
     }
 }

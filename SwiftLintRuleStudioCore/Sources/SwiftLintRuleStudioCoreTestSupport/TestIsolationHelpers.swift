@@ -148,8 +148,8 @@ public extension DependencyContainer {
         let testViolationStorage = violationStorage ?? (try? ViolationStorageActor(useInMemory: true))
 
         return DependencyContainer(
-            ruleRegistry: ruleRegistry,
             swiftLintCLI: swiftLintCLI ?? MockSwiftLintCLIActor(),
+            ruleRegistry: ruleRegistry,
             cacheManager: cacheManager,
             violationStorage: testViolationStorage,
             workspaceManager: workspaceManager,
