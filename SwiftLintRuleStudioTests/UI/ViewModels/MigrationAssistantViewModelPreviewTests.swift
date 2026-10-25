@@ -28,12 +28,20 @@ private struct FixedVersionCLI: SwiftLintCLIProtocol {
 @MainActor
 struct MigrationAssistantViewModelPreviewTests {
 
+    /// What the view showed and what the file holds afterwards.
+    private struct Outcome {
+        let preview: YAMLConfigurationEngine.ConfigDiff
+        /// Whether the view offered "Apply All Auto-Fixes".
+        let offered: Bool
+        let saved: String
+    }
+
     /// Detects, previews and applies a migration of `yaml` from `fromVersion` to `toVersion` the
     /// way the view does, and returns the preview, whether Apply was offered, and the file's
     /// text afterwards.
     private func migrate(
         _ yaml: String, from fromVersion: String, to toVersion: String
-    ) async throws -> (preview: YAMLConfigurationEngine.ConfigDiff, offered: Bool, saved: String) {
+    ) async throws -> Outcome {
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -56,7 +64,7 @@ struct MigrationAssistantViewModelPreviewTests {
             viewModel.applyMigration()
         }
         #expect(viewModel.error == nil)
-        return (preview, offered, try String(contentsOf: configPath, encoding: .utf8))
+        return Outcome(preview: preview, offered: offered, saved: try String(contentsOf: configPath, encoding: .utf8))
     }
 
     /// `rule: error` is a severity shorthand the engine keeps as a passthrough node. Its rename
@@ -64,33 +72,33 @@ struct MigrationAssistantViewModelPreviewTests {
     @Test("A severity-shorthand rename previews as a change and applies")
     func shorthandRename() async throws {
         let yaml = "redundant_self_in_closure: error\nline_length:\n  warning: 150\n"
-        let (preview, offered, saved) = try await migrate(yaml, from: "0.62.0", to: "0.63.0")
-        #expect(preview.hasChanges)
-        #expect(offered)
-        #expect(saved.contains("redundant_self: error"))
-        #expect(saved.contains("redundant_self_in_closure") == false)
+        let outcome = try await migrate(yaml, from: "0.62.0", to: "0.63.0")
+        #expect(outcome.preview.hasChanges)
+        #expect(outcome.offered)
+        #expect(outcome.saved.contains("redundant_self: error"))
+        #expect(outcome.saved.contains("redundant_self_in_closure") == false)
     }
 
     @Test("A severity-shorthand removal previews as a change and applies")
     func shorthandRemoval() async throws {
         let yaml = "inert_defer: warning\nline_length: 150\n"
-        let (preview, offered, saved) = try await migrate(yaml, from: "0.57.0", to: "0.58.0")
-        #expect(preview.hasChanges)
-        #expect(offered)
-        #expect(saved.contains("inert_defer") == false)
-        #expect(saved.contains("line_length: 150"))
+        let outcome = try await migrate(yaml, from: "0.57.0", to: "0.58.0")
+        #expect(outcome.preview.hasChanges)
+        #expect(outcome.offered)
+        #expect(outcome.saved.contains("inert_defer") == false)
+        #expect(outcome.saved.contains("line_length: 150"))
     }
 
     /// SwiftLint reads the alias as `redundant_self`, so the diff reports no change to what it
     /// checks; the rename is still written when the plan is applied.
     @Test("A rename inside a rule list is offered and applies")
     func listOnlyRename() async throws {
-        let (preview, offered, saved) = try await migrate(
+        let outcome = try await migrate(
             "opt_in_rules:\n  - redundant_self_in_closure\n", from: "0.62.0", to: "0.63.0"
         )
-        #expect(preview.hasChanges == false)
-        #expect(offered)
-        #expect(saved.contains("- redundant_self\n") || saved.hasSuffix("- redundant_self"))
-        #expect(saved.contains("redundant_self_in_closure") == false)
+        #expect(outcome.preview.hasChanges == false)
+        #expect(outcome.offered)
+        #expect(outcome.saved.contains("- redundant_self\n") || outcome.saved.hasSuffix("- redundant_self"))
+        #expect(outcome.saved.contains("redundant_self_in_closure") == false)
     }
 }

@@ -263,7 +263,6 @@ struct MigrationAssistantPropertyLawTests {
         return !SwiftLintDeprecations.isVersion(version, lessThan: deprecation.deprecatedInVersion)
     }
 
-
     // MARK: - Laws over applying it
 
     /// Proposed by swift-infer (`mutator-idempotence`) once the linter seeded
