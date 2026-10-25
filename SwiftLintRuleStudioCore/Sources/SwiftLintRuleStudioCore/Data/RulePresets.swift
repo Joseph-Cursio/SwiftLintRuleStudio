@@ -96,7 +96,6 @@ public enum RulePresets {
         ruleIds: [
             "attributes",
             "modifier_order",
-            "unused_capture_list",
             "type_body_length",
             "function_body_length",
             "closure_body_length",
@@ -114,7 +113,6 @@ public enum RulePresets {
         description: "Rules to ensure safe async/await usage and actor isolation",
         icon: "arrow.triangle.branch",
         ruleIds: [
-            "unavailable_from_async",
             "class_delegate_protocol",
             "weak_delegate",
             "unowned_variable_capture",
@@ -141,7 +139,7 @@ public enum RulePresets {
             "statement_position",
             "switch_case_alignment",
             "indentation_width",
-            "operator_whitespace"
+            "function_name_whitespace"
         ],
         category: .codeStyle
     )

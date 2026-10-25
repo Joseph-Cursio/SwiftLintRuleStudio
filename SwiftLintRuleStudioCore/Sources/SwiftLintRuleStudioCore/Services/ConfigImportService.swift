@@ -125,7 +125,13 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         }
         switch mode {
         case .replace:
-            try YAMLConfigurationEngine.save(preview.parsedConfig, to: configPath)
+            // The imported file replaces this one, so it's the imported file's comments and
+            // layout that should survive, not those of the file being replaced.
+            try YAMLConfigurationEngine.save(
+                preview.parsedConfig,
+                to: configPath,
+                keepingLayoutOf: .text(preview.fetchedYAML)
+            )
 
         case .merge:
             // Load existing config and merge, or save the import as-is if none exists.

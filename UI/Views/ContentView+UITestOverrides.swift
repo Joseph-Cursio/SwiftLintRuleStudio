@@ -44,13 +44,10 @@ extension ContentView {
         """
         try content.write(to: swiftFile, atomically: true, encoding: .utf8)
 
-        // A `.swiftlint.yml` for the workspace, when the test supplies one.
-        if let config = ProcessInfo.processInfo.environment["UI_TEST_CONFIG"] {
-            try config.write(
-                to: tempDir.appendingPathComponent(".swiftlint.yml"),
-                atomically: true,
-                encoding: .utf8
-            )
+        // A test that needs a configuration passes its YAML here.
+        if let yaml = ProcessInfo.processInfo.environment["UI_TEST_SWIFTLINT_YML"] {
+            let configFile = tempDir.appendingPathComponent(".swiftlint.yml")
+            try yaml.write(to: configFile, atomically: true, encoding: .utf8)
         }
         return tempDir
     }

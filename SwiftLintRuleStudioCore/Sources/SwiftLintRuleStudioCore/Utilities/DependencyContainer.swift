@@ -68,8 +68,8 @@ public class DependencyContainer {
     /// sandboxed (in-process) and non-sandboxed (subprocess `SwiftLintCLIActor`)
     /// app targets can each supply their own. Tests inject `MockSwiftLintCLIActor`.
     public init(
-        ruleRegistry: RuleRegistry? = nil,
         swiftLintCLI: SwiftLintCLIProtocol,
+        ruleRegistry: RuleRegistry? = nil,
         cacheManager: CacheManagerProtocol? = nil,
         violationStorage: ViolationStorageProtocol? = nil,
         workspaceManager: WorkspaceManager? = nil,

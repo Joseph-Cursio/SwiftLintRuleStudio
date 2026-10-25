@@ -28,6 +28,10 @@ struct ResolvedConfigInspectorView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
+            // The folder's combined settings, not one file's: say so above its name.
+            Text("Settings in effect here")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
             Text(display.targetLabel)
                 .font(.title2.weight(.semibold))
             Text("Layer chain: \(display.layerChainLabels.joined(separator: " ▸ "))")

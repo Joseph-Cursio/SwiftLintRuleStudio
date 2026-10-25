@@ -115,7 +115,7 @@ struct ViolationListItem: View {
            let workspace = dependencies.workspaceManager.currentWorkspace {
             Button {
                 Task {
-                    await openInXcode(workspace: workspace)
+                    openInXcode(workspace: workspace)
                 }
             } label: {
                 Label("Open in Xcode", systemImage: "arrow.right.circle")

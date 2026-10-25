@@ -31,7 +31,9 @@ public class RuleRegistry: RuleRegistryProtocol {
 
     public let swiftLintCLI: SwiftLintCLIProtocol
     public let cacheManager: CacheManagerProtocol
-    nonisolated(unsafe) var backgroundLoadingTask: Task<Void, Never>?
+    // Not observed: a task handle shouldn't trigger view updates. Keeping it a plain
+    // stored property also lets `nonisolated(unsafe)` take effect so `deinit` can cancel it.
+    @ObservationIgnored nonisolated(unsafe) var backgroundLoadingTask: Task<Void, Never>?
 
     public init(swiftLintCLI: SwiftLintCLIProtocol, cacheManager: CacheManagerProtocol) {
         self.swiftLintCLI = swiftLintCLI

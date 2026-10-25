@@ -20,6 +20,8 @@ public protocol WorkspaceAnalyzerProtocol: AnyObject {
     /// Publishes changes to `isAnalyzing` so UI can react without observing the
     /// concrete `@Published` property through an existential.
     var isAnalyzingPublisher: AnyPublisher<Bool, Never> { get }
+    /// Publishes how far the running analysis has got, or nil when none is running.
+    var progressPublisher: AnyPublisher<AnalysisProgress?, Never> { get }
     /// Analyze a workspace for violations.
     func analyze(workspace: Workspace, configPath: URL?) async throws -> AnalysisResult
     /// Whether an analysis of this workspace has finished since launch, so that no stored
@@ -40,6 +42,11 @@ public class WorkspaceAnalyzer: ObservableObject, WorkspaceAnalyzerProtocol {
     /// Publishes changes to `isAnalyzing` for protocol-based subscribers.
     public var isAnalyzingPublisher: AnyPublisher<Bool, Never> {
         $isAnalyzing.eraseToAnyPublisher()
+    }
+
+    /// Publishes changes to `currentProgress` for protocol-based subscribers.
+    public var progressPublisher: AnyPublisher<AnalysisProgress?, Never> {
+        $currentProgress.eraseToAnyPublisher()
     }
 
     public let swiftLintCLI: SwiftLintCLIProtocol

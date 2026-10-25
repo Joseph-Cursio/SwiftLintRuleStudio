@@ -28,7 +28,7 @@ extension SwiftLintRuleStudioUITests {
 
     @MainActor
     func testRuleListsBannerOffersAndAppliesTheFix() throws {
-        let app = launchApp(skipOnboarding: true, createWorkspace: true, workspaceConfig: Self.conflictedConfig)
+        let app = launchApp(skipOnboarding: true, createWorkspace: true, swiftLintYML: Self.conflictedConfig)
         let window = waitForMainWindow(in: app)
         XCTAssertTrue(window.exists, "No main window")
 

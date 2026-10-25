@@ -26,4 +26,8 @@ public enum AppCapability: String, Sendable, Hashable, CaseIterable {
     /// When absent, the UI marks such rules as unavailable rather than pretending
     /// they run — see `Rule.isUnavailableForLinting(capabilities:)`.
     case sourceKitRules
+
+    /// Compare the configuration with the one on another git branch, which runs the `git` tool.
+    /// Left out of the sandboxed edition, where Branch Diff isn't offered.
+    case gitBranchDiff
 }

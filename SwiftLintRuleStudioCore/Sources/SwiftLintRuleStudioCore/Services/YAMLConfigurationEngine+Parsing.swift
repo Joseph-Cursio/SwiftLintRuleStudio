@@ -81,7 +81,7 @@ extension YAMLConfigurationEngine {
         return dict
     }
 
-    private static func nodeToAny(_ node: Node) throws -> Any {
+    static func nodeToAny(_ node: Node) throws -> Any {
         switch node {
         case .scalar(let scalar):
             return parseScalarValue(scalar)
@@ -257,8 +257,6 @@ extension YAMLConfigurationEngine {
         "custom_rules"
     ]
 
-    /// Reserved top-level keys the engine actively models (parses *and* emits).
-    //
     // This set and `defaultTopLevelKeyOrder` (Serialization) overlap heavily but legitimately
     // diverge — they are related lists, not one list maintained twice — so SwiftProjectLint's
     // cross-file Parallel List Drift rule reports a false positive. `rules` belongs here (it is
@@ -267,6 +265,7 @@ extension YAMLConfigurationEngine {
     // `enabled_rules` is absent too: `parse` models it only when it is the list SwiftLint
     // reads (no `opt_in_rules`), and then writes it back as `opt_in_rules`.
     // swiftprojectlint:disable:next parallel-list-drift
+    /// Reserved top-level keys the engine actively models (parses *and* emits).
     static let modeledReservedKeys: Set<String> = [
         "rules", "included", "excluded", "reporter",
         "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules"

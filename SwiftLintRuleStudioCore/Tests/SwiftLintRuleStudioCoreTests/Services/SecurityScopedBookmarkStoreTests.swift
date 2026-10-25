@@ -1,12 +1,13 @@
 import Foundation
 @testable import SwiftLintRuleStudioCore
+import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @Suite
 struct SecurityScopedBookmarkStoreTests {
 
     private func isolatedStore() -> (UserDefaultsBookmarkStore, UserDefaults) {
-        let defaults = UserDefaults(suiteName: "test.bookmarks.\(UUID().uuidString)")!
+        let defaults = IsolatedUserDefaults.create(for: "bookmarks")
         return (UserDefaultsBookmarkStore(userDefaults: defaults), defaults)
     }
 

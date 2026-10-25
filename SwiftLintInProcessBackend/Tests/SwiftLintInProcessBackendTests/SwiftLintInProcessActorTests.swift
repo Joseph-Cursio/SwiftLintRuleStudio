@@ -2,6 +2,23 @@ import Foundation
 @testable import SwiftLintInProcessBackend
 import Testing
 
+/// Collects the reports a lint sends from its own thread.
+private final class ProgressRecorder: @unchecked Sendable {
+    struct Report {
+        let filesLinted: Int
+        let totalFiles: Int
+    }
+
+    private let lock = NSLock()
+    private var reports: [Report] = []
+
+    var snapshot: [Report] { lock.withLock { reports } }
+
+    func record(_ filesLinted: Int, of totalFiles: Int) {
+        lock.withLock { reports.append(Report(filesLinted: filesLinted, totalFiles: totalFiles)) }
+    }
+}
+
 @Suite
 struct SwiftLintInProcessActorTests {
 
@@ -41,6 +58,27 @@ struct SwiftLintInProcessActorTests {
         // 'foo' should be flagged by type_name (SwiftSyntax rule — sandbox-safe).
         let ruleIDs = Set(json.compactMap { $0["rule_id"] as? String })
         #expect(ruleIDs.contains("type_name"))
+    }
+
+    /// The Enabled Rule Violations screen shows how many files the lint has finished. Only
+    /// the in-process backend can tell it: the lint runs here, one file at a time.
+    @Test("A lint reports the file count once the files are found, then each file as it finishes")
+    func lintReportsProgressPerFile() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("slintip-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        for name in ["First.swift", "Second.swift", "Third.swift"] {
+            try "let value = 1\n".write(to: dir.appendingPathComponent(name), atomically: true, encoding: .utf8)
+        }
+
+        let reports = ProgressRecorder()
+        _ = try await SwiftLintInProcessActor().executeLintCommand(configPath: nil, workspacePath: dir) { report in
+            reports.record(report.filesLinted, of: report.totalFiles)
+        }
+
+        #expect(reports.snapshot.map(\.filesLinted) == [0, 1, 2, 3])
+        #expect(reports.snapshot.allSatisfy { $0.totalFiles == 3 })
     }
 
     @Test
