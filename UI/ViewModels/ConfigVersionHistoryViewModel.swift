@@ -9,6 +9,17 @@ import Foundation
 import Observation
 import SwiftLintRuleStudioCore
 
+/// Some backups in the project folder couldn't be sent to the Trash, so they were left there.
+struct LegacyBackupsNotMovedError: LocalizedError {
+    let count: Int
+
+    var errorDescription: String? {
+        let backups = count == 1 ? "1 backup" : "\(count) backups"
+        return "\(backups) couldn't be moved to the Trash, so \(count == 1 ? "it is" : "they are") "
+            + "still in the project folder. Nothing was lost."
+    }
+}
+
 @MainActor
 @Observable
 class ConfigVersionHistoryViewModel {
@@ -29,6 +40,10 @@ class ConfigVersionHistoryViewModel {
     }
     var showRestoreConfirmation: Bool = false
     var backupToRestore: ConfigBackup?
+    /// Backups an earlier version left in the project folder, beside the configuration.
+    var legacyBackupCount: Int = 0
+    /// The folder the app keeps this configuration's backups in, once it exists.
+    var backupsFolder: URL?
 
     private let service: ConfigVersionHistoryServiceProtocol
     private let configPath: URL?
@@ -47,6 +62,10 @@ class ConfigVersionHistoryViewModel {
         isLoading = true
         backups = service.listBackups(for: configPath)
         current = Self.currentEntry(at: configPath)
+        legacyBackupCount = service.legacyBackupCount(for: configPath)
+        backupsFolder = service.backupsFolder(for: configPath).flatMap { folder in
+            FileManager.default.fileExists(atPath: folder.path) ? folder : nil
+        }
         isLoading = false
         reconcileComparison()
     }
@@ -106,6 +125,24 @@ class ConfigVersionHistoryViewModel {
             comparisonBackup = before
         } catch {
             self.error = error
+        }
+    }
+
+    /// Moves the backups an earlier version left in the project folder into the app's store.
+    /// The originals go to the Trash, so the project folder holds only the configuration.
+    func moveLegacyBackups() {
+        guard let configPath = configPath else { return }
+        do {
+            _ = try service.moveLegacyBackups(for: configPath)
+            error = nil
+        } catch {
+            self.error = error
+        }
+        loadBackups()
+        // A backup that couldn't go to the Trash stays put rather than being lost, and the
+        // service says nothing about it; without this the button would just appear to do nothing.
+        if error == nil, legacyBackupCount > 0 {
+            error = LegacyBackupsNotMovedError(count: legacyBackupCount)
         }
     }
 
