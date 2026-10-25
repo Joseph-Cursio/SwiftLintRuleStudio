@@ -120,6 +120,9 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         // working directory. The app's isn't the workspace, so override it for this lint.
         return try CurrentWorkingDirectory.$url.withValue(workspacePath) {
             let root = try InProcessConfiguration.root(configPath: configPath, workspacePath: workspacePath)
+            // A link SwiftLint's file walk follows round for ever overflows the stack, and
+            // in-process that ends the app; the `swiftlint` process just dies.
+            try SymlinkLoopCheck.check(root, workspacePath: workspacePath)
             let files = root.lintableFiles(
                 inPath: workspacePath,
                 forceExclude: false,
