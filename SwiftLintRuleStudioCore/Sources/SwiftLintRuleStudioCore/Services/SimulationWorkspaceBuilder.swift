@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftLintCLISeam
+import Yams
 
 /// A non-destructive mirror of a workspace. Hand ``root`` to
 /// `SwiftLintCLIProtocol.executeLintCommand(configPath:workspacePath:)` as the
@@ -18,25 +19,89 @@ final class SimulationWorkspace {
     struct ConfigEntry {
         let relativePath: String
         let original: YAMLConfigurationEngine.YAMLConfig
+        /// The root config, or one it pulls in: the configuration Enable changes. A nested
+        /// config Enable leaves alone, and so does the simulation — its `disabled_rules` still
+        /// turn the rule off beneath it once it is enabled.
+        var isRootConfiguration = false
+        /// The user's file its `baseline` names, which the mirror gets a copy of.
+        var baseline: URL?
     }
 
     /// Root of the shadow tree. It moves on every ``applyRule(_:isOptIn:isAnalyzer:parameterOverrides:)``,
     /// so read it after applying a rule.
     private(set) var root: URL
 
+    /// The folder that moves on every rule: the root's container when it has one, which also
+    /// holds the mirrors of folders outside the workspace that links point into, or the root.
+    private var movingFolder: URL
+    private let rootInMovingFolder: String?
+    private let externalFolders: [WorkspaceMirrorPlan.ExternalFolder]
+    /// The workspace's real path, whose copy is the root.
+    private let workspaceRoot: String?
     private let configs: [ConfigEntry]
+    /// The names the configs' `custom_rules` define, which SwiftLint reports their violations under.
+    private let customRuleIds: Set<String>
     private let fileManager: FileManager
+    private let lock: MirrorLock?
+    private var isRemoved = false
 
-    init(root: URL, configs: [ConfigEntry], fileManager: FileManager) {
+    /// - Parameters:
+    ///   - container: The folder holding `root` and `externalFolders`, moved as one so the
+    ///     links between them keep resolving; nil when `root` stands alone.
+    ///   - configs: Each config's path is relative to `root`, and may climb out of it into
+    ///     `container`.
+    ///   - lock: The lock the mirror holds until it is removed, so no sweep removes it first.
+    ///   - rootInContainer: `root`'s path in `container`; its last component when nil.
+    init(
+        root: URL,
+        configs: [ConfigEntry],
+        fileManager: FileManager,
+        container: URL? = nil,
+        externalFolders: [WorkspaceMirrorPlan.ExternalFolder] = [],
+        lock: MirrorLock? = nil,
+        rootInContainer: String? = nil,
+        customRuleIds: Set<String> = [],
+        workspaceRoot: String? = nil
+    ) {
         self.root = root
+        self.movingFolder = container ?? root
+        self.rootInMovingFolder = container == nil ? nil : rootInContainer ?? root.lastPathComponent
+        self.externalFolders = externalFolders
         self.configs = configs
+        self.customRuleIds = customRuleIds
+        self.workspaceRoot = workspaceRoot
         self.fileManager = fileManager
+        self.lock = lock
     }
 
-    /// Rewrites every mirrored `.swiftlint.yml` so `ruleId` is enabled — in the
-    /// root *and* every nested config. Each call starts fresh from the cached
-    /// originals, so simulating rule B never leaves rule A enabled from a prior
+    /// The rule ids whose violations count for `ruleId`: its own, or for `custom_rules` the
+    /// name of every custom rule — SwiftLint reports each under its own name.
+    func reportedRuleIds(for ruleId: String) -> Set<String> {
+        ruleId == "custom_rules" ? customRuleIds.union([ruleId]) : [ruleId]
+    }
+
+    /// Puts a path SwiftLint reports in a mirrored outside folder back at the real one —
+    /// where the mirror is now, so read it after applying a rule.
+    var pathMapping: MirrorPathMapping {
+        MirrorPathMapping(container: movingFolder, folders: externalFolders)
+    }
+
+    /// The real path of a file SwiftLint linted at `path` in a mirrored folder outside the
+    /// workspace, or nil when `path` isn't in one. SwiftLint reports such a file at its real
+    /// path, and in the mirror that is the mirror's copy.
+    func originalPath(ofLinted path: String) -> String? {
+        pathMapping.originalPath(of: path)
+    }
+
+    /// Rewrites the mirror's root config, and the configs it pulls in, so `ruleId` is enabled,
+    /// as Enable will enable it; nested configs are written as they are, so one that disables
+    /// the rule still disables it beneath it, as it will after Enable. Each call starts fresh
+    /// from the cached originals, so simulating rule B never leaves rule A enabled from a prior
     /// call (important for batch audits that reuse one workspace).
+    ///
+    /// Each config written is read back as SwiftLint will read it. One it can't read, SwiftLint
+    /// would replace with its defaults — every rule measuring as if nothing were configured — so
+    /// that throws ``MirrorConfigWriteError`` instead of linting.
     ///
     /// Each call also moves the mirror to a new path. The sandboxed edition runs
     /// SwiftLint in-process, where SwiftLint caches every config it loads from a file
@@ -49,38 +114,76 @@ final class SimulationWorkspace {
         isAnalyzer: Bool,
         parameterOverrides: [String: AnyCodable]?
     ) throws {
-        let freshRoot = root.deletingLastPathComponent()
+        let freshFolder = movingFolder.deletingLastPathComponent()
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try fileManager.moveItem(at: root, to: freshRoot)
-        root = freshRoot
+        try fileManager.moveItem(at: movingFolder, to: freshFolder)
+        movingFolder = freshFolder
+        root = rootInMovingFolder.map { freshFolder.appendingPathComponent($0, isDirectory: true) } ?? freshFolder
 
-        for entry in configs {
+        for (index, entry) in configs.enumerated() {
             var config = entry.original
-            ConfigRuleEnabler.enableRule(
-                ruleId,
-                in: &config,
-                isOptIn: isOptIn,
-                isAnalyzer: isAnalyzer,
-                parameterOverrides: parameterOverrides
-            )
             let destination = root.appendingPathComponent(entry.relativePath)
             try fileManager.createDirectory(
                 at: destination.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
+            if let baseline = entry.baseline, let copy = try MirrorBaseline.write(
+                baseline,
+                besideConfigAt: destination,
+                index: index,
+                places: baselinePlaces
+            ) {
+                config.passthroughNodes["baseline"] = Node(copy)
+            }
+            if entry.isRootConfiguration {
+                ConfigRuleEnabler.enableRule(
+                    ruleId,
+                    in: &config,
+                    isOptIn: isOptIn,
+                    isAnalyzer: isAnalyzer,
+                    parameterOverrides: parameterOverrides
+                )
+            }
             try YAMLConfigurationEngine.save(config, to: destination, createBackup: false)
+            try MirrorConfigWriteError.checkReadable(destination, writtenFor: entry.relativePath)
         }
     }
 
-    /// Removes the shadow tree. Safe to call more than once.
+    /// Where the real folders a baseline may name by their whole path are in the mirror now.
+    private var baselinePlaces: [MirrorBaseline.Place] {
+        let folders = externalFolders.map {
+            MirrorBaseline.Place(real: $0.original.path, mirror: movingFolder.appendingPathComponent($0.path).path)
+        }
+        guard let workspaceRoot else { return folders }
+        return [MirrorBaseline.Place(real: workspaceRoot, mirror: nil)] + folders
+    }
+
+    /// Removes the shadow tree, then lets go of its lock. Safe to call more than once.
     func cleanup() {
-        try? fileManager.removeItem(at: root)
+        guard !isRemoved else { return }
+        isRemoved = true
+        try? fileManager.removeItem(at: movingFolder)
+        lock?.release()
+    }
+
+    /// ``cleanup()`` off the main actor: removing a mirror of tens of thousands of files takes
+    /// seconds, which would freeze the app at the end of every simulation.
+    func cleanupInBackground() {
+        guard !isRemoved else { return }
+        isRemoved = true
+        let folder = movingFolder
+        let lock = lock
+        Task.detached(priority: .utility) {
+            try? FileManager.default.removeItem(at: folder)
+            lock?.release()
+        }
     }
 }
 
 /// The YAML mutation that turns a rule on: sets it enabled, routes it into
 /// `analyzer_rules`, or `opt_in_rules` when there's no `only_rules` whitelist, adds it
-/// to `only_rules` when there is one, and removes it from `disabled_rules`. Preserves the
+/// to `only_rules` when there is one, and removes it from `disabled_rules` — under its own
+/// name and its deprecated ones, which SwiftLint still reads as it. Preserves the
 /// config's `included:`/`excluded:` exactly as written — in the mirror those
 /// relative paths resolve correctly, so no absolutizing is needed.
 enum ConfigRuleEnabler {
@@ -115,10 +218,27 @@ enum ConfigRuleEnabler {
             appendUnique(ruleId, to: &config.onlyRules)
         }
 
+        // `disabled_rules: [variable_name]` still turns `identifier_name` off, so a deprecated
+        // name goes from every list too; the rule's own name is listed where it belongs.
+        let aliases = Set(Self.aliases(of: ruleId))
+        for list in [\YAMLConfigurationEngine.YAMLConfig.optInRules, \.analyzerRules, \.onlyRules] {
+            if let names = config[keyPath: list] {
+                config[keyPath: list] = names.filter { !aliases.contains($0) }
+            }
+        }
         if var disabledRules = config.disabledRules {
-            disabledRules.removeAll { $0 == ruleId }
+            disabledRules.removeAll { $0 == ruleId || aliases.contains($0) }
             config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
         }
+    }
+
+    /// The deprecated names SwiftLint still reads as `ruleId`, by a reverse lookup of
+    /// ``SwiftLintDeprecations/renamedRules``. Some of that table's entries are wrong today —
+    /// names that were never aliases, or are rules of their own — but a wrong one only takes
+    /// some other id off a list, which can't change this rule's count, as counts are kept by
+    /// rule id. Once the table holds exactly SwiftLint's aliases this is exact.
+    static func aliases(of ruleId: String) -> [String] {
+        SwiftLintDeprecations.renamedRules.filter { $0.value == ruleId }.map(\.key).sorted()
     }
 
     private static func appendUnique(_ ruleId: String, to list: inout [String]?) {
@@ -138,12 +258,13 @@ enum ConfigRuleEnabler {
 /// files from the linted paths. Passing `--config` would disable that nested
 /// resolution, and writing a lone temp config outside the workspace is simply
 /// ignored (SwiftLint finds the workspace's own config from `cwd` instead). To
-/// enable a rule everywhere while still honoring nested excludes/relaxations, the
-/// modified configs must live at their real relative locations on disk — but we
-/// must not mutate the user's tree. So we mirror the workspace: `.swift` sources
-/// are hardlinked (copied only on a cross-volume fallback) and every
-/// `.swiftlint.yml` is reproduced with the target rule enabled. SwiftLint then
-/// lints the mirror in its normal (`.effective`) mode.
+/// enable a rule as Enable does — in the root config — while still honoring nested
+/// configs, which go on disabling or relaxing it beneath them, the configs must live at
+/// their real relative locations on disk — but we must not mutate the user's tree. So we
+/// mirror the workspace: `.swift` sources are hardlinked (copied only on a cross-volume
+/// fallback), the root config is reproduced with the target rule enabled, and every
+/// other `.swiftlint.yml` as it is. SwiftLint then lints the mirror in its normal
+/// (`.effective`) mode.
 /// What `ImpactSimulator` needs from a workspace builder.
 ///
 /// Every other collaborator in `ImpactSimulator.init` is a seam — `SwiftLintCLIProtocol`,
@@ -157,125 +278,87 @@ enum ConfigRuleEnabler {
 protocol SimulationWorkspaceBuilding: Sendable {
 
     /// Mirrors `workspace` into a fresh location and returns a workspace ready for `applyRule`.
-    func makeWorkspace(for workspace: Workspace, baseConfigPath: URL?) throws -> SimulationWorkspace
+    func makeWorkspace(for workspace: Workspace, baseConfigPath: URL?) async throws -> SimulationWorkspace
 }
 
 struct SimulationWorkspaceBuilder: SimulationWorkspaceBuilding {
 
-    private let fileManager: FileManager
+    let fileManager: FileManager
+    /// See ``MirrorLinkDiscovery/outsideEntryLimit``; lowered in tests.
+    private let outsideEntryLimit: Int
 
-    init(fileManager: FileManager = .default) {
+    init(fileManager: FileManager = .default, outsideEntryLimit: Int = MirrorLinkDiscovery.outsideEntryLimit) {
         self.fileManager = fileManager
+        self.outsideEntryLimit = outsideEntryLimit
     }
 
     /// Mirrors `workspace` into a fresh temp directory and returns a
     /// ``SimulationWorkspace`` ready for ``SimulationWorkspace/applyRule(_:isOptIn:isAnalyzer:parameterOverrides:)``.
     ///
+    /// The walking and copying run off the main actor, stop when the calling task is
+    /// cancelled, and refuse links that lead to more outside the workspace than the mirror will
+    /// copy (``MirrorTooLargeError``); a failure leaves no container behind.
+    ///
     /// - Parameter baseConfigPath: A config to seed the root from when the
     ///   workspace has no root `.swiftlint.yml` of its own. Nested configs are
     ///   always discovered from the workspace tree regardless.
-    func makeWorkspace(for workspace: Workspace, baseConfigPath: URL?) throws -> SimulationWorkspace {
-        let root = fileManager.temporaryDirectory
-            .appendingPathComponent("SwiftLintRuleStudio", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try fileManager.createDirectory(at: root, withIntermediateDirectories: true)
+    func makeWorkspace(for workspace: Workspace, baseConfigPath: URL?) async throws -> SimulationWorkspace {
+        let rootConfig = rootConfigFile(for: workspace, baseConfigPath: baseConfigPath)
+        let mirrored = try await Self.mirrorOffMainActor(
+            workspace.path,
+            rootConfig: rootConfig,
+            limit: outsideEntryLimit
+        )
+        return try finish(mirrored, for: workspace, baseConfigPath: baseConfigPath)
+    }
 
-        try mirrorSwiftFiles(from: workspace.path, into: root)
-        let configs = loadConfigs(for: workspace, baseConfigPath: baseConfigPath)
-        return SimulationWorkspace(root: root, configs: configs, fileManager: fileManager)
+    /// ``makeWorkspace(for:baseConfigPath:)``, synchronously on the caller's thread.
+    func makeWorkspace(for workspace: Workspace, baseConfigPath: URL?) throws -> SimulationWorkspace {
+        let rootConfig = rootConfigFile(for: workspace, baseConfigPath: baseConfigPath)
+        let mirrored = try Self.mirror(
+            workspace.path,
+            rootConfig: rootConfig,
+            limit: outsideEntryLimit,
+            fileManager: fileManager
+        )
+        return try finish(mirrored, for: workspace, baseConfigPath: baseConfigPath)
     }
 
     // MARK: - Mirroring
 
-    /// Hardlinks every `.swift` file under `source` into `destinationRoot` at the
-    /// same relative path, skipping the canonical build/dependency directories.
-    /// Sources are read-only during a lint, so sharing inodes is safe; a link
-    /// failure (e.g. `EXDEV` across volumes) falls back to a copy.
-    private func mirrorSwiftFiles(from source: URL, into destinationRoot: URL) throws {
-        let excludedDirectories = Set(DefaultExclusions.directories)
-        guard let enumerator = fileManager.enumerator(
-            at: source,
-            includingPropertiesForKeys: [.isDirectoryKey],
-            options: []
-        ) else { return }
-
-        for case let url as URL in enumerator {
-            let isDirectory = (try? url.resourceValues(
-                forKeys: [.isDirectoryKey]
-            ).isDirectory) ?? false
-
-            if isDirectory {
-                if excludedDirectories.contains(url.lastPathComponent) {
-                    enumerator.skipDescendants()
-                }
-                continue
-            }
-
-            guard url.pathExtension == "swift" else { continue }
-
-            let relative = Self.relativePath(of: url, underRoot: source)
-            let destination = destinationRoot.appendingPathComponent(relative)
-            try fileManager.createDirectory(
-                at: destination.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            do {
-                try fileManager.linkItem(at: url, to: destination)
-            } catch {
-                try? fileManager.removeItem(at: destination)
-                try fileManager.copyItem(at: url, to: destination)
-            }
-        }
+    /// The config the mirror's root gets: the workspace's own, or else the seed.
+    func rootConfigFile(for workspace: Workspace, baseConfigPath: URL?) -> URL? {
+        let own = workspace.path.appendingPathComponent(ConfigTreeDiscovery.configFileName)
+        if fileManager.fileExists(atPath: own.path) { return own }
+        let seeds = [baseConfigPath, workspace.configPath].compactMap(\.self)
+        return seeds.first { fileManager.fileExists(atPath: $0.path) }
     }
 
-    // MARK: - Configs
-
-    /// Loads the root and every nested `.swiftlint.yml`, paired with its path
-    /// relative to the workspace root. Guarantees a root config exists (seeded
-    /// from `baseConfigPath`/`workspace.configPath`, or empty) so the enabled rule
-    /// always has somewhere to live.
-    private func loadConfigs(
+    /// Reads the mirror's configs; a failure removes the mirror.
+    private func finish(
+        _ mirrored: Mirrored,
         for workspace: Workspace,
         baseConfigPath: URL?
-    ) -> [SimulationWorkspace.ConfigEntry] {
-        var entries: [SimulationWorkspace.ConfigEntry] = []
-        var haveRoot = false
-
-        for url in ConfigTreeDiscovery.configFileURLs(in: workspace.path) {
-            // Tolerate an empty or malformed `.swiftlint.yml`: skipping it lets the
-            // mirror inherit the parent config for that subtree — which is exactly
-            // what an empty nested config means to SwiftLint — rather than aborting
-            // the whole simulation.
-            guard let config = try? YAMLConfigurationEngine.loadConfig(at: url) else { continue }
-            let relative = Self.relativePath(of: url, underRoot: workspace.path)
-            if relative == ConfigTreeDiscovery.configFileName {
-                haveRoot = true
-            }
-            entries.append(.init(relativePath: relative, original: config))
+    ) throws -> SimulationWorkspace {
+        let loaded: LoadedConfigs
+        do {
+            loaded = try loadConfigs(of: mirrored.plan, for: workspace, baseConfigPath: baseConfigPath)
+        } catch {
+            try? fileManager.removeItem(at: mirrored.container)
+            mirrored.lock.release()
+            throw error
         }
-
-        if !haveRoot {
-            let seed = seedRootConfig(baseConfigPath: baseConfigPath, workspace: workspace)
-            entries.insert(
-                .init(relativePath: ConfigTreeDiscovery.configFileName, original: seed),
-                at: 0
-            )
-        }
-
-        return entries
-    }
-
-    private func seedRootConfig(
-        baseConfigPath: URL?,
-        workspace: Workspace
-    ) -> YAMLConfigurationEngine.YAMLConfig {
-        if let base = baseConfigPath ?? workspace.configPath,
-           fileManager.fileExists(atPath: base.path) {
-            if let config = try? YAMLConfigurationEngine.loadConfig(at: base) {
-                return config
-            }
-        }
-        return YAMLConfigurationEngine.YAMLConfig()
+        return SimulationWorkspace(
+            root: mirrored.root,
+            configs: loaded.entries,
+            fileManager: fileManager,
+            container: mirrored.container,
+            externalFolders: mirrored.plan.externalFolders,
+            lock: mirrored.lock,
+            rootInContainer: mirrored.plan.lintRoot,
+            customRuleIds: loaded.customRuleIds,
+            workspaceRoot: mirrored.workspaceRoot
+        )
     }
 
     // MARK: - Helpers

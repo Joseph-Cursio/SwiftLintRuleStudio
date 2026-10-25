@@ -198,7 +198,8 @@ struct RuleAuditPipelineTests {
         _ = try await RuleAuditView.performAudit(
             workspace: workspace,
             rules: rules,
-            simulator: simulator
+            simulator: simulator,
+            capabilities: Set(AppCapability.allCases)
         ) { _ in }
 
         #expect(simulator.simulateRulesCalls.count == 1)
@@ -215,7 +216,8 @@ struct RuleAuditPipelineTests {
         let outcome = try await RuleAuditView.performAudit(
             workspace: workspace,
             rules: [Self.makeRule("on_rule")],
-            simulator: simulator
+            simulator: simulator,
+            capabilities: Set(AppCapability.allCases)
         ) { _ in }
 
         #expect(simulator.simulateRulesCalls.isEmpty)
@@ -239,7 +241,8 @@ struct RuleAuditPipelineTests {
         _ = try await RuleAuditView.performAudit(
             workspace: workspace,
             rules: rules,
-            simulator: simulator
+            simulator: simulator,
+            capabilities: Set(AppCapability.allCases)
         ) { _ in }
 
         let call = try #require(simulator.simulateRulesCalls.first)
@@ -262,7 +265,8 @@ struct RuleAuditPipelineTests {
         _ = try await RuleAuditView.performAudit(
             workspace: workspace,
             rules: rules,
-            simulator: simulator
+            simulator: simulator,
+            capabilities: Set(AppCapability.allCases)
         ) { progress.append($0) }
 
         #expect(progress.count == 2)
@@ -298,7 +302,8 @@ struct RuleAuditPipelineTests {
         let outcome = try await RuleAuditView.performAudit(
             workspace: workspace,
             rules: [Self.makeRule("off_rule")],
-            simulator: simulator
+            simulator: simulator,
+            capabilities: Set(AppCapability.allCases)
         ) { _ in }
 
         #expect(outcome.duration == 4.0)
@@ -318,7 +323,8 @@ struct RuleAuditPipelineTests {
             _ = try await RuleAuditView.performAudit(
                 workspace: workspace,
                 rules: [Self.makeRule("off_rule")],
-                simulator: simulator
+                simulator: simulator,
+                capabilities: Set(AppCapability.allCases)
             ) { _ in }
         }
     }

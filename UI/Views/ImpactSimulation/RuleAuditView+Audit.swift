@@ -22,33 +22,43 @@ extension RuleAuditView {
         selectedRules.removeAll()
         expandedRuleId = nil
 
-        Task {
-            await executeAudit(for: workspace)
-        }
+        // One audit at a time: a second run supersedes the first rather than racing it, and
+        // only the current run reports back — see `RuleAuditRunner`.
+        auditRunner.start(
+            for: workspace,
+            currentWorkspace: { dependencies.workspaceManager.currentWorkspace },
+            audit: { onProgress in try await auditOutcome(for: workspace, onProgress: onProgress) },
+            onProgress: { auditProgress = $0 },
+            onFinish: { result in
+                switch result {
+                case .success(let outcome):
+                    applyAuditOutcome(outcome)
+                case .failure(let error):
+                    errorMessage = error.localizedDescription
+                    showError = true
+                    isAuditing = false
+                    auditProgress = nil
+                }
+            }
+        )
     }
 
-    func executeAudit(for workspace: Workspace) async {
-        do {
-            var allRules = dependencies.ruleRegistry.rules
-            if allRules.isEmpty {
-                allRules = try await dependencies.ruleRegistry.loadRules()
-            }
-
-            let outcome = try await Self.performAudit(
-                workspace: workspace,
-                rules: allRules,
-                simulator: dependencies.impactSimulator
-            ) { progress in
-                auditProgress = progress
-            }
-
-            applyAuditOutcome(outcome)
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
-            isAuditing = false
-            auditProgress = nil
+    /// Audits the registry's rules against `workspace` with this edition's simulator.
+    private func auditOutcome(
+        for workspace: Workspace,
+        onProgress: @escaping (AuditProgress) -> Void
+    ) async throws -> AuditOutcome {
+        var allRules = dependencies.ruleRegistry.rules
+        if allRules.isEmpty {
+            allRules = try await dependencies.ruleRegistry.loadRules()
         }
+        return try await Self.performAudit(
+            workspace: workspace,
+            rules: allRules,
+            simulator: dependencies.impactSimulator,
+            capabilities: capabilities,
+            onProgress: onProgress
+        )
     }
 
     func applyAuditOutcome(_ outcome: AuditOutcome) {
@@ -70,10 +80,15 @@ extension RuleAuditView {
     /// as each rule is tested. Rules the configuration already enables are
     /// reported without being simulated; when none are disabled the simulator is
     /// not invoked at all.
+    ///
+    /// `capabilities` has no default: it decides which rules this edition can
+    /// measure, and a forgotten one would call every SourceKit rule in the
+    /// sandboxed edition safe to enable.
     static func performAudit(
         workspace: Workspace,
         rules: [Rule],
         simulator: any ImpactSimulatorProtocol,
+        capabilities: Set<AppCapability>,
         onProgress: @escaping (AuditProgress) -> Void
     ) async throws -> AuditOutcome {
         let config = loadConfiguration(for: workspace)
@@ -97,7 +112,7 @@ extension RuleAuditView {
             ruleIds: disabledRuleIds,
             workspace: workspace,
             baseConfigPath: workspace.configPath,
-            classification: ruleClassification(from: rules)
+            classification: simulationClassification(of: rules, capabilities: capabilities)
         ) { current, total, ruleId in
             onProgress(AuditProgress(current: current, total: total, ruleId: ruleId))
         }
@@ -111,6 +126,20 @@ extension RuleAuditView {
             swiftFileCount: swiftFileCount,
             duration: batchResult.totalDuration
         )
+    }
+
+    /// The enable path's classification, plus the rules this edition can't lint: a
+    /// SourceKit rule lints clean where SourceKit can't load, whatever the code holds,
+    /// so the simulator reports it as unmeasurable instead of as a "safe" zero.
+    static func simulationClassification(
+        of rules: [Rule],
+        capabilities: Set<AppCapability>
+    ) -> RuleClassification {
+        var classification = ruleClassification(from: rules)
+        classification.sourceKitUnavailableRuleIds = Set(
+            rules.filter { $0.isUnavailableForLinting(capabilities: capabilities) }.map(\.id)
+        )
+        return classification
     }
 
     /// Partitions `rules` by whether `config` currently switches them on.
@@ -132,8 +161,8 @@ extension RuleAuditView {
 
     /// Builds the audit's display rows: one tested entry per simulated disabled rule,
     /// plus a greyed-out entry per already-enabled rule, ordered disabled-first and
-    /// then by ascending violation count. Results naming a rule absent from
-    /// `allRules` are dropped.
+    /// then by ascending violation count, with rules that have no count last. Results
+    /// naming a rule absent from `allRules` are dropped.
     static func buildAuditEntries(
         disabledResults: [RuleImpactResult],
         enabledRules: [Rule],
@@ -161,13 +190,9 @@ extension RuleAuditView {
         }
         entries.append(contentsOf: enabledEntries)
 
-        // Sort: safe first, then by violation count ascending
-        entries.sort { lhs, rhs in
-            if lhs.isCurrentlyEnabled != rhs.isCurrentlyEnabled {
-                return !lhs.isCurrentlyEnabled
-            }
-            return lhs.violationCount < rhs.violationCount
-        }
+        // Sort: disabled first, then by violation count ascending — safe rules on top, and
+        // rules the audit couldn't measure below every rule it could.
+        entries.sort { RuleAuditEntry.isOrderedByViolations($0, $1, ascending: true) }
 
         return entries
     }

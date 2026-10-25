@@ -5,9 +5,13 @@ import Yams
 enum InProcessConfigurationError: LocalizedError {
     case unreadable(file: URL, reason: String)
     case versionMismatch(file: URL, pinned: String)
+    case usesWorkingDirectory(file: URL)
 
     var errorDescription: String? {
         switch self {
+        case let .usesWorkingDirectory(file):
+            "\(file.path) uses ${PWD}, which SwiftLint fills in with the folder it runs in. The built-in "
+                + "SwiftLint runs inside the app, whose working directory is one for every lint, so it can't."
         case let .unreadable(file, reason):
             "Couldn't read \(file.path): \(reason)"
         case let .versionMismatch(file, pinned):
@@ -64,16 +68,18 @@ enum InProcessConfiguration {
     }
 
     /// Checks the nested config SwiftLint will load for each of `files`: the nearest
-    /// `.swiftlint.yml` between the file and the workspace root, exclusive. SwiftLint loads
-    /// these in a way that ends the process on any error.
+    /// `.swiftlint.yml` from the file's folder up — to the workspace root, exclusive, for a
+    /// file inside it, and to `/` for one outside it, which is how far SwiftLint looks. A file
+    /// outside comes from a link; in a rule simulation, from a mirrored folder beside the
+    /// workspace, whose configs are mirrored too. SwiftLint loads these in a way that ends the
+    /// process on any error.
     static func checkNestedConfigs(for files: [URL], workspacePath: URL) throws {
-        let rootComponents = workspacePath.resolvingSymlinksInPath().pathComponents
+        let root = workspacePath.resolvingSymlinksInPath().standardizedFileURL
         var checked: Set<URL> = []
         let directories = Set(files.map { $0.deletingLastPathComponent().resolvingSymlinksInPath() })
         for directory in directories {
-            var current = directory
-            while current.pathComponents.count > rootComponents.count,
-                  current.pathComponents.starts(with: rootComponents) {
+            var current = directory.standardizedFileURL
+            while current.pathComponents != root.pathComponents {
                 let candidate = current.appendingPathComponent(Configuration.defaultFileName)
                 if FileManager.default.fileExists(atPath: candidate.path) {
                     if checked.insert(candidate).inserted {
@@ -81,7 +87,8 @@ enum InProcessConfiguration {
                     }
                     break
                 }
-                current = current.deletingLastPathComponent()
+                guard current.path != "/" else { break }
+                current = current.deletingLastPathComponent().standardizedFileURL
             }
         }
     }
@@ -112,10 +119,17 @@ enum InProcessConfiguration {
     /// one: SwiftLint calls `exit` for any other.
     private static func checkedDictionary(at file: URL) throws -> [String: Any] {
         let dict: [String: Any]
+        let text: String
         do {
-            dict = try parse(String(contentsOf: file, encoding: .utf8))
+            text = try String(contentsOf: file, encoding: .utf8)
+            dict = try parse(text)
         } catch {
             throw InProcessConfigurationError.unreadable(file: file, reason: String(describing: error))
+        }
+        // `${PWD}` would expand to the app's working directory, not the workspace's: setting it
+        // for one lint would set it for the whole app, and every lint running at that moment.
+        guard !text.contains("${PWD}") else {
+            throw InProcessConfigurationError.usesWorkingDirectory(file: file)
         }
         if let pinned = dict["swiftlint_version"].map({ ($0 as? String) ?? String(describing: $0) }),
            pinned != Version.current.value {

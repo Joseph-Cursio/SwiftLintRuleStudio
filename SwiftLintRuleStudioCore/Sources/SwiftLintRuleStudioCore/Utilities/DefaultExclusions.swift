@@ -14,7 +14,7 @@ public enum DefaultExclusions {
     /// Canonical list of directory names to exclude from SwiftLint analysis.
     /// These are build artifacts, dependency caches, and metadata directories
     /// that contain third-party or generated code.
-    public static let directories: [String] = [
+    nonisolated public static let directories: [String] = [
         ".build",
         "DerivedData",
         ".git",
@@ -27,7 +27,7 @@ public enum DefaultExclusions {
 
     /// Path-contains patterns for filtering file paths during enumeration.
     /// Each entry is formatted as `/name/` so it matches only full path components.
-    public static let pathPatterns: [String] = directories.map { "/\($0)/" }
+    nonisolated public static let pathPatterns: [String] = directories.map { "/\($0)/" }
 
     /// Merge default exclusions with an existing exclusion list.
     /// Preserves the order and entries of `existing`, then appends any

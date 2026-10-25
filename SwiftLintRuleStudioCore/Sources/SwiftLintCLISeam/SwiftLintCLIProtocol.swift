@@ -53,6 +53,18 @@ public protocol SwiftLintCLIProtocol: Sendable {
     func generateDocsForRule(ruleId: String) async throws -> String
     func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data
     func getVersion() async throws -> String
+
+    /// Lints a rule simulation's throwaway mirror at `workspacePath`, discovering its
+    /// configs from there as `executeLintCommand(configPath: nil, workspacePath:)` does.
+    ///
+    /// Apart from analysis because a simulation lints a fresh path for every rule: a cache
+    /// written for it is never read again, and an audit cancelled midway should stop the lint
+    /// it is waiting on rather than see it through.
+    func executeSimulationLintCommand(workspacePath: URL) async throws -> Data
+
+    /// Returns once no lint the backend stopped waiting on — because its caller was cancelled —
+    /// is still reading `workspacePath`, so the mirror there can be removed safely.
+    func waitForAbandonedLints(at workspacePath: URL) async
 }
 
 public enum SwiftLintError: LocalizedError, Sendable {
@@ -88,4 +100,14 @@ public enum SwiftLintError: LocalizedError, Sendable {
             return nil
         }
     }
+}
+
+public extension SwiftLintCLIProtocol {
+    /// A backend with nothing to set apart for a simulation lints it like analysis.
+    func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
+        try await executeLintCommand(configPath: nil, workspacePath: workspacePath)
+    }
+
+    /// A backend that always sees its lints through has none to wait for.
+    func waitForAbandonedLints(at _: URL) {}
 }

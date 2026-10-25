@@ -173,6 +173,29 @@ struct ImpactSimulationViewTests {
         #expect(hasOverflowText)
     }
 
+    @Test("An analyzer rule's result says it can't be measured, not that it's safe")
+    func testUnmeasurableRuleDisplay() throws {
+        let result = RuleImpactResult.unmeasurable(ruleId: "unused_import", reason: .analyzerRule)
+        let view = ImpactSimulationView(
+            ruleId: "unused_import",
+            ruleName: "Unused Import",
+            result: result,
+            onEnable: nil
+        )
+
+        ViewHosting.expel()
+        ViewHosting.host(view: view)
+        defer { ViewHosting.expel() }
+        let inspector = try view.inspect()
+
+        #expect((try? inspector.find(text: "This rule's impact can't be measured here")) != nil)
+        #expect((try? inspector.find(text: "This rule is safe to enable")) == nil)
+        #expect((try? inspector.find(text: "-1")) == nil, "the stand-in count must never be shown")
+        // No files and no time either: nothing ran, and zeros would read as a clean run.
+        #expect((try? inspector.find(text: "0")) == nil)
+        #expect((try? inspector.find(text: "0.00s")) == nil)
+    }
+
     @Test("RuleImpactResult correctly identifies safe rules")
     func testRuleImpactResultSafeRules() async throws {
         let safeResult = RuleImpactResult(

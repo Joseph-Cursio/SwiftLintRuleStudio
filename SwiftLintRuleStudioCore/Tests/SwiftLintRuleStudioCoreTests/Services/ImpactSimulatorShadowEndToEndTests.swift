@@ -85,8 +85,8 @@ struct ImpactSimulatorShadowEndToEndTests {
         #expect(result.affectedFiles.contains { $0.contains("Offender.swift") })
     }
 
-    @Test("a rule disabled by a nested config still fires (merge into nested)")
-    func ruleDisabledByNestedConfigStillFires() async throws {
+    @Test("a rule a nested config disables stays off beneath it, as it will after Enable")
+    func ruleDisabledByNestedConfigStaysOff() async throws {
         guard isSwiftLintAvailable() else {
             #expect(Bool(false), "SwiftLint not installed - skipping integration test")
             return
@@ -112,9 +112,9 @@ struct ImpactSimulatorShadowEndToEndTests {
             baseConfigPath: workspace.configPath
         )
 
-        // Both the root file and the nested-disabled file are counted, because
-        // the mirror enables the rule in every config.
+        // Enable writes only the root config, so the nested config still turns the rule off
+        // for Legacy: only the root file counts.
         #expect(result.affectedFiles.contains { $0.contains("Root.swift") })
-        #expect(result.affectedFiles.contains { $0.contains("Old.swift") })
+        #expect(!result.affectedFiles.contains { $0.contains("Old.swift") })
     }
 }

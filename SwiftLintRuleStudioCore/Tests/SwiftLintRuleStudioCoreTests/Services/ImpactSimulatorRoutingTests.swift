@@ -2,7 +2,8 @@
 //  ImpactSimulatorRoutingTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  Tests for analyzer / opt-in routing in ImpactSimulator's temp config
+//  Tests for analyzer / opt-in routing in ImpactSimulator's temp config. Analyzer
+//  rules are never linted, so their routing is checked on ConfigRuleEnabler.
 //
 
 import Foundation
@@ -50,8 +51,10 @@ struct ImpactSimulatorRoutingTests {
         return (mockCLI, store)
     }
 
-    @Test("simulateRule routes analyzer rules into analyzer_rules, not opt_in_rules")
-    func analyzerRuleRoutingForSingleRule() async throws {
+    @Test("simulateRule reports an analyzer rule as unmeasurable without linting it")
+    func analyzerRuleIsNotLintedForSingleRule() async throws {
+        // `swiftlint lint` never runs analyzer rules, so a lint would report 0 — which the
+        // app reads as "safe to enable". The simulator must say it can't measure the rule.
         let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
         defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
 
@@ -64,7 +67,7 @@ struct ImpactSimulatorRoutingTests {
         let workspace = Workspace(path: tempDir)
         let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
 
-        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+        let result = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.simulateRule(
                 ruleId: "unused_declaration",
                 workspace: workspace,
@@ -73,10 +76,22 @@ struct ImpactSimulatorRoutingTests {
             )
         }
 
-        let configs = await store.configs
-        let captured = try #require(configs.first)
-        #expect(captured.analyzerRules?.contains("unused_declaration") == true)
-        #expect(captured.optInRules?.contains("unused_declaration") != true)
+        #expect(await store.configs.isEmpty, "an analyzer rule must not cost a lint")
+        #expect(result.measurement == .unmeasurable(.analyzerRule))
+        #expect(result.isSafe == false)
+        #expect(result.violationCount == -1)
+    }
+
+    @Test("An enabled analyzer rule goes in analyzer_rules, not opt_in_rules")
+    func analyzerRuleRoutingInConfig() {
+        // The simulator no longer lints analyzer rules, so this is checked on the YAML
+        // mutation directly rather than through a simulation.
+        var config = YAMLConfigurationEngine.YAMLConfig()
+
+        ConfigRuleEnabler.enableRule("unused_declaration", in: &config, isOptIn: false, isAnalyzer: true)
+
+        #expect(config.analyzerRules?.contains("unused_declaration") == true)
+        #expect(config.optInRules?.contains("unused_declaration") != true)
     }
 
     @Test("simulateRule routes opt-in rules into opt_in_rules, not analyzer_rules")
@@ -139,7 +154,7 @@ struct ImpactSimulatorRoutingTests {
         #expect(captured.disabledRules?.contains("force_cast") != true)
     }
 
-    @Test("simulateRules dispatches analyzer vs opt-in via the membership sets")
+    @Test("simulateRules lints opt-in and plain rules but reports analyzer rules unmeasurable")
     func batchSimulationRoutesPerRuleKind() async throws {
         let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
         defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
@@ -153,7 +168,7 @@ struct ImpactSimulatorRoutingTests {
         let workspace = Workspace(path: tempDir)
         let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
 
-        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+        let batch = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
             try await simulator.simulateRules(
                 ruleIds: ["unused_declaration", "explicit_init", "force_cast"],
                 workspace: workspace,
@@ -165,29 +180,29 @@ struct ImpactSimulatorRoutingTests {
             )
         }
 
+        // One lint per lintable rule; the analyzer rule gets none.
         let configs = await store.configs
-        #expect(configs.count == 3)
+        #expect(configs.count == 2)
+        #expect(configs.allSatisfy { $0.analyzerRules?.contains("unused_declaration") != true })
+
+        let measurements = Dictionary(uniqueKeysWithValues: batch.results.map { ($0.ruleId, $0.measurement) })
+        #expect(measurements["unused_declaration"] == .unmeasurable(.analyzerRule))
+        #expect(measurements["explicit_init"] == .measured)
+        #expect(measurements["force_cast"] == .measured)
+        #expect(batch.safeRules.map(\.ruleId).sorted() == ["explicit_init", "force_cast"])
 
         // Each simulation writes a fresh temp config. The rules dict gets
         // collapsed during serialization when entries have no severity or
-        // parameters, so we identify configs by their analyzer / opt-in lists.
-        let analyzerConfig = try #require(
-            configs.first { $0.analyzerRules?.contains("unused_declaration") == true }
-        )
-        #expect(analyzerConfig.optInRules?.contains("unused_declaration") != true)
-
+        // parameters, so we identify configs by their opt-in lists.
         let optInConfig = try #require(
             configs.first { $0.optInRules?.contains("explicit_init") == true }
         )
         #expect(optInConfig.analyzerRules?.contains("explicit_init") != true)
 
         // The plain rule lands in no list — it's the one simulation with
-        // neither analyzer_rules nor opt_in_rules populated for its rule.
+        // opt_in_rules not populated for its rule.
         let plainConfig = try #require(
-            configs.first { config in
-                config.analyzerRules?.contains("unused_declaration") != true
-                    && config.optInRules?.contains("explicit_init") != true
-            }
+            configs.first { $0.optInRules?.contains("explicit_init") != true }
         )
         #expect(plainConfig.optInRules?.contains("force_cast") != true)
         #expect(plainConfig.analyzerRules?.contains("force_cast") != true)
@@ -228,33 +243,29 @@ struct ImpactSimulatorRoutingTests {
         #expect(captured.included == ["Sources", "Tests"])
     }
 
-    @Test("Absolute included paths in base config are preserved as-is")
-    func absoluteIncludedPathsPreserved() async throws {
+    @Test("An absolute included path fails the simulation rather than lint the original files")
+    func absoluteIncludedPathFails() async throws {
+        // In a copy of the workspace an absolute entry still names the original files, under
+        // the original — unchanged — configs, so whatever it measured could be short.
         let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
         defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
 
         let baseConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
-        let absolutePath = "/opt/elsewhere/Sources"
-        let baseYAML = """
-        included:
-          - \(absolutePath)
-        """
-        try baseYAML.write(to: baseConfigPath, atomically: true, encoding: .utf8)
+        try "included:\n  - /opt/elsewhere/Sources\n".write(to: baseConfigPath, atomically: true, encoding: .utf8)
 
         let workspace = Workspace(path: tempDir)
         let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
 
-        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
-            try await simulator.simulateRule(
-                ruleId: "force_cast",
-                workspace: workspace,
-                baseConfigPath: baseConfigPath
-            )
+        await #expect(throws: MirrorUnsupportedSetupError.self) {
+            _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
+                try await simulator.simulateRule(
+                    ruleId: "force_cast",
+                    workspace: workspace,
+                    baseConfigPath: baseConfigPath
+                )
+            }
         }
-
-        let configs = await store.configs
-        let captured = try #require(configs.first)
-        #expect(captured.included == [absolutePath])
+        #expect(await store.configs.isEmpty, "nothing was linted")
     }
 
     @Test("Missing included section stays missing in temp config")
@@ -285,40 +296,13 @@ struct ImpactSimulatorRoutingTests {
         #expect(captured.included == nil)
     }
 
-    @Test("appendUnique does not duplicate analyzer rule already present in base config")
-    func appendUniqueIsIdempotent() async throws {
-        let tempDir = try ImpactSimulatorTestHelpers.createTempWorkspaceDirectory()
-        defer { ImpactSimulatorTestHelpers.cleanupTempDirectory(tempDir) }
+    @Test("Enabling an analyzer rule the config already lists doesn't list it twice")
+    func analyzerRuleIsNotDuplicated() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.analyzerRules = ["unused_declaration"]
 
-        // Base config already lists the analyzer rule.
-        let baseConfigPath = tempDir.appendingPathComponent(".swiftlint.yml")
-        let baseYAML = """
-        analyzer_rules:
-          - unused_declaration
-        """
-        try baseYAML.write(to: baseConfigPath, atomically: true, encoding: .utf8)
+        ConfigRuleEnabler.enableRule("unused_declaration", in: &config, isOptIn: false, isAnalyzer: true)
 
-        _ = try ImpactSimulatorTestHelpers.createSwiftFile(
-            in: tempDir,
-            name: "Test.swift",
-            content: "let value = 1\n"
-        )
-
-        let workspace = Workspace(path: tempDir)
-        let (mockCLI, store) = await Self.makeConfigSnapshotCLI()
-
-        _ = try await ImpactSimulatorTestHelpers.withImpactSimulator(swiftLintCLI: mockCLI) { simulator in
-            try await simulator.simulateRule(
-                ruleId: "unused_declaration",
-                workspace: workspace,
-                baseConfigPath: baseConfigPath,
-                options: RuleSimulationOptions(isOptIn: false, isAnalyzer: true)
-            )
-        }
-
-        let configs = await store.configs
-        let captured = try #require(configs.first)
-        let occurrences = captured.analyzerRules?.filter { $0 == "unused_declaration" }.count ?? 0
-        #expect(occurrences == 1)
+        #expect(config.analyzerRules == ["unused_declaration"])
     }
 }

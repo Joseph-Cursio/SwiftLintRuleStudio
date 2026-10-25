@@ -43,14 +43,15 @@ struct SimulationWorkspaceBuilderTests {
 
     // MARK: - Mirroring
 
-    @Test("mirrors .swift files at their relative paths and skips build directories")
+    @Test("mirrors .swift files at their relative paths, build directories too")
     func mirrorsSwiftFilesAndSkipsBuildDirectory() throws {
         let workspaceRoot = try makeTempWorkspace()
         defer { try? FileManager.default.removeItem(at: workspaceRoot) }
 
         try write("let a = 1\n", to: workspaceRoot.appendingPathComponent("Sources/A.swift"))
         try write("let b = 2\n", to: workspaceRoot.appendingPathComponent("Tests/B.swift"))
-        // Build artifacts must never be mirrored (they'd inflate the counts).
+        // SwiftLint lints build directories unless the config excludes them, and so must the
+        // mirror; the config's `excluded` decides there as it does in the workspace.
         try write("let c = 3\n", to: workspaceRoot.appendingPathComponent(".build/checkouts/C.swift"))
 
         let workspace = Workspace(path: workspaceRoot)
@@ -59,7 +60,7 @@ struct SimulationWorkspaceBuilderTests {
 
         #expect(fileExists(shadow.root.appendingPathComponent("Sources/A.swift")))
         #expect(fileExists(shadow.root.appendingPathComponent("Tests/B.swift")))
-        #expect(fileExists(shadow.root.appendingPathComponent(".build/checkouts/C.swift")) == false)
+        #expect(fileExists(shadow.root.appendingPathComponent(".build/checkouts/C.swift")))
 
         // Mirrored content matches the original.
         let mirrored = try String(
@@ -69,9 +70,9 @@ struct SimulationWorkspaceBuilderTests {
         #expect(mirrored == "let a = 1\n")
     }
 
-    // MARK: - Enabling the rule everywhere
+    // MARK: - Enabling the rule as Enable does
 
-    @Test("enables the rule in the root and every nested config")
+    @Test("enables the rule in the root config, and leaves nested configs as they are")
     func enablesRuleInRootAndNestedConfigs() throws {
         let workspaceRoot = try makeTempWorkspace()
         defer { try? FileManager.default.removeItem(at: workspaceRoot) }
@@ -96,13 +97,12 @@ struct SimulationWorkspaceBuilderTests {
         let rootConfig = try loadConfig(at: shadow.root.appendingPathComponent(".swiftlint.yml"))
         #expect(rootConfig.disabledRules?.contains("force_cast") != true)
 
-        // Nested: the subtree's opt-out is overridden too (the "merge into every
-        // nested config" semantic).
+        // Nested: Enable writes only the root config, so the subtree's opt-out stays.
         let nestedConfig = try loadConfig(at: shadow.root.appendingPathComponent("Legacy/.swiftlint.yml"))
-        #expect(nestedConfig.disabledRules?.contains("force_cast") != true)
+        #expect(nestedConfig.disabledRules == ["force_cast"])
     }
 
-    @Test("appends the rule to a nested only_rules whitelist")
+    @Test("leaves a nested only_rules whitelist as it is")
     func appendsRuleToNestedOnlyRules() throws {
         let workspaceRoot = try makeTempWorkspace()
         defer { try? FileManager.default.removeItem(at: workspaceRoot) }
@@ -116,9 +116,9 @@ struct SimulationWorkspaceBuilderTests {
 
         try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
 
+        // Enable doesn't touch it, so beneath it the rule stays off.
         let nestedConfig = try loadConfig(at: shadow.root.appendingPathComponent("Sub/.swiftlint.yml"))
-        #expect(nestedConfig.onlyRules?.contains("force_cast") == true)
-        #expect(nestedConfig.onlyRules?.contains("line_length") == true)
+        #expect(nestedConfig.onlyRules == ["line_length"])
     }
 
     @Test("an opt-in rule goes in only_rules alone when there is one, which SwiftLint requires")
