@@ -13,6 +13,8 @@
 //    C. Afterwards the resolver reports the rule exactly as it was set: the writers and
 //       the toggles can't disagree.
 //
+//  The lists may name a rule by a deprecated alias, which SwiftLint reads as the rule.
+//
 
 import Foundation
 import PropertyBased
@@ -34,27 +36,33 @@ private struct RuleListSpec: Sendable {
 @Suite("rule list property laws")
 struct RuleListsPropertyLawTests {
 
-    /// Two rules of each kind, so a list can hold a rule of the "wrong" kind too.
+    /// Two rules of each kind, so a list can hold a rule of the "wrong" kind too, and two
+    /// with a deprecated alias.
     private static let vocabulary: [(id: String, kind: RuleListKind)] = [
         ("force_cast", .standard),
         ("line_length", .standard),
         ("empty_count", .optIn),
         ("first_where", .optIn),
         ("unused_import", .analyzer),
-        ("explicit_self", .analyzer)
+        ("explicit_self", .analyzer),
+        ("identifier_name", .standard),
+        ("shorthand_optional_binding", .optIn)
     ]
 
+    /// What a list entry may say: a rule's id, or the alias SwiftLint reads as one of them.
+    private static let listNames = vocabulary.map(\.id) + ["variable_name", "if_let_shadowing"]
+
     private static func specGenerator() -> Generator<RuleListSpec, some SendableSequenceType> {
-        let index = Gen<Int>.int(in: 0 ... (vocabulary.count - 1))
-        let list = index.array(of: 0...4)
-        return zip(list, list, list, list, index, Gen<Bool>.bool)
+        let target = Gen<Int>.int(in: 0 ... (vocabulary.count - 1))
+        let list = Gen<Int>.int(in: 0 ... (listNames.count - 1)).array(of: 0...4)
+        return zip(list, list, list, list, target, Gen<Bool>.bool)
             .map { RuleListSpec(only: $0, optIn: $1, disabled: $2, analyzer: $3, target: $4, enables: $5) }
     }
 
     private static func config(for spec: RuleListSpec) -> YAMLConfigurationEngine.YAMLConfig {
         func ids(_ indices: [Int]) -> [String]? {
             var seen: Set<String> = []
-            let ids = indices.map { vocabulary[$0].id }.filter { seen.insert($0).inserted }
+            let ids = indices.map { listNames[$0] }.filter { seen.insert($0).inserted }
             return ids.isEmpty ? nil : ids
         }
         var config = YAMLConfigurationEngine.YAMLConfig()
@@ -77,7 +85,7 @@ struct RuleListsPropertyLawTests {
     }
 
     private static func kind(of ruleId: String) -> RuleListKind {
-        vocabulary.first { $0.id == ruleId }?.kind ?? .standard
+        vocabulary.first { $0.id == SwiftLintDeprecations.currentName(of: ruleId) }?.kind ?? .standard
     }
 
     // MARK: - A. The repair

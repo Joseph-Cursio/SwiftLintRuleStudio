@@ -46,6 +46,10 @@ nonisolated public enum RuleListKind: Sendable, Equatable {
 ///   This is issue #83: the app used to write exactly that.
 /// - An id listed under both `only_rules` and `analyzer_rules` runs once but prints
 ///   "listed multiple times".
+/// - Every list is read through ``SwiftLintDeprecations/currentName(of:)``: a deprecated
+///   alias such as `variable_name` names its rule (`identifier_name`) in any list. SwiftLint
+///   checks for duplicates before mapping aliases, so an alias beside its rule's current name
+///   prints no warning.
 ///
 /// `nonisolated` because `RuleEnablementResolver` reads these from a nonisolated context,
 /// and the package defaults everything else to the main actor.
@@ -84,17 +88,21 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
     /// - Otherwise an opt-in rule goes into `opt_in_rules` and an analyzer rule into
     ///   `analyzer_rules`. A standard rule needs no list.
     /// - Either way it leaves `disabled_rules`.
+    ///
+    /// A rule is matched under its deprecated aliases too: `disabled_rules: [if_let_shadowing]`
+    /// loses that entry when `shorthand_optional_binding` is turned on, and a list already
+    /// naming the rule by an alias counts as listing it.
     mutating func enableRule(_ ruleId: String, kind: RuleListKind) {
         Self.remove(ruleId, from: &disabledRules)
         switch kind {
         case .analyzer:
-            if usesOnlyRules, onlyRules?.contains(ruleId) == true { return }
+            if usesOnlyRules, Self.list(onlyRules, names: ruleId) { return }
             Self.append(ruleId, to: &analyzerRules)
         case .optIn, .standard:
             if usesOnlyRules {
                 // SwiftLint runs analyzer_rules alongside only_rules, so an id already there
                 // is on; listing it in both prints "listed multiple times".
-                if analyzerRules?.contains(ruleId) != true {
+                if !Self.list(analyzerRules, names: ruleId) {
                     Self.append(ruleId, to: &onlyRules)
                 }
             } else if kind == .optIn {
@@ -120,11 +128,15 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
     /// An empty `only_rules` is SwiftLint's default mode, so emptying the list would turn
     /// on every default rule — the opposite of turning the last ones off. Taking the rules
     /// one at a time would hit that partway through and leave the earlier ones on.
+    ///
+    /// Like ``enableRule(_:kind:)``, a rule's deprecated aliases count as the rule: each one
+    /// leaves the lists with it, and a rule `disabled_rules` already names by an alias isn't
+    /// added a second time.
     mutating func disableRules(_ ruleIds: [String], kind: (String) -> RuleListKind) throws {
         if usesOnlyRules {
-            let removing = Set(ruleIds)
+            let removing = Set(ruleIds.map(SwiftLintDeprecations.currentName(of:)))
             let only = onlyRules ?? []
-            if only.allSatisfy(removing.contains) {
+            if only.map(SwiftLintDeprecations.currentName(of:)).allSatisfy(removing.contains) {
                 throw YAMLConfigError.wouldEmptyOnlyRules(ruleIds: only)
             }
         }
@@ -159,9 +171,10 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
     ///
     /// Idempotent, never leaves a conflict, and never empties a non-empty `only_rules`.
     ///
-    /// Ids are compared as written. SwiftLint maps a deprecated alias (`variable_name`) to its
-    /// rule before folding, so an alias on one side and the current name on the other isn't
-    /// matched here — one reason the repair is always previewed.
+    /// The fold reads a deprecated alias as its rule, as SwiftLint does: `disabled_rules:
+    /// [variable_name]` takes `identifier_name` out of `only_rules`, and an alias in
+    /// `opt_in_rules` of a rule `only_rules` already lists isn't added twice. Step 2 compares
+    /// ids as written, as SwiftLint's "listed multiple times" warning does.
     func normalizedRuleLists() -> Self {
         guard usesOnlyRules else { return self }
         var result = self
@@ -173,13 +186,14 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
     }
 
     private mutating func foldConflictIntoOnlyRules() {
-        let disabled = Set(disabledRules ?? [])
-        let folded = Self.deduplicated((onlyRules ?? []) + (optInRules ?? []).filter { $0 != "all" })
-            .filter { !disabled.contains($0) }
+        let disabled = Set((disabledRules ?? []).map(SwiftLintDeprecations.currentName(of:)))
+        let isDisabled = { disabled.contains(SwiftLintDeprecations.currentName(of: $0)) }
+        let folded = Self.deduplicatedByRule((onlyRules ?? []) + (optInRules ?? []).filter { $0 != "all" })
+            .filter { !isDisabled($0) }
         if !folded.isEmpty {
             onlyRules = folded
             // A disabled analyzer rule has to leave `analyzer_rules` too, or it keeps running.
-            if let remaining = analyzerRules?.filter({ !disabled.contains($0) }) {
+            if let remaining = analyzerRules?.filter({ !isDisabled($0) }) {
                 analyzerRules = remaining.isEmpty ? nil : remaining
             }
         }
@@ -209,19 +223,35 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
 
     // MARK: - Helpers
 
-    private static func append(_ ruleId: String, to list: inout [String]?) {
-        var current = list ?? []
-        guard !current.contains(ruleId) else { return }
-        current.append(ruleId)
-        list = current
+    /// Whether `entry` names the same rule as `ruleId`, under its current name or a deprecated
+    /// alias.
+    private static func entry(_ entry: String, names ruleId: String) -> Bool {
+        SwiftLintDeprecations.currentName(of: entry) == SwiftLintDeprecations.currentName(of: ruleId)
     }
 
-    /// Removes `ruleId`, dropping the key when the list empties — a list is absent or
-    /// holds something. A list that doesn't name the rule is left exactly as it was.
+    private static func list(_ list: [String]?, names ruleId: String) -> Bool {
+        list?.contains { entry($0, names: ruleId) } == true
+    }
+
+    /// Appends `ruleId` unless the list already names the rule, by any name.
+    private static func append(_ ruleId: String, to list: inout [String]?) {
+        guard !Self.list(list, names: ruleId) else { return }
+        list = (list ?? []) + [ruleId]
+    }
+
+    /// Removes every entry naming `ruleId`, aliases included, dropping the key when the list
+    /// empties — a list is absent or holds something. A list that doesn't name the rule is
+    /// left exactly as it was.
     private static func remove(_ ruleId: String, from list: inout [String]?) {
-        guard var current = list, current.contains(ruleId) else { return }
-        current.removeAll { $0 == ruleId }
+        guard var current = list, Self.list(current, names: ruleId) else { return }
+        current.removeAll { entry($0, names: ruleId) }
         list = current.isEmpty ? nil : current
+    }
+
+    /// `ids` with each rule kept at its first entry, whatever name later ones use.
+    private static func deduplicatedByRule(_ ids: [String]) -> [String] {
+        var seen: Set<String> = []
+        return ids.filter { seen.insert(SwiftLintDeprecations.currentName(of: $0)).inserted }
     }
 
     private static func deduplicated(_ ids: [String]) -> [String] {
