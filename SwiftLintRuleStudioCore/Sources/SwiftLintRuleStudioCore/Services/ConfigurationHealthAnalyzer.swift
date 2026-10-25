@@ -316,17 +316,14 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
         return min(score, 100)
     }
 
-    /// The recommended opt-in rules this config turns on. Under a non-empty `only_rules:`
-    /// that list is the whole story; otherwise it's `opt_in_rules:`, less any entry switched
-    /// off with `enabled: false` — the same reading `RuleEnablementResolver` gives, a
-    /// rejected file included.
+    /// The recommended opt-in rules this config turns on, as `RuleEnablementResolver` reads
+    /// them: under a non-empty `only_rules:` that list is the whole story; otherwise it's
+    /// `opt_in_rules:`, less any entry switched off with `enabled: false`. A rejected file and
+    /// deprecated aliases are read the way the resolver reads them too.
     func enabledRecommendedOptInRules(config: YAMLConfigurationEngine.YAMLConfig) -> Set<String> {
-        let config = config.normalizedRuleLists()
-        if config.usesOnlyRules {
-            return recommendedOptInRules.intersection(config.onlyRules ?? [])
-        }
-        return recommendedOptInRules.intersection(config.optInRules ?? []).filter { id in
-            config.rules[id]?.enabled != false
+        recommendedOptInRules.filter { id in
+            let rule = Rule(id: id, name: id, description: "", category: .lint, isOptIn: true)
+            return RuleEnablementResolver.isRuleEnabled(rule, config: config)
         }
     }
 }

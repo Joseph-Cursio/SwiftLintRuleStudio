@@ -40,7 +40,7 @@ struct SimulationWorkspaceEnableTests {
 
     // MARK: - Deprecated names
 
-    @Test("enabling a rule takes its deprecated names off every list, and leaves other rules alone")
+    @Test("enabling a rule takes its deprecated names out of disabled_rules, and leaves other rules alone")
     func deprecatedNamesAreRemoved() {
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.disabledRules = ["variable_name", "todo"]
@@ -49,9 +49,10 @@ struct SimulationWorkspaceEnableTests {
         ConfigRuleEnabler.enableRule("identifier_name", in: &config, isOptIn: false, isAnalyzer: false)
 
         #expect(config.disabledRules == ["todo"])
-        #expect(config.onlyRules == ["line_length", "identifier_name"])
-        #expect(ConfigRuleEnabler.aliases(of: "identifier_name").contains("variable_name"))
-        #expect(ConfigRuleEnabler.aliases(of: "function_name_whitespace") == ["operator_whitespace"])
+        // only_rules already names the rule by its alias, which SwiftLint reads as the rule.
+        #expect(config.onlyRules == ["variable_name", "line_length"])
+        let identifierName = Rule(id: "identifier_name", name: "", description: "", category: .style, isOptIn: false)
+        #expect(RuleEnablementResolver.isRuleEnabled(identifierName, config: config))
     }
 
     @Test("the rule is enabled in the configs the root pulls in, not in nested ones")

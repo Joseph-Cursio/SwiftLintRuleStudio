@@ -75,7 +75,7 @@ private struct RuleSwitches {
     /// The rule's current name. Only SwiftLint's own aliases count: a rule that was "replaced
     /// by" another but still exists stays a rule of its own.
     static func canonical(_ ruleId: String) -> String {
-        SwiftLintDeprecations.ruleAliases[ruleId] ?? ruleId
+        SwiftLintDeprecations.currentName(of: ruleId)
     }
 
     private static func canonical(_ ruleIds: [String]?) -> Set<String> {

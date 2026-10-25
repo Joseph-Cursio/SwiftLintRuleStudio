@@ -39,29 +39,34 @@ public enum RuleEnablementResolver {
     /// repair it. SwiftLint runs its defaults for such a file today, but the app
     /// warns about that separately and refuses to save until it is repaired, so the
     /// toggles show what the repair preview will write rather than flip when it does.
+    ///
+    /// Each list is read the way SwiftLint reads it, a deprecated alias as its rule:
+    /// `disabled_rules: [if_let_shadowing]` turns `shorthand_optional_binding` off.
     nonisolated public static func isRuleEnabled(
         _ rule: Rule,
         config: YAMLConfigurationEngine.YAMLConfig
     ) -> Bool {
         let config = config.normalizedRuleLists()
+        let ruleName = SwiftLintDeprecations.currentName(of: rule.id)
+        func listed(in list: [String]?) -> Bool {
+            list?.contains { SwiftLintDeprecations.currentName(of: $0) == ruleName } == true
+        }
         if config.usesOnlyRules {
-            return config.onlyRules?.contains(rule.id) == true
-                || config.analyzerRules?.contains(rule.id) == true
+            return listed(in: config.onlyRules) || listed(in: config.analyzerRules)
         }
         if rule.isAnalyzer {
             if config.rules[rule.id]?.enabled == false {
                 return false
             }
-            return config.analyzerRules?.contains(rule.id) ?? false
+            return listed(in: config.analyzerRules)
         }
         if rule.isOptIn {
             if config.rules[rule.id]?.enabled == false {
                 return false
             }
-            guard let optInRules = config.optInRules else { return false }
-            return optInRules.contains(rule.id)
+            return listed(in: config.optInRules)
         }
-        if config.disabledRules?.contains(rule.id) == true {
+        if listed(in: config.disabledRules) {
             return false
         }
         if let ruleConfig = config.rules[rule.id] {

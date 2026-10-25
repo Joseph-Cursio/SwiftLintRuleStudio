@@ -186,8 +186,9 @@ final class SimulationWorkspace {
 /// The YAML mutation that turns a rule on: sets it enabled, applies any parameter
 /// overrides, and routes it through the rule lists with
 /// `YAMLConfig.enableRule(_:kind:)` — `only_rules` when the file has one, otherwise
-/// `opt_in_rules` / `analyzer_rules` — so the mirror stays a file SwiftLint accepts; and
-/// takes the rule's deprecated names off every list, as SwiftLint still reads them as it.
+/// `opt_in_rules` / `analyzer_rules` — so the mirror stays a file SwiftLint accepts. That
+/// routing reads the rule's deprecated names as the rule, as SwiftLint does, so
+/// `disabled_rules: [variable_name]` stops holding `identifier_name` off.
 /// Preserves the config's `included:`/`excluded:` exactly as written — in the mirror those
 /// relative paths resolve correctly, so no absolutizing is needed.
 enum ConfigRuleEnabler {
@@ -210,25 +211,6 @@ enum ConfigRuleEnabler {
         }
         config.rules[ruleId] = ruleConfig
         config.enableRule(ruleId, kind: RuleListKind(isOptIn: isOptIn, isAnalyzer: isAnalyzer))
-
-        // `disabled_rules: [variable_name]` still turns `identifier_name` off, so a deprecated
-        // name goes from every list too; the rule's own name is listed where it belongs.
-        let aliases = Set(Self.aliases(of: ruleId))
-        for list in [
-            \YAMLConfigurationEngine.YAMLConfig.disabledRules, \.optInRules, \.analyzerRules, \.onlyRules
-        ] {
-            // A list without them stays exactly as it is: an empty `only_rules` means default mode.
-            if let names = config[keyPath: list], names.contains(where: aliases.contains) {
-                let kept = names.filter { !aliases.contains($0) }
-                config[keyPath: list] = kept.isEmpty ? nil : kept
-            }
-        }
-    }
-
-    /// The deprecated names SwiftLint still reads as `ruleId`
-    /// (``SwiftLintDeprecations/ruleAliases``).
-    static func aliases(of ruleId: String) -> [String] {
-        SwiftLintDeprecations.ruleAliases.filter { $0.value == ruleId }.map(\.key).sorted()
     }
 }
 

@@ -72,13 +72,21 @@ public enum SwiftLintDeprecations {
     /// SwiftLint no longer reads too. A rule merely superseded by another is in neither:
     /// `generic_type_name` and `multiple_closures_with_trailing_closure` still run on their own.
     /// `DeprecationDataTests` in SwiftLintInProcessBackend checks this against the linked SwiftLint.
-    public static let ruleAliases: [String: String] = [
+    /// `nonisolated` for the rule lists, which are read off the main actor.
+    nonisolated public static let ruleAliases: [String: String] = [
         "variable_name": "identifier_name",
         "redundant_optional_initialization": "implicit_optional_initialization",
         "operator_whitespace": "function_name_whitespace",
         "redundant_self_in_closure": "redundant_self",
         "if_let_shadowing": "shorthand_optional_binding"
     ]
+
+    /// The rule SwiftLint reads `ruleId` as: the current name for one of its ``ruleAliases``,
+    /// otherwise `ruleId` itself. SwiftLint maps every rule list through this before using it,
+    /// so `disabled_rules: [variable_name]` turns `identifier_name` off.
+    nonisolated public static func currentName(of ruleId: String) -> String {
+        ruleAliases[ruleId] ?? ruleId
+    }
 
     // MARK: - Deprecated Rules (SwiftLint still accepts them, with a warning)
 

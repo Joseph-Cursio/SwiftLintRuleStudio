@@ -243,7 +243,7 @@ enum RuleListsAgreementCases {
             rejected: true,
             expected: .exactly(["todo"])
         )
-    ]
+    ] + aliasCases
 }
 
 /// Core answers three questions about a `.swiftlint.yml`'s rule lists without asking
