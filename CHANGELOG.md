@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- The version compatibility report and the Migration Assistant no longer rename live rules. Their rename table listed rules that still exist under their own names, such as `generic_type_name` and `multiple_closures_with_trailing_closure`, so "Fix" rewrote a valid config to run a different rule. The table now holds only renames SwiftLint itself resolves through an alias. Every rename, deprecation, removal and rule-addition version is dated from the SwiftLint release that first ships it, and a test pins the table against the linked SwiftLint.
+- A rule written as a severity shorthand (`redundant_self_in_closure: error`) is now reported and renamed, and the Migration Assistant offers Apply for a change that touches only such rules or a rule list, instead of saying "No changes needed".
+- Renaming a rule whose new name is already configured merges the two configurations instead of dropping the old one's settings.
+- A pre-release SwiftLint (`0.50.0-rc.1`) is treated as older than its release, so it isn't told to rename to, or enable, a rule that only exists from the release on. A leading `v` is ignored.
+- `enabled_rules` and `indentation` are no longer reported as rules.
+
 ---
 
 ## [1.1.1] — 2026-05-01

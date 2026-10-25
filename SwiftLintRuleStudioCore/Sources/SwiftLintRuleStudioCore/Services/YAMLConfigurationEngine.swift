@@ -125,8 +125,11 @@ public class YAMLConfigurationEngine {
         public let before: String
         public let after: String
 
+        /// Whether the change rewrites the file: a rule configuration changes, or anything
+        /// else does, such as a rule list. A rename that only touches `opt_in_rules` changes no
+        /// rule configuration, and the migration preview hid its Apply button.
         public var hasChanges: Bool {
-            !addedRules.isEmpty || !removedRules.isEmpty || !modifiedRules.isEmpty
+            !addedRules.isEmpty || !removedRules.isEmpty || !modifiedRules.isEmpty || before != after
         }
 
         public init(
@@ -223,14 +226,18 @@ public class YAMLConfigurationEngine {
     /// A total function of its two arguments: no file, no engine, no order dependence beyond
     /// which side is "before". It read one stored property, `currentConfig`, which every
     /// caller had loaded a moment earlier and could pass instead.
+    ///
+    /// A rule configuration is modeled in `rules` or, when the engine cannot model its value
+    /// (`redundant_self_in_closure: error`), kept as a passthrough node; both kinds count.
     public static func diff(from current: YAMLConfig, to proposed: YAMLConfig) -> ConfigDiff {
-        let currentRules = Set(current.rules.keys)
-        let proposedRules = Set(proposed.rules.keys)
+        let currentRules = Set(current.rules.keys).union(current.unmodeledRuleKeys)
+        let proposedRules = Set(proposed.rules.keys).union(proposed.unmodeledRuleKeys)
 
         let addedRules = Array(proposedRules.subtracting(currentRules))
         let removedRules = Array(currentRules.subtracting(proposedRules))
         let modifiedRules = currentRules.intersection(proposedRules).filter { ruleId in
             current.rules[ruleId] != proposed.rules[ruleId]
+                || current.passthroughNodes[ruleId] != proposed.passthroughNodes[ruleId]
         }
 
         return ConfigDiff(

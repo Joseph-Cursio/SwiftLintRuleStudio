@@ -7,8 +7,10 @@
 //  testing left eight of the file's ten mutants alive. The example tests asked
 //  for *a* rename step and never for the plan's exact contents, so a duplicated
 //  step, a removal for a rule already being renamed, and a removal outside its
-//  version window all passed. No example used the one removed rule that is not
-//  also renamed (`anyobject_protocol`), and none emptied a list.
+//  version window all passed. No example used a removed rule that was not also
+//  renamed (`anyobject_protocol`), and none emptied a list. Since the tables were
+//  corrected no rule is both renamed and removed, so the data no longer reaches
+//  the removal-for-a-renamed-rule case; the laws still state it.
 //
 //  The laws are a decision table over the deprecation data:
 //
@@ -17,7 +19,10 @@
 //                       below the version r was renamed in
 //      remove r         r is configured, r was removed in a version v with
 //                       from < v ≤ to, and r is not being renamed
-//      new-rules note   a rule was added after `from`, up to `to`
+//      new-rules note   names each rule added after `from`, up to `to`, that
+//                       `to` has not retired (removed, or deprecated with no
+//                       replacement) and the config does not use under its own
+//                       name or a renamed one; absent when there is none
 //
 //  and two laws over `applyMigration`. It is idempotent, the law swift-infer
 //  proposed for it once the linter seeded it as a pure mutator. And it leaves
@@ -25,8 +30,12 @@
 //  rather than absent.
 //
 //  Writing the rename law found a defect, fixed in the same change: renames
-//  ignored the target version, so a 0.20 → 0.22 migration renamed
-//  `variable_name` to `identifier_name`, which only exists from 0.25.
+//  ignored the target version, so a 0.15 → 0.16 migration renamed
+//  `variable_name` to `identifier_name`, which only exists from 0.17.
+//
+//  The laws read the tables, so they cannot catch a wrong row: the tables once
+//  renamed live rules (`generic_type_name` → `identifier_name`) and every law
+//  held. SwiftLintInProcessBackendTests checks the rows against the linked SwiftLint.
 //
 
 import Foundation
@@ -72,7 +81,10 @@ struct MigrationAssistantPropertyLawTests {
             + Array(SwiftLintDeprecations.versionRuleAdditions.keys)
         let below = turning.compactMap { version -> String? in
             let parts = version.split(separator: ".").compactMap { Int($0) }
-            guard parts.count == 3, parts[1] > 0 else { return nil }
+            guard parts.count == 3 else { return nil }
+            // 0.59.1 removed a rule 0.59.0 still had: the edge of a patch release is a patch below.
+            if parts[2] > 0 { return "0.\(parts[1]).\(parts[2] - 1)" }
+            guard parts[1] > 0 else { return nil }
             return "0.\(parts[1] - 1).0"
         }
         return Set(turning + below + ["0.20.0", "0.70.0"]).sorted {
@@ -214,14 +226,41 @@ struct MigrationAssistantPropertyLawTests {
         }
     }
 
-    @Test("the new-rules note appears exactly when a rule was added in the range, at most once")
+    @Test("the new-rules note names exactly the rules added in the range that the target offers and the config lacks")
     func newRulesNoteFollowsTheAdditions() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let added = SwiftLintDeprecations.rulesAdded(
-                from: Self.versions[spec.fromIndex], to: Self.versions[spec.toIndex]
-            )
-            #expect(Self.plan(for: spec).manualSteps.count == (added.isEmpty ? 0 : 1))
+            let fromVersion = Self.versions[spec.fromIndex]
+            let toVersion = Self.versions[spec.toIndex]
+            let configured = Self.configuredIds(Self.config(for: spec))
+            let used = configured.union(configured.compactMap { SwiftLintDeprecations.renamedRules[$0] })
+            let added = SwiftLintDeprecations.versionRuleAdditions
+                .filter {
+                    SwiftLintDeprecations.isVersion(fromVersion, lessThan: $0.key)
+                        && !SwiftLintDeprecations.isVersion(toVersion, lessThan: $0.key)
+                }
+                .flatMap(\.value)
+                .filter { !Self.retired($0, by: toVersion) && !used.contains($0) }
+                .sorted()
+            let notes = Self.plan(for: spec).manualSteps.map(\.description)
+            #expect(notes == (added.isEmpty ? [] : [Self.newRulesNote(added)]))
         }
+    }
+
+    /// Whether `version` no longer offers `rule`: removed by then, or deprecated with no replacement.
+    private static func retired(_ rule: String, by version: String) -> Bool {
+        if let removal = SwiftLintDeprecations.removedRules[rule],
+           !SwiftLintDeprecations.isVersion(version, lessThan: removal.removedInVersion) {
+            return true
+        }
+        guard let deprecation = SwiftLintDeprecations.deprecatedRules[rule], deprecation.replacement == nil else {
+            return false
+        }
+        return !SwiftLintDeprecations.isVersion(version, lessThan: deprecation.deprecatedInVersion)
+    }
+
+    /// The note the plan carries for `rules`, verbatim.
+    private static func newRulesNote(_ rules: [String]) -> String {
+        "New rules available: \(rules.joined(separator: ", ")). Consider enabling them."
     }
 
     // MARK: - Laws over applying it
@@ -261,18 +300,18 @@ struct MigrationAssistantPropertyLawTests {
 
     // MARK: - The version gate, pinned
 
-    /// The defect the rename law found: `identifier_name` arrived in 0.25.0.
+    /// The defect the rename law found: `identifier_name` arrived in 0.17.0.
     @Test("a rename is not offered before its target exists", arguments: [
-        ("0.22.0", false), ("0.24.0", false), ("0.25.0", true), ("0.30.0", true)
+        ("0.15.0", false), ("0.16.0", false), ("0.17.0", true), ("0.30.0", true)
     ])
     func renameWaitsForItsTarget(toVersion: String, renames: Bool) {
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules = ["variable_name": RuleConfiguration(enabled: true)]
-        let plan = Self.assistant.detectMigrations(config: config, fromVersion: "0.20.0", toVersion: toVersion)
+        let plan = Self.assistant.detectMigrations(config: config, fromVersion: "0.15.0", toVersion: toVersion)
         #expect((Self.renames(in: plan)["variable_name"] == "identifier_name") == renames)
     }
 
-    /// The one removed rule that is not also renamed — no example test used it.
+    /// A removed rule with no rename — no example test used one.
     @Test("anyobject_protocol is removed exactly when the range crosses 0.57.0", arguments: [
         ("0.50.0", "0.57.0", true), ("0.50.0", "0.56.0", false), ("0.57.0", "0.60.0", false), ("0.56.0", "0.70.0", true)
     ])
@@ -281,5 +320,6 @@ struct MigrationAssistantPropertyLawTests {
         config.optInRules = ["anyobject_protocol"]
         let plan = Self.assistant.detectMigrations(config: config, fromVersion: from, toVersion: toVersion)
         #expect(Self.removals(in: plan).contains("anyobject_protocol") == removes)
+        #expect(Self.renames(in: plan).isEmpty)
     }
 }

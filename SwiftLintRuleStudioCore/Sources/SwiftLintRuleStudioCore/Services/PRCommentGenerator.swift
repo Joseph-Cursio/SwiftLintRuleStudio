@@ -117,9 +117,12 @@ public class PRCommentGenerator: PRCommentGeneratorProtocol {
             ))
         }
 
-        // No changes case
+        // No changes case, and the case of changes no rule configuration shows (a rule list)
         if !diff.hasChanges {
             lines.append("*No changes to SwiftLint configuration.*")
+            lines.append("")
+        } else if diff.addedRules.isEmpty && diff.removedRules.isEmpty && diff.modifiedRules.isEmpty {
+            lines.append("*Rule lists or other settings change; no rule configuration does.*")
             lines.append("")
         }
 

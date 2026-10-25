@@ -189,6 +189,8 @@ extension YAMLConfigurationEngine {
 
     /// Top-level YAML keys SwiftLint recognizes as configuration rather than
     /// rule identifiers. Anything not in this set is read as a rule config.
+    /// The rule ids listed under `enabled_rules` are read by the parser change
+    /// for issue #83; here the key is only kept from being taken for a rule.
     static let reservedTopLevelKeys: Set<String> = [
         "rules", // legacy app-emitted block, handled separately above
         "included",
@@ -196,6 +198,7 @@ extension YAMLConfigurationEngine {
         "reporter",
         "disabled_rules",
         "opt_in_rules",
+        "enabled_rules", // deprecated alias of opt_in_rules, read into it
         "analyzer_rules",
         "only_rules",
         "whitelist_rules",
@@ -216,6 +219,7 @@ extension YAMLConfigurationEngine {
         "baseline",
         "write_baseline",
         "check_for_updates",
+        "indentation",
         "custom_rules"
     ]
 

@@ -40,6 +40,16 @@ struct RuleChangeSummary: View {
                     Text("\(diff.modifiedRules.count) rule(s) to modify")
                 }
             }
+            // A change no rule configuration shows, such as a rename inside `opt_in_rules`.
+            if diff.hasChanges && diff.addedRules.isEmpty && diff.removedRules.isEmpty
+                && diff.modifiedRules.isEmpty {
+                HStack {
+                    Image(systemName: "list.bullet.circle.fill")
+                        .foregroundStyle(.blue)
+                        .accessibilityHidden(true)
+                    Text("Rule lists or other settings change")
+                }
+            }
         }
     }
 }

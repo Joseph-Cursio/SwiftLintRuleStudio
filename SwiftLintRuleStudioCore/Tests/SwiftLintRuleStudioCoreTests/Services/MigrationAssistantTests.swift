@@ -43,6 +43,119 @@ struct MigrationAssistantTests {
         #expect(renameSteps.isEmpty == false)
     }
 
+    /// Issue #83's config lists these live rules under `only_rules`. The migration used to
+    /// rename them to `identifier_name` and `trailing_closure`, rules that check other things.
+    @Test("Live rules are left alone across every version")
+    func testLiveRulesAreNotMigrated() {
+        var config = makeConfig()
+        config.onlyRules = ["generic_type_name", "multiple_closures_with_trailing_closure", "trailing_closure"]
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.20.0", toVersion: "0.65.0")
+        #expect(plan.autoApplyableSteps.isEmpty)
+
+        var migrated = config
+        assistant.applyMigration(plan, to: &migrated)
+        #expect(migrated == config)
+    }
+
+    @Test("Rules dropped for compiler warnings are removed, not renamed")
+    func testCompilerWarningRulesAreRemoved() {
+        let config = makeConfig(optInRules: ["inert_defer", "unused_capture_list", "line_length"])
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.50.0", toVersion: "0.65.0")
+        let autoSteps = plan.autoApplyableSteps.map(\.id).sorted()
+        #expect(autoSteps == ["remove-inert_defer", "remove-unused_capture_list"])
+
+        var migrated = config
+        assistant.applyMigration(plan, to: &migrated)
+        #expect(migrated.optInRules == ["line_length"])
+    }
+
+    @Test("A SwiftLint alias is renamed in every rule list")
+    func testAliasRenamedInEveryList() {
+        var config = makeConfig(disabledRules: ["redundant_self_in_closure"], optInRules: ["if_let_shadowing"])
+        config.onlyRules = ["if_let_shadowing", "operator_whitespace"]
+        config.analyzerRules = ["redundant_optional_initialization"]
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.49.0", toVersion: "0.65.0")
+        assistant.applyMigration(plan, to: &config)
+        #expect(config.disabledRules == ["redundant_self"])
+        #expect(config.optInRules == ["shorthand_optional_binding"])
+        #expect(config.onlyRules == ["shorthand_optional_binding", "function_name_whitespace"])
+        #expect(config.analyzerRules == ["implicit_optional_initialization"])
+    }
+
+    @Test("A rename keeps the configuration the new id already has")
+    func testRenameKeepsExistingTargetConfiguration() {
+        var config = makeConfig(rules: [
+            "variable_name": RuleConfiguration(enabled: true, severity: .error),
+            "identifier_name": RuleConfiguration(enabled: true, severity: .warning)
+        ])
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.16.0", toVersion: "0.65.0")
+        assistant.applyMigration(plan, to: &config)
+        #expect(config.rules == ["identifier_name": RuleConfiguration(enabled: true, severity: .warning)])
+    }
+
+    @Test("The new-rules note leaves out a rule the target version has removed")
+    func testNewRulesNoteExcludesRemovedRules() throws {
+        // anyobject_protocol arrived in 0.27.0 and collection_alignment in 0.28.0; only the
+        // first is gone by 0.65.0.
+        let plan = assistant.detectMigrations(config: makeConfig(), fromVersion: "0.26.0", toVersion: "0.65.0")
+        let note = try #require(plan.manualSteps.first?.description)
+        #expect(note.contains("collection_alignment"))
+        #expect(note.contains("anyobject_protocol") == false)
+    }
+
+    @Test("The new-rules note leaves out a rule the config uses, under its own name or an old one")
+    func testNewRulesNoteExcludesRulesInUse() throws {
+        let config = makeConfig(optInRules: ["redundant_optional_initialization", "prefer_condition_list"])
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.59.0", toVersion: "0.60.0")
+        // Both 0.60.0 additions are in use, so there is nothing new to suggest.
+        #expect(plan.manualSteps.isEmpty)
+        let rename = MigrationStep.renameRule(
+            from: "redundant_optional_initialization", newName: "implicit_optional_initialization"
+        )
+        #expect(plan.steps == [rename])
+    }
+
+    /// A version typed with a leading `v` once compared below every release.
+    @Test("Versions with a leading v plan like plain ones")
+    func testLeadingVVersions() {
+        let config = makeConfig(optInRules: ["inert_defer"])
+        let typed = assistant.detectMigrations(config: config, fromVersion: "v0.50.0", toVersion: "v0.65.0")
+        let plain = assistant.detectMigrations(config: config, fromVersion: "0.50.0", toVersion: "0.65.0")
+        #expect(typed.steps == plain.steps)
+        #expect(typed.steps.contains(.removeDeprecatedRule(
+            ruleId: "inert_defer", reason: SwiftLintDeprecations.removedRules["inert_defer"]?.message ?? ""
+        )))
+    }
+
+    /// 0.50.0-rc.1 still registers `if_let_shadowing`; renaming it there would turn the rule off.
+    @Test("A migration to a pre-release does not apply a rename its release brings")
+    func testPreReleaseTargetKeepsOldName() {
+        let config = makeConfig(optInRules: ["if_let_shadowing"])
+        let toRC = assistant.detectMigrations(config: config, fromVersion: "0.49.0", toVersion: "0.50.0-rc.1")
+        #expect(toRC.autoApplyableSteps.isEmpty)
+        let toRelease = assistant.detectMigrations(config: config, fromVersion: "0.49.0", toVersion: "0.50.0")
+        #expect(toRelease.steps.contains(.renameRule(from: "if_let_shadowing", newName: "shorthand_optional_binding")))
+    }
+
+    /// `rule: error` is a severity shorthand the engine holds as a passthrough node, not in `rules`.
+    @Test("Severity-shorthand rules are renamed and removed like any other")
+    func testSeverityShorthandRules() throws {
+        var config = try YAMLConfigurationEngine.parse("""
+            redundant_self_in_closure: error
+            inert_defer: warning
+
+            """)
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.57.0", toVersion: "0.65.0")
+        #expect(plan.autoApplyableSteps.map(\.id).sorted() == [
+            "remove-inert_defer", "rename-redundant_self_in_closure-redundant_self"
+        ])
+        assistant.applyMigration(plan, to: &config)
+        let yaml = try YAMLConfigurationEngine.serialize(config)
+        #expect(yaml.contains("redundant_self: error"))
+        #expect(yaml.contains("redundant_self_in_closure") == false)
+        #expect(yaml.contains("inert_defer") == false)
+    }
+
     @Test("No migrations for clean config")
     func testNoMigrationsForCleanConfig() {
         let config = makeConfig(rules: [
@@ -59,7 +172,8 @@ struct MigrationAssistantTests {
     @Test("Detects new rules available")
     func testDetectsNewRules() {
         let config = makeConfig(rules: ["force_cast": RuleConfiguration(enabled: true)])
-        let plan = assistant.detectMigrations(config: config, fromVersion: "0.24.0", toVersion: "0.25.0")
+        // file_name_no_space and optional_enum_case_matching are first registered in 0.38.1
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.38.0", toVersion: "0.38.1")
 
         let manualSteps = plan.manualSteps
         let hasNewRulesStep = manualSteps.contains { step in

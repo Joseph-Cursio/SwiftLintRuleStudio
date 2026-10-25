@@ -101,11 +101,13 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
     ) -> MigrationPlan {
         var steps: [MigrationStep] = []
 
-        let allRuleIds = config.ruleIds
+        // `namedRuleIds`, not `ruleIds`: a rule key with a severity shorthand
+        // (`redundant_self_in_closure: error`) is held only as a passthrough node.
+        let allRuleIds = config.namedRuleIds
 
         // Check renamed rules. A rename is offered only once the target version has the new name:
-        // `variable_name` → `identifier_name` arrived in 0.25.0, so a 0.20 → 0.22 migration that
-        // renamed it would leave a rule 0.22 does not know. The deprecation table carries the version
+        // `variable_name` → `identifier_name` arrived in 0.17.0, so a 0.15 → 0.16 migration that
+        // renamed it would leave a rule 0.16 does not know. The deprecation table carries the version
         // a rule was renamed in, and supplies a target for any deprecated rule the rename table lacks.
         for ruleId in allRuleIds.sorted() {
             let deprecation = SwiftLintDeprecations.deprecatedRules[ruleId]
@@ -134,8 +136,9 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
             }
         }
 
-        // Check for new rules available (informational)
-        let newRules = SwiftLintDeprecations.rulesAdded(from: fromVersion, to: toVersion)
+        // Check for new rules available (informational), leaving out those the config already uses
+        let inUse = SwiftLintDeprecations.rulesInUse(allRuleIds)
+        let newRules = SwiftLintDeprecations.rulesAdded(from: fromVersion, to: toVersion).filter { !inUse.contains($0) }
         if !newRules.isEmpty {
             steps.append(.manualAction(
                 description: "New rules available: \(newRules.joined(separator: ", ")). Consider enabling them."
@@ -163,19 +166,12 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
     private func applyStep(_ step: MigrationStep, to config: inout YAMLConfigurationEngine.YAMLConfig) {
         switch step {
         case .renameRule(let from, let newName):
-            // Rename in rules dict
-            if let ruleConfig = config.rules[from] {
-                config.rules.removeValue(forKey: from)
-                config.rules[newName] = ruleConfig
-            }
-            // Rename in list fields
-            replaceInList(&config.disabledRules, old: from, new: newName)
-            replaceInList(&config.optInRules, old: from, new: newName)
-            replaceInList(&config.analyzerRules, old: from, new: newName)
-            replaceInList(&config.onlyRules, old: from, new: newName)
+            config.renameRule(from, to: newName)
 
         case .removeDeprecatedRule(let ruleId, _):
             config.rules.removeValue(forKey: ruleId)
+            // A key the engine does not model (`inert_defer: error`) is held as a passthrough node.
+            config.passthroughNodes.removeValue(forKey: ruleId)
             removeFromList(&config.disabledRules, item: ruleId)
             removeFromList(&config.optInRules, item: ruleId)
             removeFromList(&config.analyzerRules, item: ruleId)
@@ -192,14 +188,6 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
 
         case .manualAction:
             break // Manual actions are not auto-applied
-        }
-    }
-
-    private func replaceInList(_ list: inout [String]?, old: String, new: String) {
-        guard var items = list else { return }
-        if let idx = items.firstIndex(of: old) {
-            items[idx] = new
-            list = items
         }
     }
 
