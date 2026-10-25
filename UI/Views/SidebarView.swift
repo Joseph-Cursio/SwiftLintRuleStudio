@@ -12,7 +12,8 @@ import SwiftUI
 
 // Each section depends on fewer of the sidebar's inputs than the sidebar does, so SwiftUI can skip
 // it when the others change. `SidebarView` re-renders on `selection`, `dependencies` and
-// `ruleRegistry`; `AnalysisSection` and `ConfigurationSection` depend on none of them.
+// `ruleRegistry`; `AnalysisSection` depends on none of them, and `ConfigurationSection` only on
+// the edition's capabilities, which never change while the app runs.
 //
 // That these can be extracted at all was measured rather than assumed — see
 // `TagResolutionMeasurementTests`. A `.tag()` applied inside an extracted `View` still resolves
@@ -79,8 +80,11 @@ private struct AnalysisSection: View {
     }
 }
 
-/// The configuration destinations. Depends on nothing.
-private struct ConfigurationSection: View {
+/// The configuration destinations. Depends only on whether the edition offers Branch Diff.
+/// Internal rather than private so tests can render it without the sidebar's environment.
+struct ConfigurationSection: View {
+    let showsBranchDiff: Bool
+
     var body: some View {
         SwiftUI.Section("Configuration") {
             Label("Config Map", systemImage: "map").tag(AppSection.configMap)
@@ -91,8 +95,10 @@ private struct ConfigurationSection: View {
                 .accessibilityIdentifier("SidebarCompareConfigsLink")
             Label("Import Config", systemImage: "square.and.arrow.down").tag(AppSection.importConfig)
                 .accessibilityIdentifier("SidebarImportConfigLink")
-            Label("Branch Diff", systemImage: "arrow.triangle.branch").tag(AppSection.branchDiff)
-                .accessibilityIdentifier("SidebarBranchDiffLink")
+            if showsBranchDiff {
+                Label("Branch Diff", systemImage: "arrow.triangle.branch").tag(AppSection.branchDiff)
+                    .accessibilityIdentifier("SidebarBranchDiffLink")
+            }
             Label("Migration", systemImage: "arrow.up.circle").tag(AppSection.migration)
                 .accessibilityIdentifier("SidebarMigrationLink")
         }
@@ -103,13 +109,14 @@ struct SidebarView: View {
     @Binding var selection: AppSection?
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
+    @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
 
     var body: some View {
         List(selection: $selection) {
             WorkspaceInfoSection(workspace: dependencies.workspaceManager.currentWorkspace)
             WorkspaceNavigationSection(ruleCount: ruleRegistry.rules.count)
             AnalysisSection()
-            ConfigurationSection()
+            ConfigurationSection(showsBranchDiff: AppSection.branchDiff.isAvailable(with: capabilities))
         }
         .listStyle(.sidebar)
     }

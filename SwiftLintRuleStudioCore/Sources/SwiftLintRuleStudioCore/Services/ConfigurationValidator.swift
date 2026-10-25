@@ -56,6 +56,8 @@ public struct ValidationResult: Sendable {
         case excludedPath(Int)
         case disabledRules
         case optInRules
+        case onlyRules
+        case analyzerRules
         case general
 
         public var description: String {
@@ -74,6 +76,10 @@ public struct ValidationResult: Sendable {
                 return "disabled_rules"
             case .optInRules:
                 return "opt_in_rules"
+            case .onlyRules:
+                return "only_rules"
+            case .analyzerRules:
+                return "analyzer_rules"
             case .general:
                 return "Configuration"
             }
@@ -154,6 +160,9 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
 
         // Check for conflicting rules (in both disabled and opt-in)
         validateNoConflicts(config, errors: &errors)
+
+        // Check that only_rules stands alone, as SwiftLint requires
+        validateOnlyRulesExclusivity(config, errors: &errors, warnings: &warnings)
 
         return ValidationResult(
             isValid: errors.isEmpty,
@@ -305,6 +314,32 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
                 field: .rule(conflictingRule),
                 message: "Rule appears in both disabled_rules and opt_in_rules",
                 suggestion: "Remove from one of the lists"
+            ))
+        }
+    }
+
+    /// SwiftLint rejects a non-empty `only_rules` beside a non-empty `opt_in_rules` or
+    /// `disabled_rules` and falls back to its default configuration (issue #83). An id under
+    /// both `only_rules` and `analyzer_rules` still runs, but SwiftLint warns it is listed twice.
+    private func validateOnlyRulesExclusivity(
+        _ config: YAMLConfigurationEngine.YAMLConfig,
+        errors: inout [ValidationResult.ValidationError],
+        warnings: inout [ValidationResult.ValidationWarning]
+    ) {
+        if config.hasOnlyRulesConflict {
+            errors.append(ValidationResult.ValidationError(
+                field: .onlyRules,
+                message: "only_rules can't be combined with opt_in_rules or disabled_rules: "
+                    + "SwiftLint ignores this file and falls back to its default configuration",
+                suggestion: "Move the opt_in_rules entries into only_rules, take the disabled_rules "
+                    + "entries out of it, then delete both lists"
+            ))
+        }
+        for ruleId in config.rulesInOnlyAndAnalyzerRules {
+            warnings.append(ValidationResult.ValidationWarning(
+                field: .analyzerRules,
+                message: "'\(ruleId)' is listed under both only_rules and analyzer_rules",
+                suggestion: "Remove it from only_rules; SwiftLint already runs analyzer_rules alongside it"
             ))
         }
     }

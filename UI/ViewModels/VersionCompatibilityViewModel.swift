@@ -97,6 +97,11 @@ class VersionCompatibilityViewModel {
             }
 
             try YAMLConfigurationEngine.save(config, to: configPath)
+            NotificationCenter.default.post(
+                name: .ruleConfigurationDidChange,
+                object: nil,
+                userInfo: ["renamedRuleId": rule.newRuleId]
+            )
 
             // Re-run check
             checkCompatibility()

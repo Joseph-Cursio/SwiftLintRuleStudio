@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Configuration backups are kept in the app's own folder (`~/Library/Application Support/SwiftLintRuleStudio/Config Backups/`, inside the container for the sandboxed Explorer edition) instead of beside `.swiftlint.yml`, where each save left an untracked `.swiftlint.yml.<timestamp>.backup` in the project. Each configuration keeps 50 backups in all: the oldest plus the 49 newest. Version History still lists backups an earlier version left in the project folder, and offers to move them out (the originals go to the Trash, and the moved copies are never pruned automatically); nothing moves them automatically.
 - No backup is taken when the file hasn't changed since the newest backup, two backups in the same second no longer overwrite each other, and a backup holds the configuration's bytes even when `.swiftlint.yml` is a symlink.
 
+### Fixed
+- Saving no longer writes a `.swiftlint.yml` SwiftLint rejects (#83). With `only_rules` in use, enabling a rule added it to `opt_in_rules` (and an analyzer rule to both `only_rules` and `analyzer_rules`); SwiftLint refuses `opt_in_rules` or `disabled_rules` beside `only_rules` and falls back to its defaults, ignoring `included` and `excluded`. Rules now go to the list SwiftLint reads in each mode, and a save that would produce a rejected file is refused.
+- A configuration SwiftLint already rejects for this reason is flagged in a banner, with a fix to review before it's saved; the rule browser, Rule Audit and imports no longer edit such a file.
+- A rule list, `included` or `excluded` written as a single string (`only_rules: force_cast`, `excluded: Pods`) is read as a one-entry list, as SwiftLint reads it, instead of being dropped on the next save. A list with no entries (`opt_in_rules:` or `~`) is read as no list. The deprecated `enabled_rules` is read when `opt_in_rules` is absent, and written back as `opt_in_rules`.
+- A rule option holding a list of mappings, such as `number_separator`'s `exclude_ranges`, is saved as valid YAML. Saving any change used to misalign the second key of each entry, so SwiftLint could no longer parse the file and fell back to its default configuration.
+
 ---
 
 ## [1.1.1] — 2026-05-01

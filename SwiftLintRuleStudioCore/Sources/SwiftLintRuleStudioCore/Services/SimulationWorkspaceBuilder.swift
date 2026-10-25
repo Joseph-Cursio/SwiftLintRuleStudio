@@ -55,7 +55,9 @@ final class SimulationWorkspace {
         root = freshRoot
 
         for entry in configs {
-            var config = entry.original
+            // A rejected original is measured as the app will repair it, which is also how
+            // `RuleEnablementResolver` shows it; as written it couldn't be saved.
+            var config = entry.original.normalizedRuleLists()
             ConfigRuleEnabler.enableRule(
                 ruleId,
                 in: &config,
@@ -78,10 +80,11 @@ final class SimulationWorkspace {
     }
 }
 
-/// The YAML mutation that turns a rule on: sets it enabled, routes it into
-/// `analyzer_rules`, or `opt_in_rules` when there's no `only_rules` whitelist, adds it
-/// to `only_rules` when there is one, and removes it from `disabled_rules`. Preserves the
-/// config's `included:`/`excluded:` exactly as written — in the mirror those
+/// The YAML mutation that turns a rule on: sets it enabled, applies any parameter
+/// overrides, and routes it through the rule lists with
+/// `YAMLConfig.enableRule(_:kind:)` — `only_rules` when the file has one, otherwise
+/// `opt_in_rules` / `analyzer_rules` — so the mirror stays a file SwiftLint accepts.
+/// Preserves the config's `included:`/`excluded:` exactly as written — in the mirror those
 /// relative paths resolve correctly, so no absolutizing is needed.
 enum ConfigRuleEnabler {
 
@@ -102,31 +105,7 @@ enum ConfigRuleEnabler {
             ruleConfig.parameters = merged
         }
         config.rules[ruleId] = ruleConfig
-
-        if isAnalyzer {
-            appendUnique(ruleId, to: &config.analyzerRules)
-        } else if isOptIn, config.onlyRules == nil {
-            // SwiftLint rejects `opt_in_rules` alongside `only_rules`, which turns
-            // an opt-in rule on by itself.
-            appendUnique(ruleId, to: &config.optInRules)
-        }
-
-        if config.onlyRules != nil {
-            appendUnique(ruleId, to: &config.onlyRules)
-        }
-
-        if var disabledRules = config.disabledRules {
-            disabledRules.removeAll { $0 == ruleId }
-            config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
-        }
-    }
-
-    private static func appendUnique(_ ruleId: String, to list: inout [String]?) {
-        var current = list ?? []
-        if !current.contains(ruleId) {
-            current.append(ruleId)
-            list = current
-        }
+        config.enableRule(ruleId, kind: RuleListKind(isOptIn: isOptIn, isAnalyzer: isAnalyzer))
     }
 }
 

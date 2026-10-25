@@ -45,15 +45,19 @@ public typealias SwiftLintCommandRunner = @Sendable (String, [String]) async thr
 /// Closure type for checking file existence
 public typealias SwiftLintFileExists = @Sendable (String) async -> Bool
 
-/// Protocol for SwiftLint CLI operations
-public protocol SwiftLintCLIProtocol: Sendable {
-    func detectSwiftLintPath() async throws -> URL
-    func executeRulesCommand() async throws -> Data
-    func executeRuleDetailCommand(ruleId: String) async throws -> Data
-    func generateDocsForRule(ruleId: String) async throws -> String
-    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data
-    func getVersion() async throws -> String
+/// How far a lint has got: the files it has finished, out of all the files it will lint.
+public struct LintProgress: Sendable, Equatable {
+    public let filesLinted: Int
+    public let totalFiles: Int
+
+    public init(filesLinted: Int, totalFiles: Int) {
+        self.filesLinted = filesLinted
+        self.totalFiles = totalFiles
+    }
 }
+
+/// Receives a lint's progress, in order, from whatever thread the lint runs on.
+public typealias LintProgressHandler = @Sendable (LintProgress) -> Void
 
 public enum SwiftLintError: LocalizedError, Sendable {
     case notFound
@@ -87,5 +91,34 @@ public enum SwiftLintError: LocalizedError, Sendable {
         default:
             return nil
         }
+    }
+}
+
+/// Protocol for SwiftLint CLI operations
+public protocol SwiftLintCLIProtocol: Sendable {
+    func detectSwiftLintPath() async throws -> URL
+    func executeRulesCommand() async throws -> Data
+    func executeRuleDetailCommand(ruleId: String) async throws -> Data
+    func generateDocsForRule(ruleId: String) async throws -> String
+    func executeLintCommand(configPath: URL?, workspacePath: URL) async throws -> Data
+    /// Lints as ``executeLintCommand(configPath:workspacePath:)`` does, reporting each file as
+    /// it finishes.
+    func executeLintCommand(
+        configPath: URL?,
+        workspacePath: URL,
+        progress: @escaping LintProgressHandler
+    ) async throws -> Data
+    func getVersion() async throws -> String
+}
+
+public extension SwiftLintCLIProtocol {
+    /// Reports nothing. A backend that only sees SwiftLint's output once the lint has
+    /// finished — the subprocess one — has no progress to give.
+    func executeLintCommand(
+        configPath: URL?,
+        workspacePath: URL,
+        progress _: @escaping LintProgressHandler
+    ) async throws -> Data {
+        try await executeLintCommand(configPath: configPath, workspacePath: workspacePath)
     }
 }

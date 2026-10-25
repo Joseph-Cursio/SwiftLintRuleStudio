@@ -205,10 +205,13 @@ struct RuleRegistryEnabledStateTests {
         #expect(registry.getRule(id: "explicit_self")?.isEnabled == false)
     }
 
-    @Test("only_rules outranks analyzer_rules")
-    func testOnlyRulesOutranksAnalyzerRules() {
+    @Test("only_rules runs alongside analyzer_rules, as SwiftLint unions them")
+    func testOnlyRulesRunsAlongsideAnalyzerRules() {
+        // SwiftLint's only-mode set is `Set(only_rules + analyzer_rules)`
+        // (Configuration+RulesMode.swift). This test used to pin the opposite.
         let registry = makeRegistry(rules: [
             makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true),
+            makeRule(id: "unused_import", isOptIn: true, isAnalyzer: true),
             makeRule(id: "force_cast")
         ])
         var config = YAMLConfigurationEngine.YAMLConfig()
@@ -218,7 +221,8 @@ struct RuleRegistryEnabledStateTests {
         registry.syncEnabledStates(with: config)
 
         let map = enabledMap(registry)
-        #expect(map["explicit_self"] == false)
+        #expect(map["explicit_self"] == true)
+        #expect(map["unused_import"] == false)
         #expect(map["force_cast"] == true)
     }
 

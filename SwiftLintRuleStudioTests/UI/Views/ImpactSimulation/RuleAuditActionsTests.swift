@@ -289,28 +289,55 @@ struct RuleAuditActionsTests {
         #expect(config.rules["unused_declaration"]?.enabled == true)
     }
 
-    @Test("Enabling opt-in rule removes from disabled, adds to optIn, and adds to onlyRules")
-    func combinedScenario() {
+    @Test("Under only_rules an opt-in rule goes into only_rules alone, never opt_in_rules (issue #83)")
+    func optInRuleUnderOnlyRules() {
         var config = YAMLConfigurationEngine.YAMLConfig()
-        config.disabledRules = ["explicit_init", "line_length"]
         config.onlyRules = ["force_cast"]
-        let optInRuleIds: Set<String> = ["explicit_init"]
 
         RuleAuditView.applyEnableRules(
             config: &config,
             ruleIds: ["explicit_init"],
-            optInRuleIds: optInRuleIds
+            optInRuleIds: ["explicit_init"]
         )
 
-        // Should be enabled in rules
         #expect(config.rules["explicit_init"]?.enabled == true)
-        // Should be removed from disabled_rules
-        #expect(config.disabledRules?.contains("explicit_init") == false)
-        #expect(config.disabledRules?.contains("line_length") == true)
-        // Should be added to opt_in_rules
-        #expect(config.optInRules?.contains("explicit_init") == true)
-        // Should be added to only_rules
-        #expect(config.onlyRules?.contains("explicit_init") == true)
-        #expect(config.onlyRules?.contains("force_cast") == true)
+        #expect(config.onlyRules == ["force_cast", "explicit_init"])
+        // This test used to expect opt_in_rules too: the combination SwiftLint rejects,
+        // falling back to its default configuration.
+        #expect(config.optInRules == nil)
+        #expect(!config.hasOnlyRulesConflict)
+    }
+
+    @Test("Under only_rules an analyzer rule goes into analyzer_rules alone, never listed twice")
+    func analyzerRuleUnderOnlyRules() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = ["force_cast"]
+
+        RuleAuditView.applyEnableRules(
+            config: &config,
+            ruleIds: ["unused_declaration"],
+            optInRuleIds: [],
+            analyzerRuleIds: ["unused_declaration"]
+        )
+
+        #expect(config.onlyRules == ["force_cast"])
+        #expect(config.analyzerRules == ["unused_declaration"])
+    }
+
+    @Test("Enabling all safe rules under only_rules leaves a file SwiftLint accepts")
+    func enableManyUnderOnlyRules() {
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.onlyRules = ["force_cast"]
+
+        RuleAuditView.applyEnableRules(
+            config: &config,
+            ruleIds: ["explicit_init", "line_length", "unused_declaration", "first_where"],
+            optInRuleIds: ["explicit_init", "first_where"],
+            analyzerRuleIds: ["unused_declaration"]
+        )
+
+        #expect(config.onlyRules == ["force_cast", "explicit_init", "line_length", "first_where"])
+        #expect(config.analyzerRules == ["unused_declaration"])
+        #expect(ConfigRuleListsProblem(config) == nil)
     }
 }

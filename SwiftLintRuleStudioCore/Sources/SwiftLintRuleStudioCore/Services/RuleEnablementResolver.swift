@@ -19,8 +19,9 @@ public enum RuleEnablementResolver {
     /// Whether `rule` is active under `config`, mirroring SwiftLint's own
     /// precedence:
     ///
-    /// 1. `only_rules:` is an exclusive allowlist — if present, nothing else
-    ///    matters, not even analyzer or opt-in status.
+    /// 1. A non-empty `only_rules:` is an exclusive allowlist. SwiftLint unions it
+    ///    with `analyzer_rules:`, and nothing else matters, not even opt-in status.
+    ///    An empty `only_rules:` counts as no list at all.
     /// 2. Analyzer rules run only when listed under `analyzer_rules:`. SwiftLint
     ///    also reports them as `opt-in: yes`, so this must be checked *before*
     ///    the opt-in branch or a stray `opt_in_rules:` entry would enable them.
@@ -32,12 +33,20 @@ public enum RuleEnablementResolver {
     /// For analyzer and opt-in rules an explicit `enabled: false` in the rules
     /// mapping overrides the list membership, so a rule can be parked without
     /// removing it from `analyzer_rules:`/`opt_in_rules:`.
+    ///
+    /// A file SwiftLint rejects — `only_rules:` next to `opt_in_rules:` or
+    /// `disabled_rules:` (issue #83) — is resolved as `normalizedRuleLists()` will
+    /// repair it. SwiftLint runs its defaults for such a file today, but the app
+    /// warns about that separately and refuses to save until it is repaired, so the
+    /// toggles show what the repair preview will write rather than flip when it does.
     nonisolated public static func isRuleEnabled(
         _ rule: Rule,
         config: YAMLConfigurationEngine.YAMLConfig
     ) -> Bool {
-        if let onlyRules = config.onlyRules {
-            return onlyRules.contains(rule.id)
+        let config = config.normalizedRuleLists()
+        if config.usesOnlyRules {
+            return config.onlyRules?.contains(rule.id) == true
+                || config.analyzerRules?.contains(rule.id) == true
         }
         if rule.isAnalyzer {
             if config.rules[rule.id]?.enabled == false {

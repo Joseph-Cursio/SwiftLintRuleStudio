@@ -51,6 +51,7 @@ struct MigrationAssistantView: View {
                     TextField("e.g. 0.45.0", text: Bindable(viewModel).previousVersion)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 120)
+                        .accessibilityIdentifier("MigrationPreviousVersionField")
                 }
 
                 Image(systemName: "arrow.right")
@@ -80,6 +81,7 @@ struct MigrationAssistantView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.previousVersion.isEmpty || viewModel.isDetecting)
+                .accessibilityIdentifier("MigrationDetectButton")
             }
 
             if viewModel.isDetecting {

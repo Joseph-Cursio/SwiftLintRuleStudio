@@ -40,4 +40,13 @@ public enum AppSection: Hashable, Sendable, CaseIterable {
         case .configMap: return "Config Map"
         }
     }
+
+    /// Whether an edition with `capabilities` offers this section. Branch Diff needs
+    /// ``AppCapability/gitBranchDiff``; every other section is in both editions.
+    public func isAvailable(with capabilities: Set<AppCapability>) -> Bool {
+        switch self {
+        case .branchDiff: return capabilities.contains(.gitBranchDiff)
+        default: return true
+        }
+    }
 }

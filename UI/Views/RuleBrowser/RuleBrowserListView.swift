@@ -69,6 +69,21 @@ struct RuleBrowserListView: View {
         } message: {
             Text(bulkSaveError ?? "")
         }
+        // A bulk change refused before its preview — an unreadable file, a file SwiftLint
+        // rejects, or a disable that would empty only_rules. Recorded on the view model
+        // and, until now, never shown, so the button simply did nothing.
+        .alert("Can't Change These Rules", isPresented: TestGuard.alertBinding(bulkOperationErrorShown)) {
+            Button("OK") { viewModel.bulkOperationError = nil }
+        } message: {
+            Text(viewModel.bulkOperationError ?? "")
+        }
+    }
+
+    private var bulkOperationErrorShown: Binding<Bool> {
+        Binding(
+            get: { viewModel.bulkOperationError != nil },
+            set: { if !$0 { viewModel.bulkOperationError = nil } }
+        )
     }
 
     @ViewBuilder

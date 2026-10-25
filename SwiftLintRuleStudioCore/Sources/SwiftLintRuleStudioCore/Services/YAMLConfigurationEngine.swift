@@ -18,6 +18,10 @@ public enum YAMLConfigError: LocalizedError, Sendable {
     case invalidPath(path: String)
     case fileNotFound
     case writeFailed(String)
+    /// `only_rules` alongside `opt_in_rules` or `disabled_rules`, which SwiftLint rejects.
+    case onlyRulesConflict
+    /// Turning these rules off would empty `only_rules`, which SwiftLint reads as no list.
+    case wouldEmptyOnlyRules(ruleIds: [String])
 
     public var errorDescription: String? {
         switch self {
@@ -33,6 +37,15 @@ public enum YAMLConfigError: LocalizedError, Sendable {
             return "Configuration file not found"
         case .writeFailed(let message):
             return "Failed to write configuration: \(message)"
+        case .onlyRulesConflict:
+            return "SwiftLint can't use a configuration that lists rules under only_rules and also under "
+                + "opt_in_rules or disabled_rules. It ignores the whole file and falls back to its default "
+                + "configuration, so the change wasn't saved."
+        case .wouldEmptyOnlyRules(let ruleIds):
+            let names = ruleIds.joined(separator: ", ")
+            return "Turning off \(names) would leave only_rules empty. SwiftLint treats an empty only_rules "
+                + "as no list at all and runs its default rules, so this would turn on every default rule "
+                + "instead. Turn on another rule first."
         }
     }
 }
@@ -119,14 +132,21 @@ public class YAMLConfigurationEngine {
     /// Represents a diff between two configurations
     public struct ConfigDiff: Identifiable {
         public let id = UUID()
+        /// Rule keys added to, removed from, or changed in the per-rule settings blocks.
+        /// These miss every change made through a rule list such as `opt_in_rules`;
+        /// ``changes`` covers those.
         public let addedRules: [String]
         public let removedRules: [String]
         public let modifiedRules: [String]
         public let before: String
         public let after: String
+        /// What the change does to SwiftLint, when the diff was built from two parsed
+        /// configurations.
+        public let changes: ConfigChangeSummary?
 
         public var hasChanges: Bool {
             !addedRules.isEmpty || !removedRules.isEmpty || !modifiedRules.isEmpty
+                || changes?.isEmpty == false
         }
 
         public init(
@@ -134,13 +154,15 @@ public class YAMLConfigurationEngine {
             removedRules: [String],
             modifiedRules: [String],
             before: String,
-            after: String
+            after: String,
+            changes: ConfigChangeSummary? = nil
         ) {
             self.addedRules = addedRules
             self.removedRules = removedRules
             self.modifiedRules = modifiedRules
             self.before = before
             self.after = after
+            self.changes = changes
         }
     }
 
@@ -235,13 +257,21 @@ public class YAMLConfigurationEngine {
         let modifiedRules = currentRules.intersection(proposedRules).filter { ruleId in
             current.rules[ruleId] != proposed.rules[ruleId]
         }
+        let before = (try? serialize(current)) ?? ""
+        let after = (try? serialize(proposed)) ?? ""
 
         return ConfigDiff(
             addedRules: addedRules.sorted(),
             removedRules: removedRules.sorted(),
             modifiedRules: Array(modifiedRules).sorted(),
-            before: (try? serialize(current)) ?? "",
-            after: (try? serialize(proposed)) ?? ""
+            before: before,
+            after: after,
+            // From what's written, not the in-memory configs: a setting the serializer drops,
+            // such as `enabled: false` on a rule, changes nothing SwiftLint will see.
+            changes: ConfigChangeSummary(
+                from: (try? parse(before)) ?? current,
+                to: (try? parse(after)) ?? proposed
+            )
         )
     }
 
@@ -253,9 +283,18 @@ public class YAMLConfigurationEngine {
         try Self.validated(config)
     }
 
-    /// Throws unless every severity is `warning` or `error` and no include/exclude path is
-    /// empty.
+    /// Throws unless every severity is `warning` or `error`, no include/exclude path is
+    /// empty, and SwiftLint would accept the rule lists.
+    ///
+    /// Every save runs this, so no writer can produce the issue #83 file. It refuses rather
+    /// than repairs: a conflict already on disk is fixed only through the previewed
+    /// `normalizedRuleLists()` that the app's warning banner offers, never as a side effect of
+    /// an unrelated edit.
     public static func validated(_ config: YAMLConfig) throws {
+        if config.hasOnlyRulesConflict {
+            throw YAMLConfigError.onlyRulesConflict
+        }
+
         // Check for invalid rule IDs (basic validation)
         // More comprehensive validation can be added later
 
@@ -282,6 +321,15 @@ public class YAMLConfigurationEngine {
         }
     }
 
+    /// The text whose comments, blank lines and ordering a save keeps, wherever the
+    /// configuration agrees with it.
+    public enum LayoutSource: Sendable {
+        /// The file the save replaces, so an edit keeps what the user wrote.
+        case fileBeingReplaced
+        /// Other text, such as an imported file that replaces the current one wholesale.
+        case text(String)
+    }
+
     /// Save configuration to file with backup, and adopt it as the engine's current state.
     public func save(config: YAMLConfig, createBackup: Bool = true) throws {
         currentConfig = config
@@ -294,6 +342,9 @@ public class YAMLConfigurationEngine {
     /// perform any of them — it was needed only to hold the destination, which every caller
     /// already had in hand.
     ///
+    /// The file is written as an edit of `layoutSource` — by default the file it replaces — so
+    /// the user's comments, blank lines and ordering survive wherever the configuration agrees.
+    ///
     /// With `createBackup`, the file's current contents go into `backups` first — never beside
     /// the file, where each save used to leave an untracked `.backup` in the user's project — and
     /// only after the write succeeds are old backups pruned, so a failed write costs no history.
@@ -303,10 +354,15 @@ public class YAMLConfigurationEngine {
         _ config: YAMLConfig,
         to url: URL,
         createBackup: Bool = true,
+        keepingLayoutOf layoutSource: LayoutSource = .fileBeingReplaced,
         backups: ConfigBackupStore = .standard
     ) throws -> String {
         try validated(config)
-        let yamlContent = try serialize(config)
+        let layout: String? = switch layoutSource {
+        case .fileBeingReplaced: try? String(contentsOf: url, encoding: .utf8)
+        case .text(let text): text
+        }
+        let yamlContent = try serialize(config, preservingLayoutOf: layout)
         if createBackup {
             try backups.backUp(url, at: Date())
         }

@@ -281,73 +281,66 @@ class RuleBrowserViewModel {
     }
 
     func enableSelectedRules(yamlEngine: any YAMLConfigurationEngineProtocol) {
-        guard loadConfig(yamlEngine) else { return }
-        var config = yamlEngine.getConfig()
+        guard loadConfig(yamlEngine), var config = configAcceptedBySwiftLint(yamlEngine) else { return }
 
-        for ruleId in selectedRuleIds {
+        for ruleId in selectedRuleIds.sorted() {
             var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
             ruleConfig.enabled = true
             config.rules[ruleId] = ruleConfig
-
-            // Route to analyzer_rules or opt_in_rules as appropriate
-            if let rule = ruleRegistry.rules.first(where: { $0.id == ruleId }) {
-                if rule.isAnalyzer {
-                    var analyzerRules = config.analyzerRules ?? []
-                    if !analyzerRules.contains(ruleId) {
-                        analyzerRules.append(ruleId)
-                        config.analyzerRules = analyzerRules
-                    }
-                } else if rule.isOptIn {
-                    var optInRules = config.optInRules ?? []
-                    if !optInRules.contains(ruleId) {
-                        optInRules.append(ruleId)
-                        config.optInRules = optInRules
-                    }
-                }
-            }
-
-            // Remove from disabled_rules if present
-            config.disabledRules?.removeAll { $0 == ruleId }
-            if config.disabledRules?.isEmpty == true { config.disabledRules = nil }
+            // only_rules when the file has one, otherwise opt_in_rules / analyzer_rules.
+            // This used to ignore only_rules: an opt-in rule went into opt_in_rules beside
+            // it, which SwiftLint rejects (issue #83), and a default rule went nowhere.
+            config.enableRule(ruleId, kind: ruleListKind(of: ruleId))
         }
 
         bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
     func disableSelectedRules(yamlEngine: any YAMLConfigurationEngineProtocol) {
-        guard loadConfig(yamlEngine) else { return }
-        var config = yamlEngine.getConfig()
+        guard loadConfig(yamlEngine), var config = configAcceptedBySwiftLint(yamlEngine) else { return }
+        let ruleIds = selectedRuleIds.sorted()
 
-        for ruleId in selectedRuleIds {
+        // The whole selection at once: under only_rules, turning off every listed rule
+        // would empty the list, which SwiftLint reads as "run the default rules". Rule by
+        // rule, that would trip partway through and leave the earlier ones half-done.
+        do {
+            try config.disableRules(ruleIds, kind: ruleListKind(of:))
+        } catch {
+            bulkOperationError = error.localizedDescription
+            return
+        }
+        for ruleId in ruleIds {
             var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: false)
             ruleConfig.enabled = false
             config.rules[ruleId] = ruleConfig
-
-            // Remove from opt-in / analyzer rules
-            config.optInRules?.removeAll { $0 == ruleId }
-            if config.optInRules?.isEmpty == true { config.optInRules = nil }
-            config.analyzerRules?.removeAll { $0 == ruleId }
-            if config.analyzerRules?.isEmpty == true { config.analyzerRules = nil }
-
-            // Only default rules go into disabled_rules — opt-in and analyzer rules
-            // are disabled by the removals above. Mirrors
-            // RuleDetailViewModel.addDisabledRuleIfNeeded. A rule missing from the
-            // registry is treated as a default rule, so disabling still takes effect.
-            let rule = ruleRegistry.rules.first { $0.id == ruleId }
-            guard !(rule?.isOptIn ?? false), !(rule?.isAnalyzer ?? false) else { continue }
-            var disabledRules = config.disabledRules ?? []
-            if !disabledRules.contains(ruleId) {
-                disabledRules.append(ruleId)
-                config.disabledRules = disabledRules
-            }
         }
 
         bulkDiff = yamlEngine.generateDiff(proposedConfig: config)
     }
 
+    /// The loaded configuration, or nil after recording why it can't be edited: SwiftLint
+    /// rejects a file with `only_rules` beside `opt_in_rules` or `disabled_rules`, and
+    /// saving one is refused. Checked before the preview rather than after the user has
+    /// approved it.
+    private func configAcceptedBySwiftLint(
+        _ yamlEngine: any YAMLConfigurationEngineProtocol
+    ) -> YAMLConfigurationEngine.YAMLConfig? {
+        let config = yamlEngine.getConfig()
+        guard !config.hasOnlyRulesConflict else {
+            bulkOperationError = YAMLConfigError.onlyRulesConflict.localizedDescription
+            return nil
+        }
+        return config
+    }
+
+    /// Which list turns `ruleId` on. A rule missing from the registry is treated as a
+    /// default rule, so disabling it still takes effect.
+    private func ruleListKind(of ruleId: String) -> RuleListKind {
+        ruleRegistry.rules.first { $0.id == ruleId }.map(RuleListKind.init) ?? .standard
+    }
+
     func setSeverityForSelected(_ severity: Severity, yamlEngine: any YAMLConfigurationEngineProtocol) {
-        guard loadConfig(yamlEngine) else { return }
-        var config = yamlEngine.getConfig()
+        guard loadConfig(yamlEngine), var config = configAcceptedBySwiftLint(yamlEngine) else { return }
 
         for ruleId in selectedRuleIds {
             var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)

@@ -4,16 +4,17 @@
 //
 //  Property laws for `ConfigComparisonService.buildRuleDiff` — the per-rule
 //  explanation the comparison view shows for a rule both configs set
-//  differently. Mutation testing found that only its severity branch was
-//  checked: deleting the enabled or the parameters message, or reporting
-//  "enabled" for the disabled side, survived the example tests.
+//  differently. Mutation testing once found that only its severity branch was
+//  checked; these laws pin every message.
 //
 //  The laws state what each message owes, over pairs of configurations drawn
 //  from tiny domains so that each field is equal about as often as it differs:
 //
-//      a message for exactly the fields that differ, in field order
-//      the enabled message says which side is enabled and which is disabled
+//      a message for exactly the settings that differ: severity, then each parameter
+//      `enabled` alone is no setting difference — whether a rule runs is the
+//          comparison's on/off lists' job
 //      the severity message gives each side's severity, "default" when unset
+//      a parameter message names the side or sides that set it
 //
 
 import Foundation
@@ -47,14 +48,14 @@ struct RuleDiffPropertyLawTests {
     // MARK: - Helpers
 
     private enum Field: Equatable {
-        case enabled, severity, parameters
+        case severity
+        case parameter(String)
     }
 
-    /// Which field a message is about, read from the shape `buildRuleDiff` gives it.
+    /// Which setting a message is about, read from its `name:` prefix.
     private static func field(of message: String) -> Field {
-        if message.hasPrefix("Severity:") { return .severity }
-        if message == "Parameters differ" { return .parameters }
-        return .enabled
+        let name = String(message.prefix { $0 != ":" })
+        return name == "severity" ? .severity : .parameter(name)
     }
 
     private static func diff(_ first: RuleConfiguration, _ second: RuleConfiguration) -> RuleComparisonDiff {
@@ -66,33 +67,28 @@ struct RuleDiffPropertyLawTests {
 
     // MARK: - Laws
 
-    @Test("buildRuleDiff reports exactly the fields that differ, in field order")
+    @Test("buildRuleDiff reports exactly the settings that differ: severity, then each parameter")
     func reportsExactlyTheDifferingFields() async {
         await propertyCheck(
             input: Self.ruleConfigurationGenerator(), Self.ruleConfigurationGenerator()
         ) { first, second in
             var expected: [Field] = []
-            if first.enabled != second.enabled { expected.append(.enabled) }
             if first.severity != second.severity { expected.append(.severity) }
-            if first.parameters != second.parameters { expected.append(.parameters) }
+            let keys = Set((first.parameters ?? [:]).keys).union((second.parameters ?? [:]).keys).sorted()
+            for key in keys where first.parameters?[key] != second.parameters?[key] {
+                expected.append(.parameter(key))
+            }
 
             #expect(Self.diff(first, second).differences.map(Self.field) == expected)
         }
     }
 
-    @Test("the enabled message says which side is enabled and which is disabled")
-    func enabledMessageNamesEachSidesState() async {
-        await propertyCheck(
-            input: Self.ruleConfigurationGenerator(), Self.ruleConfigurationGenerator()
-        ) { first, second in
-            guard first.enabled != second.enabled else { return }
-            let (onLabel, offLabel) = first.enabled
-                ? (Self.firstLabel, Self.secondLabel)
-                : (Self.secondLabel, Self.firstLabel)
-
-            let message = Self.diff(first, second).differences.first { Self.field(of: $0) == .enabled }
-            #expect(message?.contains("\(onLabel): enabled") == true)
-            #expect(message?.contains("\(offLabel): disabled") == true)
+    @Test("enabled alone is no setting difference")
+    func enabledAloneIsNoDifference() async {
+        await propertyCheck(input: Self.ruleConfigurationGenerator()) { config in
+            var flipped = config
+            flipped.enabled.toggle()
+            #expect(Self.diff(config, flipped).differences.isEmpty)
         }
     }
 
@@ -106,8 +102,29 @@ struct RuleDiffPropertyLawTests {
             let secondSeverity = second.severity?.rawValue ?? "default"
 
             let message = Self.diff(first, second).differences.first { Self.field(of: $0) == .severity }
-            #expect(message?.contains("\(Self.firstLabel)=\(firstSeverity)") == true)
-            #expect(message?.contains("\(Self.secondLabel)=\(secondSeverity)") == true)
+            #expect(message?.contains("\(Self.firstLabel) \(firstSeverity)") == true)
+            #expect(message?.contains("\(Self.secondLabel) \(secondSeverity)") == true)
+        }
+    }
+
+    @Test("a parameter message names the side or sides that set it")
+    func parameterMessageNamesItsSides() async {
+        await propertyCheck(
+            input: Self.ruleConfigurationGenerator(), Self.ruleConfigurationGenerator()
+        ) { first, second in
+            guard let message = Self.diff(first, second).differences.first(where: {
+                Self.field(of: $0) == .parameter("warning")
+            }) else { return }
+            switch (first.parameters?["warning"], second.parameters?["warning"]) {
+            case (_?, _?):
+                #expect(message.contains(Self.firstLabel) && message.contains(Self.secondLabel))
+            case (_?, nil):
+                #expect(message.contains("only \(Self.firstLabel)"))
+            case (nil, _?):
+                #expect(message.contains("only \(Self.secondLabel)"))
+            case (nil, nil):
+                Issue.record("a message for a setting neither side has")
+            }
         }
     }
 
