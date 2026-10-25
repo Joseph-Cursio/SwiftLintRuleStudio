@@ -68,6 +68,12 @@ class ConfigImportViewModel {
         do {
             try importService.applyImport(preview: preview, mode: importMode, to: configPath)
             importComplete = true
+            // The rest of the app re-reads the file — the rule-lists banner among them.
+            NotificationCenter.default.post(
+                name: .ruleConfigurationDidChange,
+                object: nil,
+                userInfo: ["import": true]
+            )
         } catch {
             self.error = error
         }

@@ -50,6 +50,33 @@ struct WorkspaceManagerConfigTests {
         #expect(isMissing == false)
     }
 
+    @Test("WorkspaceManager flags a config SwiftLint rejects for only_rules beside opt_in_rules")
+    func testCheckConfigRuleListsFlagsConflict() async throws {
+        let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
+        let configPath = workspace.appendingPathComponent(".swiftlint.yml")
+
+        let problems = try await WorkspaceManagerTestHelpers.withWorkspaceManager { manager in
+            try manager.openWorkspace(at: workspace)
+            var problems: [ConfigRuleListsProblem?] = []
+            for content in [
+                "only_rules:\n  - force_cast\nopt_in_rules:\n  - empty_count\n",
+                "only_rules:\n  - force_cast\n  - unused_import\nanalyzer_rules:\n  - unused_import\n",
+                "only_rules:\n  - force_cast\n"
+            ] {
+                try content.write(to: configPath, atomically: true, encoding: .utf8)
+                manager.checkConfigRuleLists()
+                problems.append(manager.configRuleListsProblem)
+            }
+            try FileManager.default.removeItem(at: configPath)
+            manager.checkConfigRuleLists()
+            problems.append(manager.configRuleListsProblem)
+            return problems
+        }
+
+        #expect(problems == [.onlyRulesConflict, .analyzerRulesInOnlyRules(["unused_import"]), nil, nil])
+    }
+
     @Test("WorkspaceManager creates default config file")
     func testCreateDefaultConfigFile() async throws {
         let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()

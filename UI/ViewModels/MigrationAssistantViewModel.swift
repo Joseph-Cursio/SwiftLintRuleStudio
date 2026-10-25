@@ -97,6 +97,12 @@ class MigrationAssistantViewModel {
 
         do {
             let current = try YAMLConfigurationEngine.loadConfig(at: configPath)
+            // Saving a file SwiftLint rejects is refused, so say so before the preview
+            // rather than after it has been approved.
+            guard !current.hasOnlyRulesConflict else {
+                self.error = YAMLConfigError.onlyRulesConflict
+                return
+            }
             var config = current
 
             assistant.applyMigration(plan, to: &config)
@@ -120,6 +126,11 @@ class MigrationAssistantViewModel {
             try YAMLConfigurationEngine.save(config, to: configPath)
 
             migrationComplete = true
+            NotificationCenter.default.post(
+                name: .ruleConfigurationDidChange,
+                object: nil,
+                userInfo: ["migration": true]
+            )
         } catch {
             self.error = error
         }

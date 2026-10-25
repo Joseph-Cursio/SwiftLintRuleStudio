@@ -40,7 +40,8 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
 
     func launchApp(
         skipOnboarding: Bool = false,
-        createWorkspace: Bool = false
+        createWorkspace: Bool = false,
+        workspaceConfig: String? = nil
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments.append("-uiTesting")
@@ -49,6 +50,9 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
         }
         if createWorkspace {
             app.launchEnvironment["UI_TEST_WORKSPACE"] = "1"
+        }
+        if let workspaceConfig {
+            app.launchEnvironment["UI_TEST_CONFIG"] = workspaceConfig
         }
         app.launch()
         app.activate()

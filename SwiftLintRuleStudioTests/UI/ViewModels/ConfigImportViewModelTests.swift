@@ -295,6 +295,27 @@ struct ConfigImportViewModelTests {
         #expect(viewModel.isImporting == false)
     }
 
+    @Test("applyImport announces a successful write, so the rest of the app re-reads the file")
+    func testApplyImportAnnouncesTheChange() async throws {
+        let service = SpyConfigImportService(previewToReturn: makePreview())
+        let viewModel = ConfigImportViewModel(importService: service, configPath: Self.configPath)
+        viewModel.urlString = "https://example.com/.swiftlint.yml"
+        viewModel.fetchPreview()
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        // No queue, so delivery is synchronous on the posting thread.
+        nonisolated(unsafe) var announced = false
+        let observer = NotificationCenter.default.addObserver(
+            forName: .ruleConfigurationDidChange, object: nil, queue: nil
+        ) { notification in
+            if notification.userInfo?["import"] as? Bool == true { announced = true }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+        viewModel.applyImport()
+
+        #expect(announced)
+    }
+
     @Test("applyImport on service error stores error and clears isImporting")
     func testApplyImportServiceErrorSetsError() async throws {
         let preview = makePreview()

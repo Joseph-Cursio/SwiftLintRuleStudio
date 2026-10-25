@@ -43,6 +43,15 @@ extension ContentView {
         }
         """
         try content.write(to: swiftFile, atomically: true, encoding: .utf8)
+
+        // A `.swiftlint.yml` for the workspace, when the test supplies one.
+        if let config = ProcessInfo.processInfo.environment["UI_TEST_CONFIG"] {
+            try config.write(
+                to: tempDir.appendingPathComponent(".swiftlint.yml"),
+                atomically: true,
+                encoding: .utf8
+            )
+        }
         return tempDir
     }
 }

@@ -5,6 +5,7 @@
 //  Created by joe cursio on 12/24/25.
 //
 
+import AppKit
 import SwiftLintRuleStudioCore
 import SwiftUI
 import UniformTypeIdentifiers
@@ -85,8 +86,20 @@ struct ContentView: View {
         .task { await loadRulesOnLaunch() }
         .onChange(of: dependencies.workspaceManager.currentWorkspace?.id) {
             dependencies.workspaceManager.checkConfigFileExists()
+            dependencies.workspaceManager.checkConfigRuleLists()
         }
         .onAppear(perform: handleOnAppear)
+        // The rule-lists banner follows the file: after the app saves it, after a backup is
+        // restored over it, and on returning to the app, which covers edits made elsewhere.
+        .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { _ in
+            dependencies.workspaceManager.checkConfigRuleLists()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .configurationDidRestore)) { _ in
+            dependencies.workspaceManager.checkConfigRuleLists()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            dependencies.workspaceManager.checkConfigRuleLists()
+        }
         .alert("Error Loading Rules", isPresented: TestGuard.alertBinding($showError)) {
             errorAlertActions
         } message: {
@@ -130,6 +143,12 @@ struct ContentView: View {
             if dependencies.workspaceManager.configFileMissing {
                 ConfigRecommendationView(workspaceManager: dependencies.workspaceManager)
                     .padding()
+            }
+            if let problem = dependencies.workspaceManager.configRuleListsProblem,
+               let configPath = dependencies.workspaceManager.currentWorkspace?.configPath {
+                RuleListsProblemBanner(problem: problem, configPath: configPath)
+                    .padding()
+                    .id(configPath)
             }
             sectionDetailView
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -193,6 +212,7 @@ struct ContentView: View {
 
     private func handleOnAppear() {
         dependencies.workspaceManager.checkConfigFileExists()
+        dependencies.workspaceManager.checkConfigRuleLists()
         if ruleBrowserViewModel == nil {
             ruleBrowserViewModel = RuleBrowserViewModel(ruleRegistry: ruleRegistry)
         }

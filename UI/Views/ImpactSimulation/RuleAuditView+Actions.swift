@@ -91,7 +91,7 @@ extension RuleAuditView {
 
         applyEnableRules(
             config: &config,
-            ruleIds: Array(ruleIds),
+            ruleIds: ruleIds.sorted(),
             optInRuleIds: classification.optInRuleIds,
             analyzerRuleIds: classification.analyzerRuleIds
         )
@@ -117,40 +117,21 @@ extension RuleAuditView {
         analyzerRuleIds: Set<String> = []
     ) {
         for ruleId in ruleIds {
-            if config.rules[ruleId] == nil {
-                config.rules[ruleId] = RuleConfiguration(enabled: true)
-            } else {
-                if var ruleConfig = config.rules[ruleId] {
-                    ruleConfig.enabled = true
-                    config.rules[ruleId] = ruleConfig
-                }
-            }
+            var ruleConfig = config.rules[ruleId] ?? RuleConfiguration(enabled: true)
+            ruleConfig.enabled = true
+            config.rules[ruleId] = ruleConfig
 
-            if var disabledRules = config.disabledRules {
-                disabledRules.removeAll { $0 == ruleId }
-                config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
-            }
-
-            if analyzerRuleIds.contains(ruleId) {
-                var analyzerRules = config.analyzerRules ?? []
-                if !analyzerRules.contains(ruleId) {
-                    analyzerRules.append(ruleId)
-                    config.analyzerRules = analyzerRules
-                }
-            } else if optInRuleIds.contains(ruleId) {
-                var optInRules = config.optInRules ?? []
-                if !optInRules.contains(ruleId) {
-                    optInRules.append(ruleId)
-                    config.optInRules = optInRules
-                }
-            }
-
-            if var onlyRules = config.onlyRules {
-                if !onlyRules.contains(ruleId) {
-                    onlyRules.append(ruleId)
-                    config.onlyRules = onlyRules
-                }
-            }
+            // only_rules when the file has one, otherwise opt_in_rules / analyzer_rules.
+            // This used to add an opt-in rule to opt_in_rules *and* only_rules, so "Enable
+            // all safe rules" duplicated every safe opt-in rule into the combination
+            // SwiftLint rejects (issue #83).
+            config.enableRule(
+                ruleId,
+                kind: RuleListKind(
+                    isOptIn: optInRuleIds.contains(ruleId),
+                    isAnalyzer: analyzerRuleIds.contains(ruleId)
+                )
+            )
         }
     }
 
