@@ -73,7 +73,9 @@ struct RuleListsFixViewModelTests {
         #expect(ConfigRuleListsProblem(saved) == nil)
         #expect(viewModel.diff == nil)
         #expect(viewModel.errorMessage == nil)
-        #expect(try backups(beside: configPath).count == 1)
+        // The backup goes into the app's store (a temporary one under test), not the project.
+        #expect(ConfigBackupStore.standard.storedBackups(for: configPath).count == 1)
+        #expect(try backups(beside: configPath).isEmpty)
         #expect(announced)
     }
 
