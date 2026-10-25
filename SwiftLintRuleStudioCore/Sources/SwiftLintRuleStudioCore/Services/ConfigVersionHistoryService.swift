@@ -48,6 +48,12 @@ public protocol ConfigVersionHistoryServiceProtocol {
     ) throws -> YAMLConfigurationEngine.ConfigDiff
     /// Remove old backups, keeping only the specified count
     func pruneOldBackups(for configPath: URL, keepCount: Int) throws
+    /// How many backups an earlier version left beside the configuration, in the project folder
+    func legacyBackupCount(for configPath: URL) -> Int
+    /// Move those backups out of the project folder into the app's own store
+    func moveLegacyBackups(for configPath: URL) throws -> Int
+    /// The folder the app keeps this configuration's backups in
+    func backupsFolder(for configPath: URL) -> URL?
 }
 
 /// Service for browsing and restoring configuration version history
@@ -55,8 +61,10 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
 
     private let now: DateProvider
     private let files: FileIO
+    private let backups: ConfigBackupStore
+    private let discard: @Sendable (URL) throws -> Void
 
-    /// Both dependencies default to the real thing, so no existing call site changes.
+    /// Every dependency defaults to the real thing, so no existing call site changes.
     ///
     /// The clock is observable here rather than incidental: the safety backup is named
     /// `{config}.{unix timestamp}.backup`, and `listBackups` parses that stamp back out. Choose
@@ -68,54 +76,26 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
     /// discover from a bug report, and it cannot be reached on a real file system without
     /// arranging a permission error.
     ///
-    /// `diffBetween` deliberately still writes to disk. Its two writes exist to hand content to
-    /// `YAMLConfigurationEngine(configPath:)`, which takes a path and reads it back, so routing
-    /// them through this seam would move the dependency rather than remove it.
-    public init(now: DateProvider = .system, files: FileIO = .live) {
+    /// `backups` is where the history lives: the app's own store, not the project folder. Backups
+    /// an earlier version left beside the configuration are listed alongside the store's, and
+    /// `discard` is what moving them out does with the originals: the Trash, unless a test says
+    /// otherwise.
+    public init(
+        now: DateProvider = .system,
+        files: FileIO = .live,
+        backups: ConfigBackupStore = .standard,
+        discard: @escaping @Sendable (URL) throws -> Void = {
+            try FileManager.default.trashItem(at: $0, resultingItemURL: nil)
+        }
+    ) {
         self.now = now
         self.files = files
+        self.backups = backups
+        self.discard = discard
     }
 
     public func listBackups(for configPath: URL) -> [ConfigBackup] {
-        let directory = configPath.deletingLastPathComponent()
-        let configFileName = configPath.lastPathComponent
-        let fileManager = FileManager.default
-
-        guard let contents = try? fileManager.contentsOfDirectory(
-            at: directory,
-            includingPropertiesForKeys: [.fileSizeKey],
-            options: []
-        ) else {
-            return []
-        }
-
-        // Match pattern: {configFileName}.{timestamp}.backup
-        let prefix = "\(configFileName)."
-        let suffix = ".backup"
-
-        return contents.compactMap { url -> ConfigBackup? in
-            let name = url.lastPathComponent
-            guard name.hasPrefix(prefix) && name.hasSuffix(suffix) else { return nil }
-
-            // Extract timestamp
-            let startIndex = name.index(name.startIndex, offsetBy: prefix.count)
-            let endIndex = name.index(name.endIndex, offsetBy: -suffix.count)
-            guard startIndex < endIndex else { return nil }
-
-            let timestampStr = String(name[startIndex..<endIndex])
-            guard let timestamp = TimeInterval(timestampStr) else { return nil }
-
-            let resourceValues = try? url.resourceValues(forKeys: [.fileSizeKey])
-            let fileSize: Int64 = resourceValues?.fileSize.map(Int64.init) ?? 0
-
-            return ConfigBackup(
-                id: name,
-                path: url,
-                timestamp: Date(timeIntervalSince1970: timestamp),
-                fileSize: fileSize
-            )
-        }
-        .sorted { $0.timestamp > $1.timestamp } // Newest first
+        backups.backups(for: configPath)
     }
 
     public func loadBackup(_ backup: ConfigBackup) throws -> String {
@@ -128,13 +108,13 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
         // reading last would overwrite it before finding out.
         let backupContent = try files.read(backup.path)
 
-        // Safety-net the current config before replacing it.
+        // Safety-net the current config before replacing it — into the store, under the next
+        // free second, so it never lands in the project folder or overwrites a backup a save
+        // took in the same second.
         if files.exists(configPath) {
-            let timestamp = Int(now().timeIntervalSince1970)
-            let safetyBackupName = "\(configPath.lastPathComponent).\(timestamp).backup"
-            let safetyBackupPath = configPath.deletingLastPathComponent()
-                .appendingPathComponent(safetyBackupName)
+            let safetyBackupPath = backups.nextBackupURL(for: configPath, at: now(), exists: files.exists)
             try files.copy(configPath, safetyBackupPath)
+            backups.labelFolder(for: configPath)
         }
 
         try files.write(backupContent, configPath)
@@ -180,4 +160,27 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
             try FileManager.default.removeItem(at: backup.path)
         }
     }
+
+    public func legacyBackupCount(for configPath: URL) -> Int {
+        ConfigBackupStore.legacyBackups(beside: configPath).count
+    }
+
+    public func moveLegacyBackups(for configPath: URL) throws -> Int {
+        try backups.moveLegacyBackups(of: configPath, discard: discard)
+    }
+
+    public func backupsFolder(for configPath: URL) -> URL? {
+        backups.directory(for: configPath)
+    }
+}
+
+/// Defaults for the three additions, so a test double written before them still conforms and
+/// reports no backups in the project folder.
+public extension ConfigVersionHistoryServiceProtocol {
+    /// None: a service that doesn't know about the project folder has nothing there.
+    func legacyBackupCount(for _: URL) -> Int { 0 }
+    /// Moves nothing.
+    func moveLegacyBackups(for _: URL) throws -> Int { 0 }
+    /// No folder to show.
+    func backupsFolder(for _: URL) -> URL? { nil }
 }

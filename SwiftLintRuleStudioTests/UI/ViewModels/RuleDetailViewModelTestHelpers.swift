@@ -11,9 +11,12 @@ import Foundation
 import SwiftLintRuleStudioCoreTestSupport
 
 enum RuleDetailViewModelTestHelpers {
-    static func createYAMLConfigurationEngine(configPath: URL) async -> YAMLConfigurationEngine {
+    static func createYAMLConfigurationEngine(
+        configPath: URL,
+        backups: ConfigBackupStore? = nil
+    ) async -> YAMLConfigurationEngine {
         await MainActor.run {
-            YAMLConfigurationEngine(configPath: configPath)
+            YAMLConfigurationEngine(configPath: configPath, backups: backups ?? .standard)
         }
     }
 

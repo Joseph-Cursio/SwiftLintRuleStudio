@@ -6,9 +6,10 @@ public enum YAMLConfigurationEngineTestHelpers {
     /// Create a temporary engine and run an operation against it
     public static func withEngine<T: Sendable>(
         configPath: URL,
+        backups: ConfigBackupStore = .standard,
         operation: (YAMLConfigurationEngine) throws -> T
     ) throws -> T {
-        let engine = YAMLConfigurationEngine(configPath: configPath)
+        let engine = YAMLConfigurationEngine(configPath: configPath, backups: backups)
         return try operation(engine)
     }
 

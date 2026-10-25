@@ -148,6 +148,8 @@ public class YAMLConfigurationEngine {
 
     /// Path to the `.swiftlint.yml` configuration file
     public let configPath: URL
+    /// Where ``save(config:createBackup:)`` keeps the backup it takes first.
+    public let backups: ConfigBackupStore
     /// The original file content before modifications
     public var originalContent: String = ""
     /// The current in-memory configuration state
@@ -156,8 +158,9 @@ public class YAMLConfigurationEngine {
     // MARK: - Initialization
 
     /// Initialize the engine with the path to a `.swiftlint.yml` file
-    public init(configPath: URL) {
+    public init(configPath: URL, backups: ConfigBackupStore = .standard) {
         self.configPath = configPath
+        self.backups = backups
     }
 
     // MARK: - Loading
@@ -282,7 +285,7 @@ public class YAMLConfigurationEngine {
     /// Save configuration to file with backup, and adopt it as the engine's current state.
     public func save(config: YAMLConfig, createBackup: Bool = true) throws {
         currentConfig = config
-        originalContent = try Self.save(config, to: configPath, createBackup: createBackup)
+        originalContent = try Self.save(config, to: configPath, createBackup: createBackup, backups: backups)
     }
 
     /// Validate, serialize and write a configuration to `url`, returning the text written.
@@ -290,15 +293,27 @@ public class YAMLConfigurationEngine {
     /// Two of the three steps are pure and the third is one call. The engine is not needed to
     /// perform any of them — it was needed only to hold the destination, which every caller
     /// already had in hand.
+    ///
+    /// With `createBackup`, the file's current contents go into `backups` first — never beside
+    /// the file, where each save used to leave an untracked `.backup` in the user's project — and
+    /// only after the write succeeds are old backups pruned, so a failed write costs no history.
+    /// A failed backup aborts the save.
     @discardableResult
     public static func save(
         _ config: YAMLConfig,
         to url: URL,
-        createBackup: Bool = true
+        createBackup: Bool = true,
+        backups: ConfigBackupStore = .standard
     ) throws -> String {
         try validated(config)
         let yamlContent = try serialize(config)
-        try SafeFileWriter.write(yamlContent, to: url, createBackup: createBackup)
+        if createBackup {
+            try backups.backUp(url, at: Date())
+        }
+        try SafeFileWriter.write(yamlContent, to: url, createBackup: false)
+        if createBackup {
+            backups.applyRetention(to: url)
+        }
         return yamlContent
     }
 

@@ -356,9 +356,11 @@ The sheet has a **Save** (confirm) button and a **Cancel** button. Cancelling le
 
 ### Version History
 
-**Backup file format:**
+**Where backups are kept:**
 
-Backups are stored in the same directory as `.swiftlint.yml`. The filename pattern is:
+Backups are kept in the app's own folder, not in your project: `~/Library/Application Support/SwiftLintRuleStudio/Config Backups/`, one subfolder per configuration file, named after the project folder plus a short hash of the configuration's path (the sandboxed Explorer edition keeps its own copy of this folder inside its container). Each subfolder holds a `config-path.txt` naming the file it belongs to. **Show in Finder** in the toolbar opens it. A project that moves starts a new history.
+
+The filename pattern is:
 
 ```
 {configFileName}.{unixTimestamp}.backup
@@ -366,7 +368,13 @@ Backups are stored in the same directory as `.swiftlint.yml`. The filename patte
 
 Example: `.swiftlint.yml.1703467200.backup`
 
-The timestamp is a Unix epoch integer (seconds since 1970-01-01 UTC). Backups are listed newest-first.
+The timestamp is a Unix epoch integer (seconds since 1970-01-01 UTC), always ten digits. Backups are listed newest-first.
+
+A backup is taken before every save, except when the file hasn't changed since the newest backup. Two backups in the same second never overwrite each other: the later one takes the next second. After each successful save the app keeps 50 backups of that configuration in all: the oldest one (the file as it was before the app first changed it) plus the 49 newest. Over that limit, a backup whose contents a newer one repeats — a restore's safety copy, often — is removed first.
+
+**Backups in the project folder:**
+
+Earlier versions wrote backups beside `.swiftlint.yml`. Version History still lists them, and shows how many there are with a **Move Out of Project** button, which copies them into an `Earlier` subfolder of the app's folder and sends the originals to the Trash. A backup that can't go to the Trash is left in the project. Nothing moves or deletes them automatically, and automatic pruning never touches them, before or after a move.
 
 **Backup list columns:**
 
@@ -381,7 +389,7 @@ Click one backup to mark it as version **①** (highlighted in blue). Click a se
 
 **Restore:**
 
-Right-click any backup row → **Restore This Version**. Before restoring, the service automatically creates a safety backup of the current config (with the current Unix timestamp). The restore is a full content replacement.
+Right-click any backup row → **Restore This Version**. Before restoring, the service automatically creates a safety backup of the current config in the app's backup folder (with the current Unix timestamp). The restore is a full content replacement.
 
 **Prune toolbar menu:**
 
@@ -391,7 +399,7 @@ Right-click any backup row → **Restore This Version**. Before restoring, the s
 | Keep Last 10 | 10 most recent backups |
 | Keep Last 20 | 20 most recent backups |
 
-Older backups are deleted from disk. The Refresh button (↺) reloads the list from disk.
+Older backups are deleted from disk, including any still in the project folder. The Refresh button (↺) reloads the list from disk.
 
 ### Dashboard
 

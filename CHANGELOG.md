@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Configuration backups are kept in the app's own folder (`~/Library/Application Support/SwiftLintRuleStudio/Config Backups/`, inside the container for the sandboxed Explorer edition) instead of beside `.swiftlint.yml`, where each save left an untracked `.swiftlint.yml.<timestamp>.backup` in the project. Each configuration keeps 50 backups in all: the oldest plus the 49 newest. Version History still lists backups an earlier version left in the project folder, and offers to move them out (the originals go to the Trash, and the moved copies are never pruned automatically); nothing moves them automatically.
+- No backup is taken when the file hasn't changed since the newest backup, two backups in the same second no longer overwrite each other, and a backup holds the configuration's bytes even when `.swiftlint.yml` is a symlink.
+
 ---
 
 ## [1.1.1] — 2026-05-01

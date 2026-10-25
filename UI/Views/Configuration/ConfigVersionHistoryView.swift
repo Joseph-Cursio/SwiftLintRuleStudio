@@ -5,6 +5,7 @@
 //  Timeline view for browsing and restoring configuration version history
 //
 
+import AppKit
 import SwiftLintRuleStudioCore
 import SwiftUI
 
@@ -20,6 +21,10 @@ struct ConfigVersionHistoryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if viewModel.legacyBackupCount > 0 {
+                LegacyBackupsNotice(count: viewModel.legacyBackupCount, onMove: viewModel.moveLegacyBackups)
+                Divider()
+            }
             if viewModel.backups.isEmpty && !viewModel.isLoading {
                 ConfigVersionHistoryEmptyStateView()
             } else {
@@ -49,6 +54,17 @@ struct ConfigVersionHistoryView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        if let folder = viewModel.backupsFolder {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([folder])
+                } label: {
+                    Label("Show in Finder", systemImage: "folder")
+                }
+                .help("Show the folder where the app keeps this configuration's backups")
+                .accessibilityIdentifier("ConfigHistoryShowInFinderButton")
+            }
+        }
         ToolbarItem(placement: .primaryAction) {
             Button(action: viewModel.loadBackups) {
                 Label("Refresh", systemImage: "arrow.clockwise")
