@@ -73,29 +73,8 @@ class VersionCompatibilityViewModel {
 
         do {
             var config = try YAMLConfigurationEngine.loadConfig(at: configPath)
-
-            // Move rule config from old to new
-            if let ruleConfig = config.rules[rule.oldRuleId] {
-                config.rules.removeValue(forKey: rule.oldRuleId)
-                config.rules[rule.newRuleId] = ruleConfig
-            }
-
-            // Update disabled_rules
-            if var disabled = config.disabledRules {
-                if let idx = disabled.firstIndex(of: rule.oldRuleId) {
-                    disabled[idx] = rule.newRuleId
-                    config.disabledRules = disabled
-                }
-            }
-
-            // Update opt_in_rules
-            if var optIn = config.optInRules {
-                if let idx = optIn.firstIndex(of: rule.oldRuleId) {
-                    optIn[idx] = rule.newRuleId
-                    config.optInRules = optIn
-                }
-            }
-
+            // The rule configurations and all four rule lists, as the migration assistant does.
+            config.renameRule(rule.oldRuleId, to: rule.newRuleId)
             try YAMLConfigurationEngine.save(config, to: configPath)
             NotificationCenter.default.post(
                 name: .ruleConfigurationDidChange,

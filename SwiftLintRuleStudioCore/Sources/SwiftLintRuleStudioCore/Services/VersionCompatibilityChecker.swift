@@ -116,7 +116,9 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
         config: YAMLConfigurationEngine.YAMLConfig,
         swiftLintVersion: String
     ) -> CompatibilityReport {
-        let allConfigRuleIds = config.ruleIds
+        // `ruleIdsAsWritten`, not `ruleIds`: a rule key with a severity shorthand
+        // (`redundant_self_in_closure: error`) is held only as a passthrough node.
+        let allConfigRuleIds = config.ruleIdsAsWritten
 
         let deprecated = findDeprecatedRules(in: allConfigRuleIds, version: swiftLintVersion)
         let removed = findRemovedRules(in: allConfigRuleIds, version: swiftLintVersion)
@@ -200,17 +202,15 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
     }
 
     private func findNewRulesAvailable(configRuleIds: Set<String>, version: String) -> [String] {
-        // Gather all rules added up to the current version
+        // Gather all rules added up to the current version that it still offers: a rule removed or
+        // deprecated without a replacement by then (`anyobject_protocol` from 0.50.0) is not one to enable.
         var allAvailable: Set<String> = []
         for (ver, rules) in SwiftLintDeprecations.versionRuleAdditions
             where !SwiftLintDeprecations.isVersion(version, lessThan: ver) {
-            allAvailable.formUnion(rules)
+            allAvailable.formUnion(rules.filter { !SwiftLintDeprecations.isRetired($0, by: version) })
         }
-        // Return rules that exist in SwiftLint but aren't in the config. A rule added and later
-        // removed, like `anyobject_protocol`, no longer exists.
-        return allAvailable
-            .subtracting(configRuleIds)
-            .filter { !SwiftLintDeprecations.isRemoved($0, by: version) }
-            .sorted()
+        // Return rules the config does not already use, under their own name or an alias:
+        // a config with `redundant_optional_initialization` already has `implicit_optional_initialization`.
+        return allAvailable.subtracting(SwiftLintDeprecations.rulesInUse(configRuleIds)).sorted()
     }
 }

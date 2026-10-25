@@ -194,14 +194,17 @@ struct VersionCompatibilityCheckerTests {
     }
 
     /// Additions are dated by the first release whose source declares the rule. These were
-    /// misdated by up to 17 minor versions; the CHANGELOG itself is wrong about the last two.
+    /// misdated by up to 17 minor versions; the CHANGELOG itself is wrong about `file_name_no_space`,
+    /// `attribute_name_spacing` and `legacy_swiftui_aspect_ratio`.
     @Test("Offers a rule as new from the release that shipped it", arguments: [
         ("overridden_super_call", "0.12.0", "0.13.0"),
         ("prefer_self_in_static_references", "0.45.0", "0.45.1"),
         ("non_overridable_class_declaration", "0.52.0", "0.53.0"),
         ("no_empty_block", "0.55.0", "0.56.0"),
         ("file_name_no_space", "0.38.0", "0.38.1"),
-        ("attribute_name_spacing", "0.56.0", "0.57.0")
+        ("attribute_name_spacing", "0.56.0", "0.57.0"),
+        ("prefer_type_checking", "0.56.0", "0.57.0"),
+        ("legacy_swiftui_aspect_ratio", "0.65.0", "0.65.1")
     ])
     func testNewRuleArrivesWithItsRelease(rule: String, before: String, shippedIn: String) {
         let config = makeConfig()
@@ -211,11 +214,11 @@ struct VersionCompatibilityCheckerTests {
         #expect(shippedReport.availableNewRules.contains(rule))
     }
 
-    /// `anyobject_protocol` was added in 0.27.0 and removed in 0.57.0; `opaque_over_existential`
-    /// shipped only in 0.59.0.
-    @Test("Does not offer a removed rule as new", arguments: [
-        ("anyobject_protocol", "0.56.0", true), ("anyobject_protocol", "0.57.0", false),
-        ("anyobject_protocol", "0.65.0", false),
+    /// `anyobject_protocol` was added in 0.27.0, deprecated with no replacement in 0.50.0 and
+    /// removed in 0.57.0; `opaque_over_existential` shipped only in 0.59.0.
+    @Test("Does not offer a retired rule as new", arguments: [
+        ("anyobject_protocol", "0.49.0", true), ("anyobject_protocol", "0.50.0", false),
+        ("anyobject_protocol", "0.57.0", false), ("anyobject_protocol", "0.65.0", false),
         ("opaque_over_existential", "0.59.0", true), ("opaque_over_existential", "0.59.1", false)
     ])
     func testRemovedRuleIsNotNew(rule: String, version: String, offered: Bool) {

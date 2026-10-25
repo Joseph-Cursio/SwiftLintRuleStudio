@@ -254,6 +254,7 @@ extension YAMLConfigurationEngine {
         "baseline",
         "write_baseline",
         "check_for_updates",
+        "indentation",
         "custom_rules"
     ]
 

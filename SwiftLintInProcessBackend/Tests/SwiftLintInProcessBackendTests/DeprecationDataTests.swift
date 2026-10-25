@@ -34,6 +34,24 @@ struct DeprecationDataTests {
         #expect(missing.isEmpty, "Rename targets that don't exist: \(Set(missing).sorted())")
     }
 
+    /// The linked SwiftLint's version, e.g. "0.65.0".
+    private static let linkedVersion = (try? SwiftLintInProcessActor().getVersion()) ?? ""
+
+    /// Whether the linked SwiftLint is at or past `version`.
+    private static func linkedVersionHas(_ version: String) -> Bool {
+        !SwiftLintDeprecations.isVersion(linkedVersion, lessThan: version)
+    }
+
+    /// Each deprecated alias, mapped to the rule that declares it.
+    private static let deprecatedAliases: [String: String] = {
+        var aliases: [String: String] = [:]
+        for ruleType in SwiftLintInProcessActor.sortedBuiltInRules() {
+            let rule = ruleType.description
+            for alias in rule.deprecatedAliases { aliases[alias] = rule.identifier }
+        }
+        return aliases
+    }()
+
     @Test
     func deprecatedRulesAreGoneAndPointAtRulesThatExist() {
         let live = SwiftLintDeprecations.deprecatedRules.keys.filter(Self.liveRules.contains)
@@ -79,12 +97,43 @@ struct DeprecationDataTests {
         #expect(SwiftLintDeprecations.ruleAliases == aliases)
     }
 
-    /// Version Check lists these as rules the config could enable.
+    /// A deprecation with a replacement is a rename: of an alias SwiftLint still reads, to the
+    /// rule that declares it, or else one `renamedRules` records. One without is a rule on its
+    /// way out, and every such rule in the table is gone from the linked SwiftLint; when
+    /// SwiftLint next deprecates a live rule, this fails until the table records its removal.
+    @Test
+    func deprecationsAreRenamesOrRemovals() {
+        for (ruleId, entry) in SwiftLintDeprecations.deprecatedRules {
+            if let replacement = entry.replacement {
+                let renamedTo = Self.deprecatedAliases[ruleId] ?? SwiftLintDeprecations.renamedRules[ruleId]
+                #expect(renamedTo == replacement, "'\(ruleId)' is deprecated for '\(replacement)'")
+                continue
+            }
+            let removedIn = SwiftLintDeprecations.removedRules[ruleId]?.removedInVersion
+            #expect(removedIn.map(Self.linkedVersionHas) == true, "'\(ruleId)' is deprecated but not removed")
+        }
+    }
+
+    /// Version Check and the Migration Assistant hide a rename until the installed version has
+    /// it, so a rename dated after the linked version would never be reported.
+    @Test
+    func aliasesAreRenamedByTheLinkedVersion() {
+        for alias in Self.deprecatedAliases.keys {
+            let renamedIn = SwiftLintDeprecations.deprecatedRules[alias]?.deprecatedInVersion
+            let dated = renamedIn.map(Self.linkedVersionHas) == true
+            #expect(dated, "'\(alias)' is renamed in \(renamedIn ?? "no version")")
+        }
+    }
+
+    /// Version Check lists these as rules the config could enable. A rule added after the
+    /// linked version (`legacy_swiftui_aspect_ratio`, 0.65.1) can't be checked against it.
     @Test
     func addedRulesExistOrWereRemoved() {
-        let unknown = SwiftLintDeprecations.versionRuleAdditions.values.joined().filter {
-            !Self.liveRules.contains($0) && SwiftLintDeprecations.removedRules[$0] == nil
-        }
+        #expect(!Self.linkedVersion.isEmpty)
+        let unknown = SwiftLintDeprecations.versionRuleAdditions
+            .filter { Self.linkedVersionHas($0.key) }
+            .values.joined()
+            .filter { !Self.liveRules.contains($0) && SwiftLintDeprecations.removedRules[$0] == nil }
         #expect(unknown.isEmpty, "Added rules SwiftLint doesn't have: \(Set(unknown).sorted())")
     }
 }

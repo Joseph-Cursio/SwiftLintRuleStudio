@@ -161,7 +161,7 @@ struct MigrationAssistantView: View {
                 Text("Preview of Changes")
                     .font(.headline)
 
-                if diff.hasChanges {
+                if viewModel.previewRewritesConfig {
                     RuleChangeSummary(diff: diff)
 
                     DisclosureGroup("Full Diff") {

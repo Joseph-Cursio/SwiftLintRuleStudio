@@ -25,6 +25,8 @@ public struct DeprecationEntry: Sendable {
 
 public struct RemovalEntry: Sendable {
     public let removedInVersion: String
+    /// The current id of the rule that took its place, which may postdate the removal:
+    /// `variable_name_max_length` went in 0.7.0, into `variable_name`, now `identifier_name`.
     public let replacement: String?
     public let message: String
 
@@ -78,9 +80,12 @@ public enum SwiftLintDeprecations {
         "if_let_shadowing": "shorthand_optional_binding"
     ]
 
-    // MARK: - Deprecated Rules (still work but will be removed)
+    // MARK: - Deprecated Rules (SwiftLint still accepts them, with a warning)
 
-    /// Map of deprecated rule identifiers to their deprecation details
+    /// Map of deprecated rule identifiers to their deprecation details. An entry with a
+    /// replacement is a rename (see `renamedRules`), dated by the version it shipped in. One
+    /// without was deprecated in favor of a Swift compiler warning and later removed. Each
+    /// version is the first release tag whose rule source marks the deprecation.
     public static let deprecatedRules: [String: DeprecationEntry] = [
         "variable_name": DeprecationEntry(
             deprecatedInVersion: "0.17.0",
@@ -127,7 +132,10 @@ public enum SwiftLintDeprecations {
 
     // MARK: - Removed Rules (no longer recognized by SwiftLint)
 
-    /// Map of removed rule identifiers to their removal details
+    /// Map of removed rule identifiers to their removal details. A renamed rule is not removed:
+    /// SwiftLint keeps resolving its old identifier as an alias. Each version is the first release
+    /// tag that no longer registers the rule. Not listed: `missing_docs`,
+    /// `return_value_from_void_function` and `void_function_in_ternary`, removed and later re-added.
     public static let removedRules: [String: RemovalEntry] = [
         // Merged into `variable_name` (now `identifier_name`) as its length limits.
         "variable_name_max_length": RemovalEntry(
@@ -139,6 +147,46 @@ public enum SwiftLintDeprecations {
             removedInVersion: "0.7.0",
             replacement: "identifier_name",
             message: "Configure min_length on 'identifier_name' (named 'variable_name' before 0.17.0) instead."
+        ),
+        "conditional_binding_cascade": RemovalEntry(
+            removedInVersion: "0.11.2",
+            replacement: nil,
+            message: "Removed with no replacement."
+        ),
+        "redundant_nil_coalesing": RemovalEntry(
+            removedInVersion: "0.13.1",
+            replacement: "redundant_nil_coalescing",
+            message: "Its misspelled identifier was corrected to 'redundant_nil_coalescing', with no alias."
+        ),
+        "valid_docs": RemovalEntry(
+            removedInVersion: "0.19.0",
+            replacement: nil,
+            message: "Removed with no replacement; it had already been disabled."
+        ),
+        "weak_computed_property": RemovalEntry(
+            removedInVersion: "0.33.0",
+            replacement: nil,
+            message: "Removed with no replacement (see realm/SwiftLint#2712)."
+        ),
+        "unused_private_declaration": RemovalEntry(
+            removedInVersion: "0.34.0",
+            replacement: "unused_declaration",
+            message: "Removed. Use the analyzer rule 'unused_declaration' instead."
+        ),
+        "tuple_pattern": RemovalEntry(
+            removedInVersion: "0.39.1",
+            replacement: nil,
+            message: "Removed one release after it was added, with the other SwiftSyntax rules of 0.39.0."
+        ),
+        "prohibited_nan_comparison": RemovalEntry(
+            removedInVersion: "0.39.1",
+            replacement: nil,
+            message: "Removed one release after it was added, with the other SwiftSyntax rules of 0.39.0."
+        ),
+        "unneeded_notification_center_removal": RemovalEntry(
+            removedInVersion: "0.41.0",
+            replacement: nil,
+            message: "Removed with no replacement: the rule was based on an incorrect premise."
         ),
         "anyobject_protocol": RemovalEntry(
             removedInVersion: "0.57.0",
@@ -164,13 +212,16 @@ public enum SwiftLintDeprecations {
 
     // MARK: - Version Rule Additions (version -> new rules added)
 
-    /// Map of SwiftLint versions to notable rules introduced in that version (not every rule).
-    /// Each version is the first release whose source declares the rule, checked against
-    /// SwiftLint's release tags (2026-10-09). The CHANGELOG is wrong about two: it lists
-    /// `file_name_no_space` under 0.34.0 and `attribute_name_spacing` under 0.56.0, but they
-    /// first shipped in 0.38.1 and 0.57.0. Versions 0.64.0, 0.64.1, and 0.65.0 added no new
-    /// rules. A rule added and later removed, like `opaque_over_existential` (0.59.0 only),
-    /// stays listed here; callers drop it with `isRemoved(_:by:)`.
+    /// Map of SwiftLint versions to rules introduced in that version. Before 0.56.0 it holds
+    /// notable rules, not every rule; from 0.56.0 on, every rule first registered in that
+    /// release, a rule's new name included (`redundant_self`). Each version is the first
+    /// release tag that registers the rule, read from SwiftLint's sources at each tag
+    /// (2026-10-24, tags 0.1.0–0.65.1). The CHANGELOG misfiles three: it lists
+    /// `file_name_no_space` under 0.34.0, `attribute_name_spacing` under 0.56.0 and
+    /// `legacy_swiftui_aspect_ratio` under 0.63.3, but they first shipped in 0.38.1, 0.57.0
+    /// and 0.65.1. Versions 0.64.0, 0.64.1, and 0.65.0 added no new rules. A rule added and
+    /// later removed, like `opaque_over_existential` (0.59.0 only), stays listed here; callers
+    /// drop it with `isRetired(_:by:)`.
     public static let versionRuleAdditions: [String: [String]] = [
         "0.13.0": ["overridden_super_call"],
         "0.14.0": ["prohibited_super_call"],
@@ -197,43 +248,108 @@ public enum SwiftLintDeprecations {
         "0.53.0": ["non_overridable_class_declaration"],
         "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"],
         "0.56.0": ["contrasted_opening_brace", "no_empty_block", "prefer_key_path", "unused_parameter"],
-        "0.57.0": ["attribute_name_spacing", "optional_data_string_conversion"],
+        "0.57.0": ["attribute_name_spacing", "optional_data_string_conversion", "prefer_type_checking"],
         "0.58.0": ["async_without_await", "redundant_sendable"],
         "0.59.0": ["opaque_over_existential"],
         "0.60.0": ["implicit_optional_initialization", "prefer_condition_list"],
         "0.61.0": ["function_name_whitespace"],
         "0.62.0": ["prefer_asset_symbols"],
         "0.62.2": ["incompatible_concurrency_annotation"],
-        "0.63.0": ["multiline_call_arguments", "unneeded_escaping", "unneeded_throws_rethrows"],
+        "0.63.0": ["multiline_call_arguments", "redundant_self", "unneeded_escaping", "unneeded_throws_rethrows"],
         "0.63.3": [
             "discouraged_default_parameter",
             "invisible_character",
             "legacy_uigraphics_function",
             "redundant_final",
             "variable_shadowing"
-        ]
+        ],
+        "0.65.1": ["legacy_swiftui_aspect_ratio"]
     ]
 
     // MARK: - Helpers
 
     /// Compare two semantic version strings. Returns true if lhs < rhs.
+    ///
+    /// Semver precedence: the numeric parts decide; when they are equal, a pre-release sorts
+    /// below its release (`0.50.0-rc.1` < `0.50.0`), and two pre-releases compare identifier
+    /// by identifier (`rc.2` < `rc.10`). A leading `v` and build metadata (`+…`) are ignored.
+    /// An rc build is therefore never told about a rule that arrived in the release: rc.1 of
+    /// 0.50.0 still registers `if_let_shadowing`, and renaming it would break the config. It
+    /// misses a rename that shipped in a later rc, which is harmless, since the old name stays
+    /// an alias.
     public static func isVersion(_ lhs: String, lessThan rhs: String) -> Bool {
-        let parts1 = lhs.split(separator: ".").compactMap { Int($0) }
-        let parts2 = rhs.split(separator: ".").compactMap { Int($0) }
+        let (numbers1, preRelease1) = versionParts(of: lhs)
+        let (numbers2, preRelease2) = versionParts(of: rhs)
 
-        for idx in 0..<max(parts1.count, parts2.count) {
-            let val1 = idx < parts1.count ? parts1[idx] : 0
-            let val2 = idx < parts2.count ? parts2[idx] : 0
+        for idx in 0..<max(numbers1.count, numbers2.count) {
+            let val1 = idx < numbers1.count ? numbers1[idx] : 0
+            let val2 = idx < numbers2.count ? numbers2[idx] : 0
             if val1 < val2 { return true }
             if val1 > val2 { return false }
         }
-        return false
+        switch (preRelease1, preRelease2) {
+        case let (.some(identifiers1), .some(identifiers2)):
+            return isPreRelease(identifiers1, lessThan: identifiers2)
+        case (.some, .none):
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// The numeric components of `version` and its pre-release identifiers, if it has a
+    /// pre-release part, after dropping a leading `v`/`V` and any build metadata.
+    private static func versionParts(of version: String) -> (numbers: [Int], preRelease: [Substring]?) {
+        var core = Substring(version.trimmingCharacters(in: .whitespaces))
+        if core.first == "v" || core.first == "V" { core = core.dropFirst() }
+        if let build = core.firstIndex(of: "+") { core = core[..<build] }
+        var preRelease: [Substring]?
+        if let dash = core.firstIndex(of: "-") {
+            preRelease = core[core.index(after: dash)...].split(separator: ".")
+            core = core[..<dash]
+        }
+        return (core.split(separator: ".").compactMap { Int($0) }, preRelease)
+    }
+
+    /// Semver pre-release precedence: identifiers compare in turn, numeric ones as numbers and
+    /// below alphanumeric ones, and a list that runs out first sorts lower.
+    private static func isPreRelease(_ lhs: [Substring], lessThan rhs: [Substring]) -> Bool {
+        for (left, right) in zip(lhs, rhs) where left != right {
+            switch (Int(left), Int(right)) {
+            case let (.some(leftNumber), .some(rightNumber)):
+                if leftNumber != rightNumber { return leftNumber < rightNumber }
+            case (.some, .none):
+                return true
+            case (.none, .some):
+                return false
+            case (.none, .none):
+                return left < right
+            }
+        }
+        return lhs.count < rhs.count
     }
 
     /// Whether `rule` was removed at or before `version`.
     public static func isRemoved(_ rule: String, by version: String) -> Bool {
         guard let removedIn = removedRules[rule]?.removedInVersion else { return false }
         return !isVersion(version, lessThan: removedIn)
+    }
+
+    /// Whether `ruleId` is on its way out of SwiftLint `version` or already gone: removed in it or
+    /// before it, or deprecated by then with no replacement (`anyobject_protocol` from 0.50.0).
+    /// Such a rule is not one to suggest enabling.
+    public static func isRetired(_ ruleId: String, by version: String) -> Bool {
+        if isRemoved(ruleId, by: version) { return true }
+        if let deprecation = deprecatedRules[ruleId], deprecation.replacement == nil {
+            return !isVersion(version, lessThan: deprecation.deprecatedInVersion)
+        }
+        return false
+    }
+
+    /// `ruleIds` together with the current name of each alias among them: a configuration naming
+    /// `redundant_optional_initialization` already uses `implicit_optional_initialization`.
+    public static func rulesInUse(_ ruleIds: Set<String>) -> Set<String> {
+        ruleIds.union(ruleIds.compactMap { ruleAliases[$0] })
     }
 
     /// Get all rules added between two versions (exclusive of fromVersion, inclusive of toVersion)

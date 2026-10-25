@@ -28,6 +28,13 @@ class MigrationAssistantViewModel {
     var previousVersion: String = ""
     var migrationPlan: MigrationPlan?
     var previewDiff: YAMLConfigurationEngine.ConfigDiff?
+    /// Whether applying the previewed plan rewrites the file. Renaming an alias inside a rule
+    /// list changes nothing SwiftLint checks, so the diff reports no change, yet the plan's
+    /// rename still has to be written to take effect.
+    var previewRewritesConfig: Bool {
+        guard let previewDiff else { return false }
+        return previewDiff.hasChanges || previewDiff.before != previewDiff.after
+    }
     var isDetecting: Bool = false
     var isMigrating: Bool = false
     var error: Error?

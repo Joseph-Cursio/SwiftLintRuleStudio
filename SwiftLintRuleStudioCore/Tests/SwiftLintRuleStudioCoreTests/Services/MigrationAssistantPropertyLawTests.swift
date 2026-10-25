@@ -9,6 +9,8 @@
 //  step, a removal for a rule already being renamed, and a removal outside its
 //  version window all passed. No example used a removed rule that is not also
 //  renamed (`anyobject_protocol`, then the only one), and none emptied a list.
+//  Since the tables were corrected no rule is both renamed and removed, so the
+//  data no longer reaches the removal-for-a-renamed-rule case; the laws still state it.
 //
 //  The laws are a decision table over the deprecation data:
 //
@@ -17,8 +19,10 @@
 //                       below the version r was renamed in
 //      remove r         r is configured, r was removed in a version v with
 //                       from < v ≤ to, and r is not being renamed
-//      new-rules note   a rule was added after `from`, up to `to`, and `to`
-//                       has not removed it; the note lists exactly those rules
+//      new-rules note   names each rule added after `from`, up to `to`, that
+//                       `to` has not retired (removed, or deprecated with no
+//                       replacement) and the config does not use under its own
+//                       name or an alias; absent when there is none
 //
 //  and two laws over `applyMigration`. It is idempotent, the law swift-infer
 //  proposed for it once the linter seeded it as a pure mutator. And it leaves
@@ -28,6 +32,11 @@
 //  Writing the rename law found a defect, fixed in the same change: renames
 //  ignored the target version, so a 0.10 → 0.16 migration renamed
 //  `variable_name` to `identifier_name`, which only exists from 0.17.
+//
+//  The laws read the tables, so they cannot catch a wrong row: the tables once
+//  renamed live rules (`generic_type_name` → `identifier_name`) and every law
+//  held. DeprecationDataTests in SwiftLintInProcessBackend checks the rows against
+//  the linked SwiftLint.
 //
 
 import Foundation
@@ -73,7 +82,10 @@ struct MigrationAssistantPropertyLawTests {
             + Array(SwiftLintDeprecations.versionRuleAdditions.keys)
         let below = turning.compactMap { version -> String? in
             let parts = version.split(separator: ".").compactMap { Int($0) }
-            guard parts.count == 3, parts[1] > 0 else { return nil }
+            guard parts.count == 3 else { return nil }
+            // 0.59.1 removed a rule 0.59.0 still had: the edge of a patch release is a patch below.
+            if parts[2] > 0 { return "0.\(parts[1]).\(parts[2] - 1)" }
+            guard parts[1] > 0 else { return nil }
             return "0.\(parts[1] - 1).0"
         }
         return Set(turning + below + ["0.20.0", "0.70.0"]).sorted {
@@ -225,21 +237,30 @@ struct MigrationAssistantPropertyLawTests {
         }
     }
 
-    @Test("the new-rules note lists exactly the rules added in the range that the target still has")
+    @Test("the new-rules note lists exactly the rules added in the range that the target offers and the config lacks")
     func newRulesNoteFollowsTheAdditions() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
             let target = Self.versions[spec.toIndex]
+            let configured = Self.configuredIds(Self.config(for: spec))
+            let used = configured.union(configured.compactMap { SwiftLintDeprecations.ruleAliases[$0] })
             let added = SwiftLintDeprecations.rulesAdded(from: Self.versions[spec.fromIndex], to: target)
-                .filter { rule in
-                    guard let removedIn = SwiftLintDeprecations.removedRules[rule]?.removedInVersion else {
-                        return true
-                    }
-                    return SwiftLintDeprecations.isVersion(target, lessThan: removedIn)
-                }
+                .filter { !Self.retired($0, by: target) && !used.contains($0) }
             let plan = Self.plan(for: spec)
             #expect(plan.manualSteps.count == (added.isEmpty ? 0 : 1))
             #expect(Self.noteRules(in: plan) == (added.isEmpty ? nil : added))
         }
+    }
+
+    /// Whether `version` no longer offers `rule`: removed by then, or deprecated with no replacement.
+    private static func retired(_ rule: String, by version: String) -> Bool {
+        if let removal = SwiftLintDeprecations.removedRules[rule],
+           !SwiftLintDeprecations.isVersion(version, lessThan: removal.removedInVersion) {
+            return true
+        }
+        guard let deprecation = SwiftLintDeprecations.deprecatedRules[rule], deprecation.replacement == nil else {
+            return false
+        }
+        return !SwiftLintDeprecations.isVersion(version, lessThan: deprecation.deprecatedInVersion)
     }
 
     // MARK: - Laws over applying it
@@ -300,5 +321,6 @@ struct MigrationAssistantPropertyLawTests {
         config.optInRules = ["anyobject_protocol"]
         let plan = Self.assistant.detectMigrations(config: config, fromVersion: from, toVersion: toVersion)
         #expect(Self.removals(in: plan).contains("anyobject_protocol") == removes)
+        #expect(Self.renames(in: plan).isEmpty)
     }
 }
