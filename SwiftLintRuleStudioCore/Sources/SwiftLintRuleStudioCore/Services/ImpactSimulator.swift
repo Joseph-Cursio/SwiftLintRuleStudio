@@ -150,7 +150,11 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
         // `.effective` mode with `cwd` = the mirror root: SwiftLint discovers the
         // mirror's (rule-enabled) root and nested configs itself. `configPath` is
         // deliberately nil — passing `--config` would disable nested resolution.
-        let lintData = try await swiftLintCLI.executeSimulationLintCommand(workspacePath: shadow.root)
+        // The rule runs alone wherever that counts the same, sparing a lint of every rule.
+        let lintData = try await swiftLintCLI.executeSimulationLintCommand(
+            workspacePath: shadow.root,
+            onlyRule: shadow.onlyRule(for: ruleId)
+        )
 
         // Paths come back rooted at the mirror; stripping that prefix yields the
         // same workspace-relative paths the real workspace would produce. A file

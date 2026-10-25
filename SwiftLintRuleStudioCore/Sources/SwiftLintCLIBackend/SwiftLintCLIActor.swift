@@ -113,9 +113,9 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
 
     /// Lints a rule simulation's mirror with no cache, in a process a cancelled caller
     /// terminates — so an audit cancelled midway stops the lint it was waiting on.
-    public func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
+    public func executeSimulationLintCommand(workspacePath: URL, onlyRule: String?) async throws -> Data {
         try await runLint(
-            arguments: Self.buildSimulationLintArguments(workspacePath: workspacePath),
+            arguments: Self.buildSimulationLintArguments(workspacePath: workspacePath, onlyRule: onlyRule),
             workingDirectory: workspacePath
         )
     }

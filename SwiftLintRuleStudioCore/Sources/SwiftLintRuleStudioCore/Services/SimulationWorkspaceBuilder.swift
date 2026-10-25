@@ -38,9 +38,9 @@ final class SimulationWorkspace {
     private let externalFolders: [WorkspaceMirrorPlan.ExternalFolder]
     /// The workspace's real path, whose copy is the root.
     private let workspaceRoot: String?
-    private let configs: [ConfigEntry]
+    let configs: [ConfigEntry]
     /// The names the configs' `custom_rules` define, which SwiftLint reports their violations under.
-    private let customRuleIds: Set<String>
+    let customRuleIds: Set<String>
     private let fileManager: FileManager
     private let lock: MirrorLock?
     private var isRemoved = false
@@ -99,6 +99,9 @@ final class SimulationWorkspace {
     /// from the cached originals, so simulating rule B never leaves rule A enabled from a prior
     /// call (important for batch audits that reuse one workspace).
     ///
+    /// When the rule will be linted alone (``onlyRule(for:)``), a nested `only_rules` that leaves
+    /// it out is written as the `disabled_rules` it then amounts to; see ``keepsOff(_:_:)``.
+    ///
     /// Each config written is read back as SwiftLint will read it. One it can't read, SwiftLint
     /// would replace with its defaults — every rule measuring as if nothing were configured — so
     /// that throws ``MirrorConfigWriteError`` instead of linting.
@@ -120,6 +123,7 @@ final class SimulationWorkspace {
         try fileManager.moveItem(at: movingFolder, to: freshFolder)
         movingFolder = freshFolder
         root = rootInMovingFolder.map { freshFolder.appendingPathComponent($0, isDirectory: true) } ?? freshFolder
+        let isLintedAlone = onlyRule(for: ruleId) != nil
 
         for (index, entry) in configs.enumerated() {
             // A rejected root configuration is measured as the app will repair it, which is also
@@ -147,6 +151,9 @@ final class SimulationWorkspace {
                     isAnalyzer: isAnalyzer,
                     parameterOverrides: parameterOverrides
                 )
+            } else if isLintedAlone, keepsOff(ruleId, entry) {
+                config.onlyRules = nil
+                config.disabledRules = [ruleId]
             }
             try YAMLConfigurationEngine.save(config, to: destination, createBackup: false)
             try MirrorConfigWriteError.checkReadable(destination, writtenFor: entry.relativePath)

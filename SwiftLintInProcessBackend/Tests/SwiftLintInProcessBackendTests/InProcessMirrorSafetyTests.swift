@@ -94,7 +94,7 @@ struct InProcessMirrorSafetyTests {
         let workspace = layout.workspace
         let backend = SwiftLintInProcessActor()
 
-        let lint = Task { try await backend.executeSimulationLintCommand(workspacePath: workspace) }
+        let lint = Task { try await backend.executeSimulationLintCommand(workspacePath: workspace, onlyRule: nil) }
         lint.cancel()
 
         await #expect(throws: CancellationError.self) {
