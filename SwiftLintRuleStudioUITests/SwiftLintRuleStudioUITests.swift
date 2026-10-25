@@ -38,9 +38,11 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
         _ = XCTWaiter.wait(for: [expectation], timeout: 5.0)
     }
 
+    /// `swiftLintYML`, when given, becomes the test workspace's `.swiftlint.yml`.
     func launchApp(
         skipOnboarding: Bool = false,
-        createWorkspace: Bool = false
+        createWorkspace: Bool = false,
+        swiftLintYML: String? = nil
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments.append("-uiTesting")
@@ -49,6 +51,9 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
         }
         if createWorkspace {
             app.launchEnvironment["UI_TEST_WORKSPACE"] = "1"
+        }
+        if let swiftLintYML {
+            app.launchEnvironment["UI_TEST_SWIFTLINT_YML"] = swiftLintYML
         }
         app.launch()
         app.activate()
@@ -74,8 +79,8 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
 
     /// Launches app with workspace, waits for main window, and ensures sidebar is visible.
     /// Use this for all tests that need sidebar navigation.
-    func launchAppWithSidebar() -> (app: XCUIApplication, window: XCUIElement)? {
-        let app = launchApp(skipOnboarding: true, createWorkspace: true)
+    func launchAppWithSidebar(swiftLintYML: String? = nil) -> (app: XCUIApplication, window: XCUIElement)? {
+        let app = launchApp(skipOnboarding: true, createWorkspace: true, swiftLintYML: swiftLintYML)
         let window = waitForMainWindow(in: app)
         guard window.exists else { return nil }
         ensureSidebarVisible(in: window)

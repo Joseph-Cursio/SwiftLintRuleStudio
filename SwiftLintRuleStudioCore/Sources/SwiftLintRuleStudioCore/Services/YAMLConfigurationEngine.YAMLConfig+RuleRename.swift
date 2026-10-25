@@ -10,11 +10,12 @@ import Yams
 
 public extension YAMLConfigurationEngine.YAMLConfig {
 
-    /// Every rule the configuration names, including rule keys whose value the engine does not
-    /// model and keeps only as a passthrough node, such as the severity shorthand
-    /// `redundant_self_in_closure: error`. `ruleIds` leaves those out; the compatibility check and
-    /// the migration need them, or a renamed rule written that way is never reported or renamed.
-    var namedRuleIds: Set<String> {
+    /// Every rule id the configuration names, as written, including rule keys whose value the
+    /// engine does not model and keeps only as a passthrough node, such as the severity shorthand
+    /// `redundant_self_in_closure: error`. `ruleIds` leaves those out, and `namedRuleIds` reads
+    /// every alias as its current name; the compatibility check and the migration need the old
+    /// names, or a renamed rule is never reported or renamed.
+    var ruleIdsAsWritten: Set<String> {
         ruleIds.union(unmodeledRuleKeys)
     }
 

@@ -65,8 +65,13 @@ struct ConfigMapView: View {
     }
 
     private var treeList: some View {
-        List(viewModel.treeRows, selection: Bindable(viewModel).selectedRowID) { row in
-            ConfigTreeRowView(row: row)
+        List(selection: Bindable(viewModel).selectedRowID) {
+            // The rows are folders, each named for the folder its config sits in.
+            Section("Folders with .swiftlint.yml") {
+                ForEach(viewModel.treeRows) { row in
+                    ConfigTreeRowView(row: row)
+                }
+            }
         }
         .onChange(of: viewModel.selectedRowID) { _, newValue in
             if let newValue = newValue {

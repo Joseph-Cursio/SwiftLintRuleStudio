@@ -44,7 +44,7 @@ let package = Package(
             dependencies: [
                 "SwiftLintInProcessBackend",
                 .product(name: "SwiftLintRuleStudioCore", package: "SwiftLintRuleStudioCore"),
-                // Read SwiftLint's registry to check Core's deprecation tables against it.
+                // The rule-list agreement tests read SwiftLint's own resolved configuration.
                 .product(name: "SwiftLintFramework", package: "SwiftLint")
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]

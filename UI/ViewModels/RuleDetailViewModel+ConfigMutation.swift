@@ -10,11 +10,13 @@ import Foundation
 import SwiftLintRuleStudioCore
 
 extension RuleDetailViewModel {
-    func applyRuleChanges(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    /// Throws when turning the rule off would empty `only_rules`, which SwiftLint
+    /// reads as no list at all — see `YAMLConfig.disableRules(_:kind:)`.
+    func applyRuleChanges(to config: inout YAMLConfigurationEngine.YAMLConfig) throws {
         if isEnabled {
             applyEnabledRule(to: &config)
         } else {
-            applyDisabledRule(to: &config)
+            try applyDisabledRule(to: &config)
         }
     }
 
@@ -33,75 +35,18 @@ extension RuleDetailViewModel {
             ruleConfig.parameters = nil
         }
         config.rules[rule.id] = ruleConfig
-        addOptInRuleIfNeeded(to: &config)
-        removeDisabledRuleIfPresent(from: &config)
-        addOnlyRuleIfNeeded(to: &config)
+        // The rule lists go through the shared routing, which knows only_rules: this
+        // used to add an opt-in rule to opt_in_rules *and* only_rules, the combination
+        // SwiftLint rejects (issue #83) — on every save, a parameter-only edit included.
+        config.enableRule(rule.id, kind: RuleListKind(rule))
     }
 
-    func applyDisabledRule(to config: inout YAMLConfigurationEngine.YAMLConfig) {
+    func applyDisabledRule(to config: inout YAMLConfigurationEngine.YAMLConfig) throws {
+        // Opt-in and analyzer rules are disabled by absence from their lists, a
+        // default rule by disabled_rules — or, under only_rules, by leaving it.
+        try config.disableRule(rule.id, kind: RuleListKind(rule))
         var ruleConfig = config.rules[rule.id] ?? RuleConfiguration(enabled: false)
         ruleConfig.enabled = false
         config.rules[rule.id] = ruleConfig
-        removeOptInRuleIfPresent(from: &config)
-        removeOnlyRuleIfPresent(from: &config)
-        addDisabledRuleIfNeeded(to: &config)
-    }
-
-    func addDisabledRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
-        // Opt-in / analyzer rules are disabled by absence from their lists,
-        // not by being added to disabled_rules.
-        guard !rule.isOptIn && !rule.isAnalyzer else { return }
-        var disabledRules = config.disabledRules ?? []
-        if !disabledRules.contains(rule.id) {
-            disabledRules.append(rule.id)
-            config.disabledRules = disabledRules
-        }
-    }
-
-    func addOptInRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
-        if rule.isAnalyzer {
-            var analyzerRules = config.analyzerRules ?? []
-            if !analyzerRules.contains(rule.id) {
-                analyzerRules.append(rule.id)
-                config.analyzerRules = analyzerRules
-            }
-            return
-        }
-        guard rule.isOptIn else { return }
-        var optInRules = config.optInRules ?? []
-        if !optInRules.contains(rule.id) {
-            optInRules.append(rule.id)
-            config.optInRules = optInRules
-        }
-    }
-
-    func removeOptInRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
-        if rule.isAnalyzer, var analyzerRules = config.analyzerRules {
-            analyzerRules.removeAll { $0 == rule.id }
-            config.analyzerRules = analyzerRules.isEmpty ? nil : analyzerRules
-        }
-        guard rule.isOptIn, var optInRules = config.optInRules else { return }
-        optInRules.removeAll { $0 == rule.id }
-        config.optInRules = optInRules.isEmpty ? nil : optInRules
-    }
-
-    func removeDisabledRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
-        guard var disabledRules = config.disabledRules else { return }
-        disabledRules.removeAll { $0 == rule.id }
-        config.disabledRules = disabledRules.isEmpty ? nil : disabledRules
-    }
-
-    func addOnlyRuleIfNeeded(to config: inout YAMLConfigurationEngine.YAMLConfig) {
-        guard var onlyRules = config.onlyRules else { return }
-        if !onlyRules.contains(rule.id) {
-            onlyRules.append(rule.id)
-            config.onlyRules = onlyRules
-        }
-    }
-
-    func removeOnlyRuleIfPresent(from config: inout YAMLConfigurationEngine.YAMLConfig) {
-        guard var onlyRules = config.onlyRules else { return }
-        onlyRules.removeAll { $0 == rule.id }
-        config.onlyRules = onlyRules.isEmpty ? nil : onlyRules
     }
 }

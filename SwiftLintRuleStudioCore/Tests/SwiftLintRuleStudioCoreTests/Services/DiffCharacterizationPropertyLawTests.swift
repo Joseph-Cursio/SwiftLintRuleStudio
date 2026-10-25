@@ -137,10 +137,8 @@ struct DiffCharacterizationPropertyLawTests {
             #expect(diff.removedRules.count == removed.count)
             #expect(diff.modifiedRules.count == modified.count)
 
-            // hasChanges agrees with the three lists it summarizes, and with any other change
-            // to the file (a rule list, say), which shows only in the serialized text.
-            let listsChange = !(added.isEmpty && removed.isEmpty && modified.isEmpty)
-            #expect(diff.hasChanges == (listsChange || diff.before != diff.after))
+            // hasChanges agrees with the three lists it summarizes.
+            #expect(diff.hasChanges == !(added.isEmpty && removed.isEmpty && modified.isEmpty))
         }
     }
 

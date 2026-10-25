@@ -25,6 +25,8 @@ class ViolationInspectorViewModel {
         didSet { syncSelectionFromSet() }
     }
     var isAnalyzing: Bool = false
+    /// How far the running analysis has got, when the backend can tell.
+    var analysisProgress: AnalysisProgress?
 
     // Filter properties
     var searchText: String = "" {

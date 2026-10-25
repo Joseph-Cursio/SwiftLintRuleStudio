@@ -197,6 +197,29 @@ struct ViolationInspectorViewTests {
         #expect(found, "View should show 'Analyzing Workspace' when isAnalyzing is true")
     }
 
+    @Test("ViolationInspectorView shows how many files the lint has finished, when the backend reports it")
+    func testShowsFileProgressWhileAnalyzing() async throws {
+        let result = await Task { @MainActor in
+            let container = DependencyContainer.createForTesting()
+            let viewModel = ViolationInspectorViewModel(violationStorage: container.violationStorage)
+            viewModel.isAnalyzing = true
+            viewModel.analysisProgress = AnalysisProgress(
+                currentFile: nil,
+                filesProcessed: 120,
+                totalFiles: 495,
+                violationsFound: 0,
+                isComplete: false
+            )
+            let view = ViolationInspectorView(viewModel: viewModel)
+            return ViewResult(view: view)
+        }.value
+
+        let found = await MainActor.run {
+            (try? result.view.inspect().find(text: "Linted 120 of 495 files")) != nil
+        }
+        #expect(found, "View should count the files linted so far")
+    }
+
 }
 
 // MARK: - ViewInspector Extensions

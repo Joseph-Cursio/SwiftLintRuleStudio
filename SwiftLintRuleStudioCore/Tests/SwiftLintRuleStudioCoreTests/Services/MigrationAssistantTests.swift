@@ -43,30 +43,62 @@ struct MigrationAssistantTests {
         #expect(renameSteps.isEmpty == false)
     }
 
-    /// Issue #83's config lists these live rules under `only_rules`. The migration used to
-    /// rename them to `identifier_name` and `trailing_closure`, rules that check other things.
-    @Test("Live rules are left alone across every version")
-    func testLiveRulesAreNotMigrated() {
-        var config = makeConfig()
-        config.onlyRules = ["generic_type_name", "multiple_closures_with_trailing_closure", "trailing_closure"]
+    /// Both rules still exist in 0.65.0, next to the rules the table once renamed them to.
+    /// `multiple_closures_with_trailing_closure` is on by default and `trailing_closure` is
+    /// opt-in, so the rename changed what the config linted.
+    @Test("Does not rename a rule that still exists", arguments: [
+        "multiple_closures_with_trailing_closure", "generic_type_name"
+    ])
+    func testDoesNotRenameLiveRule(ruleId: String) {
+        let config = makeConfig(rules: [ruleId: RuleConfiguration(enabled: true)])
         let plan = assistant.detectMigrations(config: config, fromVersion: "0.20.0", toVersion: "0.65.0")
         #expect(plan.autoApplyableSteps.isEmpty)
-
-        var migrated = config
-        assistant.applyMigration(plan, to: &migrated)
-        #expect(migrated == config)
     }
 
-    @Test("Rules dropped for compiler warnings are removed, not renamed")
-    func testCompilerWarningRulesAreRemoved() {
-        let config = makeConfig(optInRules: ["inert_defer", "unused_capture_list", "line_length"])
+    /// Deprecated in 0.51.0 in favor of the Swift compiler warning and removed in 0.58.0.
+    /// No rule replaced them: `unused_closure_use` never existed, and `no_empty_block` is
+    /// an unrelated opt-in rule.
+    @Test("Removes a rule the compiler replaced rather than renaming it", arguments: [
+        "unused_capture_list", "inert_defer"
+    ])
+    func testRemovesCompilerReplacedRule(ruleId: String) {
+        let config = makeConfig(optInRules: [ruleId])
         let plan = assistant.detectMigrations(config: config, fromVersion: "0.50.0", toVersion: "0.65.0")
-        let autoSteps = plan.autoApplyableSteps.map(\.id).sorted()
-        #expect(autoSteps == ["remove-inert_defer", "remove-unused_capture_list"])
+        #expect(plan.autoApplyableSteps.map(\.id) == ["remove-\(ruleId)"])
+    }
 
-        var migrated = config
-        assistant.applyMigration(plan, to: &migrated)
-        #expect(migrated.optInRules == ["line_length"])
+    /// Removed in 0.59.1 for too many false positives, one release after it shipped.
+    @Test("Removes opaque_over_existential when the range crosses 0.59.1")
+    func testRemovesOpaqueOverExistential() {
+        let config = makeConfig(optInRules: ["opaque_over_existential"])
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.59.0", toVersion: "0.60.0")
+        #expect(plan.autoApplyableSteps.map(\.id) == ["remove-opaque_over_existential"])
+    }
+
+    /// Removed in 0.7.0, when their limits became `variable_name`'s (now `identifier_name`'s)
+    /// `min_length` and `max_length`. Renaming would move a bare threshold onto
+    /// `identifier_name`, overwriting any configuration it already has.
+    @Test("Removes a merged rule rather than renaming it onto identifier_name", arguments: [
+        "variable_name_max_length", "variable_name_min_length"
+    ])
+    func testRemovesMergedRule(ruleId: String) {
+        let config = makeConfig(rules: [
+            ruleId: RuleConfiguration(enabled: true),
+            "identifier_name": RuleConfiguration(enabled: true, severity: .error)
+        ])
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.6.0", toVersion: "0.65.0")
+        #expect(plan.autoApplyableSteps.map(\.id) == ["remove-\(ruleId)"])
+    }
+
+    /// `if_let_shadowing` shipped only in 0.50.0-rc.1; 0.50.0 calls it `shorthand_optional_binding`.
+    @Test("Renames if_let_shadowing once the target version has shorthand_optional_binding", arguments: [
+        ("0.49.0", false), ("0.50.0", true), ("0.65.0", true)
+    ])
+    func testIfLetShadowingRename(toVersion: String, renames: Bool) {
+        let config = makeConfig(optInRules: ["if_let_shadowing"])
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.40.0", toVersion: toVersion)
+        let rename = MigrationStep.renameRule(from: "if_let_shadowing", newName: "shorthand_optional_binding")
+        #expect(plan.steps.contains(rename) == renames)
     }
 
     @Test("A SwiftLint alias is renamed in every rule list")
@@ -91,16 +123,6 @@ struct MigrationAssistantTests {
         let plan = assistant.detectMigrations(config: config, fromVersion: "0.16.0", toVersion: "0.65.0")
         assistant.applyMigration(plan, to: &config)
         #expect(config.rules == ["identifier_name": RuleConfiguration(enabled: true, severity: .warning)])
-    }
-
-    @Test("The new-rules note leaves out a rule the target version has removed")
-    func testNewRulesNoteExcludesRemovedRules() throws {
-        // anyobject_protocol arrived in 0.27.0 and collection_alignment in 0.28.0; only the
-        // first is gone by 0.65.0.
-        let plan = assistant.detectMigrations(config: makeConfig(), fromVersion: "0.26.0", toVersion: "0.65.0")
-        let note = try #require(plan.manualSteps.first?.description)
-        #expect(note.contains("collection_alignment"))
-        #expect(note.contains("anyobject_protocol") == false)
     }
 
     @Test("The new-rules note leaves out a rule the config uses, under its own name or an old one")
@@ -172,8 +194,7 @@ struct MigrationAssistantTests {
     @Test("Detects new rules available")
     func testDetectsNewRules() {
         let config = makeConfig(rules: ["force_cast": RuleConfiguration(enabled: true)])
-        // file_name_no_space and optional_enum_case_matching are first registered in 0.38.1
-        let plan = assistant.detectMigrations(config: config, fromVersion: "0.38.0", toVersion: "0.38.1")
+        let plan = assistant.detectMigrations(config: config, fromVersion: "0.55.0", toVersion: "0.56.0")
 
         let manualSteps = plan.manualSteps
         let hasNewRulesStep = manualSteps.contains { step in
@@ -181,6 +202,17 @@ struct MigrationAssistantTests {
             return false
         }
         #expect(hasNewRulesStep)
+    }
+
+    /// `anyobject_protocol` was added in 0.27.0, deprecated with no replacement in 0.50.0, and
+    /// removed in 0.57.0. A deprecated rule is on its way out, so it isn't offered either.
+    @Test("New-rules note leaves out a rule the target version retired", arguments: [
+        ("0.49.0", true), ("0.50.0", false), ("0.56.0", false), ("0.57.0", false), ("0.65.0", false)
+    ])
+    func testNewRulesNoteSkipsRemovedRule(toVersion: String, listed: Bool) throws {
+        let plan = assistant.detectMigrations(config: makeConfig(), fromVersion: "0.20.0", toVersion: toVersion)
+        let note = try #require(plan.manualSteps.first)
+        #expect(note.description.contains("anyobject_protocol") == listed)
     }
 
     // MARK: - Migration Application

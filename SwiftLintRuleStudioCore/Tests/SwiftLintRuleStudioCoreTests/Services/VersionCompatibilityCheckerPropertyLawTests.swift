@@ -20,7 +20,7 @@
 //                     the version r was renamed in
 //      new rules      every rule added at or before v, neither removed nor
 //                     deprecated without a replacement by v, that the config
-//                     does not use under its own name or a renamed one
+//                     does not use under its own name or an alias
 //
 //  `hasIssues == (totalIssueCount > 0)` is not stated here: swift-infer proposes
 //  it (`emptiness-agreement`) and its generated stub states it.
@@ -32,7 +32,8 @@
 //
 //  The laws read the tables, so they cannot catch a wrong row: the tables once
 //  listed live rules (`generic_type_name`) as renamed, and every law here held.
-//  SwiftLintInProcessBackendTests checks the rows against the linked SwiftLint.
+//  DeprecationDataTests in SwiftLintInProcessBackend checks the rows against the
+//  linked SwiftLint.
 //
 
 import Foundation
@@ -212,7 +213,7 @@ struct VersionCompatibilityCheckerPropertyLawTests {
                 .flatMap(\.value)
                 .filter { !Self.retired($0, by: version) }
             let configured = Self.configuredIds(Self.config(for: spec))
-            let used = configured.union(configured.compactMap { SwiftLintDeprecations.renamedRules[$0] })
+            let used = configured.union(configured.compactMap { SwiftLintDeprecations.ruleAliases[$0] })
             #expect(Self.report(for: spec).availableNewRules == Set(added).subtracting(used).sorted())
         }
     }
@@ -242,15 +243,15 @@ struct VersionCompatibilityCheckerPropertyLawTests {
     }
 
     /// Deprecated in 0.51.0, removed in 0.58.0: the three sides of that window.
-    @Test("inert_defer is deprecated inside its window and removed after it", arguments: [
+    @Test("unused_capture_list is deprecated inside its window and removed after it", arguments: [
         ("0.50.0", false, false), ("0.51.0", true, false), ("0.57.0", true, false), ("0.58.0", false, true)
     ])
     func deprecationWindow(version: String, deprecated: Bool, removed: Bool) {
         var config = YAMLConfigurationEngine.YAMLConfig()
-        config.optInRules = ["inert_defer"]
+        config.optInRules = ["unused_capture_list"]
         let report = Self.checker.checkCompatibility(config: config, swiftLintVersion: version)
-        #expect(report.deprecatedRules.contains { $0.ruleId == "inert_defer" } == deprecated)
-        #expect(report.removedRules.contains { $0.ruleId == "inert_defer" } == removed)
+        #expect(report.deprecatedRules.contains { $0.ruleId == "unused_capture_list" } == deprecated)
+        #expect(report.removedRules.contains { $0.ruleId == "unused_capture_list" } == removed)
     }
 
     /// A rename is an alias SwiftLint keeps resolving: deprecated from 0.17.0 on, never removed.

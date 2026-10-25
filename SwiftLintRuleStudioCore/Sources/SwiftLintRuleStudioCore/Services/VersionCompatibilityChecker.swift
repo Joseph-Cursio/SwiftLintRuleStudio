@@ -116,9 +116,9 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
         config: YAMLConfigurationEngine.YAMLConfig,
         swiftLintVersion: String
     ) -> CompatibilityReport {
-        // `namedRuleIds`, not `ruleIds`: a rule key with a severity shorthand
+        // `ruleIdsAsWritten`, not `ruleIds`: a rule key with a severity shorthand
         // (`redundant_self_in_closure: error`) is held only as a passthrough node.
-        let allConfigRuleIds = config.namedRuleIds
+        let allConfigRuleIds = config.ruleIdsAsWritten
 
         let deprecated = findDeprecatedRules(in: allConfigRuleIds, version: swiftLintVersion)
         let removed = findRemovedRules(in: allConfigRuleIds, version: swiftLintVersion)
@@ -209,7 +209,7 @@ public final class VersionCompatibilityChecker: VersionCompatibilityCheckerProto
             where !SwiftLintDeprecations.isVersion(version, lessThan: ver) {
             allAvailable.formUnion(rules.filter { !SwiftLintDeprecations.isRetired($0, by: version) })
         }
-        // Return rules the config does not already use, under their own name or an old one:
+        // Return rules the config does not already use, under their own name or an alias:
         // a config with `redundant_optional_initialization` already has `implicit_optional_initialization`.
         return allAvailable.subtracting(SwiftLintDeprecations.rulesInUse(configRuleIds)).sorted()
     }

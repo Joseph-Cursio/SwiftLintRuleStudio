@@ -31,7 +31,7 @@ struct SwiftLintRuleExplorerApp: App {
         let workspaceManager = WorkspaceManager(
             userDefaults: .standard, bookmarkStore: UserDefaultsBookmarkStore())
         let container = DependencyContainer(
-            ruleRegistry: registry, swiftLintCLI: backend, cacheManager: cacheManager,
+            swiftLintCLI: backend, ruleRegistry: registry, cacheManager: cacheManager,
             workspaceManager: workspaceManager)
 
         _ruleRegistry = State(initialValue: registry)

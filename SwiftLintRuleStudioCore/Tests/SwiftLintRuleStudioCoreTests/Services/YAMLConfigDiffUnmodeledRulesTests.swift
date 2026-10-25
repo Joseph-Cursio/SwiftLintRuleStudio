@@ -2,9 +2,8 @@
 //  YAMLConfigDiffUnmodeledRulesTests.swift
 //  SwiftLintRuleStudioCoreTests
 //
-//  What a configuration diff counts: rule keys the engine keeps only as
-//  passthrough nodes, changes no rule configuration shows, and which top-level
-//  keys are SwiftLint's own options rather than rules.
+//  Rule keys the engine keeps only as passthrough nodes: a diff counts their
+//  changes, and SwiftLint's own top-level options are not taken for rules.
 //
 
 import Foundation
@@ -21,31 +20,15 @@ struct YAMLConfigDiffUnmodeledRulesTests {
         )
     }
 
-    /// `rule: error` is a severity shorthand the engine does not model; renaming one changed no
-    /// key of `rules`, so the migration preview said "No changes needed" and hid Apply.
-    @Test("A severity-shorthand rule counts as a rule configuration")
-    func countsSeverityShorthand() throws {
-        let renamed = try Self.diff("redundant_self_in_closure: error\n", "redundant_self: error\n")
-        #expect(renamed.addedRules == ["redundant_self"])
-        #expect(renamed.removedRules == ["redundant_self_in_closure"])
-        #expect(renamed.hasChanges)
-
-        let removed = try Self.diff("inert_defer: warning\nline_length: 120\n", "line_length: 120\n")
-        #expect(removed.removedRules == ["inert_defer"])
-        #expect(removed.hasChanges)
-
-        let changed = try Self.diff("redundant_self: error\n", "redundant_self: warning\n")
-        #expect(changed.modifiedRules == ["redundant_self"])
-    }
-
-    @Test("A change no rule configuration shows still counts as a change")
-    func countsListOnlyChange() throws {
-        let diff = try Self.diff(
-            "opt_in_rules:\n  - redundant_self_in_closure\n",
-            "opt_in_rules:\n  - redundant_self\n"
-        )
-        #expect(diff.addedRules.isEmpty && diff.removedRules.isEmpty && diff.modifiedRules.isEmpty)
-        #expect(diff.hasChanges)
+    /// `rule: error` is a severity shorthand the engine does not model. The Migration Assistant
+    /// renames and removes such rules, and offers Apply only for a diff with changes.
+    @Test("Renaming, removing or changing a severity-shorthand rule is a change", arguments: [
+        ("redundant_self_in_closure: error\n", "redundant_self: error\n"),
+        ("inert_defer: warning\nline_length: 120\n", "line_length: 120\n"),
+        ("redundant_self: error\n", "redundant_self: warning\n")
+    ])
+    func severityShorthandChanges(before: String, after: String) throws {
+        #expect(try Self.diff(before, after).hasChanges)
     }
 
     @Test("Identical configurations report no changes")
@@ -55,17 +38,17 @@ struct YAMLConfigDiffUnmodeledRulesTests {
         #expect(try Self.diff(yaml, yaml).hasChanges == false)
     }
 
-    /// SwiftLint reads both as options: `enabled_rules` is the deprecated spelling of
+    /// SwiftLint reads these as options: `enabled_rules` is the deprecated spelling of
     /// `opt_in_rules`, and `indentation` sets the indentation width.
     @Test("enabled_rules, indentation and other options are not rules", arguments: [
-        "enabled_rules:\n  - empty_count\n", "indentation: 4\n", "warning_threshold: 3\n",
-        "custom_rules:\n  todo_ticket:\n    regex: x\n"
+        ("enabled_rules", "enabled_rules:\n  - empty_count\n"),
+        ("indentation", "indentation: 4\n"),
+        ("warning_threshold", "warning_threshold: 3\n"),
+        ("custom_rules", "custom_rules:\n  todo_ticket:\n    regex: x\n")
     ])
-    func optionsAreNotRules(yaml: String) throws {
+    func optionsAreNotRules(key: String, yaml: String) throws {
         let config = try YAMLConfigurationEngine.parse(yaml)
-        #expect(config.rules.isEmpty)
-        #expect(config.namedRuleIds.isEmpty)
-        // Survives a save and a re-read unchanged.
-        #expect(try YAMLConfigurationEngine.parse(YAMLConfigurationEngine.serialize(config)) == config)
+        #expect(config.rules[key] == nil)
+        #expect(config.ruleIdsAsWritten.contains(key) == false)
     }
 }

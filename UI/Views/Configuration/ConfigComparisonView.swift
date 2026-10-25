@@ -17,6 +17,8 @@ import SwiftUI
 private struct ConfigComparisonSelectors: View {
     let viewModel: ConfigComparisonViewModel
 
+    @Environment(\.ruleRegistry) private var ruleRegistry
+
     var body: some View {
         HStack(spacing: 16) {
             // Left workspace
@@ -83,7 +85,7 @@ private struct ConfigComparisonSelectors: View {
             .frame(maxWidth: .infinity)
 
             Button("Compare") {
-                viewModel.compare()
+                viewModel.compare(knownRules: ruleRegistry.rules)
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.leftWorkspacePath == nil || viewModel.rightWorkspacePath == nil)
@@ -146,7 +148,7 @@ private struct ComparisonEmptyState: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
 
-            Text("Select two SwiftLint configuration files to compare their rules and settings.")
+            Text("Choose two projects, or their .swiftlint.yml files, to compare which rules SwiftLint runs with each.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -203,10 +205,15 @@ struct ConfigComparisonView: View {
 
                 Divider()
 
+                Text("Rules are compared by whether SwiftLint runs them with each config, counting "
+                    + "opt_in_rules, disabled_rules, analyzer_rules and only_rules.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 // Only in Left
                 if !result.onlyInFirst.isEmpty {
                     ruleListSection(
-                        title: "Only in Left",
+                        title: "Runs only with Left",
                         icon: "minus.circle.fill",
                         color: .red,
                         rules: result.onlyInFirst
@@ -216,7 +223,7 @@ struct ConfigComparisonView: View {
                 // Only in Right
                 if !result.onlyInSecond.isEmpty {
                     ruleListSection(
-                        title: "Only in Right",
+                        title: "Runs only with Right",
                         icon: "plus.circle.fill",
                         color: .green,
                         rules: result.onlyInSecond
@@ -226,6 +233,18 @@ struct ConfigComparisonView: View {
                 // Different settings
                 if !result.inBothDifferent.isEmpty {
                     differenceSection(result.inBothDifferent)
+                }
+
+                if !result.pathDifferences.isEmpty {
+                    lineSection(title: "Paths", icon: "folder.fill", lines: result.pathDifferences)
+                }
+
+                if !result.otherDifferences.isEmpty {
+                    lineSection(
+                        title: "Other Settings (Left → Right)",
+                        icon: "gearshape.fill",
+                        lines: result.otherDifferences
+                    )
                 }
 
                 Divider()
@@ -241,17 +260,17 @@ struct ConfigComparisonView: View {
         HStack(spacing: 24) {
             summaryItem(
                 count: result.onlyInFirst.count,
-                label: "Only in Left",
+                label: "Only with Left",
                 color: .red
             )
             summaryItem(
                 count: result.onlyInSecond.count,
-                label: "Only in Right",
+                label: "Only with Right",
                 color: .green
             )
             summaryItem(
                 count: result.inBothDifferent.count,
-                label: "Different",
+                label: "Set Differently",
                 color: .orange
             )
             summaryItem(
@@ -319,8 +338,21 @@ struct ConfigComparisonView: View {
                 }
             }
         } label: {
-            Label("Differences (\(diffs.count))", systemImage: "exclamationmark.triangle.fill")
+            Label("Set Differently (\(diffs.count))", systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
+        }
+    }
+
+    private func lineSection(title: String, icon: String, lines: [String]) -> some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(lines, id: \.self) { line in
+                    Text(line)
+                        .padding(.vertical, 2)
+                }
+            }
+        } label: {
+            Label("\(title) (\(lines.count))", systemImage: icon)
         }
     }
 }

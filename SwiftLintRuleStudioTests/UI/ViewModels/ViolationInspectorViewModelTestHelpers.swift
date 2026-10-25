@@ -11,6 +11,7 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
     var shouldFail = false
     var isAnalyzing = false
     var isAnalyzingPublisher: AnyPublisher<Bool, Never> { Just(false).eraseToAnyPublisher() }
+    var progressPublisher: AnyPublisher<AnalysisProgress?, Never> { Just(nil).eraseToAnyPublisher() }
     /// Fires during `analyze`, letting a test simulate work that happens while an
     /// analysis is in flight (e.g. the user switching to another workspace).
     var onAnalyze: (@MainActor () -> Void)?

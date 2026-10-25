@@ -43,4 +43,13 @@ struct AppSectionTests {
     func configMapIsOffered() {
         #expect(AppSection.allCases.contains(.configMap))
     }
+
+    @Test("Branch Diff needs git; every other section is in both editions")
+    func availability() {
+        #expect(!AppSection.branchDiff.isAvailable(with: []))
+        #expect(AppSection.branchDiff.isAvailable(with: [.gitBranchDiff]))
+        for section in AppSection.allCases where section != .branchDiff {
+            #expect(section.isAvailable(with: []), "\(section) should be in the sandboxed edition")
+        }
+    }
 }

@@ -51,16 +51,50 @@ public extension WorkspaceAnalyzer {
         return nil
     }
 
-    /// Runs SwiftLint and parses the JSON output into violation models
+    /// Runs SwiftLint and parses the JSON output into violation models, showing in
+    /// `currentProgress` how many files the lint has finished, when the backend reports it.
     func runLintAndParse(
         configPath: URL?,
         workspacePath: URL,
         detectedAt: Date
     ) async throws -> [Violation] {
-        let lintData = try await swiftLintCLI.executeLintCommand(
-            configPath: configPath,
-            workspacePath: workspacePath
+        // The lint reports from its own thread, once per file. The stream keeps the reports in
+        // order and, holding only the newest, never queues more than the main actor can draw.
+        let (reports, continuation) = AsyncStream.makeStream(
+            of: LintProgress.self,
+            bufferingPolicy: .bufferingNewest(1)
         )
+        let display = Task {
+            for await report in reports where !Task.isCancelled {
+                updateProgress(
+                    currentFile: nil,
+                    filesProcessed: report.filesLinted,
+                    totalFiles: report.totalFiles,
+                    violationsFound: 0
+                )
+            }
+        }
+        // A superseded run's lint can't be stopped and keeps reporting; cancelling the display
+        // keeps those reports off the newer run's progress.
+        let lintData: Data
+        do {
+            lintData = try await withTaskCancellationHandler {
+                defer { continuation.finish() }
+                return try await swiftLintCLI.executeLintCommand(
+                    configPath: configPath,
+                    workspacePath: workspacePath
+                ) { report in
+                    continuation.yield(report)
+                }
+            } onCancel: {
+                display.cancel()
+            }
+        } catch {
+            display.cancel()
+            throw error
+        }
+        // Drain the last report before the caller marks the analysis complete.
+        await display.value
         return try parseViolations(
             from: lintData, workspacePath: workspacePath, detectedAt: detectedAt
         )

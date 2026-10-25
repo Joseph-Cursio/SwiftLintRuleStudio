@@ -72,7 +72,7 @@ struct VersionCompatibilityViewModelRenamingTests {
         #expect(config.onlyRules == ["redundant_self", "force_cast"])
         #expect(config.analyzerRules == ["redundant_self"])
         #expect(config.rules["redundant_self"]?.severity == .error)
-        #expect(config.namedRuleIds.contains("redundant_self_in_closure") == false)
+        #expect(config.ruleIdsAsWritten.contains("redundant_self_in_closure") == false)
         #expect(viewModel.report?.renamedRules.isEmpty == true)
     }
 
@@ -109,7 +109,7 @@ struct VersionCompatibilityViewModelRenamingTests {
         #expect(viewModel.error == nil)
         #expect(config.rules["redundant_self"]?.severity == .warning)
         #expect(config.rules["redundant_self"]?.parameters?["only_in_closures"]?.value as? Bool == false)
-        #expect(config.namedRuleIds == ["redundant_self"])
+        #expect(config.ruleIdsAsWritten == ["redundant_self"])
     }
 
     /// `redundant_self_in_closure: error` is a severity shorthand the engine holds as a passthrough

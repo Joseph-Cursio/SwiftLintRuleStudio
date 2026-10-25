@@ -105,21 +105,6 @@ struct PRCommentGeneratorTests {
         #expect(markdown.contains("### Rules Modified") == false)
     }
 
-    @Test("A change no rule configuration shows is not called no change")
-    func testListOnlyChange() {
-        let diff = YAMLConfigurationEngine.ConfigDiff(
-            addedRules: [],
-            removedRules: [],
-            modifiedRules: [],
-            before: "opt_in_rules:\n  - redundant_self_in_closure\n",
-            after: "opt_in_rules:\n  - redundant_self\n"
-        )
-        let markdown = PRCommentGenerator().generateMarkdown(from: diff)
-
-        #expect(markdown.contains("No changes to SwiftLint configuration") == false)
-        #expect(markdown.contains("Rule lists or other settings change"))
-    }
-
     // MARK: - Options Tests
 
     @Test("Respects includeHeader option")

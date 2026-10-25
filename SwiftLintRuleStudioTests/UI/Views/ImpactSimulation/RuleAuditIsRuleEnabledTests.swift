@@ -100,16 +100,21 @@ struct RuleAuditIsRuleEnabledTests {
         #expect(RuleAuditView.isRuleEnabled(rule, config: config) == false)
     }
 
-    @Test("only_rules acts as an allowlist regardless of analyzer/opt-in")
+    @Test("only_rules is an allowlist that SwiftLint unions with analyzer_rules")
     func onlyRulesActsAsAllowlist() {
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.onlyRules = ["force_cast"]
         config.analyzerRules = ["explicit_self"]
 
-        let analyzerRule = makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        let listedAnalyzerRule = makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true)
+        let unlistedAnalyzerRule = makeRule(id: "unused_import", isOptIn: true, isAnalyzer: true)
         let allowedRule = makeRule(id: "force_cast", isOptIn: false, isAnalyzer: false)
+        let unlistedRule = makeRule(id: "line_length", isOptIn: false, isAnalyzer: false)
 
-        #expect(RuleAuditView.isRuleEnabled(analyzerRule, config: config) == false)
+        // The audit used to offer explicit_self as disabled, and enabling it listed it twice.
+        #expect(RuleAuditView.isRuleEnabled(listedAnalyzerRule, config: config) == true)
+        #expect(RuleAuditView.isRuleEnabled(unlistedAnalyzerRule, config: config) == false)
         #expect(RuleAuditView.isRuleEnabled(allowedRule, config: config) == true)
+        #expect(RuleAuditView.isRuleEnabled(unlistedRule, config: config) == false)
     }
 }

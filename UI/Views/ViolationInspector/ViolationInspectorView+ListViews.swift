@@ -2,6 +2,48 @@ import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
 
+/// The spinner, and the file count when the backend reports one, while an analysis runs.
+///
+/// Reads the progress from the view model itself rather than being handed it, so a progress
+/// update — one per linted file — redraws this view alone, not the filters and summary cards
+/// above it.
+private struct AnalyzingWorkspaceView: View {
+    let viewModel: ViolationInspectorViewModel
+
+    var body: some View {
+        VStack(spacing: 20) {
+            ProgressView()
+                .scaleEffect(1.5)
+                .progressViewStyle(.circular)
+
+            Text("Analyzing Workspace")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            if let progress = viewModel.analysisProgress,
+               let totalFiles = progress.totalFiles, totalFiles > 0 {
+                Text("Linted \(progress.filesProcessed) of \(totalFiles) files")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+
+                ProgressView(value: progress.progress)
+                    .frame(width: 400)
+            } else {
+                Text("Running SwiftLint to detect violations...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("This may take a few minutes for large projects")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .italic()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 extension ViolationInspectorView {
     var violationListView: some View {
         VStack(spacing: 0) {
@@ -244,25 +286,7 @@ extension ViolationInspectorView {
     }
 
     var analyzingView: some View {
-        VStack(spacing: 20) {
-            ProgressView()
-                .scaleEffect(1.5)
-                .progressViewStyle(.circular)
-
-            Text("Analyzing Workspace")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Running SwiftLint to detect violations...")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Text("This may take a few minutes for large projects")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .italic()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        AnalyzingWorkspaceView(viewModel: viewModel)
     }
 
     var emptyStateView: some View {

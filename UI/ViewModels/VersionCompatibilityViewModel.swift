@@ -76,6 +76,11 @@ class VersionCompatibilityViewModel {
             // The rule configurations and all four rule lists, as the migration assistant does.
             config.renameRule(rule.oldRuleId, to: rule.newRuleId)
             try YAMLConfigurationEngine.save(config, to: configPath)
+            NotificationCenter.default.post(
+                name: .ruleConfigurationDidChange,
+                object: nil,
+                userInfo: ["renamedRuleId": rule.newRuleId]
+            )
 
             // Re-run check
             checkCompatibility()

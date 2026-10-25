@@ -92,13 +92,13 @@ struct YAMLConfigRuleRenameTests {
         }
         var config = try YAMLConfigurationEngine.parse(written("redundant_self_in_closure"))
         #expect(config.rules["redundant_self_in_closure"] == nil)
-        #expect(config.namedRuleIds.contains("redundant_self_in_closure"))
+        #expect(config.ruleIdsAsWritten.contains("redundant_self_in_closure"))
 
         config.renameRule("redundant_self_in_closure", to: "redundant_self")
 
         let expected = try YAMLConfigurationEngine.serialize(YAMLConfigurationEngine.parse(written("redundant_self")))
         #expect(try YAMLConfigurationEngine.serialize(config) == expected)
-        #expect(config.namedRuleIds.contains("redundant_self_in_closure") == false)
+        #expect(config.ruleIdsAsWritten.contains("redundant_self_in_closure") == false)
     }
 
     @Test("A configuration for the new id wins over the old one, however each is written")
@@ -175,7 +175,7 @@ struct YAMLConfigRuleRenameTests {
         let merged = try #require(config.rules["redundant_self"])
         #expect(merged.severity == .warning)
         #expect(merged.parameters?["only_in_closures"]?.value as? Bool == false)
-        #expect(config.namedRuleIds == ["redundant_self"])
+        #expect(config.ruleIdsAsWritten == ["redundant_self"])
         let yaml = try YAMLConfigurationEngine.serialize(config)
         #expect(yaml.components(separatedBy: "redundant_self:").count == 2)
     }

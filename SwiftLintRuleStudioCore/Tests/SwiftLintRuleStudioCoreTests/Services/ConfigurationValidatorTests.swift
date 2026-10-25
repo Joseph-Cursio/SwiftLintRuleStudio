@@ -281,6 +281,8 @@ struct ConfigurationValidatorTests {
         #expect(ValidationResult.ConfigField.excludedPath(2).description == "Excluded path #3")
         #expect(ValidationResult.ConfigField.disabledRules.description == "disabled_rules")
         #expect(ValidationResult.ConfigField.optInRules.description == "opt_in_rules")
+        #expect(ValidationResult.ConfigField.onlyRules.description == "only_rules")
+        #expect(ValidationResult.ConfigField.analyzerRules.description == "analyzer_rules")
         #expect(ValidationResult.ConfigField.general.description == "Configuration")
     }
 

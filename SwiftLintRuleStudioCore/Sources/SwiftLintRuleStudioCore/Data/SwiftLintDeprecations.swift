@@ -47,24 +47,14 @@ public enum SwiftLintDeprecations {
     // MARK: - Renamed Rules (old identifier -> new identifier)
 
     /// Map of old rule identifiers to their renamed replacements.
-    ///
-    /// Only renames SwiftLint itself resolves belong here: the old identifier is one of the new
-    /// rule's `deprecatedAliases`, so the new rule reads the old one's configuration as is. The
-    /// compatibility report's "Fix" and the migration assistant rewrite the old id to the new one,
-    /// so an entry for a rule that still exists rewrites a valid config to run a different rule.
-    /// A rule merged into another rule's options, or dropped for a compiler warning, is not a
-    /// rename: `deprecatedRules` and `removedRules` hold it. `deprecatedRules` dates each rename.
-    /// `SwiftLintInProcessBackendTests` pins this table against the linked SwiftLint.
-    ///
-    /// Not renames, though once listed here: `generic_type_name` and
-    /// `multiple_closures_with_trailing_closure` are live rules; `type_name_max_length` and
-    /// `type_name_min_length` never existed; `variable_name_max_length` and
-    /// `variable_name_min_length` were merged into `variable_name`'s options; `inert_defer` and
-    /// `unused_capture_list` gave way to compiler warnings (`unused_closure_use` is not a rule).
+    /// Migration and Version Check offer each entry as a one-click rename, so an old identifier
+    /// must no longer be a SwiftLint rule (a deprecated alias is fine) and a new one must be.
+    /// A rule retired in favor of a compiler warning has no rename; it belongs in `removedRules`.
+    /// `DeprecationDataTests` in SwiftLintInProcessBackend checks this against the linked SwiftLint.
     public static let renamedRules: [String: String] = [
         // 0.17.0
         "variable_name": "identifier_name",
-        // 0.50.0 (`if_let_shadowing` in 0.50.0-rc.1, renamed in rc.2)
+        // 0.50.0
         "if_let_shadowing": "shorthand_optional_binding",
         // 0.60.0
         "redundant_optional_initialization": "implicit_optional_initialization",
@@ -74,19 +64,36 @@ public enum SwiftLintDeprecations {
         "redundant_self_in_closure": "redundant_self"
     ]
 
+    // MARK: - Aliases (old identifier -> current identifier)
+
+    /// Old names SwiftLint still reads as a current rule — the rules' `deprecatedAliases` in
+    /// SwiftLint 0.65. A rule listed or configured under one of these is the same rule as under
+    /// its current name. Every alias is also a rename in ``renamedRules``, which may hold renames
+    /// SwiftLint no longer reads too. A rule merely superseded by another is in neither:
+    /// `generic_type_name` and `multiple_closures_with_trailing_closure` still run on their own.
+    /// `DeprecationDataTests` in SwiftLintInProcessBackend checks this against the linked SwiftLint.
+    public static let ruleAliases: [String: String] = [
+        "variable_name": "identifier_name",
+        "redundant_optional_initialization": "implicit_optional_initialization",
+        "operator_whitespace": "function_name_whitespace",
+        "redundant_self_in_closure": "redundant_self",
+        "if_let_shadowing": "shorthand_optional_binding"
+    ]
+
     // MARK: - Deprecated Rules (SwiftLint still accepts them, with a warning)
 
     /// Map of deprecated rule identifiers to their deprecation details. An entry with a
     /// replacement is a rename (see `renamedRules`), dated by the version it shipped in. One
-    /// without was deprecated in favor of a Swift compiler warning and later removed.
-    /// Verified against SwiftLint's CHANGELOG and rule sources at 0.65.0 (2026-10-24).
+    /// without was deprecated in favor of a Swift compiler warning and later removed. Each
+    /// version is the first release tag whose rule source marks the deprecation.
     public static let deprecatedRules: [String: DeprecationEntry] = [
         "variable_name": DeprecationEntry(
             deprecatedInVersion: "0.17.0",
             replacement: "identifier_name",
-            message: "Renamed to 'identifier_name', which validates all identifiers. Kept as a deprecated alias."
+            message: "Renamed to 'identifier_name'. Kept as a deprecated alias."
         ),
         "if_let_shadowing": DeprecationEntry(
+            // Shipped only in 0.50.0-rc.1, then renamed before the 0.50.0 release.
             deprecatedInVersion: "0.50.0",
             replacement: "shorthand_optional_binding",
             message: "Renamed to 'shorthand_optional_binding'. Kept as a deprecated alias."
@@ -94,17 +101,17 @@ public enum SwiftLintDeprecations {
         "anyobject_protocol": DeprecationEntry(
             deprecatedInVersion: "0.50.0",
             replacement: nil,
-            message: "Deprecated: the Swift compiler now handles this check."
+            message: "Deprecated because the Swift compiler now handles this."
         ),
         "unused_capture_list": DeprecationEntry(
             deprecatedInVersion: "0.51.0",
             replacement: nil,
-            message: "Deprecated in favor of the Swift compiler's warning for unused captures."
+            message: "Deprecated in favor of the Swift compiler's unused capture warning."
         ),
         "inert_defer": DeprecationEntry(
             deprecatedInVersion: "0.51.0",
             replacement: nil,
-            message: "Deprecated in favor of the Swift compiler's warning for a defer at the end of a scope."
+            message: "Deprecated in favor of the Swift compiler's warning for a defer at the end of its scope."
         ),
         "redundant_optional_initialization": DeprecationEntry(
             deprecatedInVersion: "0.60.0",
@@ -130,15 +137,16 @@ public enum SwiftLintDeprecations {
     /// tag that no longer registers the rule. Not listed: `missing_docs`,
     /// `return_value_from_void_function` and `void_function_in_ternary`, removed and later re-added.
     public static let removedRules: [String: RemovalEntry] = [
+        // Merged into `variable_name` (now `identifier_name`) as its length limits.
         "variable_name_max_length": RemovalEntry(
             removedInVersion: "0.7.0",
             replacement: "identifier_name",
-            message: "Merged into 'variable_name' (now 'identifier_name'). Configure its max_length instead."
+            message: "Configure max_length on 'identifier_name' (named 'variable_name' before 0.17.0) instead."
         ),
         "variable_name_min_length": RemovalEntry(
             removedInVersion: "0.7.0",
             replacement: "identifier_name",
-            message: "Merged into 'variable_name' (now 'identifier_name'). Configure its min_length instead."
+            message: "Configure min_length on 'identifier_name' (named 'variable_name' before 0.17.0) instead."
         ),
         "conditional_binding_cascade": RemovalEntry(
             removedInVersion: "0.11.2",
@@ -183,35 +191,37 @@ public enum SwiftLintDeprecations {
         "anyobject_protocol": RemovalEntry(
             removedInVersion: "0.57.0",
             replacement: nil,
-            message: "Removed after being deprecated in 0.50.0. The Swift compiler handles this check."
+            message: "This rule was removed with no functional replacement."
         ),
         "inert_defer": RemovalEntry(
             removedInVersion: "0.58.0",
             replacement: nil,
-            message: "Removed after being deprecated in 0.51.0. The Swift compiler warns about it instead."
+            message: "Removed after being deprecated. The Swift compiler warns about this instead."
         ),
         "unused_capture_list": RemovalEntry(
             removedInVersion: "0.58.0",
             replacement: nil,
-            message: "Removed after being deprecated in 0.51.0. The Swift compiler warns about unused captures."
+            message: "Removed after being deprecated. The Swift compiler warns about this instead."
         ),
         "opaque_over_existential": RemovalEntry(
             removedInVersion: "0.59.1",
             replacement: nil,
-            message: "Removed one release after it was added: it had too many false positives."
+            message: "Removed because it caused too many false positives."
         )
     ]
 
     // MARK: - Version Rule Additions (version -> new rules added)
 
-    /// Map of SwiftLint versions to rules introduced in that version.
-    ///
-    /// Each rule is dated by the first release tag that registers it, read from SwiftLint's
-    /// sources at each tag, not by the CHANGELOG, which files some additions under the wrong
-    /// release (`attribute_name_spacing` under 0.56.0, `legacy_swiftui_aspect_ratio` under
-    /// 0.63.3). Before 0.56.0 the table holds a selection of rules; from 0.56.0 on, every rule
-    /// first registered in that release, a rule's new name included (`redundant_self`).
-    /// Verified 2026-10-24 against tags 0.1.0–0.65.1.
+    /// Map of SwiftLint versions to rules introduced in that version. Before 0.56.0 it holds
+    /// notable rules, not every rule; from 0.56.0 on, every rule first registered in that
+    /// release, a rule's new name included (`redundant_self`). Each version is the first
+    /// release tag that registers the rule, read from SwiftLint's sources at each tag
+    /// (2026-10-24, tags 0.1.0–0.65.1). The CHANGELOG misfiles three: it lists
+    /// `file_name_no_space` under 0.34.0, `attribute_name_spacing` under 0.56.0 and
+    /// `legacy_swiftui_aspect_ratio` under 0.63.3, but they first shipped in 0.38.1, 0.57.0
+    /// and 0.65.1. Versions 0.64.0, 0.64.1, and 0.65.0 added no new rules. A rule added and
+    /// later removed, like `opaque_over_existential` (0.59.0 only), stays listed here; callers
+    /// drop it with `isRetired(_:by:)`.
     public static let versionRuleAdditions: [String: [String]] = [
         "0.13.0": ["overridden_super_call"],
         "0.14.0": ["prohibited_super_call"],
@@ -236,12 +246,11 @@ public enum SwiftLintDeprecations {
         "0.51.0": ["blanket_disable_command", "direct_return", "invalid_swiftlint_command", "period_spacing"],
         "0.52.0": ["sorted_enum_cases", "superfluous_else"],
         "0.53.0": ["non_overridable_class_declaration"],
-        "0.55.0": ["non_optional_string_data_conversion", "one_declaration_per_file"],
-        // Not listed: `opaque_over_existential` (registered in 0.59.0, removed again in 0.59.1).
-        // Versions 0.64.0, 0.64.1, and 0.65.0 added no new rules.
+        "0.55.0": ["one_declaration_per_file", "non_optional_string_data_conversion"],
         "0.56.0": ["contrasted_opening_brace", "no_empty_block", "prefer_key_path", "unused_parameter"],
         "0.57.0": ["attribute_name_spacing", "optional_data_string_conversion", "prefer_type_checking"],
         "0.58.0": ["async_without_await", "redundant_sendable"],
+        "0.59.0": ["opaque_over_existential"],
         "0.60.0": ["implicit_optional_initialization", "prefer_condition_list"],
         "0.61.0": ["function_name_whitespace"],
         "0.62.0": ["prefer_asset_symbols"],
@@ -320,33 +329,35 @@ public enum SwiftLintDeprecations {
         return lhs.count < rhs.count
     }
 
+    /// Whether `rule` was removed at or before `version`.
+    public static func isRemoved(_ rule: String, by version: String) -> Bool {
+        guard let removedIn = removedRules[rule]?.removedInVersion else { return false }
+        return !isVersion(version, lessThan: removedIn)
+    }
+
     /// Whether `ruleId` is on its way out of SwiftLint `version` or already gone: removed in it or
     /// before it, or deprecated by then with no replacement (`anyobject_protocol` from 0.50.0).
     /// Such a rule is not one to suggest enabling.
     public static func isRetired(_ ruleId: String, by version: String) -> Bool {
-        if let removedIn = removedRules[ruleId]?.removedInVersion, !isVersion(version, lessThan: removedIn) {
-            return true
-        }
+        if isRemoved(ruleId, by: version) { return true }
         if let deprecation = deprecatedRules[ruleId], deprecation.replacement == nil {
             return !isVersion(version, lessThan: deprecation.deprecatedInVersion)
         }
         return false
     }
 
-    /// `ruleIds` together with the current name of each renamed one: a configuration naming
+    /// `ruleIds` together with the current name of each alias among them: a configuration naming
     /// `redundant_optional_initialization` already uses `implicit_optional_initialization`.
     public static func rulesInUse(_ ruleIds: Set<String>) -> Set<String> {
-        ruleIds.union(ruleIds.compactMap { renamedRules[$0] })
+        ruleIds.union(ruleIds.compactMap { ruleAliases[$0] })
     }
 
     /// Get all rules added between two versions (exclusive of fromVersion, inclusive of toVersion)
-    /// that toVersion still offers. A rule retired by toVersion is not new to it: `anyobject_protocol`,
-    /// added in 0.27.0 and deprecated in 0.50.0, is not a rule to enable in 0.50.0 or later.
     public static func rulesAdded(from fromVersion: String, to toVersion: String) -> [String] {
         var result: [String] = []
         for (version, rules) in versionRuleAdditions {
             if isVersion(fromVersion, lessThan: version) && !isVersion(toVersion, lessThan: version) {
-                result.append(contentsOf: rules.filter { !isRetired($0, by: toVersion) })
+                result.append(contentsOf: rules)
             }
         }
         return result.sorted()

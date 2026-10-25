@@ -22,16 +22,14 @@ struct RuleChangeSummaryTests {
     private static func makeDiff(
         added: [String] = [],
         removed: [String] = [],
-        modified: [String] = [],
-        before: String = "",
-        after: String = ""
+        modified: [String] = []
     ) -> YAMLConfigurationEngine.ConfigDiff {
         YAMLConfigurationEngine.ConfigDiff(
             addedRules: added,
             removedRules: removed,
             modifiedRules: modified,
-            before: before,
-            after: after
+            before: "",
+            after: ""
         )
     }
 
@@ -106,16 +104,6 @@ struct RuleChangeSummaryTests {
 
         let texts = try RuleChangeSummary(diff: diff).inspect().findAll(ViewType.Text.self)
         #expect(texts.isEmpty)
-    }
-
-    /// A rename inside `opt_in_rules` changes no rule configuration; the migration preview
-    /// used to treat it as no change and hide Apply.
-    @Test("A change no rule configuration shows is still summarised")
-    func showsOtherChanges() {
-        let diff = Self.makeDiff(before: "opt_in_rules:\n  - a_rule\n", after: "opt_in_rules:\n  - b_rule\n")
-
-        #expect(diff.hasChanges)
-        #expect(Self.summaryContains(diff, text: "Rule lists or other settings change"))
     }
 
     // MARK: - Counts

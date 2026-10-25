@@ -108,11 +108,17 @@ struct ConfigImportServicePropertyLawTests {
 
     // MARK: - Laws
 
-    @Test("an import is warned empty exactly when it names no rule, and at most once")
+    @Test(
+        "an import is warned empty exactly when it names no rule, and of a conflict exactly when SwiftLint rejects it"
+    )
     func emptyWarningFollowsTheRules() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let preview = try await Self.preview(of: Self.config(for: spec))
-            let expected = Self.placedRules(spec).isEmpty ? [Self.emptyWarning] : []
+            let config = Self.config(for: spec)
+            let preview = try await Self.preview(of: config)
+            // A placed rule can also land the import in only_rules beside opt_in_rules or
+            // disabled_rules, which SwiftLint rejects; that gets its own warning (issue #83).
+            let expected = (Self.placedRules(spec).isEmpty ? [Self.emptyWarning] : [])
+                + (config.hasOnlyRulesConflict ? [ConfigImportService.onlyRulesConflictWarning] : [])
             #expect(preview.validationErrors == expected)
         }
     }

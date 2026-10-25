@@ -139,4 +139,36 @@ extension SwiftLintRuleStudioUITests {
         XCTAssertEqual(dismissed, .completed, "Close should dismiss the simulation sheet")
     }
 
+    // MARK: - Workflow 5: Rule Presets
+
+    /// A preset filters the list by rule identifier, so one SwiftLint doesn't have matches
+    /// nothing and the list comes up short. Code Style named `operator_whitespace`, an old
+    /// alias, and so never showed `function_name_whitespace`.
+    @MainActor
+    func testCodeStylePresetShowsEveryRuleItNames() throws {
+        guard let (app, window) = launchAppWithSidebar() else {
+            XCTFail("No main window"); return
+        }
+        let rulesOutline = showRules(window)
+        let unfilteredCount = rulesOutline.cells.count
+        XCTAssertGreaterThan(unfilteredCount, 12, "Rule list should be populated before choosing a preset")
+
+        let presets = window.menuButtons["Presets"].firstMatch
+        XCTAssertTrue(presets.waitForExistence(timeout: 8), "The Presets menu should be in the toolbar")
+        presets.click()
+        // "Code Style" is also the preset's category, and the menu lists its section header
+        // first under the same title. Headers report enabled on macOS 27, and a SwiftUI
+        // menu item's accessibilityIdentifier doesn't reach the native menu, so tell them
+        // apart by the action AppKit gives the preset's button.
+        let codeStyle = app.menuItems
+            .matching(NSPredicate(format: "title == %@ AND identifier == %@", "Code Style", "menuAction:"))
+            .firstMatch
+        XCTAssertTrue(codeStyle.waitForExistence(timeout: 5), "The Presets menu should offer Code Style")
+        codeStyle.click()
+
+        let filteredCount = waitForCellCountChange(rulesOutline, from: unfilteredCount)
+        XCTAssertEqual(filteredCount, 12, "Code Style names 12 rules, and every one should be listed")
+        XCTAssertTrue(text(in: rulesOutline, "function_name_whitespace").waitForExistence(timeout: 5),
+                      "Code Style should show function_name_whitespace")
+    }
 }

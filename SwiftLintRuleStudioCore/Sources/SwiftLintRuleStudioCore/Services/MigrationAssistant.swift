@@ -101,12 +101,12 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
     ) -> MigrationPlan {
         var steps: [MigrationStep] = []
 
-        // `namedRuleIds`, not `ruleIds`: a rule key with a severity shorthand
+        // `ruleIdsAsWritten`, not `ruleIds`: a rule key with a severity shorthand
         // (`redundant_self_in_closure: error`) is held only as a passthrough node.
-        let allRuleIds = config.namedRuleIds
+        let allRuleIds = config.ruleIdsAsWritten
 
         // Check renamed rules. A rename is offered only once the target version has the new name:
-        // `variable_name` → `identifier_name` arrived in 0.17.0, so a 0.15 → 0.16 migration that
+        // `variable_name` → `identifier_name` arrived in 0.17.0, so a 0.10 → 0.16 migration that
         // renamed it would leave a rule 0.16 does not know. The deprecation table carries the version
         // a rule was renamed in, and supplies a target for any deprecated rule the rename table lacks.
         for ruleId in allRuleIds.sorted() {
@@ -136,9 +136,12 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
             }
         }
 
-        // Check for new rules available (informational), leaving out those the config already uses
+        // Check for new rules available (informational). A rule the target version has retired
+        // is not available: `anyobject_protocol` arrived in 0.27.0, was deprecated in 0.50.0 and
+        // removed in 0.57.0. Nor is one the config already uses, under its own name or an alias.
         let inUse = SwiftLintDeprecations.rulesInUse(allRuleIds)
-        let newRules = SwiftLintDeprecations.rulesAdded(from: fromVersion, to: toVersion).filter { !inUse.contains($0) }
+        let newRules = SwiftLintDeprecations.rulesAdded(from: fromVersion, to: toVersion)
+            .filter { !SwiftLintDeprecations.isRetired($0, by: toVersion) && !inUse.contains($0) }
         if !newRules.isEmpty {
             steps.append(.manualAction(
                 description: "New rules available: \(newRules.joined(separator: ", ")). Consider enabling them."
