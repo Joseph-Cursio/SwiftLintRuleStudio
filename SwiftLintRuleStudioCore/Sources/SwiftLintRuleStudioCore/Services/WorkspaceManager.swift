@@ -65,6 +65,9 @@ public class WorkspaceManager {
     public var recentWorkspaces: [Workspace] = []
     /// Whether the current workspace is missing a `.swiftlint.yml` config file
     public var configFileMissing: Bool = false
+    /// What is wrong with the rule lists in the current workspace's `.swiftlint.yml`, if
+    /// anything. Refreshed by `checkConfigRuleLists()`.
+    public var configRuleListsProblem: ConfigRuleListsProblem?
 
     /// UserDefaults key for persisting recent workspaces
     public let recentWorkspacesKey = "SwiftLintRuleStudio.recentWorkspaces"

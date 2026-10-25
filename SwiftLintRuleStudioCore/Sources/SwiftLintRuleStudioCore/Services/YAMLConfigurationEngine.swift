@@ -18,6 +18,10 @@ public enum YAMLConfigError: LocalizedError, Sendable {
     case invalidPath(path: String)
     case fileNotFound
     case writeFailed(String)
+    /// `only_rules` alongside `opt_in_rules` or `disabled_rules`, which SwiftLint rejects.
+    case onlyRulesConflict
+    /// Turning these rules off would empty `only_rules`, which SwiftLint reads as no list.
+    case wouldEmptyOnlyRules(ruleIds: [String])
 
     public var errorDescription: String? {
         switch self {
@@ -33,6 +37,15 @@ public enum YAMLConfigError: LocalizedError, Sendable {
             return "Configuration file not found"
         case .writeFailed(let message):
             return "Failed to write configuration: \(message)"
+        case .onlyRulesConflict:
+            return "SwiftLint can't use a configuration that lists rules under only_rules and also under "
+                + "opt_in_rules or disabled_rules. It ignores the whole file and falls back to its default "
+                + "configuration, so the change wasn't saved."
+        case .wouldEmptyOnlyRules(let ruleIds):
+            let names = ruleIds.joined(separator: ", ")
+            return "Turning off \(names) would leave only_rules empty. SwiftLint treats an empty only_rules "
+                + "as no list at all and runs its default rules, so this would turn on every default rule "
+                + "instead. Turn on another rule first."
         }
     }
 }
@@ -267,9 +280,18 @@ public class YAMLConfigurationEngine {
         try Self.validated(config)
     }
 
-    /// Throws unless every severity is `warning` or `error` and no include/exclude path is
-    /// empty.
+    /// Throws unless every severity is `warning` or `error`, no include/exclude path is
+    /// empty, and SwiftLint would accept the rule lists.
+    ///
+    /// Every save runs this, so no writer can produce the issue #83 file. It refuses rather
+    /// than repairs: a conflict already on disk is fixed only through the previewed
+    /// `normalizedRuleLists()` that the app's warning banner offers, never as a side effect of
+    /// an unrelated edit.
     public static func validated(_ config: YAMLConfig) throws {
+        if config.hasOnlyRulesConflict {
+            throw YAMLConfigError.onlyRulesConflict
+        }
+
         // Check for invalid rule IDs (basic validation)
         // More comprehensive validation can be added later
 

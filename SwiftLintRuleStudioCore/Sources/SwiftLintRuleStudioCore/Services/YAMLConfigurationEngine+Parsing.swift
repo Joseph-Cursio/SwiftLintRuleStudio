@@ -41,13 +41,23 @@ extension YAMLConfigurationEngine {
 
             // Preserve any top-level keys the modeled path won't re-emit
             // (custom_rules, scalar rule shorthands like `line_length: 120`, …).
-            let modeledKeys = Self.modeledReservedKeys.union(config.rules.keys)
+            // `enabled_rules` is modeled only when it is the list SwiftLint reads; beside
+            // `opt_in_rules` SwiftLint ignores it, so it rides through untouched.
+            let readsEnabledRules = dict["opt_in_rules"] == nil && dict["enabled_rules"] != nil
+            let modeledKeys = Self.modeledReservedKeys
+                .union(config.rules.keys)
+                .union(readsEnabledRules ? ["enabled_rules"] : [])
             config.passthroughNodes = Self.passthroughNodes(from: node, modeledKeys: modeledKeys)
             config.scalarShorthandRules = Self.scalarShorthandRuleKeys(in: dict)
 
             // Layout, recovered from the raw text rather than the tree.
             config.comments = Self.comments(in: yaml)
             config.keyOrder = Self.keyOrder(in: yaml)
+            if readsEnabledRules {
+                // `opt_in_rules` takes the place of the `enabled_rules` it was read from.
+                config.keyOrder = config.keyOrder.map { $0 == "enabled_rules" ? "opt_in_rules" : $0 }
+                config.comments["opt_in_rules"] = config.comments.removeValue(forKey: "enabled_rules")
+            }
 
             return config
         } catch {
@@ -147,14 +157,41 @@ extension YAMLConfigurationEngine {
     }
 
     private static func parseReservedFields(from dict: [String: Any], into config: inout SwiftLintConfiguration) {
-        config.included = dict["included"] as? [String]
-        config.excluded = dict["excluded"] as? [String]
+        config.included = stringList(dict["included"])
+        config.excluded = stringList(dict["excluded"])
         config.reporter = dict["reporter"] as? String
-        config.disabledRules = dict["disabled_rules"] as? [String]
-        config.optInRules = dict["opt_in_rules"] as? [String]
-        config.analyzerRules = dict["analyzer_rules"] as? [String]
-        config.onlyRules = dict["only_rules"] as? [String]
+        config.disabledRules = stringList(dict["disabled_rules"])
+        // SwiftLint reads the deprecated `enabled_rules` when `opt_in_rules` is absent
+        // (`dict[optInRules] ?? dict[enabledRules]`). Modeling it as `opt_in_rules` means a
+        // save writes it back under the current name — left unmodeled, the first opt-in rule
+        // the app wrote would add an `opt_in_rules` that silently shadowed it, and its
+        // conflict with `only_rules` would go unseen.
+        config.optInRules = dict["opt_in_rules"] != nil
+            ? stringList(dict["opt_in_rules"])
+            : stringList(dict["enabled_rules"])
+        config.analyzerRules = stringList(dict["analyzer_rules"])
+        config.onlyRules = stringList(dict["only_rules"])
     }
+
+    /// A list of rules or paths as SwiftLint reads it: a sequence, or a single string as a
+    /// one-entry list.
+    ///
+    /// Reading only sequences turned `only_rules: force_cast` into no list, and the key is
+    /// modeled, so it wasn't passed through either: the next save dropped it and the file
+    /// went from one rule to every default rule. `excluded: Pods` went the same way, and the
+    /// next lint took in everything under Pods.
+    ///
+    /// A key with no value — every entry commented out, or `~` — is a YAML null, which
+    /// arrives here as one of these spellings rather than as a null. SwiftLint reads it as no
+    /// list; reading it as the one-rule list `[""]` would put a file into only mode with
+    /// nothing allowed.
+    private static func stringList(_ value: Any?) -> [String]? {
+        if let list = value as? [String] { return list }
+        if let single = value as? String, !Self.yamlNullSpellings.contains(single) { return [single] }
+        return nil
+    }
+
+    private static let yamlNullSpellings: Set<String> = ["", "~", "null", "Null", "NULL"]
 
     // Tolerant read of the legacy `rules:` block (older versions of this app
     // emitted it; SwiftLint rejects it). Parsing it here lets those files
@@ -196,6 +233,7 @@ extension YAMLConfigurationEngine {
         "reporter",
         "disabled_rules",
         "opt_in_rules",
+        "enabled_rules", // deprecated alias of opt_in_rules, read into it
         "analyzer_rules",
         "only_rules",
         "whitelist_rules",
@@ -224,6 +262,8 @@ extension YAMLConfigurationEngine {
     // cross-file Parallel List Drift rule reports a false positive. `rules` belongs here (it is
     // parsed and migrated) but is intentionally never emitted, so it is absent from the emission
     // order; the passthrough keys (strict/lenient/warning_threshold) are the mirror case.
+    // `enabled_rules` is absent too: `parse` models it only when it is the list SwiftLint
+    // reads (no `opt_in_rules`), and then writes it back as `opt_in_rules`.
     // swiftprojectlint:disable:next parallel-list-drift
     /// Reserved top-level keys the engine actively models (parses *and* emits).
     static let modeledReservedKeys: Set<String> = [

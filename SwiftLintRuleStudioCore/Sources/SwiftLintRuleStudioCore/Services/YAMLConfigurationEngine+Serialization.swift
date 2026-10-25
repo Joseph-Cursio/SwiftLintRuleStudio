@@ -47,19 +47,74 @@ extension YAMLConfigurationEngine {
     /// sits at the same column as its parent mapping key. SwiftLint configs
     /// are conventionally hand-written with sequence items indented two spaces
     /// under the key, so a naive round-trip would flip every list and produce
-    /// noisy diffs. Adding two spaces to each sequence-item line restores the
-    /// conventional style while keeping each item exactly two columns deeper
-    /// than its key (nesting included). Comments are reinserted afterwards, so
-    /// this pass only ever sees Yams output and never touches `#` lines.
+    /// noisy diffs. Comments are reinserted afterwards, so this pass only ever
+    /// sees Yams output and never touches `#` lines.
+    ///
+    /// An item moves as a whole: its `- ` line and every line that continues it,
+    /// so the second key of a mapping item stays under the first. Moving only the
+    /// `- ` line turned `exclude_ranges: [{min: 1900, max: 2030}]` into
+    /// `- max: 2030` over a `min: 1900` two columns to its left, which isn't YAML;
+    /// SwiftLint then fell back to its default configuration. A line inside an item
+    /// moves as far as the item's `- ` did; a new sequence moves two further than
+    /// the item holding it, and a sibling item as far as the item before it.
     static func indentBlockSequences(in yaml: String) -> String {
-        yaml
+        // Each item the current line may sit in: the original column of its `- `,
+        // and how far that `- ` moved.
+        var openItems: [(column: Int, shift: Int)] = []
+        // The column of the line that opened a block scalar (`regex: |`) still running:
+        // deeper lines are its text, moved with it, whatever they start with.
+        var blockScalarColumn: Int?
+        return yaml
             .components(separatedBy: .newlines)
             .map { line -> String in
                 let trimmed = line.drop { $0 == " " }
-                guard trimmed == "-" || trimmed.hasPrefix("- ") else { return line }
-                return "  " + line
+                guard !trimmed.isEmpty else { return line }
+                let column = line.count - trimmed.count
+                if let block = blockScalarColumn, column > block {
+                    return String(repeating: " ", count: openItems.last?.shift ?? 0) + line
+                }
+                blockScalarColumn = Self.opensBlockScalar(trimmed) ? column : nil
+                // A line at or left of an item's `- ` is past that item. One exactly
+                // at it starts a sibling, which moves as far as that item did.
+                var sibling: (column: Int, shift: Int)?
+                while let last = openItems.last, column <= last.column {
+                    sibling = openItems.removeLast()
+                }
+                let dashes = Self.leadingSequenceDashes(in: trimmed)
+                guard dashes > 0 else {
+                    return String(repeating: " ", count: openItems.last?.shift ?? 0) + line
+                }
+                let shift = sibling?.column == column
+                    ? sibling?.shift ?? 0
+                    : (openItems.last?.shift ?? 0) + 2
+                // `- - a` opens an item in an item; both move with the line.
+                for index in 0..<dashes {
+                    openItems.append((column: column + 2 * index, shift: shift))
+                }
+                return String(repeating: " ", count: shift) + line
             }
             .joined(separator: "\n")
+    }
+
+    /// Whether `line` (already stripped of indentation) ends in a block scalar header,
+    /// `key: |`, `- >-` and the like, so the lines under it are text.
+    private static func opensBlockScalar(_ line: Substring) -> Bool {
+        guard let header = line.split(separator: " ").last,
+              let indicator = header.first, indicator == "|" || indicator == ">" else { return false }
+        let isHeader = header.dropFirst().allSatisfy { "+-0123456789".contains($0) }
+        return isHeader && (line == header || line.hasSuffix(": " + header) || line.hasSuffix("- " + header))
+    }
+
+    /// How many sequence items `line` (already stripped of indentation) opens: one for
+    /// `- a`, two for `- - a`.
+    private static func leadingSequenceDashes(in line: Substring) -> Int {
+        var count = 0
+        var rest = line
+        while rest == "-" || rest.hasPrefix("- ") {
+            count += 1
+            rest = rest.dropFirst(2)
+        }
+        return count
     }
 
     /// Build the ordered list of (key, value) pairs for the top-level mapping.
@@ -123,8 +178,8 @@ extension YAMLConfigurationEngine {
         // *default* rules are disabled that way. Opt-in and analyzer rules are
         // disabled by absence from `opt_in_rules` / `analyzer_rules`, and this layer
         // cannot tell which kind a rule is — `YAMLConfig` carries no rule metadata.
-        // The callers that know the kind (RuleDetailViewModel.addDisabledRuleIfNeeded,
-        // RuleBrowserViewModel.disableSelectedRules) own that decision.
+        // The callers that know the kind own that decision, through
+        // YAMLConfig.disableRules(_:kind:).
         for (ruleId, ruleConfig) in config.rules where ruleConfig.enabled {
             if let node = try ruleNode(ruleId: ruleId, ruleConfig: ruleConfig, config: config) {
                 result[ruleId] = node

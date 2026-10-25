@@ -100,6 +100,9 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         if validationErrors.isEmpty && parsedConfig.ruleIds.isEmpty {
             validationErrors.append("Configuration appears empty - no rules defined.")
         }
+        if parsedConfig.hasOnlyRulesConflict {
+            validationErrors.append(Self.onlyRulesConflictWarning)
+        }
 
         return ConfigImportPreview(
             sourceURL: url,
@@ -110,7 +113,16 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         )
     }
 
+    /// Shown for an import SwiftLint itself would reject (issue #83); applying it is refused.
+    static let onlyRulesConflictWarning = "SwiftLint rejects this configuration: it lists rules under "
+        + "only_rules and also under opt_in_rules or disabled_rules, so it can't be imported."
+
     public func applyImport(preview: ConfigImportPreview, mode: ImportMode, to configPath: URL) throws {
+        // Refused in both modes. Replace would write it as is, and Merge would quietly drop
+        // half of it when the import's `only_rules` takes over.
+        if preview.parsedConfig.hasOnlyRulesConflict {
+            throw YAMLConfigError.onlyRulesConflict
+        }
         switch mode {
         case .replace:
             // The imported file replaces this one, so it's the imported file's comments and
@@ -125,6 +137,12 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
             // Load existing config and merge, or save the import as-is if none exists.
             if FileManager.default.fileExists(atPath: configPath.path) {
                 let existing = try YAMLConfigurationEngine.loadConfig(at: configPath)
+                // An existing file SwiftLint rejects is repaired through the app's previewed
+                // fix, not here: an import with `only_rules` would clear its lists and save a
+                // repair nobody reviewed.
+                if existing.hasOnlyRulesConflict {
+                    throw YAMLConfigError.onlyRulesConflict
+                }
                 let merged = Self.merge(existing: existing, imported: preview.parsedConfig)
                 try YAMLConfigurationEngine.save(merged, to: configPath)
             } else {
@@ -138,6 +156,20 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
     /// Merge `imported` onto `existing`: imported rule configs override conflicts,
     /// every list field unions, and the scalar `reporter` is overridden when the
     /// import provides one.
+    ///
+    /// The rule lists combine the way SwiftLint combines a parent config with a child
+    /// config, the import playing the child, so two files SwiftLint accepts merge into one it
+    /// accepts. A plain union of every list used to put one file's `only_rules` beside the
+    /// other's `opt_in_rules` or `disabled_rules` — the combination SwiftLint rejects
+    /// (issue #83).
+    ///
+    /// - An import with `only_rules` replaces the existing `opt_in_rules` and
+    ///   `disabled_rules`; its allowlist joins any the existing file already has.
+    /// - An import without one folds into an existing `only_rules`: its opt-in rules join the
+    ///   allowlist and its disabled rules leave it.
+    /// - Two files without `only_rules` union every list, as before.
+    ///
+    /// `applyImport` refuses to merge into an existing file SwiftLint already rejects.
     static func merge(
         existing: YAMLConfigurationEngine.YAMLConfig,
         imported: YAMLConfigurationEngine.YAMLConfig
@@ -146,16 +178,23 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         for (ruleId, ruleConfig) in imported.rules {
             merged.rules[ruleId] = ruleConfig
         }
-        merged.disabledRules = unioned(merged.disabledRules, imported.disabledRules)
-        merged.optInRules = unioned(merged.optInRules, imported.optInRules)
         merged.excluded = unioned(merged.excluded, imported.excluded)
         merged.analyzerRules = unioned(merged.analyzerRules, imported.analyzerRules)
-        merged.onlyRules = unioned(merged.onlyRules, imported.onlyRules)
         merged.included = unioned(merged.included, imported.included)
         if let reporter = imported.reporter {
             merged.reporter = reporter
         }
-        return merged
+
+        if imported.usesOnlyRules {
+            merged.onlyRules = unioned(existing.usesOnlyRules ? existing.onlyRules : nil, imported.onlyRules)
+            merged.optInRules = nil
+            merged.disabledRules = nil
+        } else {
+            merged.disabledRules = unioned(merged.disabledRules, imported.disabledRules)
+            merged.optInRules = unioned(merged.optInRules, imported.optInRules)
+            merged.onlyRules = unioned(merged.onlyRules, imported.onlyRules)
+        }
+        return merged.normalizedRuleLists()
     }
 
     /// The sorted union of two optional string lists, or `existing` unchanged when

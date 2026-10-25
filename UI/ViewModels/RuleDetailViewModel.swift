@@ -198,7 +198,7 @@ class RuleDetailViewModel {
             // duplicate the logic and omitted the disabled_rules / opt_in_rules /
             // analyzer_rules routing, so the preview of a disabled default rule
             // showed no change at all.
-            applyRuleChanges(to: &proposedConfig)
+            try applyRuleChanges(to: &proposedConfig)
 
             return yamlEngine.generateDiff(proposedConfig: proposedConfig)
         } catch {
@@ -219,7 +219,7 @@ class RuleDetailViewModel {
         do {
             try yamlEngine.load()
             var config = yamlEngine.getConfig()
-            applyRuleChanges(to: &config)
+            try applyRuleChanges(to: &config)
             try yamlEngine.validate(config)
             try yamlEngine.save(config: config, createBackup: true)
             finalizeSaveSuccess()
