@@ -36,11 +36,24 @@ struct InProcessLintConfigurationTests {
         try config.write(to: folder.appendingPathComponent(".swiftlint.yml"), atomically: true, encoding: .utf8)
     }
 
+    /// The rules a lint reports. With a config path, that config alone applies, as with
+    /// `--config`; the workspace analysis never lints that way (see `analyzedRuleIDs`).
     private func ruleIDs(configPath: URL?, workspace: URL) async throws -> Set<String> {
-        let data = try await SwiftLintInProcessActor().executeLintCommand(
-            configPath: configPath,
+        // Off the caller's executor, as the backend runs it.
+        try await ruleIDs(in: Task.detached {
+            try SwiftLintInProcessActor.lint(configPath: configPath, workspacePath: workspace)
+        }.value)
+    }
+
+    /// The rules the workspace analysis reports, which names the workspace's own config.
+    private func analyzedRuleIDs(in workspace: URL) async throws -> Set<String> {
+        try await ruleIDs(in: SwiftLintInProcessActor().executeLintCommand(
+            configPath: workspace.appendingPathComponent(".swiftlint.yml"),
             workspacePath: workspace
-        )
+        ))
+    }
+
+    private func ruleIDs(in data: Data) throws -> Set<String> {
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [[String: Any]])
         return Set(json.compactMap { $0["rule_id"] as? String })
     }
@@ -188,6 +201,19 @@ struct InProcessLintConfigurationTests {
         #expect(error?.localizedDescription.contains(".swiftlint.yml") == true)
     }
 
+    /// SwiftLint takes a reference for remote only when it starts `http://` or `https://`, and
+    /// ends the process for a local one pinned to another version.
+    @Test("A local parent config whose name starts with http is checked like any other")
+    func localParentNamedHTTPIsChecked() async throws {
+        let workspace = try makeWorkspace(config: "parent_config: http-base.yml\n")
+        try "swiftlint_version: 0.0.1\n"
+            .write(to: workspace.appendingPathComponent("http-base.yml"), atomically: true, encoding: .utf8)
+
+        await #expect(throws: InProcessConfigurationError.self) {
+            _ = try await ruleIDs(configPath: nil, workspace: workspace)
+        }
+    }
+
     /// SwiftLint loads nested configs itself and ends the process if one is invalid.
     @Test("An invalid nested config is an error, not a crash", arguments: [
         "only_rules:\n  - force_cast\nopt_in_rules:\n  - empty_count\n",
@@ -215,5 +241,41 @@ struct InProcessLintConfigurationTests {
 
         let configPath = workspace.appendingPathComponent(".swiftlint.yml")
         #expect(try await !ruleIDs(configPath: configPath, workspace: workspace).contains(Self.optInRule))
+    }
+
+    /// The subprocess backend's analysis runs `swiftlint lint` in the workspace without
+    /// `--config` (its `.effective` mode), so the nested configs apply there.
+    @Test("The workspace analysis applies nested configs beneath the workspace's config, as Studio's does")
+    func analysisAppliesNestedConfigs() async throws {
+        let workspace = try makeWorkspace(config: "disabled_rules:\n  - trailing_newline\n")
+        let nested = workspace.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try Self.source.write(to: nested.appendingPathComponent("Inner.swift"), atomically: true, encoding: .utf8)
+        try writeConfig("opt_in_rules:\n  - \(Self.optInRule)\n", in: nested)
+        #expect(try await analyzedRuleIDs(in: workspace).contains(Self.optInRule))
+
+        // And as the rest of this suite shows for a lint with no config path, edits to the
+        // nested config show on the next analysis.
+        try writeConfig("disabled_rules:\n  - trailing_newline\n", in: nested)
+        #expect(try await !analyzedRuleIDs(in: workspace).contains(Self.optInRule))
+    }
+
+    @Test("The workspace analysis reports what a lint with no config path does")
+    func analysisMatchesLintWithoutConfigPath() async throws {
+        let workspace = try makeWorkspace(config: "parent_config: base.yml\nopt_in_rules:\n  - force_unwrapping\n")
+        try "opt_in_rules:\n  - \(Self.optInRule)\n"
+            .write(to: workspace.appendingPathComponent("base.yml"), atomically: true, encoding: .utf8)
+        let nested = workspace.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try Self.source.write(to: nested.appendingPathComponent("Inner.swift"), atomically: true, encoding: .utf8)
+        try writeConfig("disabled_rules:\n  - \(Self.optInRule)\n", in: nested)
+
+        let analyzed = try await SwiftLintInProcessActor().executeLintCommand(
+            configPath: workspace.appendingPathComponent(".swiftlint.yml"),
+            workspacePath: workspace
+        )
+        let linted = try SwiftLintInProcessActor.lint(configPath: nil, workspacePath: workspace)
+        #expect(analyzed == linted)
+        #expect(try ruleIDs(in: analyzed).contains(Self.optInRule), "the root and its parent apply")
     }
 }
