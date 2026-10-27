@@ -19,7 +19,7 @@ struct DeprecationDataTests {
     private static let liveRules = Set(
         // A key path to a static member through `any Rule.Type` crashes the Swift 6.4 compiler.
         // swiftlint:disable:next prefer_key_path
-        SwiftLintInProcessActor.sortedBuiltInRules().map { $0.description.identifier }
+        SwiftLintInProcessActor.sortedRules().map { $0.description.identifier }
     )
 
     @Test
@@ -45,7 +45,7 @@ struct DeprecationDataTests {
     /// Each deprecated alias, mapped to the rule that declares it.
     private static let deprecatedAliases: [String: String] = {
         var aliases: [String: String] = [:]
-        for ruleType in SwiftLintInProcessActor.sortedBuiltInRules() {
+        for ruleType in SwiftLintInProcessActor.sortedRules() {
             let rule = ruleType.description
             for alias in rule.deprecatedAliases { aliases[alias] = rule.identifier }
         }
@@ -76,7 +76,7 @@ struct DeprecationDataTests {
     /// the alias is a rename to that rule, never a removal.
     @Test
     func deprecatedAliasesAreRenamesToTheirRule() {
-        for ruleType in SwiftLintInProcessActor.sortedBuiltInRules() {
+        for ruleType in SwiftLintInProcessActor.sortedRules() {
             let rule = ruleType.description
             for alias in rule.deprecatedAliases {
                 #expect(SwiftLintDeprecations.renamedRules[alias] == rule.identifier, "Alias '\(alias)'")
@@ -90,7 +90,7 @@ struct DeprecationDataTests {
     @Test
     func ruleAliasesAreSwiftLintsDeprecatedAliases() {
         var aliases: [String: String] = [:]
-        for ruleType in SwiftLintInProcessActor.sortedBuiltInRules() {
+        for ruleType in SwiftLintInProcessActor.sortedRules() {
             let rule = ruleType.description
             for alias in rule.deprecatedAliases { aliases[alias] = rule.identifier }
         }

@@ -38,12 +38,19 @@ extension SwiftLintInProcessActor {
 
     // MARK: - Rules catalog (mirrors `swiftlint rules`)
 
-    static func sortedBuiltInRules() -> [any Rule.Type] {
-        builtInRules.sorted { $0.description.identifier < $1.description.identifier }
+    /// Every rule the `swiftlint` CLI registers (`registerAllRulesOnce()`): the built-in rules,
+    /// and the core rules — `custom_rules` and `superfluous_disable_command`. Without the core
+    /// rules SwiftLint read both as unknown identifiers, so neither ever ran, and the app didn't
+    /// list them. The CLI also registers `extraRules()`, which SwiftLint leaves empty for
+    /// builds that add their own; this one adds none.
+    static let allRules: [any Rule.Type] = builtInRules + coreRules
+
+    static func sortedRules() -> [any Rule.Type] {
+        allRules.sorted { $0.description.identifier < $1.description.identifier }
     }
 
     static func ruleDescription(forID id: String) -> RuleDescription? {
-        builtInRules
+        allRules
             .first { $0.description.allIdentifiers.contains(id) }?
             .description
     }
@@ -54,11 +61,16 @@ extension SwiftLintInProcessActor {
         let header =
             "| identifier | opt-in | correctable | enabled in your config | kind | analyzer | uses sourcekit |"
         var lines = [border, header, border]
-        for ruleType in sortedBuiltInRules() {
+        for ruleType in sortedRules() {
             let description = ruleType.description
             let optIn = ruleType is any OptInRule.Type ? "yes" : "no"
             let correctable = ruleType is any CorrectableRule.Type ? "yes" : "no"
             let analyzer = ruleType is any AnalyzerRule.Type ? "yes" : "no"
+            // `custom_rules` reads "yes", where the CLI's table says "no": SwiftLint asks a rule with
+            // no custom rules configured, which needs nothing. Configured, custom rules run under
+            // SourceKit unless they opt into `execution_mode: swiftsyntax`, and with SourceKit off
+            // SwiftLint skips them all unless every one has — so this edition can't count them in
+            // general, and says so.
             let usesSourceKit = ruleType is any SourceKitFreeRule.Type ? "no" : "yes"
             let enabled = optIn == "yes" ? "no" : "yes"
             lines.append(

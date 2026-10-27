@@ -6,9 +6,15 @@ enum InProcessConfigurationError: LocalizedError {
     case unreadable(file: URL, reason: String)
     case versionMismatch(file: URL, pinned: String)
     case usesWorkingDirectory(file: URL)
+    case customRulesNeedSourceKit
 
     var errorDescription: String? {
         switch self {
+        case .customRulesNeedSourceKit:
+            "This workspace's custom rules are all set to `execution_mode: swiftsyntax`, but SwiftLint "
+                + "\(Version.current.value) still asks SourceKit about each file when it runs them, and the "
+                + "built-in SwiftLint can't load SourceKit. Custom rules set to `execution_mode: sourcekit` "
+                + "are skipped instead."
         case let .usesWorkingDirectory(file):
             "\(file.path) uses ${PWD}, which SwiftLint fills in with the folder it runs in. The built-in "
                 + "SwiftLint runs inside the app, whose working directory is one for every lint, so it can't."
@@ -116,6 +122,29 @@ enum InProcessConfiguration {
                 directory = directory.deletingLastPathComponent()
             }
         }
+    }
+
+    /// Checks that `configuration` won't run custom rules: SwiftLint ends the process if it does.
+    ///
+    /// SwiftLint runs `custom_rules` without SourceKit when every custom rule it holds is set to
+    /// `execution_mode: swiftsyntax`, yet still asks SourceKit for the file's syntax map to match
+    /// them — and with SourceKit off, that request is a fatal error. Custom rules any one of which
+    /// needs SourceKit are skipped, with a printed warning, so they are left to SwiftLint.
+    static func checkCustomRules(of configuration: Configuration) throws {
+        guard let customRules = configuration.rules.first(where: { type(of: $0).identifier == "custom_rules" }),
+              !customRules.requiresSourceKit,
+              holdsCustomRules(customRules) else {
+            return
+        }
+        throw InProcessConfigurationError.customRulesNeedSourceKit
+    }
+
+    /// Whether the `custom_rules` rule holds any custom rule. With none it runs, and finds nothing;
+    /// SwiftLint enables it in every configuration. Its type is internal to SwiftLint, so this reads
+    /// its cache description: one entry per custom rule, after an optional default-mode line.
+    private static func holdsCustomRules(_ rule: any Rule) -> Bool {
+        guard let description = (rule as? any CacheDescriptionProvider)?.cacheDescription else { return true }
+        return description.split(separator: "\n").contains { !$0.hasPrefix("default_execution_mode:") }
     }
 
     /// Parses YAML the way SwiftLint's own (internal) `YamlParser` does, including
