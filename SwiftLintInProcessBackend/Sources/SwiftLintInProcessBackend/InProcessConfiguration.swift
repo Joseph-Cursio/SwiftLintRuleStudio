@@ -124,7 +124,8 @@ enum InProcessConfiguration {
         }
         // `${PWD}` would expand to the app's working directory, not the workspace's: setting it
         // for one lint would set it for the whole app, and every lint running at that moment.
-        guard !text.contains("${PWD}") else {
+        // A comment that mentions it is no matter: SwiftLint expands values, never comments.
+        guard !namesWorkingDirectory(text) else {
             throw InProcessConfigurationError.usesWorkingDirectory(file: file)
         }
         if let pinned = dict["swiftlint_version"].map({ ($0 as? String) ?? String(describing: $0) }),
@@ -132,6 +133,24 @@ enum InProcessConfiguration {
             throw InProcessConfigurationError.versionMismatch(file: file, pinned: pinned)
         }
         return dict
+    }
+
+    /// Whether a key or value in `yaml`, rather than a comment, names `${PWD}`: once decoded,
+    /// as `"\x24{PWD}"` is, and once the rest of the environment is expanded, as SwiftLint does.
+    private static func namesWorkingDirectory(_ yaml: String) -> Bool {
+        let marker = "\u{1}PWD\u{1}"
+        let env = ProcessInfo.processInfo.environment.merging(["PWD": marker]) { $1 }
+        guard let dict = try? parse(yaml, env: env) else { return true }
+        func names(_ value: Any) -> Bool {
+            switch value {
+            case let string as String: string.contains(marker)
+            case let array as [Any]: array.contains(where: names)
+            case let dict as [String: Any]:
+                dict.keys.contains { $0.contains(marker) } || dict.values.contains(where: names)
+            default: false
+            }
+        }
+        return names(dict)
     }
 
     private static func checkedConfiguration(_ dict: [String: Any], at file: URL) throws -> Configuration {
@@ -150,7 +169,9 @@ enum InProcessConfiguration {
         visited: inout Set<URL>
     ) throws {
         for key in ["parent_config", "child_config"] {
-            guard let reference = dict[key] as? String, !reference.hasPrefix("http") else { continue }
+            // SwiftLint's own test for a remote config; `http-base.yml` is a local file.
+            guard let reference = dict[key] as? String,
+                  !reference.hasPrefix("http://"), !reference.hasPrefix("https://") else { continue }
             let referenced = URL(fileURLWithPath: reference, relativeTo: file.deletingLastPathComponent())
                 .standardizedFileURL
             guard visited.insert(referenced).inserted,
