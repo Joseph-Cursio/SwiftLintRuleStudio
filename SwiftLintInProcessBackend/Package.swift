@@ -25,9 +25,16 @@ let package = Package(
         // Pinned to the exact revision the sandbox spike proved viable on
         // Xcode 26.6 / Swift 6.3. This is the "hard-wired version" the App Store
         // edition ships; bump it (and re-verify) on a deliberate SwiftLint update.
+        //
+        // A fork carrying one commit on realm/SwiftLint e4d82f13: it makes
+        // `Configuration.resetCache()` public and has it clear both of SwiftLint's
+        // configuration caches, which the in-process lint needs (see
+        // SwiftLintInProcessActor.lint). Tag `rulestudio-cache-reset-1`. On a bump,
+        // cherry-pick that commit onto the new revision and tag it; go back to
+        // realm/SwiftLint once it has an equivalent public reset.
         .package(
-            url: "https://github.com/realm/SwiftLint.git",
-            revision: "e4d82f13dcd25583c33caec013b084376db5125e"
+            url: "https://github.com/Joseph-Cursio/SwiftLint.git",
+            revision: "0c3cbb4f7e650b76ac089a53e22cf9b36bdc26f4"
         )
     ],
     targets: [
