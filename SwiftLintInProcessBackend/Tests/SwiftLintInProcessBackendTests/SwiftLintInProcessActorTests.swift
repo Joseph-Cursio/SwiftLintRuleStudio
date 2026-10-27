@@ -2,8 +2,8 @@ import Foundation
 @testable import SwiftLintInProcessBackend
 import Testing
 
-/// Collects the reports a lint sends from its own thread.
-private final class ProgressRecorder: @unchecked Sendable {
+/// Collects the reports a lint sends, one at a time, from whichever thread finished a file.
+final class ProgressRecorder: @unchecked Sendable {
     struct Report {
         let filesLinted: Int
         let totalFiles: Int
@@ -61,7 +61,7 @@ struct SwiftLintInProcessActorTests {
     }
 
     /// The Enabled Rule Violations screen shows how many files the lint has finished. Only
-    /// the in-process backend can tell it: the lint runs here, one file at a time.
+    /// the in-process backend can tell it: the lint runs here, and hears each file finish.
     @Test("A lint reports the file count once the files are found, then each file as it finishes")
     func lintReportsProgressPerFile() async throws {
         let dir = FileManager.default.temporaryDirectory

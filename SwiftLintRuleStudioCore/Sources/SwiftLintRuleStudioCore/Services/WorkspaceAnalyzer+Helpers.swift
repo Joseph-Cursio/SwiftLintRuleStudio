@@ -58,8 +58,9 @@ public extension WorkspaceAnalyzer {
         workspacePath: URL,
         detectedAt: Date
     ) async throws -> [Violation] {
-        // The lint reports from its own thread, once per file. The stream keeps the reports in
-        // order and, holding only the newest, never queues more than the main actor can draw.
+        // The lint reports once per file, one report at a time, from whichever thread finished
+        // it. The stream keeps the reports in order and, holding only the newest, never queues
+        // more than the main actor can draw.
         let (reports, continuation) = AsyncStream.makeStream(
             of: LintProgress.self,
             bufferingPolicy: .bufferingNewest(1)
