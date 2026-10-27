@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftLintCLISeam
 
 // MARK: - Errors
 
@@ -80,9 +81,12 @@ public class WorkspaceManager {
     /// so folders can be reopened across launches; `nil` in the non-sandboxed
     /// target, where plain paths suffice.
     private let bookmarkStore: (any SecurityScopedBookmarkStoring)?
-    /// The folder whose security scope is currently held open (so it can be
+    /// Where the workspace's security scope is held, so that a lint still reading the
+    /// workspace keeps it open after the workspace changes or closes.
+    private let securityScopes: HeldSecurityScopes
+    /// The current workspace's security scope, if one is held open (so it can be
     /// released when the workspace changes or closes).
-    private var activeScopedURL: URL?
+    private var activeScope: HeldSecurityScopes.Hold?
     /// The clock that stamps `Workspace.lastOpened`.
     private let now: DateProvider
 
@@ -93,10 +97,12 @@ public class WorkspaceManager {
     public init(
         userDefaults: UserDefaults = .standard,
         bookmarkStore: (any SecurityScopedBookmarkStoring)? = nil,
+        securityScopes: HeldSecurityScopes = .shared,
         now: DateProvider = .system
     ) {
         self.userDefaults = userDefaults
         self.bookmarkStore = bookmarkStore
+        self.securityScopes = securityScopes
         self.now = now
         loadRecentWorkspaces()
     }
@@ -115,21 +121,28 @@ public class WorkspaceManager {
         guard let bookmarkStore else { return }
         endAccess()
         if let resolved = bookmarkStore.resolveURL(forPath: url.path) {
-            _ = resolved.startAccessingSecurityScopedResource()
-            activeScopedURL = resolved
+            holdScope(of: resolved)
             return
         }
         // Freshly granted URL (e.g. from NSOpenPanel): hold the scope and persist
         // a bookmark, keyed by this path, so the folder can be reopened next launch.
-        _ = url.startAccessingSecurityScopedResource()
-        activeScopedURL = url
+        holdScope(of: url)
         bookmarkStore.saveBookmark(for: url)
     }
 
-    /// Release the currently held security scope, if any.
+    /// Start the security scope `scopedURL` carries and hold it until `endAccess()`.
+    private func holdScope(of scopedURL: URL) {
+        _ = scopedURL.startAccessingSecurityScopedResource()
+        activeScope = securityScopes.hold { scopedURL.stopAccessingSecurityScopedResource() }
+    }
+
+    /// Release the currently held security scope, if any. It ends once no lint that
+    /// started while it was open is still running.
     private func endAccess() {
-        activeScopedURL?.stopAccessingSecurityScopedResource()
-        activeScopedURL = nil
+        if let activeScope {
+            securityScopes.release(activeScope)
+        }
+        activeScope = nil
     }
 
     // MARK: - Workspace Selection

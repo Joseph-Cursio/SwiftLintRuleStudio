@@ -1,6 +1,7 @@
 import Foundation
 // Scoped imports: pull ONLY the seam symbols from Core. A broad import would make
 // `Rule`/`RuleRegistry`/`Configuration` ambiguous, since Core declares its own.
+import class SwiftLintCLISeam.HeldSecurityScopes
 import struct SwiftLintCLISeam.LintProgress
 import typealias SwiftLintCLISeam.LintProgressHandler
 import protocol SwiftLintCLISeam.SwiftLintCLIProtocol
@@ -22,7 +23,7 @@ import SwiftLintFramework
 /// A GUI `.app` doesn't inherit shell env, so these are set via `setenv` at
 /// startup, before any SwiftLintFramework symbol is touched.
 /// Declared as a `final class` rather than an `actor`, deliberately. It has no mutable
-/// stored state — only a `static let` and function-local values — so there is nothing for
+/// stored state — only constants and function-local values — so there is nothing for
 /// actor isolation to serialize, and the isolation was decorative. It also has to conform to
 /// `SwiftLintCLIProtocol`, which is `nonisolated` so that every backend and test double can
 /// implement it; an actor conforming to that seam is accepted by one Swift version and
@@ -50,7 +51,12 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         _ = bootstrap
     }
 
-    public init() {}
+    /// The security scopes each lint keeps open until it's done; see ``HeldSecurityScopes``.
+    private let securityScopes: HeldSecurityScopes
+
+    public init(securityScopes: HeldSecurityScopes = .shared) {
+        self.securityScopes = securityScopes
+    }
 
     // MARK: - SwiftLintCLIProtocol
 
@@ -81,8 +87,12 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         // for this async requirement, the lint ran on the caller's executor — the main actor
         // when the UI called in — and froze the app until it finished. A detached task runs
         // it on the cooperative pool instead, so the UI stays live and can show progress.
-        try await Task.detached(priority: .userInitiated) {
-            try Self.lint(configPath: nil, workspacePath: workspacePath, progress: progress)
+        try await Task.detached(priority: .userInitiated) { [securityScopes] in
+            // A workspace closed or replaced meanwhile stays readable until the lint is done:
+            // SwiftLint ends the process, the app, on a nested config it finds but can't read.
+            try securityScopes.keepingOpen {
+                try Self.lint(configPath: nil, workspacePath: workspacePath, progress: progress)
+            }
         }.value
     }
 
@@ -90,8 +100,10 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// does with no config path — except that a cancelled caller stops waiting at once. The lint
     /// can't be interrupted, so it runs on and its result is discarded; see ``InFlightLints``.
     public func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
-        try await Self.simulationLints.run(at: workspacePath) {
-            try Self.lint(configPath: nil, workspacePath: workspacePath)
+        try await Self.simulationLints.run(at: workspacePath) { [securityScopes] in
+            try securityScopes.keepingOpen {
+                try Self.lint(configPath: nil, workspacePath: workspacePath)
+            }
         }
     }
 
