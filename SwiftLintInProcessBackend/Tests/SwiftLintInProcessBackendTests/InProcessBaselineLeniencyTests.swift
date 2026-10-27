@@ -10,7 +10,7 @@ enum BaselineWriter {
     static func write(of workspace: URL, to file: URL) throws {
         SwiftLintInProcessActor.prepare()
         try CurrentWorkingDirectory.$url.withValue(workspace) {
-            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace).configuration
             let storage = RuleStorage()
             let violations = root.lintableFiles(inPath: workspace, forceExclude: false, excludeByPrefix: false)
                 .map { Linter(file: $0, configuration: root).collect(into: storage) }
