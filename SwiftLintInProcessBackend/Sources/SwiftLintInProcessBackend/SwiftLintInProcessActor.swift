@@ -101,13 +101,16 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// Lints `workspacePath` the way `swiftlint lint` run in that directory would, except
     /// where SwiftLint's path-keyed config caches would make the result stale:
     ///
-    /// - With `configPath` — the app's workspace analysis — that config applies alone, as
-    ///   with `--config`. SwiftLint caches the root config merged with each nested config by
-    ///   path, so files beneath a nested config would keep being linted against the root
-    ///   config as it was at the first lint, hiding the app's own edits to `.swiftlint.yml`.
-    /// - Without one — rule simulation, which lints a mirror at a new path for every rule —
-    ///   the workspace's `.swiftlint.yml` and the nested configs beneath it apply, as they do
-    ///   for the subprocess backend.
+    /// - With `configPath` — the analysis of a workspace that has a `.swiftlint.yml` — that
+    ///   config applies alone, as with `--config`. SwiftLint caches the root config merged with
+    ///   each nested config by path, so files beneath a nested config would keep being linted
+    ///   against the root config as it was at the first lint, hiding the app's own edits to
+    ///   `.swiftlint.yml`.
+    /// - Without one — rule simulation, which lints a mirror at a new path for every rule, and
+    ///   the analysis of a workspace with no `.swiftlint.yml` — the workspace's `.swiftlint.yml`
+    ///   and the nested configs beneath it apply, as they do for the subprocess backend. The
+    ///   analysis lints the same path every time, though, so there SwiftLint keeps applying a
+    ///   nested config as it was at the first lint (see ``NestedConfigLookup``).
     ///
     /// `progress` hears once the files are found, then again as each one is linted.
     static func lint(
@@ -147,11 +150,12 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
             }
             progress(LintProgress(filesLinted: 0, totalFiles: files.count))
             let storage = RuleStorage()
+            var lookup = NestedConfigLookup(root: root)
             // Every file is collected before any is linted: collecting rules need what the
             // whole workspace holds before they can judge one file.
             let linters = files
                 .map { file in
-                    Linter(file: file, configuration: appliesNestedConfigs ? root.configuration(for: file) : root)
+                    Linter(file: file, configuration: appliesNestedConfigs ? lookup.configuration(for: file) : root)
                 }
                 .map { $0.collect(into: storage) }
             var violations: [StyleViolation] = []

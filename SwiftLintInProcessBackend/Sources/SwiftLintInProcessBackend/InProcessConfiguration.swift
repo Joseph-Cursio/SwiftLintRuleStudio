@@ -39,7 +39,10 @@ enum InProcessConfigurationError: LocalizedError {
 ///
 /// Nested configs, and configs that use `parent_config`/`child_config`, still go through
 /// SwiftLint's path-keyed caches. Rule simulation lints a mirror that moves to a new path
-/// for every rule, so it never meets a stale entry.
+/// for every rule, so it never meets a stale entry; but every simulated rule leaves its
+/// entries behind until the app quits. A file whose search, from its folder up, meets no
+/// `.swiftlint.yml` at all is kept out of those caches; ``NestedConfigLookup`` says which
+/// files still reach them.
 enum InProcessConfiguration {
     /// The root configuration for a lint of `workspacePath`.
     ///
