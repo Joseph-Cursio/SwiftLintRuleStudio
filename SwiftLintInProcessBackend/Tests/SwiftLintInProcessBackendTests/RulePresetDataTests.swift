@@ -16,7 +16,7 @@ struct RulePresetDataTests {
         let liveRules = Set(
             // A key path to a static member through `any Rule.Type` crashes the Swift 6.4 compiler.
             // swiftlint:disable:next prefer_key_path
-            SwiftLintInProcessActor.sortedBuiltInRules().map { $0.description.identifier }
+            SwiftLintInProcessActor.sortedRules().map { $0.description.identifier }
         )
         for preset in RulePresets.allPresets {
             let unknown = preset.ruleIds.filter { !liveRules.contains($0) }

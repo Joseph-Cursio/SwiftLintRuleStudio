@@ -36,12 +36,12 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
 
     /// Runs exactly once (thread-safe lazy static), before any SwiftLintFramework
     /// symbol is touched. Sets the sandbox-safety env vars, then registers the
-    /// built-in rule set — the CLI's one-shot `registerAllRulesOnce()` is
-    /// `package`-scoped, so we use the public `register(rules:)` + `builtInRules`.
+    /// rule set — the CLI's one-shot `registerAllRulesOnce()` is `package`-scoped,
+    /// so we use the public `register(rules:)` with the same rules (``allRules``).
     private static let bootstrap: Void = {
         setenv("SWIFTLINT_DISABLE_SOURCEKIT", "1", 1)
         setenv("SWIFTLINT_SWIFT_VERSION", pinnedSwiftVersion, 1)
-        RuleRegistry.shared.register(rules: builtInRules)
+        RuleRegistry.shared.register(rules: allRules)
     }()
 
     /// Force the one-time bootstrap now. The Explorer app should call this at
@@ -165,6 +165,9 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
                 configurations = withConfigurationCaches { files.map { root.configuration(for: $0) } }
             } else {
                 configurations = files.map { _ in root }
+            }
+            for configuration in configurations {
+                try InProcessConfiguration.checkCustomRules(of: configuration)
             }
             progress(LintProgress(filesLinted: 0, totalFiles: files.count))
             let storage = RuleStorage()
