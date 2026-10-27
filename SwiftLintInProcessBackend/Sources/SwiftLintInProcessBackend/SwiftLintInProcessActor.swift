@@ -123,6 +123,9 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     ///   `.rootConfigOnly` mode, kept for reasoning about one config by itself. Nothing in the
     ///   app lints this way yet.
     ///
+    /// Either way the root config's `strict`, `lenient` and `baseline` apply to every file, and
+    /// a nested config's don't, as in `swiftlint lint` (see ``ReportFilter``).
+    ///
     /// `progress` hears once the files are found, then again as each one is linted.
     static func lint(
         configPath: URL?,
@@ -136,6 +139,8 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
             let (root, fileGraph) = try withConfigurationCaches {
                 try InProcessConfiguration.root(configPath: configPath, workspacePath: workspacePath)
             }
+            // `swiftlint lint` reads the baseline before it walks the files.
+            let report = try ReportFilter(root: root)
             // A link SwiftLint's file walk follows round for ever overflows the stack, and
             // in-process that ends the app; the `swiftlint` process just dies.
             try SymlinkLoopCheck.check(root, workspacePath: workspacePath)
@@ -170,7 +175,7 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
                 .map { $0.collect(into: storage) }
             var violations: [StyleViolation] = []
             for (index, linter) in linters.enumerated() {
-                violations += linter.styleViolations(using: storage)
+                violations += try report(linter.styleViolations(using: storage))
                 progress(LintProgress(filesLinted: index + 1, totalFiles: linters.count))
             }
             return Data(jsonReport(for: violations).utf8)
@@ -186,7 +191,7 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// So a lint makes the calls that use those caches — building its root config, and finding
     /// each file's — in `body`, with the caches to itself: empty when it starts, as in a fresh
     /// process, and emptied when it's done. Its file walks run between, not holding them up.
-    private static func withConfigurationCaches<T>(_ body: () throws -> T) rethrows -> T {
+    static func withConfigurationCaches<T>(_ body: () throws -> T) rethrows -> T {
         try configurationCaches.withLock {
             Configuration.resetCache()
             defer { Configuration.resetCache() }
