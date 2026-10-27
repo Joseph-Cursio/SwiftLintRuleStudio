@@ -29,17 +29,13 @@ enum InProcessConfigurationError: LocalizedError {
 ///   SwiftLint's task-local working-directory override instead of the process-wide one.
 /// - There's no fresh process per lint. SwiftLint caches every configuration it loads from
 ///   a file under a key made of the working directory and the file's *path*, never its
-///   contents, and offers no public way to clear that cache. A config edited on disk
-///   would keep its first settings. So the root config is read from disk on every lint
-///   and built from its contents.
+///   contents. The lint clears those caches before and after it runs
+///   (`SwiftLintInProcessActor.lint`). The root config is still read from disk and built
+///   from its contents where it can be, so that it is checked first.
 /// - A process that ends is the app. SwiftLint ends the process for a config whose
 ///   `swiftlint_version` doesn't match, and for an invalid config it loads from a file —
 ///   a nested config, or one in a `parent_config`/`child_config` chain. Every config the
 ///   lint will load is checked here first, so those become errors instead.
-///
-/// Nested configs, and configs that use `parent_config`/`child_config`, still go through
-/// SwiftLint's path-keyed caches. Rule simulation lints a mirror that moves to a new path
-/// for every rule, so it never meets a stale entry.
 enum InProcessConfiguration {
     /// The root configuration for a lint of `workspacePath`.
     ///

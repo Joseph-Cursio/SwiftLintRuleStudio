@@ -98,16 +98,16 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// Shared by every instance: a lint outlives the backend that started it.
     private static let simulationLints = InFlightLints()
 
-    /// Lints `workspacePath` the way `swiftlint lint` run in that directory would, except
-    /// where SwiftLint's path-keyed config caches would make the result stale:
+    /// Lints `workspacePath` the way `swiftlint lint` run in that directory would:
     ///
-    /// - With `configPath` — the app's workspace analysis — that config applies alone, as
-    ///   with `--config`. SwiftLint caches the root config merged with each nested config by
-    ///   path, so files beneath a nested config would keep being linted against the root
-    ///   config as it was at the first lint, hiding the app's own edits to `.swiftlint.yml`.
-    /// - Without one — rule simulation, which lints a mirror at a new path for every rule —
-    ///   the workspace's `.swiftlint.yml` and the nested configs beneath it apply, as they do
-    ///   for the subprocess backend.
+    /// - With `configPath` — the analysis of a workspace that has a `.swiftlint.yml` — that
+    ///   config applies alone, as with `--config`. (The subprocess backend applies the nested
+    ///   configs beneath it too. This began as a way round SwiftLint's caches, which kept
+    ///   nested configs as they were at the first lint; the lint now clears them.)
+    /// - Without one — rule simulation, which lints a mirror at a new path for every rule, and
+    ///   the analysis of a workspace with no `.swiftlint.yml` — the workspace's
+    ///   `.swiftlint.yml` and the nested configs beneath it apply, as they do for the
+    ///   subprocess backend.
     ///
     /// `progress` hears once the files are found, then again as each one is linted.
     static func lint(
@@ -119,6 +119,14 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         // SwiftLint looks for `.swiftlint.yml`, and stops its nested-config search, at the
         // working directory. The app's isn't the workspace, so override it for this lint.
         return try CurrentWorkingDirectory.$url.withValue(workspacePath) {
+            // SwiftLint keeps every config it loads from a file, and its answer for every folder
+            // it searches for a nested config, in process-wide caches keyed by path, never by
+            // contents. `swiftlint` exits after one lint; the app would see a config as it was at
+            // the first lint, and keep every simulated rule's entries until it quits. So the
+            // caches start empty, as in a fresh process, and nothing outlives the lint. A lint
+            // running alongside loses its entries too, and rebuilds them as it needs them.
+            Configuration.resetCache()
+            defer { Configuration.resetCache() }
             let root = try InProcessConfiguration.root(configPath: configPath, workspacePath: workspacePath)
             // A link SwiftLint's file walk follows round for ever overflows the stack, and
             // in-process that ends the app; the `swiftlint` process just dies.

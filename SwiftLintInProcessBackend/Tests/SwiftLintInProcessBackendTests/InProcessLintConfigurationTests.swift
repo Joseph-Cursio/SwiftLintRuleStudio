@@ -1,4 +1,5 @@
 import Foundation
+import SwiftLintFramework
 @testable import SwiftLintInProcessBackend
 import Testing
 
@@ -91,6 +92,78 @@ struct InProcessLintConfigurationTests {
         let files = Set(json.filter { $0["rule_id"] as? String == Self.optInRule }
             .compactMap { ($0["file"] as? String).map { URL(fileURLWithPath: $0).lastPathComponent } })
         #expect(files == ["Inner.swift"], "only the nested folder enables the rule")
+    }
+
+    // MARK: - SwiftLint's configuration caches
+
+    /// The analysis of a workspace with no `.swiftlint.yml` lints its folder without a config
+    /// path, at the same path every time, and SwiftLint caches each nested config by path.
+    @Test("Rewriting a nested config takes effect on the next lint")
+    func rereadsNestedConfig() async throws {
+        let workspace = try makeWorkspace(config: nil)
+        let nested = workspace.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try Self.source.write(to: nested.appendingPathComponent("Inner.swift"), atomically: true, encoding: .utf8)
+        try writeConfig("opt_in_rules:\n  - \(Self.optInRule)\n", in: nested)
+        #expect(try await ruleIDs(configPath: nil, workspace: workspace).contains(Self.optInRule))
+
+        try writeConfig("disabled_rules:\n  - trailing_newline\n", in: nested)
+        #expect(try await !ruleIDs(configPath: nil, workspace: workspace).contains(Self.optInRule))
+    }
+
+    /// SwiftLint also remembers, by path, each folder it found no nested config for.
+    @Test("A nested config added after a lint applies on the next one")
+    func seesAddedNestedConfig() async throws {
+        let workspace = try makeWorkspace(config: nil)
+        let nested = workspace.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try Self.source.write(to: nested.appendingPathComponent("Inner.swift"), atomically: true, encoding: .utf8)
+        #expect(try await !ruleIDs(configPath: nil, workspace: workspace).contains(Self.optInRule))
+
+        try writeConfig("opt_in_rules:\n  - \(Self.optInRule)\n", in: nested)
+        #expect(try await ruleIDs(configPath: nil, workspace: workspace).contains(Self.optInRule))
+    }
+
+    /// A config that names a `parent_config` is loaded by SwiftLint's file loader, which caches
+    /// the result by path.
+    @Test("Rewriting a parent config takes effect on the next lint", arguments: [true, false])
+    func rereadsParentConfig(explicitConfig: Bool) async throws {
+        let workspace = try makeWorkspace(config: "parent_config: base.yml\n")
+        let parent = workspace.appendingPathComponent("base.yml")
+        try "opt_in_rules:\n  - \(Self.optInRule)\n".write(to: parent, atomically: true, encoding: .utf8)
+        let configPath = explicitConfig ? workspace.appendingPathComponent(".swiftlint.yml") : nil
+        #expect(try await ruleIDs(configPath: configPath, workspace: workspace).contains(Self.optInRule))
+
+        try "disabled_rules:\n  - trailing_newline\n".write(to: parent, atomically: true, encoding: .utf8)
+        #expect(try await !ruleIDs(configPath: configPath, workspace: workspace).contains(Self.optInRule))
+    }
+
+    /// A lint of the same folder can still be running — an analysis superseded by a newer one
+    /// can't be stopped — and SwiftLint keeps what it read in caches shared by every lint. Here
+    /// the configs it would have read are put in those caches by hand, as SwiftLint would.
+    @Test("A config another lint read before an edit isn't used after it", arguments: [true, false])
+    func ignoresWhatAnotherLintCached(nested: Bool) async throws {
+        let workspace = try makeWorkspace(config: nested ? nil : "parent_config: base.yml\n")
+        let edited: URL
+        if nested {
+            let folder = workspace.appendingPathComponent("Nested", isDirectory: true)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try Self.source.write(to: folder.appendingPathComponent("Inner.swift"), atomically: true, encoding: .utf8)
+            edited = folder.appendingPathComponent(".swiftlint.yml")
+        } else {
+            edited = workspace.appendingPathComponent("base.yml")
+        }
+        try "opt_in_rules:\n  - \(Self.optInRule)\n".write(to: edited, atomically: true, encoding: .utf8)
+        SwiftLintInProcessActor.prepare()
+        try CurrentWorkingDirectory.$url.withValue(workspace) {
+            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            for file in root.lintableFiles(inPath: workspace, forceExclude: false, excludeByPrefix: false) {
+                _ = root.configuration(for: file)
+            }
+        }
+
+        try "disabled_rules:\n  - trailing_newline\n".write(to: edited, atomically: true, encoding: .utf8)
+        #expect(try await !ruleIDs(configPath: nil, workspace: workspace).contains(Self.optInRule))
     }
 
     // MARK: - Configs SwiftLint would end the process for

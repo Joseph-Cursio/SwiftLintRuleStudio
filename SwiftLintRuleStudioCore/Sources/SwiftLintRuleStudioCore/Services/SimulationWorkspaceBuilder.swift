@@ -105,9 +105,10 @@ final class SimulationWorkspace {
     ///
     /// Each call also moves the mirror to a new path. The sandboxed edition runs
     /// SwiftLint in-process, where SwiftLint caches every config it loads from a file
-    /// by path, not contents, and offers no way to clear that cache. Linting the
-    /// same paths again would measure rule B with the nested configs written for
-    /// rule A. A rename is cheap and keeps the hardlinks.
+    /// by path, not contents. Its lint clears those caches when it starts and ends, so
+    /// this is a second line of defence: should two lints of the mirror ever overlap,
+    /// rule B's still couldn't read the configs rule A's left there. A rename is cheap
+    /// and keeps the hardlinks.
     func applyRule(
         _ ruleId: String,
         isOptIn: Bool,
