@@ -50,7 +50,9 @@ extension SimulationWorkspace {
         guard !entry.isRootConfiguration, let only = entry.original.onlyRules, !only.isEmpty else {
             return false
         }
-        let names = Set([ruleId] + ConfigRuleEnabler.aliases(of: ruleId))
-        return names.isDisjoint(with: only + (entry.original.analyzerRules ?? []))
+        let rule = SwiftLintDeprecations.currentName(of: ruleId)
+        return !(only + (entry.original.analyzerRules ?? [])).contains {
+            SwiftLintDeprecations.currentName(of: $0) == rule
+        }
     }
 }

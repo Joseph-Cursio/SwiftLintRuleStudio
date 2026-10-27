@@ -136,4 +136,18 @@ struct SimulationWorkspaceOnlyRuleTests {
 
         #expect(shadow.onlyRule(for: "force_cast") == "force_cast")
     }
+
+    @Test("a nested only_rules keeps a rule off only when it names the rule by none of its names")
+    func keepsOffReadsAliases() throws {
+        let (shadow, workspace) = try makeShadow([
+            "Sub/.swiftlint.yml": "only_rules:\n  - variable_name\n",
+            "Other/.swiftlint.yml": "only_rules:\n  - line_length\n"
+        ])
+        defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
+        let byAlias = try #require(shadow.configs.first { $0.relativePath.hasPrefix("Sub/") })
+        let without = try #require(shadow.configs.first { $0.relativePath.hasPrefix("Other/") })
+
+        #expect(!shadow.keepsOff("identifier_name", byAlias))
+        #expect(shadow.keepsOff("identifier_name", without))
+    }
 }
