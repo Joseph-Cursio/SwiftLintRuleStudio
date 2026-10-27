@@ -102,7 +102,7 @@ struct SimulationWorkspaceBuilderTests {
         #expect(nestedConfig.disabledRules == ["force_cast"])
     }
 
-    @Test("leaves a nested only_rules whitelist as it is")
+    @Test("keeps the rule off beneath a nested only_rules whitelist that leaves it out")
     func appendsRuleToNestedOnlyRules() throws {
         let workspaceRoot = try makeTempWorkspace()
         defer { try? FileManager.default.removeItem(at: workspaceRoot) }
@@ -116,9 +116,12 @@ struct SimulationWorkspaceBuilderTests {
 
         try shadow.applyRule("force_cast", isOptIn: false, isAnalyzer: false, parameterOverrides: nil)
 
-        // Enable doesn't touch it, so beneath it the rule stays off.
+        // Enable doesn't touch it, so beneath it the rule stays off. The rule is linted alone,
+        // which overrides a nested only_rules but not a nested disabled_rules, so that is how
+        // the mirror says it.
         let nestedConfig = try loadConfig(at: shadow.root.appendingPathComponent("Sub/.swiftlint.yml"))
-        #expect(nestedConfig.onlyRules == ["line_length"])
+        #expect(nestedConfig.onlyRules == nil)
+        #expect(nestedConfig.disabledRules == ["force_cast"])
     }
 
     @Test("an opt-in rule goes in only_rules alone when there is one, which SwiftLint requires")

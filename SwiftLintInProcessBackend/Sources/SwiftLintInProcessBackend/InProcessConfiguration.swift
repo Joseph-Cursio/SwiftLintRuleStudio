@@ -55,18 +55,29 @@ enum InProcessConfiguration {
     ///   when there is none. Nested configs apply through `configuration(for:)`, after
     ///   ``checkNestedConfigs(for:root:fileGraph:)``. Call this with `URL.cwd` overridden to
     ///   `workspacePath`, which is where SwiftLint stops its nested-config search.
+    ///
+    /// `onlyRule` turns every rule off but that one, as `swiftlint lint --only-rule` does: in the
+    /// root configuration and the configs it pulls in, whatever they list. Nested configs merged
+    /// in later are read as they are, so one that disables the rule still disables it beneath it.
     static func root(
         configPath: URL?,
-        workspacePath: URL
+        workspacePath: URL,
+        onlyRule: String? = nil
     ) throws -> (configuration: Configuration, fileGraph: Set<String>) {
+        let onlyRule = onlyRule.map { [$0] } ?? []
         let file = configPath ?? workspacePath.appendingPathComponent(Configuration.defaultFileName)
         guard FileManager.default.fileExists(atPath: file.path) else {
-            return (try Configuration(dict: [:], location: workspacePath), [])
+            return (try Configuration(dict: [:], location: workspacePath, onlyRule: onlyRule), [])
         }
 
         let dict = try checkedDictionary(at: file)
         let configuration = try checkedConfiguration(dict, at: file)
-        guard dict.referencesOtherConfigs else { return (configuration, []) }
+        guard dict.referencesOtherConfigs else {
+            // Checked as written first, so a config SwiftLint rejects fails whichever rules run.
+            guard !onlyRule.isEmpty else { return (configuration, []) }
+            let folder = file.deletingLastPathComponent()
+            return (try Configuration(dict: dict, location: folder, onlyRule: onlyRule), [])
+        }
 
         // Only SwiftLint's file loader follows parent/child references. Check the chain
         // first; if it still fails to load, fall back to the defaults with a printed warning,
@@ -79,7 +90,11 @@ enum InProcessConfiguration {
         // file graph, and its search stops at a config of the chain where the nested-config
         // check goes on: that check may then read more configs than SwiftLint loads, never fewer.
         return (
-            Configuration(configurationFiles: configPath.map { [$0] } ?? [], useDefaultConfigOnFailure: true),
+            Configuration(
+                configurationFiles: configPath.map { [$0] } ?? [],
+                onlyRule: onlyRule,
+                useDefaultConfigOnFailure: true
+            ),
             fileGraph
         )
     }

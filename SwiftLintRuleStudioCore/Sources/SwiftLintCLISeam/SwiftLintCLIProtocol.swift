@@ -116,7 +116,11 @@ public protocol SwiftLintCLIProtocol: Sendable {
     /// Apart from analysis because a simulation lints a fresh path for every rule: a cache
     /// written for it is never read again, and an audit cancelled midway should stop the lint
     /// it is waiting on rather than see it through.
-    func executeSimulationLintCommand(workspacePath: URL) async throws -> Data
+    ///
+    /// - Parameter onlyRule: The one rule to run, as `swiftlint lint --only-rule` does, or nil
+    ///   for every rule the configs enable. The configs still decide where the rule is off
+    ///   and how it is configured; a simulation that measures one rule needs no others.
+    func executeSimulationLintCommand(workspacePath: URL, onlyRule: String?) async throws -> Data
 
     /// Returns once no lint the backend stopped waiting on — because its caller was cancelled —
     /// is still reading `workspacePath`, so the mirror there can be removed safely.
@@ -134,8 +138,9 @@ public extension SwiftLintCLIProtocol {
         try await executeLintCommand(configPath: configPath, workspacePath: workspacePath)
     }
 
-    /// A backend with nothing to set apart for a simulation lints it like analysis.
-    func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
+    /// A backend with nothing to set apart for a simulation lints it like analysis, every rule
+    /// the configs enable.
+    func executeSimulationLintCommand(workspacePath: URL, onlyRule _: String?) async throws -> Data {
         try await executeLintCommand(configPath: nil, workspacePath: workspacePath)
     }
 

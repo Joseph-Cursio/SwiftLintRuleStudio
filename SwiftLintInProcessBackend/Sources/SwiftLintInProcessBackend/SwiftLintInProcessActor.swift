@@ -99,10 +99,11 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// Lints a rule simulation's mirror, as ``executeLintCommand(configPath:workspacePath:)``
     /// does with no config path — except that a cancelled caller stops waiting at once. The lint
     /// can't be interrupted, so it runs on and its result is discarded; see ``InFlightLints``.
-    public func executeSimulationLintCommand(workspacePath: URL) async throws -> Data {
+    /// With `onlyRule`, that rule runs alone, as with `swiftlint lint --only-rule`.
+    public func executeSimulationLintCommand(workspacePath: URL, onlyRule: String?) async throws -> Data {
         try await Self.simulationLints.run(at: workspacePath) { [securityScopes] in
             try securityScopes.keepingOpen {
-                try Self.lint(configPath: nil, workspacePath: workspacePath)
+                try Self.lint(configPath: nil, workspacePath: workspacePath, onlyRule: onlyRule)
             }
         }
     }
@@ -126,10 +127,12 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
     /// Either way the root config's `strict`, `lenient` and `baseline` apply to every file, and
     /// a nested config's don't, as in `swiftlint lint` (see ``ReportFilter``).
     ///
-    /// `progress` hears once the files are found, then again as each one is linted.
+    /// `onlyRule` runs that rule alone, as `--only-rule` does. `progress` hears once the files
+    /// are found, then again as each one is linted.
     static func lint(
         configPath: URL?,
         workspacePath: URL,
+        onlyRule: String? = nil,
         progress: LintProgressHandler = { _ in }
     ) throws -> Data {
         prepare()
@@ -137,7 +140,11 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         // working directory. The app's isn't the workspace, so override it for this lint.
         return try CurrentWorkingDirectory.$url.withValue(workspacePath) {
             let (root, fileGraph) = try withConfigurationCaches {
-                try InProcessConfiguration.root(configPath: configPath, workspacePath: workspacePath)
+                try InProcessConfiguration.root(
+                    configPath: configPath,
+                    workspacePath: workspacePath,
+                    onlyRule: onlyRule
+                )
             }
             // `swiftlint lint` reads the baseline before it walks the files.
             let report = try ReportFilter(root: root)

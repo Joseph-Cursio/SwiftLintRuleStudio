@@ -48,7 +48,10 @@ public extension SwiftLintCLIActor {
     /// The arguments for linting a rule simulation's mirror: as `.effective` mode, with no
     /// cache. Each rule lints a fresh path, and SwiftLint keys its cache by the root folder, so a
     /// cache written there is never read again — while an audit writes one per config per rule.
-    nonisolated static func buildSimulationLintArguments(workspacePath: URL) -> [String] {
-        ["lint", "--no-cache", "--reporter", "json", workspacePath.path]
+    /// With `onlyRule`, SwiftLint runs that rule alone (`--only-rule`).
+    nonisolated static func buildSimulationLintArguments(workspacePath: URL, onlyRule: String?) -> [String] {
+        ["lint", "--no-cache", "--reporter", "json"]
+            + (onlyRule.map { ["--only-rule", $0] } ?? [])
+            + [workspacePath.path]
     }
 }
