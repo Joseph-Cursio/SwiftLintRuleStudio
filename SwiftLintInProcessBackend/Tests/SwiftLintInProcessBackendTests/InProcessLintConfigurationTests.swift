@@ -169,7 +169,7 @@ struct InProcessLintConfigurationTests {
         try "opt_in_rules:\n  - \(Self.optInRule)\n".write(to: edited, atomically: true, encoding: .utf8)
         SwiftLintInProcessActor.prepare()
         try CurrentWorkingDirectory.$url.withValue(workspace) {
-            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace).configuration
             for file in root.lintableFiles(inPath: workspace, forceExclude: false, excludeByPrefix: false) {
                 _ = root.configuration(for: file)
             }

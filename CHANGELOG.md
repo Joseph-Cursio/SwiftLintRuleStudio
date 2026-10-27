@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `${PWD}` in `included`/`excluded` now refers to the workspace in both analysis and simulation lints
 - On a case-sensitive volume, files whose names differ only in case are no longer merged in the simulation's copy
 - Cancelling an audit, closing the workspace or leaving the audit stops the SwiftLint run in progress (SIGTERM, then SIGKILL) and removes its temporary copy; abandoned copies from a crash are cleaned up after a day, and a copy still in use is never removed
+- The sandboxed Explorer edition no longer quits on a nested `.swiftlint.yml` SwiftLint can't use in three places its check used to miss: above a config the workspace's own pulls in with `child_config`, beside an `included` folder that is a link, and above a workspace opened in `/tmp` or `/var`. The analysis or Rule Audit fails with the reason instead, as for other nested configs. A config beside a link's target, which SwiftLint never reads, no longer fails them
 
 ---
 

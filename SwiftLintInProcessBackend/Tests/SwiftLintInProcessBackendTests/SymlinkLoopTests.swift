@@ -154,6 +154,7 @@ struct SymlinkLoopTests {
     private func check(_ workspace: LoopWorkspace) throws {
         SwiftLintInProcessActor.prepare()
         let configuration = try InProcessConfiguration.root(configPath: workspace.config, workspacePath: workspace.root)
+            .configuration
         try SymlinkLoopCheck.check(configuration, workspacePath: workspace.root)
     }
 }

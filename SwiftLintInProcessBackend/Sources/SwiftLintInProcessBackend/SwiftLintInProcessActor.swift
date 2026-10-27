@@ -121,7 +121,7 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         // SwiftLint looks for `.swiftlint.yml`, and stops its nested-config search, at the
         // working directory. The app's isn't the workspace, so override it for this lint.
         return try CurrentWorkingDirectory.$url.withValue(workspacePath) {
-            let root = try withConfigurationCaches {
+            let (root, fileGraph) = try withConfigurationCaches {
                 try InProcessConfiguration.root(configPath: configPath, workspacePath: workspacePath)
             }
             // A link SwiftLint's file walk follows round for ever overflows the stack, and
@@ -144,10 +144,7 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
             }
             let configurations: [Configuration]
             if configPath == nil {
-                try InProcessConfiguration.checkNestedConfigs(
-                    for: files.compactMap(\.path),
-                    workspacePath: workspacePath
-                )
+                try InProcessConfiguration.checkNestedConfigs(for: files, root: root, fileGraph: fileGraph)
                 configurations = withConfigurationCaches { files.map { root.configuration(for: $0) } }
             } else {
                 configurations = files.map { _ in root }

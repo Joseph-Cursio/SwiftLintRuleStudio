@@ -15,10 +15,6 @@ struct InProcessMirrorSafetyTests {
         /// Clean this up.
         let base: URL
         let workspace: URL
-        /// Outside the workspace, behind its link `Sources/Vendor`.
-        let shared: URL
-
-        var linkedFile: URL { shared.appendingPathComponent("V.swift") }
     }
 
     /// A workspace at `<base>/ws` with `excluded` set, so SwiftLint follows its link
@@ -44,7 +40,7 @@ struct InProcessMirrorSafetyTests {
             atPath: workspace.appendingPathComponent("Sources/Vendor").path,
             withDestinationPath: "../../shared"
         )
-        return Layout(base: base, workspace: workspace, shared: shared)
+        return Layout(base: base, workspace: workspace)
     }
 
     @Test(
@@ -56,7 +52,7 @@ struct InProcessMirrorSafetyTests {
         defer { try? FileManager.default.removeItem(at: layout.base) }
 
         #expect(throws: (any Error).self) {
-            try InProcessConfiguration.checkNestedConfigs(for: [layout.linkedFile], workspacePath: layout.workspace)
+            try InProcessConfiguration.checkNestedConfigs(in: layout.workspace)
         }
     }
 
@@ -70,10 +66,7 @@ struct InProcessMirrorSafetyTests {
 
         // The guard first, on its own: were it to miss this config, linting below would end the
         // test process rather than fail the test.
-        let guarded = (try? InProcessConfiguration.checkNestedConfigs(
-            for: [layout.linkedFile],
-            workspacePath: layout.workspace
-        )) == nil
+        let guarded = (try? InProcessConfiguration.checkNestedConfigs(in: layout.workspace)) == nil
         guard guarded else {
             Issue.record("the nested-config guard let a pinned outside config through; not linting")
             return

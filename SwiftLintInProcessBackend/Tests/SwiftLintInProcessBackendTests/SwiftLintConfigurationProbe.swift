@@ -86,7 +86,7 @@ enum SwiftLintConfigurationProbe {
 
         let configuration: Configuration
         do {
-            configuration = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            configuration = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace).configuration
         } catch let InProcessConfigurationError.unreadable(_, reason) {
             return .rejected(reason: reason)
         }
