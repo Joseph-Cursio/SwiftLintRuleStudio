@@ -63,6 +63,36 @@ struct InProcessImpactSimulationTests {
         #expect(counts["force_cast"] == 1, "a rule the nested config disables stays off there")
     }
 
+    /// The mirror gets a copy of the workspace's baseline, and SwiftLint filters with it — which
+    /// in-process it didn't, so every baselined violation counted against its rule.
+    @Test("A batch audit leaves out the violations the baseline holds, as Studio's does")
+    func batchAppliesBaseline() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("InProcessImpactSimulationTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        // A baseline of today's violations, as a team would keep one: force_cast's, on by
+        // default, but none of empty_count's, which is opt-in.
+        try Self.source.write(to: root.appendingPathComponent("Old.swift"), atomically: true, encoding: .utf8)
+        try BaselineWriter.write(of: root, to: root.appendingPathComponent("baseline.json"))
+        try Self.source.write(to: root.appendingPathComponent("New.swift"), atomically: true, encoding: .utf8)
+        try "disabled_rules:\n  - force_cast\nbaseline: baseline.json\n"
+            .write(to: root.appendingPathComponent(".swiftlint.yml"), atomically: true, encoding: .utf8)
+        let workspace = Workspace(path: root)
+
+        let batch = try await ImpactSimulator(swiftLintCLI: SwiftLintInProcessActor()).simulateRules(
+            ruleIds: ["force_cast", "empty_count"],
+            workspace: workspace,
+            baseConfigPath: workspace.configPath,
+            classification: RuleClassification(optInRuleIds: ["empty_count"])
+        )
+
+        let byRule = Dictionary(uniqueKeysWithValues: batch.results.map { ($0.ruleId, $0) })
+        #expect(byRule["force_cast"]?.violationCount == 1, "Old.swift's is in the baseline; New.swift's isn't")
+        #expect(byRule["force_cast"]?.affectedFiles == ["New.swift"])
+        #expect(byRule["empty_count"]?.violationCount == 2, "the baseline holds none of these")
+    }
+
     /// Enabling an opt-in rule used to add it to `opt_in_rules` beside an existing
     /// `only_rules`, which SwiftLint rejects. In-process, SwiftLint rejects a nested config
     /// by ending the process — the app. Enable now leaves nested configs alone, and so does

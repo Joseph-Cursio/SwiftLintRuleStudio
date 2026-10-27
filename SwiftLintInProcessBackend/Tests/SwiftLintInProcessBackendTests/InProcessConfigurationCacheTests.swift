@@ -8,9 +8,9 @@ import Testing
 /// whatever one lint left there would stay until the app quits.
 ///
 /// The caches are global and every lint clears them, including the lints of tests running
-/// alongside; nothing here relies on an entry staying put. For the same reason this can't
-/// tell a lint's clearing at its end from the clearing at the next lint's start: it pins that
-/// the caches don't keep what a lint put there.
+/// alongside; nothing here relies on an entry staying put without holding the caches, as a lint
+/// does. For the same reason this can't tell a lint's clearing at its end from the clearing at
+/// the next lint's start: it pins that the caches don't keep what a lint put there.
 struct InProcessConfigurationCacheTests {
     private static let source = "let values: [Int] = []\nlet isEmpty = values.count == 0\n"
 
@@ -62,15 +62,14 @@ struct InProcessConfigurationCacheTests {
             let nested = try #require(folders.first { $0.lastPathComponent == "Nested" })
             #expect(Configuration.getCached(forIdentifier: "\(URL.cwd) - \([configFile(in: nested)])") == nil)
 
-            // The keys are SwiftLint's: asking it about a file caches its answer under them. A test
-            // alongside can clear the caches at any moment, hence the retries.
+            // The keys are SwiftLint's: asking it about a file caches its answer under them. Asked
+            // with the caches held, as a lint holds them, so no lint alongside clears them between.
             let inner = try #require(files.first { $0.path?.lastPathComponent == "Inner.swift" })
-            let cached = (0..<5).contains { _ in
+            let cached = SwiftLintInProcessActor.withConfigurationCaches {
                 _ = root.configuration(for: inner)
                 return Configuration.getCached(forIdentifier: key(nested)) != nil
             }
             #expect(cached)
-            Configuration.resetCache()
         }
     }
 
