@@ -37,54 +37,83 @@ enum InProcessConfigurationError: LocalizedError {
 ///   a nested config, or one in a `parent_config`/`child_config` chain. Every config the
 ///   lint will load is checked here first, so those become errors instead.
 enum InProcessConfiguration {
-    /// The root configuration for a lint of `workspacePath`.
+    /// The root configuration for a lint of `workspacePath`, and its file graph: the config
+    /// files SwiftLint's loader built it from, spelled as that loader spells them. SwiftLint's
+    /// nested-config search passes over these. They are the root config and its
+    /// `parent_config`/`child_config` chain when it names one. Otherwise the root is built from
+    /// the file's contents, not by SwiftLint's loader, and its file graph is empty.
     ///
     /// - `configPath` given: that file alone, like `swiftlint --config`. The caller should
     ///   not apply nested configs.
     /// - `configPath` nil: the workspace's own `.swiftlint.yml`, or SwiftLint's defaults
     ///   when there is none. Nested configs apply through `configuration(for:)`, after
-    ///   ``checkNestedConfigs(for:workspacePath:)``. Call this with `URL.cwd` overridden to
+    ///   ``checkNestedConfigs(for:root:fileGraph:)``. Call this with `URL.cwd` overridden to
     ///   `workspacePath`, which is where SwiftLint stops its nested-config search.
-    static func root(configPath: URL?, workspacePath: URL) throws -> Configuration {
+    static func root(
+        configPath: URL?,
+        workspacePath: URL
+    ) throws -> (configuration: Configuration, fileGraph: Set<String>) {
         let file = configPath ?? workspacePath.appendingPathComponent(Configuration.defaultFileName)
         guard FileManager.default.fileExists(atPath: file.path) else {
-            return try Configuration(dict: [:], location: workspacePath)
+            return (try Configuration(dict: [:], location: workspacePath), [])
         }
 
         let dict = try checkedDictionary(at: file)
         let configuration = try checkedConfiguration(dict, at: file)
-        guard dict.referencesOtherConfigs else { return configuration }
+        guard dict.referencesOtherConfigs else { return (configuration, []) }
 
         // Only SwiftLint's file loader follows parent/child references. Check the chain
         // first; if it still fails to load, fall back to the defaults with a printed warning,
         // as the CLI does for a config it discovers, rather than ending the app.
-        var visited: Set<URL> = [file.standardizedFileURL]
-        try checkReferencedConfigs(of: dict, at: file, visited: &visited)
-        return Configuration(configurationFiles: configPath.map { [$0] } ?? [], useDefaultConfigOnFailure: true)
+        let loaded = configPath ?? Configuration.defaultFileName.url()
+        let rootPath = graphPath(of: loaded.filepath, relativeTo: URL.cwd.filepath)
+        var fileGraph: Set<String> = [rootPath]
+        try checkReferencedConfigs(of: dict, at: rootPath, fileGraph: &fileGraph)
+        // Where SwiftLint can't build the chain (a cycle, say), it falls back with an empty
+        // file graph, and its search stops at a config of the chain where the nested-config
+        // check goes on: that check may then read more configs than SwiftLint loads, never fewer.
+        return (
+            Configuration(configurationFiles: configPath.map { [$0] } ?? [], useDefaultConfigOnFailure: true),
+            fileGraph
+        )
     }
 
-    /// Checks the nested config SwiftLint will load for each of `files`: the nearest
-    /// `.swiftlint.yml` from the file's folder up — to the workspace root, exclusive, for a
-    /// file inside it, and to `/` for one outside it, which is how far SwiftLint looks. A file
-    /// outside comes from a link; in a rule simulation, from a mirrored folder beside the
-    /// workspace, whose configs are mirrored too. SwiftLint loads these in a way that ends the
-    /// process on any error.
-    static func checkNestedConfigs(for files: [URL], workspacePath: URL) throws {
-        let root = workspacePath.resolvingSymlinksInPath().standardizedFileURL
-        var checked: Set<URL> = []
-        let directories = Set(files.map { $0.deletingLastPathComponent().resolvingSymlinksInPath() })
-        for directory in directories {
-            var current = directory.standardizedFileURL
-            while current.pathComponents != root.pathComponents {
-                let candidate = current.appendingPathComponent(Configuration.defaultFileName)
-                if FileManager.default.fileExists(atPath: candidate.path) {
-                    if checked.insert(candidate).inserted {
-                        _ = try checkedConfiguration(checkedDictionary(at: candidate), at: candidate)
-                    }
+    /// Checks the nested configs SwiftLint will load for `files`, retracing its search in
+    /// `configuration(for:)` step by step. From each file's folder, spelled as SwiftLint's file
+    /// walk spelled it, the search goes up one folder at a time:
+    ///
+    /// - It stops at `root`'s root directory, the workspace.
+    /// - It passes over a `.swiftlint.yml` in `fileGraph`; `root(configPath:workspacePath:)`
+    ///   has checked those.
+    /// - It loads the first other `.swiftlint.yml` it meets, and stops.
+    /// - Otherwise it goes on up to `/`.
+    ///
+    /// Since the folders are spelled as the walk spelled them, an `included` folder that is a
+    /// link is searched through the link, not its target. In a workspace under `/private`, the
+    /// walk can drop that prefix, so the search never meets the workspace and goes on above
+    /// it. SwiftLint loads these configs in a way that ends the process on any error, so each
+    /// one is checked first.
+    ///
+    /// `files` must be the ones the lint passes to `configuration(for:)`, and `root` and
+    /// `fileGraph` must come from ``root(configPath:workspacePath:)``.
+    static func checkNestedConfigs(
+        for files: [SwiftLintFile],
+        root: Configuration,
+        fileGraph: Set<String>
+    ) throws {
+        // A folder searched once has had every config above it, up to where the search stops,
+        // checked.
+        var searched: Set<URL> = []
+        for file in files {
+            guard var directory = file.path?.deletingLastPathComponent() else { continue }
+            while directory != root.rootDirectory, searched.insert(directory).inserted {
+                let candidate = directory.appending(path: Configuration.defaultFileName, directoryHint: .notDirectory)
+                if candidate.exists, !fileGraph.contains(candidate.filepath) {
+                    _ = try checkedConfiguration(checkedDictionary(at: candidate), at: candidate)
                     break
                 }
-                guard current.path != "/" else { break }
-                current = current.deletingLastPathComponent().standardizedFileURL
+                guard directory.path != "/" else { break }
+                directory = directory.deletingLastPathComponent()
             }
         }
     }
@@ -162,24 +191,34 @@ enum InProcessConfiguration {
     }
 
     /// Checks the local configs `dict` names under `parent_config`/`child_config`, and
-    /// theirs in turn. Remote ones are left to SwiftLint.
+    /// theirs in turn, adding each to `fileGraph`. `path` is where `dict` was read from, as
+    /// SwiftLint's file graph spells it. Remote ones are left to SwiftLint.
     private static func checkReferencedConfigs(
         of dict: [String: Any],
-        at file: URL,
-        visited: inout Set<URL>
+        at path: String,
+        fileGraph: inout Set<String>
     ) throws {
         for key in ["parent_config", "child_config"] {
             // SwiftLint's own test for a remote config; `http-base.yml` is a local file.
             guard let reference = dict[key] as? String,
                   !reference.hasPrefix("http://"), !reference.hasPrefix("https://") else { continue }
-            let referenced = URL(fileURLWithPath: reference, relativeTo: file.deletingLastPathComponent())
-                .standardizedFileURL
-            guard visited.insert(referenced).inserted,
-                  FileManager.default.fileExists(atPath: referenced.path) else { continue }
+            // The folder as SwiftLint's `Vertex.rootDirectory` takes it.
+            // swiftlint:disable:next legacy_objc_type
+            let folder = (path as NSString).deletingLastPathComponent
+            let referencedPath = graphPath(of: reference, relativeTo: folder)
+            guard fileGraph.insert(referencedPath).inserted,
+                  FileManager.default.fileExists(atPath: referencedPath) else { continue }
+            let referenced = URL(fileURLWithPath: referencedPath)
             let referencedDict = try checkedDictionary(at: referenced)
             _ = try checkedConfiguration(referencedDict, at: referenced)
-            try checkReferencedConfigs(of: referencedDict, at: referenced, visited: &visited)
+            try checkReferencedConfigs(of: referencedDict, at: referencedPath, fileGraph: &fileGraph)
         }
+    }
+
+    /// `reference` as SwiftLint's file graph spells a config it names from `folder`
+    /// (`Configuration.FileGraph.Vertex`), which is how its nested-config search compares them.
+    private static func graphPath(of reference: String, relativeTo folder: String) -> String {
+        reference.url(relativeTo: folder.url(directoryHint: .isDirectory), directoryHint: .notDirectory).filepath
     }
 }
 

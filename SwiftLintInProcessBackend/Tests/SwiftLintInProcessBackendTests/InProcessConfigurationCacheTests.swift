@@ -40,7 +40,7 @@ struct InProcessConfigurationCacheTests {
         #expect(violations.count { $0["rule_id"] as? String == "empty_count" } == 2)
 
         try CurrentWorkingDirectory.$url.withValue(workspace) {
-            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            let root = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace).configuration
             let files = root.lintableFiles(inPath: workspace, forceExclude: false, excludeByPrefix: false)
             // SwiftLint's keys: the lint's root folder, then each folder its search passes, as the
             // file's path spells it; and the nested config, under the working directory.
