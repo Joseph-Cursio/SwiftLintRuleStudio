@@ -76,6 +76,11 @@ public final class HeldSecurityScopes: @unchecked Sendable {
         lock.withLock { scopes.count }
     }
 
+    /// Whether `hold`'s scope is still open, released or not.
+    func isOpen(_ hold: Hold) -> Bool {
+        lock.withLock { scopes[hold] != nil }
+    }
+
     /// Ends the scope under the lock, so that a lint starting meanwhile either keeps it open
     /// or finds it already closed — never reads through it as it ends.
     private func endIfUnused(_ hold: Hold) {
