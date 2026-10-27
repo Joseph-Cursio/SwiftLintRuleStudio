@@ -173,11 +173,15 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
             let linters = zip(files, configurations)
                 .map { Linter(file: $0, configuration: $1) }
                 .map { $0.collect(into: storage) }
-            var violations: [StyleViolation] = []
-            for (index, linter) in linters.enumerated() {
-                violations += try report(linter.styleViolations(using: storage))
-                progress(LintProgress(filesLinted: index + 1, totalFiles: linters.count))
-            }
+            // Each file's violations go through the root config's settings on their own, once
+            // every file is linted: a baseline matches one file's at a time.
+            let violationsByFile = FileParallelLint.styleViolations(
+                of: linters,
+                using: storage,
+                workspacePath: workspacePath,
+                progress: progress
+            )
+            let violations = try violationsByFile.flatMap { try report($0) }
             return Data(jsonReport(for: violations).utf8)
         }
     }
