@@ -86,7 +86,7 @@ public class WorkspaceManager {
     private let securityScopes: HeldSecurityScopes
     /// The current workspace's security scope, if one is held open (so it can be
     /// released when the workspace changes or closes).
-    private var activeScope: HeldSecurityScopes.Hold?
+    private(set) var activeScope: HeldSecurityScopes.Hold?
     /// The clock that stamps `Workspace.lastOpened`.
     private let now: DateProvider
 
@@ -110,30 +110,32 @@ public class WorkspaceManager {
     // MARK: - Security-Scoped Access
 
     /// Regain (from a stored bookmark) or establish (for a freshly picked folder)
-    /// sandbox access to the folder at `url`. A no-op when no bookmark store is
-    /// configured (non-sandboxed target).
+    /// sandbox access to the folder at `url`, and return its held scope. `nil` when no
+    /// bookmark store is configured (non-sandboxed target).
+    ///
+    /// Leaves the current workspace's scope alone: the caller swaps the new scope in
+    /// once the folder has validated, or releases it if it hasn't.
     ///
     /// The workspace's *identity* stays `url` (the caller keeps using it): a
     /// resolved bookmark may report a symlink-canonicalized path
     /// (`/var` → `/private/var`), but the security scope is granted to the folder
     /// itself, so reads via the original path succeed once the scope is held.
-    private func beginAccess(to url: URL) {
-        guard let bookmarkStore else { return }
-        endAccess()
+    private func beginAccess(to url: URL) -> HeldSecurityScopes.Hold? {
+        guard let bookmarkStore else { return nil }
         if let resolved = bookmarkStore.resolveURL(forPath: url.path) {
-            holdScope(of: resolved)
-            return
+            return holdScope(of: resolved)
         }
         // Freshly granted URL (e.g. from NSOpenPanel): hold the scope and persist
         // a bookmark, keyed by this path, so the folder can be reopened next launch.
-        holdScope(of: url)
+        let scope = holdScope(of: url)
         bookmarkStore.saveBookmark(for: url)
+        return scope
     }
 
-    /// Start the security scope `scopedURL` carries and hold it until `endAccess()`.
-    private func holdScope(of scopedURL: URL) {
+    /// Start the security scope `scopedURL` carries and hold it until it's released.
+    private func holdScope(of scopedURL: URL) -> HeldSecurityScopes.Hold {
         _ = scopedURL.startAccessingSecurityScopedResource()
-        activeScope = securityScopes.hold { scopedURL.stopAccessingSecurityScopedResource() }
+        return securityScopes.hold { scopedURL.stopAccessingSecurityScopedResource() }
     }
 
     /// Release the currently held security scope, if any. It ends once no lint that
@@ -150,19 +152,32 @@ public class WorkspaceManager {
     /// Open a workspace from a file URL
     public func openWorkspace(at url: URL) throws {
         // Resolve sandbox access first (regain via bookmark for a recents reopen,
-        // or persist one for a fresh pick). Identity stays `url`; the scope is held
-        // on the folder so reads via this path succeed.
-        beginAccess(to: url)
+        // or persist one for a fresh pick), because validating reads the folder.
+        // Identity stays `url`; the scope is held on the folder so reads via this
+        // path succeed.
+        let newScope = beginAccess(to: url)
 
-        // Validate that the URL is a directory
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
-              isDirectory.boolValue else {
-            throw WorkspaceError.notADirectory
+        // The current workspace keeps its scope until the new folder has validated:
+        // a folder that fails leaves `currentWorkspace` as it was, so its scope has to
+        // stay too, or every later read of it fails in the sandbox.
+        do {
+            // Validate that the URL is a directory
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory),
+                  isDirectory.boolValue else {
+                throw WorkspaceError.notADirectory
+            }
+
+            // Validate that it's a valid Swift project workspace
+            try validateSwiftWorkspace(at: url)
+        } catch {
+            if let newScope {
+                securityScopes.release(newScope)
+            }
+            throw error
         }
-
-        // Validate that it's a valid Swift project workspace
-        try validateSwiftWorkspace(at: url)
+        endAccess()
+        activeScope = newScope
 
         // Both branches stamp `lastOpened`, because both of them are an open. Only the
         // already-in-recents branch used to, which left the value nil until the second open.

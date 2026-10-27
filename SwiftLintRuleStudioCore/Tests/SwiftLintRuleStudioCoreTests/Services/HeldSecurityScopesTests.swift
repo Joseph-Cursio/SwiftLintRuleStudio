@@ -163,4 +163,35 @@ struct HeldSecurityScopesTests {
         manager.closeWorkspace()
         #expect(scopes.openCount == 0)
     }
+
+    /// A failed open leaves `currentWorkspace` as it was, so it has to leave that workspace's
+    /// scope too: once it ends, every later read of the workspace fails in the sandbox. The
+    /// folder that failed holds its scope while it's validated, and not after.
+    @Test("A folder that fails to open leaves the current workspace's scope held, and keeps none of its own")
+    @MainActor
+    func failedOpenKeepsCurrentScope() throws {
+        let workspace = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
+        let notSwiftProject = TestTempDirectory.make("not-swift")
+        let notADirectory = TestTempDirectory.make("not-a-directory")
+            .appendingPathComponent("file.txt")
+        try "test".write(to: notADirectory, atomically: true, encoding: .utf8)
+        defer {
+            WorkspaceTestHelpers.cleanupWorkspace(workspace)
+            WorkspaceTestHelpers.cleanupWorkspace(notSwiftProject)
+            WorkspaceTestHelpers.cleanupWorkspace(notADirectory.deletingLastPathComponent())
+        }
+        let scopes = HeldSecurityScopes()
+        let manager = Self.makeManager(#function, scopes: scopes)
+        try manager.openWorkspace(at: workspace)
+        let workspaceScope = try #require(manager.activeScope)
+
+        for invalid in [notSwiftProject, notADirectory] {
+            #expect(throws: WorkspaceError.self) { try manager.openWorkspace(at: invalid) }
+
+            #expect(manager.currentWorkspace?.path == workspace)
+            #expect(manager.activeScope == workspaceScope)
+            #expect(scopes.isOpen(workspaceScope))
+            #expect(scopes.openCount == 1)
+        }
+    }
 }
