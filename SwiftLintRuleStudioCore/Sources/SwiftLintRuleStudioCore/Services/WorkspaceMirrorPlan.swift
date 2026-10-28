@@ -260,7 +260,7 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
                         || (!discovery.cyclicLinks.contains(entry.url.path)
                             && !MirrorRegions.isInside(folder.path, target.path)),
                       let targetMirrorPath = regions.mirrorPath(of: target.path) else { continue }
-                let destination = Self.relative(from: mirrorPath, to: targetMirrorPath)
+                let destination = Self.linkDestination(from: mirrorPath, to: targetMirrorPath)
                 links.append(Link(path: entryMirrorPath, destination: destination))
                 linkedFolderPaths.append(targetMirrorPath)
             case .fileLink(let target):
@@ -284,7 +284,7 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             // A link in a folder the mirror holds anyway is there already.
             guard !links.contains(where: { $0.path == place }) else { continue }
             let folder = place.split(separator: "/").dropLast().joined(separator: "/")
-            links.append(Link(path: place, destination: Self.relative(from: folder, to: targetMirrorPath)))
+            links.append(Link(path: place, destination: Self.linkDestination(from: folder, to: targetMirrorPath)))
             linkedFolderPaths.append(targetMirrorPath)
         }
     }
@@ -303,7 +303,7 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
         }
         guard entry.name.hasSuffix(".swift") || target.pathExtension == "swift" else { return }
         if let targetMirrorPath = regions.mirrorPath(of: target.path), regions.isMirrored(file: target.path) {
-            let destination = Self.relative(from: folderMirrorPath, to: targetMirrorPath)
+            let destination = Self.linkDestination(from: folderMirrorPath, to: targetMirrorPath)
             links.append(Link(path: entryMirrorPath, destination: destination))
         } else {
             // The target won't be in the mirror — it isn't a `.swift` file — so mirror a copy

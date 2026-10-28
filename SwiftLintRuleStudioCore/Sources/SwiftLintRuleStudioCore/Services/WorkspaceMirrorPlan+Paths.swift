@@ -46,6 +46,13 @@ nonisolated extension WorkspaceMirrorPlan {
         return discovery
     }
 
+    /// What a link in the folder `from` to `target` points at, both relative to the mirror's
+    /// container: `target` relative to the folder, or `.` for the folder itself.
+    static func linkDestination(from folder: String, to target: String) -> String {
+        let destination = relative(from: folder, to: target)
+        return destination.isEmpty ? "." : destination
+    }
+
     /// `target` relative to the folder `from`, both relative to the mirror's container.
     static func relative(from folder: String, to target: String) -> String {
         let folderComponents = folder.split(separator: "/")

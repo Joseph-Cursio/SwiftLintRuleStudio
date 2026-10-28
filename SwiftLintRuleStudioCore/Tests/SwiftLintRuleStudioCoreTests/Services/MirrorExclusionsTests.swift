@@ -40,6 +40,43 @@ struct MirrorExclusionsTests {
         #expect(exclusions.excludes("/ws/x[y"))
     }
 
+    @Test("a * before more of the pattern matches as little as it can and never gives it back, as in fnmatch")
+    func atomicStars() {
+        let exclusions = MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"])
+
+        #expect(exclusions.excludes("/ws/A/Gen/B/Mocks"))
+        // The first star stops at the first `/`, then **/ takes all it can, up to the second Gen:
+        // `/Mocks` can't follow.
+        #expect(!exclusions.excludes("/ws/A/Gen/B/Gen/Mocks"))
+        #expect(MirrorExclusions(patterns: ["/ws/*/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/Gen/Mocks"))
+    }
+
+    @Test("a [ in brackets stands for itself, a range runs forwards only, and & ~ | in brackets match nothing")
+    func bracketSets() {
+        #expect(MirrorExclusions(patterns: ["/ws/Vendor [[]old]"]).excludes("/ws/Vendor [old]"))
+        #expect(MirrorExclusions(patterns: ["/ws/[a-c]x"]).excludes("/ws/bx"))
+        #expect(!MirrorExclusions(patterns: ["/ws/[c-a]x"]).excludes("/ws/bx"))
+        #expect(!MirrorExclusions(patterns: ["/ws/[|]x"]).excludes("/ws/|x"))
+    }
+
+    @Test("a path counts as excluded only when it matches both minding and ignoring case, as SwiftLint ignores it")
+    func bothCases() {
+        // SwiftLint's [^a], ignoring case, doesn't take A.
+        #expect(!MirrorExclusions(patterns: ["/ws/[!a]"]).excludes("/ws/A"))
+        #expect(MirrorExclusions(patterns: ["/ws/[!a]"]).excludes("/ws/B"))
+        // Ignoring case, the **/ settles on the later gen/, and /Mocks can't follow.
+        #expect(!MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/gen/Mocks"))
+        #expect(MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/xyz/Mocks"))
+    }
+
+    @Test("a pattern holding a character that takes two UTF-16 units isn't counted on: SwiftLint misreads it")
+    func multiUnitPatterns() {
+        // SwiftLint's matcher skips the `e` after the set, and reads `[G😀]n`.
+        #expect(!MirrorExclusions(patterns: ["/ws/Core/[G😀]en"]).excludes("/ws/Core/Gen"))
+        #expect(!MirrorExclusions(patterns: ["/ws/Dé/Gen"]).excludes("/ws/Dé/Gen"))
+        #expect(MirrorExclusions(patterns: ["/ws/Core/[Gx]en"]).excludes("/ws/Core/Gen"))
+    }
+
     @Test("a .swift pattern names files only, and no patterns exclude nothing")
     func swiftPatternAndNone() {
         let exclusions = MirrorExclusions(patterns: ["/ws/A.swift"])

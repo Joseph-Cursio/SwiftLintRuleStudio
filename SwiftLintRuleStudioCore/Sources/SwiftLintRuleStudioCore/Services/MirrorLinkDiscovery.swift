@@ -91,19 +91,20 @@ nonisolated struct MirrorLinkDiscovery {
         let path: String
         /// Where SwiftLint sees it, relative to the workspace.
         let seenAt: String
-        /// A link led into it.
-        let isLinkTarget: Bool
-        /// Under `/private`, SwiftLint listing the folder above skips this one for an exclusion;
-        /// see ``isKeptOut(by:toward:)``.
+        /// The link that led into it, by its path; nil for one SwiftLint lists from the folder above.
+        let link: String?
+        /// SwiftLint listing the folder above skips this one for an exclusion; see
+        /// ``isSkipped(_:through:)``.
         let isExcluded: Bool
 
+        var isLinkTarget: Bool { link != nil }
         /// How many folders below the workspace SwiftLint sees it.
         var depth: Int { seenAt.split(separator: "/").count }
     }
 
     /// Walks `folder`, which SwiftLint sees at `path` relative to the workspace.
     mutating func explore(_ folder: URL, at path: String) throws {
-        try explore(folder, at: path, isLinkTarget: false)
+        try explore(folder, at: path, through: nil)
     }
 
     /// Follows the symlink to a folder at `link`, which SwiftLint sees at `path` relative to the
@@ -114,14 +115,15 @@ nonisolated struct MirrorLinkDiscovery {
         try follow(entry, to: target, at: path)
     }
 
-    private mutating func explore(_ folder: URL, at path: String, isLinkTarget: Bool) throws {
+    /// Walks `folder`, which SwiftLint sees at `path` relative to the workspace, reached through
+    /// the link at `link` when one led into it.
+    private mutating func explore(_ folder: URL, at path: String, through link: String?) throws {
         try Task.checkCancellation()
         let current = Folder(
             path: folder.path,
             seenAt: path,
-            isLinkTarget: isLinkTarget,
-            isExcluded: isUnderPrivate && !isLinkTarget && exclusions.excludes(folder.path)
-                && Self.isMatchedAsSpelled(folder)
+            link: link,
+            isExcluded: isSkipped(folder, through: link)
         )
         let route = walking + [current]
         // Following every link, a real folder is walked once — twice at most: once where
@@ -188,7 +190,7 @@ nonisolated struct MirrorLinkDiscovery {
         if firstOutsideLink == nil, !MirrorRegions.isInside(target.path, workspaceRoot) {
             firstOutsideLink = (linkPath, target.path)
         }
-        try explore(target, at: linkPath, isLinkTarget: true)
+        try explore(target, at: linkPath, through: link.url.path)
     }
 
     /// Records the link at `linkPath` to `target`, which points back into a folder being walked,
@@ -208,7 +210,7 @@ nonisolated struct MirrorLinkDiscovery {
         if isWalked(linkPath), !isExcluded(link.url.path, target: target.path, at: linkPath) {
             throw MirrorUnsupportedSetupError(
                 reason: "SwiftLint follows the symlink at \(linkPath) back into a folder that holds it, round "
-                    + "and round until it crashes. " + loopAdvice(forLinkAt: linkPath)
+                    + "and round until it crashes. " + loopAdvice(forLink: link.url.path, at: linkPath)
             )
         }
         // A walk an `included` entry starts beyond the link begins in the folder it points
@@ -242,23 +244,40 @@ nonisolated struct MirrorLinkDiscovery {
     }
 
     /// Whether an exclusion keeps SwiftLint from walking into the link at `path` to `target`,
-    /// which it sees at `linkPath`. Under `/private` neither the link nor the folder behind it
-    /// does: SwiftLint matches those with `/private` dropped against patterns that keep it. A
-    /// folder on the way to the link may, though; see ``isKeptOut(by:toward:)``.
+    /// which it sees at `linkPath`: one naming the link, or the folder behind it by its real path,
+    /// or one keeping SwiftLint off a folder on the way (see ``isKeptOut(by:toward:)``). Under
+    /// `/private` only the last: SwiftLint matches the link and the folder behind it with
+    /// `/private` dropped against patterns that keep it.
     private func isExcluded(_ path: String, target: String, at linkPath: String) -> Bool {
-        guard isUnderPrivate else { return exclusions.excludes(path) || exclusions.excludes(target) }
+        guard isUnderPrivate else {
+            return [path, target].contains { MirrorExclusions.isMatchable($0) && exclusions.excludes($0) }
+                || isKeptOut(by: walking, toward: linkPath)
+        }
         return isKeptOut(by: walking, toward: linkPath)
     }
 
-    /// Under `/private`, whether an exclusion keeps SwiftLint off `route` before it gets to
-    /// `path`, at the end of it. SwiftLint matches each entry of a folder it lists by the path
-    /// the listing gives, the real one, which keeps `/private` as the patterns do. So it skips an
-    /// excluded folder on the way, unless that folder is where its walk starts, which it never
-    /// matches, or one a link led into, which it matches with `/private` dropped. Nor does it
-    /// skip one it matches by any path but the one here (see ``isMatchedAsSpelled(_:)``).
+    /// Whether an exclusion keeps SwiftLint off `route` before it gets to `path`, at the end of
+    /// it: it skips a folder on the way that ``isSkipped(_:through:)``, unless that folder is
+    /// where its walk starts, which it never matches.
     private func isKeptOut(by route: [Folder], toward path: String) -> Bool {
-        guard isUnderPrivate, let start = walkStartDepth(of: path) else { return false }
+        guard let start = walkStartDepth(of: path) else { return false }
         return route.contains { $0.isExcluded && $0.depth > start }
+    }
+
+    /// Whether SwiftLint, listing the folder above, skips `folder` — reached through the link at
+    /// `link`, if one led into it — for an exclusion. It matches each entry by the path it walks
+    /// the folder above by, the real one, a link by its own path and then by where it leads.
+    /// Under `/private` that path keeps `/private` as the patterns do, so SwiftLint skips a plain
+    /// folder, but neither a link nor where one leads, which it matches with `/private` dropped;
+    /// nor a folder it matches by any path but the one here (see ``isMatchedAsSpelled(_:)``).
+    /// Outside `/private`, not a path it can't read whole (see ``MirrorExclusions/isMatchable(_:)``).
+    private func isSkipped(_ folder: URL, through link: String?) -> Bool {
+        guard !isUnderPrivate else {
+            return link == nil && exclusions.excludes(folder.path) && Self.isMatchedAsSpelled(folder)
+        }
+        return [link, folder.path].compactMap(\.self).contains { path in
+            MirrorExclusions.isMatchable(path) && exclusions.excludes(path)
+        }
     }
 
     /// How deep below the workspace the walk that reaches `path` starts, or nil when that can't
@@ -287,11 +306,24 @@ nonisolated struct MirrorLinkDiscovery {
         return String(cString: real) == "/private" + path
     }
 
-    /// How to keep SwiftLint out of the looping link SwiftLint sees at `linkPath`. Under
+    /// How to keep SwiftLint out of the looping link at `link`, which SwiftLint sees at
+    /// `linkPath`. It matches the link by its real path, which may not be where it sees it. Under
     /// `/private` an exclusion naming the link doesn't (see ``isExcluded(_:target:at:)``): one
     /// naming a folder on the way to it, which SwiftLint lists from the workspace, does.
-    private func loopAdvice(forLinkAt linkPath: String) -> String {
-        guard isUnderPrivate else { return "Add it to `excluded` and SwiftLint skips it." }
+    private func loopAdvice(forLink link: String, at linkPath: String) -> String {
+        guard isUnderPrivate else {
+            guard MirrorExclusions.isMatchable(link) else {
+                return "SwiftLint can't match its path, which holds an accented letter, an emoji or a character "
+                    + "like them, against `excluded`: remove the link."
+            }
+            // SwiftLint reads an entry as a glob: a character it gives a meaning stands for itself
+            // in brackets.
+            let real = WorkspaceMirrorPlan.relative(from: workspaceRoot, to: link)
+            let entry = real.reduce(into: "") { $0 += "*?[".contains($1) ? "[\($1)]" : String($1) }
+            guard entry != linkPath else { return "Add it to `excluded` and SwiftLint skips it." }
+            let which = real == linkPath ? "its path written as a glob" : "the link's real path"
+            return "Add \(entry), \(which), to `excluded` and SwiftLint skips it."
+        }
         let skipsNoLink = "In a workspace under /tmp or /var, SwiftLint doesn't skip a symlink `excluded` names: "
         // Named as written in `excluded`, the folder must be matched by that path, not as a glob.
         let holder = walkStartDepth(of: linkPath).flatMap { start in
