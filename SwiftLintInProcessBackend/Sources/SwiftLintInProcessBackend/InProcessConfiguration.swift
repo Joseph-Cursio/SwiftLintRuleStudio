@@ -36,8 +36,8 @@ enum InProcessConfigurationError: LocalizedError {
 /// - There's no fresh process per lint. SwiftLint caches every configuration it loads from
 ///   a file under a key made of the working directory and the file's *path*, never its
 ///   contents. The lint clears those caches before and after it runs
-///   (`SwiftLintInProcessActor.lint`). The root config is still read from disk and built
-///   from its contents where it can be, so that it is checked first.
+///   (`SwiftLintInProcessActor.lint`). The root config is read from disk and checked
+///   before SwiftLint's loader builds it.
 /// - A process that ends is the app. SwiftLint ends the process for a config whose
 ///   `swiftlint_version` doesn't match, and for an invalid config it loads from a file —
 ///   a nested config, or one in a `parent_config`/`child_config` chain. Every config the
@@ -46,8 +46,8 @@ enum InProcessConfiguration {
     /// The root configuration for a lint of `workspacePath`, and its file graph: the config
     /// files SwiftLint's loader built it from, spelled as that loader spells them. SwiftLint's
     /// nested-config search passes over these. They are the root config and its
-    /// `parent_config`/`child_config` chain when it names one. Otherwise the root is built from
-    /// the file's contents, not by SwiftLint's loader, and its file graph is empty.
+    /// `parent_config`/`child_config` chain when it names one. With no config, the file graph
+    /// is empty.
     ///
     /// - `configPath` given: that file alone, like `swiftlint --config`. The caller should
     ///   not apply nested configs.
@@ -70,18 +70,16 @@ enum InProcessConfiguration {
             return (try Configuration(dict: [:], location: workspacePath, onlyRule: onlyRule), [])
         }
 
+        // Checked as written first, so a config SwiftLint rejects fails whichever rules run.
         let dict = try checkedDictionary(at: file)
-        let configuration = try checkedConfiguration(dict, at: file)
-        guard dict.referencesOtherConfigs else {
-            // Checked as written first, so a config SwiftLint rejects fails whichever rules run.
-            guard !onlyRule.isEmpty else { return (configuration, []) }
-            let folder = file.deletingLastPathComponent()
-            return (try Configuration(dict: dict, location: folder, onlyRule: onlyRule), [])
-        }
+        _ = try checkedConfiguration(dict, at: file)
 
-        // Only SwiftLint's file loader follows parent/child references. Check the chain
-        // first; if it still fails to load, fall back to the defaults with a printed warning,
-        // as the CLI does for a config it discovers, rather than ending the app.
+        // Then built by SwiftLint's file loader, as `swiftlint lint` builds it. Only the loader
+        // follows parent/child references, and only its root has a file graph for the
+        // nested-config search to pass over: in a workspace under `/private`, that search can
+        // meet the root config spelled without the prefix, and goes on above it. Check the
+        // chain first; if it still fails to load, fall back to the defaults with a printed
+        // warning, as the CLI does for a config it discovers, rather than ending the app.
         let loaded = configPath ?? Configuration.defaultFileName.url()
         let rootPath = graphPath(of: loaded.filepath, relativeTo: URL.cwd.filepath)
         var fileGraph: Set<String> = [rootPath]
@@ -263,12 +261,6 @@ enum InProcessConfiguration {
     /// (`Configuration.FileGraph.Vertex`), which is how its nested-config search compares them.
     private static func graphPath(of reference: String, relativeTo folder: String) -> String {
         reference.url(relativeTo: folder.url(directoryHint: .isDirectory), directoryHint: .notDirectory).filepath
-    }
-}
-
-private extension [String: Any] {
-    var referencesOtherConfigs: Bool {
-        self["parent_config"] != nil || self["child_config"] != nil
     }
 }
 

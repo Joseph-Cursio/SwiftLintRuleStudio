@@ -6,10 +6,23 @@ import SwiftLintFramework
 struct SymlinkLoopError: LocalizedError, Equatable {
     /// The link, relative to the workspace when it's inside it.
     let link: String
+    /// Whether naming the link in `excluded` makes SwiftLint skip it. In a workspace spelled
+    /// under `/private`, as an open panel gives one in `/tmp` or `/var`, it doesn't: SwiftLint
+    /// spells the patterns with that prefix and matches the link's path without it.
+    var excludingSkipsLink = true
 
     var errorDescription: String? {
         "SwiftLint follows the symlink at \(link) back into a folder that holds it, round and round until it "
-            + "crashes, so the lint stopped before it started. Add it to `excluded` and SwiftLint skips it."
+            + "crashes, so the lint stopped before it started. " + advice
+    }
+
+    private var advice: String {
+        guard !excludingSkipsLink else { return "Add it to `excluded` and SwiftLint skips it." }
+        let skipsNoLink = "In a workspace under /tmp or /var, SwiftLint doesn't skip a symlink `excluded` names: "
+        guard let slash = link.lastIndex(where: { $0 == "/" }), slash != link.startIndex else {
+            return skipsNoLink + "remove the link, or keep it in a folder `excluded` names."
+        }
+        return skipsNoLink + "exclude \(link[..<slash]), the folder that holds it, or remove the link."
     }
 }
 
@@ -100,7 +113,10 @@ enum SymlinkLoopCheck {
             if let start = walking.firstIndex(where: { $0.path == path }) {
                 // The way round runs through at least one link: plain subfolders only go down.
                 let culprit = walking[(start + 1)...].lazy.compactMap(\.link).first ?? link
-                throw SymlinkLoopError(link: culprit.map { relativePath(of: $0) } ?? path)
+                throw SymlinkLoopError(
+                    link: culprit.map { relativePath(of: $0) } ?? path,
+                    excludingSkipsLink: !workspacePath.path.hasPrefix("/private/")
+                )
             }
             guard walked.insert(path).inserted else { return }
             walking.append((path, link))

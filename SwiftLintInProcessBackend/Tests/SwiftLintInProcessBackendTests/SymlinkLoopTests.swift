@@ -1,16 +1,22 @@
 import Foundation
+import SwiftLintFramework
 @testable import SwiftLintInProcessBackend
 import Testing
 
 /// A workspace with `Sources/A.swift`, `App/Feature/B.swift`, and — unless `loop` is nil — a
-/// link at `loop` back to the workspace's root.
+/// link at `loop` back to the workspace's root. With `underPrivate`, it is spelled by its real
+/// path, under `/private`, as an open panel gives a folder in `/tmp` or `/var`.
 private struct LoopWorkspace {
     let root: URL
     let config: URL
 
-    init(config yaml: String, loop: String? = "Sources/loop") throws {
-        root = FileManager.default.temporaryDirectory
-            .appendingPathComponent("slintloop-\(UUID().uuidString)", isDirectory: true)
+    init(config yaml: String, loop: String? = "Sources/loop", underPrivate: Bool = false) throws {
+        var temporary = FileManager.default.temporaryDirectory
+        if underPrivate, let real = realpath(temporary.path, nil) {
+            defer { free(real) }
+            temporary = URL(fileURLWithPath: String(cString: real), isDirectory: true)
+        }
+        root = temporary.appendingPathComponent("slintloop-\(UUID().uuidString)", isDirectory: true)
         config = root.appendingPathComponent(".swiftlint.yml")
         try folder("Sources")
         try folder("App/Feature")
@@ -78,6 +84,24 @@ struct SymlinkLoopTests {
                 .executeLintCommand(configPath: workspace.config, workspacePath: workspace.root)
             let violations = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
             guard violations?.contains(where: { $0["rule_id"] as? String == "type_name" }) == true else { exit(3) }
+        }
+    }
+
+    /// Under `/private`, SwiftLint spells `excluded` with that prefix and matches a link's path
+    /// without it, so naming the link doesn't skip it: `swiftlint lint` crashes there too.
+    @Test("Under /private, a looping link that `excluded` names still fails the lint, not the app")
+    func lintRefusesExcludedLoopUnderPrivate() async {
+        await #expect(processExitsWith: .success) {
+            let workspace = try LoopWorkspace(config: "excluded:\n  - Sources/loop\n", underPrivate: true)
+            defer { workspace.remove() }
+            guard workspace.root.path.hasPrefix("/private/") else { exit(4) }
+            do {
+                _ = try await SwiftLintInProcessActor()
+                    .executeLintCommand(configPath: workspace.config, workspacePath: workspace.root)
+                exit(2)
+            } catch let error as SymlinkLoopError {
+                guard error == SymlinkLoopError(link: "Sources/loop", excludingSkipsLink: false) else { exit(3) }
+            }
         }
     }
 
@@ -151,10 +175,45 @@ struct SymlinkLoopTests {
         }
     }
 
+    @Test("Under /private, the refusal says to exclude the folder that holds the link, not the link")
+    func advisesExcludingHolderUnderPrivate() throws {
+        let workspace = try LoopWorkspace(config: "excluded:\n  - Sources/loop\n", underPrivate: true)
+        defer { workspace.remove() }
+        try #require(workspace.root.path.hasPrefix("/private/"), "the temporary directory isn't under /private")
+
+        let error = #expect(throws: SymlinkLoopError.self) {
+            try check(workspace)
+        }
+        #expect(error == SymlinkLoopError(link: "Sources/loop", excludingSkipsLink: false))
+        let advice = try #require(error?.errorDescription)
+        #expect(advice.contains("exclude Sources, the folder that holds it"))
+        #expect(!advice.contains("Add it to `excluded`"))
+    }
+
+    @Test("Under /private, excluding the folder that holds a looping link keeps SwiftLint out of it")
+    func allowsLoopInExcludedFolderUnderPrivate() throws {
+        let workspace = try LoopWorkspace(config: "excluded:\n  - Sources\n", underPrivate: true)
+        defer { workspace.remove() }
+        try #require(workspace.root.path.hasPrefix("/private/"), "the temporary directory isn't under /private")
+
+        try check(workspace)
+    }
+
+    @Test("A looping link at the workspace's top can only be removed or moved")
+    func advisesRemovingTopLevelLink() {
+        let advice = SymlinkLoopError(link: "loop", excludingSkipsLink: false).errorDescription ?? ""
+        #expect(advice.contains("remove the link, or keep it in a folder `excluded` names"))
+    }
+
+    /// The check as a lint makes it: in the workspace, where SwiftLint spells `excluded` from.
     private func check(_ workspace: LoopWorkspace) throws {
         SwiftLintInProcessActor.prepare()
-        let configuration = try InProcessConfiguration.root(configPath: workspace.config, workspacePath: workspace.root)
-            .configuration
-        try SymlinkLoopCheck.check(configuration, workspacePath: workspace.root)
+        try CurrentWorkingDirectory.$url.withValue(workspace.root) {
+            let configuration = try InProcessConfiguration.root(
+                configPath: workspace.config,
+                workspacePath: workspace.root
+            ).configuration
+            try SymlinkLoopCheck.check(configuration, workspacePath: workspace.root)
+        }
     }
 }
