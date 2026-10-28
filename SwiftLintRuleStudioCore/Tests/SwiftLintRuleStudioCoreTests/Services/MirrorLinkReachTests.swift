@@ -43,4 +43,15 @@ struct MirrorLinkReachTests {
         #expect(MirrorLinkReach.isWithin("Anything", anyOf: [[]]))
         #expect(!MirrorLinkReach.isWithin("Anything", anyOf: []))
     }
+
+    @Test("The walk reaching a path starts at the deepest entry it lies within, unless one has ** or braces")
+    func walkStartDepth() {
+        #expect(MirrorLinkReach.walkStartDepth(of: "Sources/Gen/loop", in: [["Sources"]]) == 1)
+        #expect(MirrorLinkReach.walkStartDepth(of: "Sources/Gen/loop", in: [["Sources"], ["Sources", "Gen"]]) == 2)
+        #expect(MirrorLinkReach.walkStartDepth(of: "Sources/Gen/loop", in: [["Sour*"]]) == 1)
+        #expect(MirrorLinkReach.walkStartDepth(of: "Sources/Gen/loop", in: [["Tests"]]) == nil)
+        #expect(MirrorLinkReach.walkStartDepth(of: "Sources/Gen/loop", in: [["Sources", "**"]]) == nil)
+        #expect(MirrorLinkReach.walkStartDepth(of: "Sources/Gen/loop", in: [["{Sources,Tests}*"]]) == nil)
+        #expect(MirrorLinkReach.walkStartDepth(of: "../Shared/loop", in: [["..", "Shared"]]) == 2)
+    }
 }

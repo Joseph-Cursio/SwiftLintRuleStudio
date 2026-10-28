@@ -65,6 +65,18 @@ nonisolated enum MirrorLinkReach: Sendable, Equatable {
         }
     }
 
+    /// How deep below the workspace the walk that reaches `path` starts: the most components of
+    /// any of `entries` it lies within, as ``isWithin(_:anyOf:)`` has it. Nil when it lies within
+    /// none, or within one with `**` or braces, which may start a walk at any depth.
+    static func walkStartDepth(of path: String, in entries: [[String]]) -> Int? {
+        var depth: Int?
+        for entry in entries where isWithin(path, anyOf: [entry]) {
+            if entry.contains(where: { reachesAnything($0, expandsBraces: expandsBraces(entry)) }) { return nil }
+            depth = max(depth ?? 0, entry.count)
+        }
+        return depth
+    }
+
     /// `**` and brace patterns are taken to reach anything below them.
     private static func reachesAnything(_ pattern: String, expandsBraces: Bool) -> Bool {
         pattern.contains("**") || (expandsBraces && pattern.contains("{"))

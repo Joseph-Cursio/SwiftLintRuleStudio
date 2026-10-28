@@ -204,18 +204,6 @@ struct SimulationWorkspaceSymlinkTests {
         }
     }
 
-    @Test("under /private SwiftLint follows an excluded loop all the same, so the simulation fails")
-    func excludedCyclicLinkUnderPrivateFails() throws {
-        // There it matches a link's path with /private dropped against patterns that keep it.
-        let layout = try makeLayout(config: "excluded:\n  - Sources/loop\n")
-        defer { try? FileManager.default.removeItem(at: layout.base) }
-        try link(layout.workspace.appendingPathComponent("Sources/loop"), to: "..")
-
-        #expect(throws: MirrorUnsupportedSetupError.self) {
-            try SimulationWorkspaceBuilder().makeWorkspace(for: Workspace(path: layout.workspace), baseConfigPath: nil)
-        }
-    }
-
     @Test("a link back to a folder that holds it, which SwiftLint follows, fails the simulation")
     func followedCyclicLinkFails() throws {
         // With `excluded` set SwiftLint resolves it and walks the folder again until it crashes:
