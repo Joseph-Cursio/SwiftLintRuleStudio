@@ -25,14 +25,19 @@ struct InProcessNestedConfigSearchTests {
         /// The same, with a config naming a `child_config`. The search meets that config,
         /// without the prefix, and passes over it as part of the root.
         case abovePrivateWorkspaceWithChildConfig
-        /// The same, with a config naming none. Built from its contents, the root has no file
-        /// graph, so the search loads the workspace's own config, without the prefix, and stops.
+        /// The same, with a config naming none. Built by SwiftLint's loader, as `swiftlint lint`
+        /// builds it, the root holds that config in its file graph, so the search passes over it
+        /// too (#102).
         case abovePrivateWorkspaceWithConfig
+        /// The same, with a config that has `excluded`. The walk then keeps the prefix, so the
+        /// search meets the workspace and stops.
+        case abovePrivateWorkspaceWithExcluded
 
         var isLoaded: Bool {
             switch self {
-            case .aboveChildConfig, .besideLink, .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig: true
-            case .besideLinkTarget, .aboveWorkspace, .abovePrivateWorkspaceWithConfig: false
+            case .aboveChildConfig, .besideLink, .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig,
+                 .abovePrivateWorkspaceWithConfig: true
+            case .besideLinkTarget, .aboveWorkspace, .abovePrivateWorkspaceWithExcluded: false
             }
         }
 
@@ -45,13 +50,14 @@ struct InProcessNestedConfigSearchTests {
             case .besideLink: "ws/Libs/.swiftlint.yml"
             case .besideLinkTarget: "ws/Shared/.swiftlint.yml"
             case .aboveWorkspace, .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig,
-                 .abovePrivateWorkspaceWithConfig: ".swiftlint.yml"
+                 .abovePrivateWorkspaceWithConfig, .abovePrivateWorkspaceWithExcluded: ".swiftlint.yml"
             }
         }
 
         var isUnderPrivate: Bool {
             switch self {
-            case .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig, .abovePrivateWorkspaceWithConfig: true
+            case .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig, .abovePrivateWorkspaceWithConfig,
+                 .abovePrivateWorkspaceWithExcluded: true
             case .aboveChildConfig, .besideLink, .besideLinkTarget, .aboveWorkspace: false
             }
         }
@@ -90,6 +96,10 @@ struct InProcessNestedConfigSearchTests {
             "ws/Sub/A.swift": Self.source
         ]
         case .abovePrivateWorkspaceWithConfig: ["ws/.swiftlint.yml": Self.plainConfig, "ws/Sub/A.swift": Self.source]
+        case .abovePrivateWorkspaceWithExcluded: [
+            "ws/.swiftlint.yml": Self.plainConfig + "excluded:\n  - Build\n",
+            "ws/Sub/A.swift": Self.source
+        ]
         }
         files[contested.path] = config
 

@@ -14,8 +14,8 @@ import SwiftLintFramework
 @testable import SwiftLintInProcessBackend
 
 /// SwiftLint's own reading of a configuration, through ``InProcessConfiguration`` — the
-/// path the sandboxed edition lints with, which hands the file to SwiftLint's
-/// `Configuration(dict:location:)` — so nothing here re-implements SwiftLint's rules.
+/// path the sandboxed edition lints with, which hands the file to SwiftLint's loader,
+/// `Configuration(configurationFiles:)` — so nothing here re-implements SwiftLint's rules.
 enum SwiftLintConfigurationProbe {
     /// A rule SwiftLint has registered, classified by the protocols it conforms to.
     struct RegisteredRule: Sendable {
@@ -86,7 +86,10 @@ enum SwiftLintConfigurationProbe {
 
         let configuration: Configuration
         do {
-            configuration = try InProcessConfiguration.root(configPath: nil, workspacePath: workspace).configuration
+            // In the workspace, as a lint runs: SwiftLint's loader looks for the file there.
+            configuration = try CurrentWorkingDirectory.$url.withValue(workspace) {
+                try InProcessConfiguration.root(configPath: nil, workspacePath: workspace).configuration
+            }
         } catch let InProcessConfigurationError.unreadable(_, reason) {
             return .rejected(reason: reason)
         }
