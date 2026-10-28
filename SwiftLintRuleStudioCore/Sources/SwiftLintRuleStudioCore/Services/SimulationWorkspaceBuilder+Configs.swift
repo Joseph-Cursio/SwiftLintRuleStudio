@@ -49,6 +49,9 @@ extension SimulationWorkspaceBuilder {
                 haveRoot = true
             }
             let isRootConfiguration = isRoot || plan.referencedConfigPaths.contains(file.path)
+            if isRootConfiguration {
+                try Self.mirrorExclusions(in: &config, pulledIn: isRoot ? nil : file, plan: plan)
+            }
             entries.append(.init(
                 relativePath: relative,
                 original: config,
@@ -63,6 +66,7 @@ extension SimulationWorkspaceBuilder {
                 Self.prepare(&seed, readFrom: source)
                 customRuleIds.formUnion(RawConfigKeys.read(source)?.customRuleIds ?? [])
             }
+            try Self.mirrorExclusions(in: &seed, pulledIn: nil, plan: plan)
             entries.insert(
                 .init(
                     relativePath: ConfigTreeDiscovery.configFileName,
@@ -107,6 +111,29 @@ extension SimulationWorkspaceBuilder {
             // SwiftLint reads it relative to the config's own folder.
             let original = source.deletingLastPathComponent().appendingPathComponent(baseline).standardizedFileURL
             config.passthroughNodes["baseline"] = Node(original.path)
+        }
+    }
+
+    /// Writes a root configuration's `excluded` entries to name in the mirror what they name in
+    /// the workspace; see ``MirrorPaths/mirroredExclusion(_:base:mirrorBase:anchor:outsideFolders:)``.
+    /// The root config's are read relative to the workspace, and those of a config it pulls in,
+    /// `pulledIn`, relative to that config's folder.
+    static func mirrorExclusions(
+        in config: inout YAMLConfigurationEngine.YAMLConfig,
+        pulledIn: WorkspaceMirrorPlan.File?,
+        plan: WorkspaceMirrorPlan
+    ) throws {
+        let base = pulledIn?.source.deletingLastPathComponent().path ?? plan.workspaceRoot
+        let mirrorBase = pulledIn.map { $0.path.split(separator: "/").dropLast().joined(separator: "/") }
+            ?? plan.lintRoot
+        config.excluded = try config.excluded?.map { entry in
+            try MirrorPaths.mirroredExclusion(
+                entry,
+                base: base,
+                mirrorBase: mirrorBase,
+                anchor: plan.anchor,
+                outsideFolders: plan.externalFolders
+            )
         }
     }
 

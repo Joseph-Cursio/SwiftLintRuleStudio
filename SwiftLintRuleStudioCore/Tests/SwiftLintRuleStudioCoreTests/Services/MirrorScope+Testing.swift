@@ -18,11 +18,12 @@ extension MirrorScope {
             lintRoot: lintRoot,
             reach: reach,
             walkRoots: walkRoots,
+            includedFiles: includedFiles,
             hostedFolders: hostedFolders,
+            hostedLinks: hostedLinks,
             referencedConfigs: referencedConfigs,
             configGraph: configGraph,
             exclusions: exclusions,
-            mirroredExclusions: mirroredExclusions,
             isUnderPrivate: isUnderPrivate
         )
     }

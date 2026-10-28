@@ -9,16 +9,6 @@
 import Darwin
 import Foundation
 
-/// A setup the mirror can't reproduce faithfully. Rather than measure a count that might be
-/// short — and a short count reads as "safe to enable" — the simulation fails with this.
-nonisolated struct MirrorUnsupportedSetupError: LocalizedError, Sendable {
-    let reason: String
-
-    var errorDescription: String? {
-        reason + " The simulation can't reproduce that, so it stopped rather than report a count that might be short."
-    }
-}
-
 /// Accumulates a ``MirrorScope`` while walking the root config and the configs it pulls in,
 /// then places what they reach once it knows how far up they climb.
 nonisolated private struct MirrorScopeBuilder {
@@ -27,6 +17,16 @@ nonisolated private struct MirrorScopeBuilder {
         let written: String
         let config: String
         let components: [String]
+
+        var path: String { "/" + components.dropFirst().joined(separator: "/") }
+    }
+
+    /// One config's own `included` and `excluded`, and its place in the chain SwiftLint merges:
+    /// below the configs it pulls in as `parent_config`, above one it pulls in as `child_config`.
+    struct Layer {
+        let order: Int
+        var included: [Target] = []
+        var excluded: [String] = []
     }
 
     struct Placed {
@@ -34,21 +34,28 @@ nonisolated private struct MirrorScopeBuilder {
         let lintRoot: String
         let included: [[String]]
         let hostedFolders: [String]
+        let hostedLinks: [String]
         let referencedConfigs: [WorkspaceMirrorPlan.File]
+    }
+
+    /// See ``MirrorScope/walkRoots``, ``MirrorScope/hostedFolders`` and ``MirrorScope/hostedLinks``.
+    struct Included {
+        var entries: [[String]] = []
+        var hostedFolders: [String] = []
+        var hostedLinks: [String] = []
     }
 
     let root: URL
     let rootComponents: [String]
     var configGraph: Set<String> = []
-    /// Absolute, as SwiftLint makes them: each config's folder joined with the entry.
-    var excludedPatterns: [String] = []
-    /// The entries written relative, absolute as in ``excludedPatterns``, with the fewest path
-    /// components the entry climbs to on the way there.
-    private var relativeExcludedPatterns: [(pattern: String, highest: Int)] = []
-    /// A config excludes something.
-    var excludesAnything = false
+    /// Absolute, as SwiftLint makes them: each config's folder joined with the entry. Once
+    /// ``merge()`` has run, what the merged configuration excludes.
+    private(set) var excludedPatterns: [String] = []
+    /// The merged configuration excludes something.
+    var excludesAnything: Bool { !excludedPatterns.isEmpty }
     private var includedTargets: [Target] = []
     private var referencedTargets: [(target: Target, file: URL)] = []
+    private var layers: [Layer] = []
     private var visited: Set<String> = []
 
     init(root: URL) {
@@ -56,23 +63,29 @@ nonisolated private struct MirrorScopeBuilder {
         rootComponents = root.pathComponents
     }
 
-    /// Records the `excluded` entry `written` in a config read relative to `base`.
-    private mutating func addExclusion(_ written: String, base: URL) {
+    /// The `excluded` entry `written` in a config read relative to `base`, absolute.
+    private func exclusion(_ written: String, base: URL) -> String {
         let (entry, entryBase) = expandingPWD(written, base: base)
-        let pattern = entry.hasPrefix("/") ? entry : Self.absolute(entry, base: entryBase)
-        excludedPatterns.append(pattern)
-        guard !entry.hasPrefix("/"), !entry.hasPrefix("~") else { return }
-        let parts = entryBase.pathComponents + entry.split(separator: "/").map(String.init)
-        relativeExcludedPatterns.append((pattern, Self.highest(parts)))
+        return MirrorPaths.unprivate(MirrorPaths.absolute(entry, base: entryBase.path) ?? entry)
     }
 
-    mutating func visit(_ config: URL, base: URL) throws {
+    /// Merges the configs as SwiftLint does, from the furthest parent down to the last child:
+    /// each one's `included` entries drop those its parents exclude by the same path, and its
+    /// `excluded` entries those they include. So a parent's exclusion of a folder a child
+    /// includes keeps nothing out.
+    mutating func merge() {
+        for layer in layers.sorted(by: { $0.order < $1.order }) {
+            let childIncluded = Set(layer.included.map(\.path))
+            let childExcluded = Set(layer.excluded)
+            includedTargets = includedTargets.filter { !childExcluded.contains($0.path) } + layer.included
+            excludedPatterns = excludedPatterns.filter { !childIncluded.contains($0) } + layer.excluded
+        }
+    }
+
+    mutating func visit(_ config: URL, base: URL, order: Int = 0) throws {
         guard visited.insert(config.standardizedFileURL.path).inserted,
               let keys = RawConfigKeys.read(config) else { return }
-        if !keys.excluded.isEmpty { excludesAnything = true }
-        for written in keys.excluded {
-            addExclusion(written, base: base)
-        }
+        var layer = Layer(order: order, excluded: keys.excluded.map { exclusion($0, base: base) })
         for written in keys.included {
             let (entry, entryBase) = expandingPWD(written, base: base)
             let trimmed = entry.trimmingCharacters(in: .whitespaces)
@@ -83,11 +96,15 @@ nonisolated private struct MirrorScopeBuilder {
                 )
             }
             let parts = trimmed.split(separator: "/").map(String.init)
-            let components = Self.standardized(entryBase.pathComponents + parts)
-            includedTargets.append(Target(written: written, config: config.lastPathComponent, components: components))
+            let components = MirrorPaths.standardized(entryBase.pathComponents + parts)
+            layer.included.append(Target(written: written, config: config.lastPathComponent, components: components))
         }
-        for reference in keys.referencedConfigs {
-            try follow(reference, from: config)
+        layers.append(layer)
+        if let parent = keys.parentConfig {
+            try follow(parent, from: config, order: order - 1)
+        }
+        if let child = keys.childConfig {
+            try follow(child, from: config, order: order + 1)
         }
     }
 
@@ -100,8 +117,9 @@ nonisolated private struct MirrorScopeBuilder {
         return (rest.isEmpty ? "." : String(rest), root)
     }
 
-    /// Records a `parent_config`/`child_config` the mirror must hold, and walks it.
-    private mutating func follow(_ reference: String, from config: URL) throws {
+    /// Records a `parent_config`/`child_config` the mirror must hold, and walks it; `order` is its
+    /// place in the chain SwiftLint merges (see ``Layer``).
+    private mutating func follow(_ reference: String, from config: URL, order: Int) throws {
         if reference.hasPrefix("http://") || reference.hasPrefix("https://") {
             // SwiftLint fetches it in the mirror as it does in the workspace, but the mirror
             // can't rewrite it, and it can turn the rule off.
@@ -121,7 +139,7 @@ nonisolated private struct MirrorScopeBuilder {
         let target = Target(written: reference, config: config.lastPathComponent, components: file.pathComponents)
         referencedTargets.append((target, file))
         configGraph.insert(file.resolvingSymlinksInPath().path)
-        try visit(file, base: file.deletingLastPathComponent())
+        try visit(file, base: file.deletingLastPathComponent(), order: order)
     }
 
     // MARK: - Placing
@@ -141,29 +159,28 @@ nonisolated private struct MirrorScopeBuilder {
         }
         climb = min(climb, rootComponents.count - 1)
         let anchorCount = rootComponents.count - climb
+        let anchor = "/" + rootComponents.prefix(anchorCount).dropFirst().joined(separator: "/")
         let lintRoot = rootComponents.dropFirst(anchorCount).joined(separator: "/")
         try checkReserved(lintRoot, written: lintRoot, config: "the workspace")
-
-        var included: [[String]] = []
-        var hosted: [String] = []
-        for target in includedTargets {
-            let common = commonPrefixCount(target.components)
-            let below = Array(target.components.dropFirst(common))
-            included.append(Array(repeating: "..", count: rootComponents.count - common) + below)
-            guard common < rootComponents.count else { continue }
-            let literal = below.prefix { !MirrorLinkReach.hasGlob($0) }
-            guard !literal.isEmpty else {
-                throw MirrorUnsupportedSetupError(
-                    reason: "The configuration's `included` names \(target.written), a folder holding the workspace, "
-                        + "or a pattern over one."
-                )
-            }
-            let folder = Array(rootComponents.prefix(common)) + literal
-            let place = folder.dropFirst(anchorCount).joined(separator: "/")
-            try checkReserved(place, written: target.written, config: target.config)
-            let path = "/" + folder.dropFirst().joined(separator: "/")
-            if !hosted.contains(path) { hosted.append(path) }
+        // SwiftLint makes each entry a pattern starting with its config's path, where `[` starts a
+        // set of characters; the container, elsewhere, takes the anchor's path away.
+        if anchor.contains("["), excludesAnything || !includedTargets.isEmpty {
+            throw MirrorUnsupportedSetupError(
+                reason: "The workspace is in \(anchor), whose path holds a `[`. SwiftLint reads the "
+                    + "configuration's `included` and `excluded` entries as patterns starting with that path, where "
+                    + "`[` starts a set of characters, so they don't name the folders they're written for."
+            )
         }
+        // The mirror writes each `excluded` entry to name its place in the container (see
+        // ``MirrorPaths/mirroredExclusion(_:base:mirrorBase:anchor:outsideFolders:)``); one
+        // starting above the folder the container stands for has none.
+        if let above = excludedPatterns.first(where: { MirrorPaths.startsAbove($0, anchor) }) {
+            throw MirrorUnsupportedSetupError(
+                reason: "The configuration's `excluded` has \(above), which starts above \(anchor), the folder a copy "
+                    + "of the workspace stands for."
+            )
+        }
+        let included = try placeIncluded(anchorCount: anchorCount)
 
         let referenced = try referencedTargets.map { target, file in
             let common = commonPrefixCount(target.components)
@@ -172,24 +189,56 @@ nonisolated private struct MirrorScopeBuilder {
             try checkReserved(path, written: target.written, config: target.config)
             return WorkspaceMirrorPlan.File(source: file, path: path)
         }
-        let anchor = "/" + rootComponents.prefix(anchorCount).dropFirst().joined(separator: "/")
         return Placed(
             anchor: anchor,
             lintRoot: lintRoot,
-            included: included,
-            hostedFolders: hosted,
+            included: included.entries,
+            hostedFolders: included.hostedFolders,
+            hostedLinks: included.hostedLinks,
             referencedConfigs: referenced
         )
     }
 
-    /// The patterns SwiftLint applies in the mirror too, which copies the config as written. In
-    /// it an absolute entry still names the original folder, and one climbing past the anchor a
-    /// folder the container doesn't hold at that place, if at all.
-    func mirroredExcludedPatterns(anchor: String) -> [String] {
-        let anchorCount = URL(fileURLWithPath: anchor).pathComponents.count
-        return relativeExcludedPatterns
-            .filter { $0.highest >= anchorCount && $0.pattern.hasPrefix(anchor + "/") }
-            .map(\.pattern)
+    /// The `included` entries as ``MirrorLinkReach`` holds them, and what beside the workspace
+    /// the mirror must hold for them.
+    private func placeIncluded(anchorCount: Int) throws -> Included {
+        var included = Included()
+        for target in includedTargets {
+            let common = commonPrefixCount(target.components)
+            let below = Array(target.components.dropFirst(common))
+            included.entries.append(Array(repeating: "..", count: rootComponents.count - common) + below)
+            guard common < rootComponents.count else { continue }
+            let literal = Array(below.prefix { !MirrorLinkReach.hasGlob($0) })
+            guard !literal.isEmpty else {
+                throw MirrorUnsupportedSetupError(
+                    reason: "The configuration's `included` names \(target.written), a folder holding the workspace, "
+                        + "or a pattern over one."
+                )
+            }
+            let base = Array(rootComponents.prefix(common))
+            try checkReserved(
+                (base + literal).dropFirst(anchorCount).joined(separator: "/"),
+                written: target.written,
+                config: target.config
+            )
+            // With `excluded` set SwiftLint lists the folder by its real path, through any link
+            // on the way, so the mirror recreates the first such link and holds what it points at
+            // where that really is; without, it lists it as written.
+            if excludesAnything, let link = MirrorPaths.firstFolderLink(on: literal, under: base) {
+                let destination = URL(fileURLWithPath: link).resolvingSymlinksInPath().path
+                guard destination == root.path || !MirrorRegions.isInside(root.path, destination) else {
+                    throw MirrorUnsupportedSetupError(
+                        reason: "\(target.config) names \(target.written) in `included`, through the symlink at "
+                            + "\(link) to \(destination), which holds the workspace."
+                    )
+                }
+                if !included.hostedLinks.contains(link) { included.hostedLinks.append(link) }
+                continue
+            }
+            let path = "/" + (base + literal).dropFirst().joined(separator: "/")
+            if !included.hostedFolders.contains(path) { included.hostedFolders.append(path) }
+        }
+        return included
     }
 
     /// Refuses a path whose first folder in the container is one the container keeps for itself.
@@ -209,40 +258,6 @@ nonisolated private struct MirrorScopeBuilder {
         zip(components, rootComponents).prefix { $0.caseInsensitiveCompare($1) == .orderedSame }.count
     }
 
-    /// `entry` joined to `base` and standardized.
-    private static func absolute(_ entry: String, base: URL) -> String {
-        let components = standardized(base.pathComponents + entry.split(separator: "/").map(String.init))
-        return "/" + components.dropFirst().joined(separator: "/")
-    }
-
-    /// The fewest components `components` comes down to, standardized one at a time.
-    private static func highest(_ components: [String]) -> Int {
-        var count = 0
-        var fewest = Int.max
-        for component in components where component != "." && !component.isEmpty {
-            if component == ".." {
-                count = max(count - 1, 1)
-                fewest = min(fewest, count)
-            } else {
-                count += 1
-            }
-        }
-        return min(fewest, count)
-    }
-
-    /// `components` with `.` dropped and each `..` taking the one before it, as SwiftLint
-    /// standardizes a path.
-    private static func standardized(_ components: [String]) -> [String] {
-        var result: [String] = []
-        for component in components where component != "." && !component.isEmpty {
-            if component == "..", result.count > 1 {
-                result.removeLast()
-            } else if component != ".." {
-                result.append(component)
-            }
-        }
-        return result
-    }
 }
 
 /// What the mirror must hold beyond the workspace, worked out from the root config and the
@@ -279,20 +294,28 @@ nonisolated struct MirrorScope: Sendable {
     /// link — a `.swift` pattern it lints without walking, and from a link it walks nothing — or,
     /// with no `included`, the whole workspace (nil).
     let walkRoots: [[String]]?
+    /// The `included` entries naming `.swift` files, as ``walkRoots`` holds the rest: SwiftLint
+    /// lints them without walking, so it goes through a link on the way to one just once.
+    let includedFiles: [[String]]
     /// Folders outside the workspace that `included` entries name, by real path.
     let hostedFolders: [String]
+    /// The first symlink to a folder on the way to each folder outside the workspace an
+    /// `included` entry names, when a config excludes something. SwiftLint then lists that folder
+    /// by its real path, matching exclusions there and reaching it once however many routes lead
+    /// there; so the mirror recreates the link and holds what it points at, where that really
+    /// is, rather than the folder where the entry spells it.
+    let hostedLinks: [String]
     /// The configs the root config pulls in through `parent_config` or `child_config`, where
     /// SwiftLint will look for them; paths relative to the container.
     let referencedConfigs: [WorkspaceMirrorPlan.File]
     /// The root config and the configs it pulls in, by resolved path. SwiftLint looking for a
     /// file's nested config passes over these, as they already make up the configuration.
     let configGraph: Set<String>
-    /// What the root config and the configs it pulls in exclude.
+    /// What the root config and the configs it pulls in exclude. SwiftLint applies it in the
+    /// mirror too: the mirror writes each entry to name its place there (see
+    /// ``MirrorPaths/mirroredExclusion(_:base:mirrorBase:anchor:outsideFolders:)``), and one that
+    /// can have none stops the simulation.
     let exclusions: MirrorExclusions
-    /// What of ``exclusions`` SwiftLint applies in the mirror too: the entries written relative
-    /// that stay inside the anchor. Under `/private` only these may keep it out of a loop the
-    /// mirror keeps.
-    let mirroredExclusions: MirrorExclusions
     /// Whether the workspace lies under `/private`, as `/tmp` and `/var` do. SwiftLint reads a
     /// path there under two spellings, which changes what it does; see
     /// ``SimulationWorkspaceBuilder``.
@@ -327,6 +350,7 @@ nonisolated struct MirrorScope: Sendable {
             builder.configGraph.insert(rootConfig.resolvingSymlinksInPath().path)
             try builder.visit(rootConfig, base: root)
         }
+        builder.merge()
         let placed = try builder.place()
         return Self(
             workspaceRoot: root.path,
@@ -336,11 +360,12 @@ nonisolated struct MirrorScope: Sendable {
             walkRoots: placed.included.isEmpty ? nil : placed.included.filter { entry in
                 !(entry.last ?? "").hasSuffix(".swift") && !isLink(entry, root: root)
             },
+            includedFiles: placed.included.filter { ($0.last ?? "").hasSuffix(".swift") },
             hostedFolders: placed.hostedFolders,
+            hostedLinks: placed.hostedLinks,
             referencedConfigs: placed.referencedConfigs,
             configGraph: builder.configGraph,
             exclusions: MirrorExclusions(patterns: builder.excludedPatterns),
-            mirroredExclusions: MirrorExclusions(patterns: builder.mirroredExcludedPatterns(anchor: placed.anchor)),
             isUnderPrivate: isUnderPrivate
         )
     }

@@ -59,6 +59,8 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
         let path: String
     }
 
+    /// The folder the mirror's container stands for; see ``MirrorScope/anchor``.
+    private(set) var anchor = ""
     /// The lint root's path in the mirror's container: the workspace folder's own name.
     private(set) var lintRoot = ""
     private(set) var sources: [File] = []
@@ -90,30 +92,14 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
         outsideEntryLimit: Int = MirrorLinkDiscovery.outsideEntryLimit,
         fileManager: FileManager = .default
     ) throws -> Self {
-        var discovery = MirrorLinkDiscovery(
-            fileManager: fileManager,
-            reach: scope.reach,
-            workspaceRoot: scope.workspaceRoot,
-            exclusions: scope.exclusions,
-            mirroredExclusions: scope.mirroredExclusions,
-            walkRoots: scope.walkRoots,
-            isUnderPrivate: scope.isUnderPrivate,
-            outsideEntryLimit: outsideEntryLimit
-        )
-        try discovery.explore(URL(fileURLWithPath: scope.workspaceRoot), at: "")
-        for folder in scope.hostedFolders {
-            // Where SwiftLint sees it, relative to the workspace: `../Shared`, `../../Shared`.
-            let url = URL(fileURLWithPath: folder)
-            let place = MirrorRegions.besidePath(of: folder, in: scope) ?? url.lastPathComponent
-            try discovery.explore(url, at: Self.relative(from: scope.lintRoot, to: place))
-        }
-
+        let discovery = try discover(scope, outsideEntryLimit: outsideEntryLimit, fileManager: fileManager)
         let regions = MirrorRegions(
             scope: scope,
             linkedFolders: discovery.linkedFolders,
             linkedFiles: discovery.linkedFiles
         )
         var plan = Self()
+        plan.anchor = scope.anchor
         plan.lintRoot = scope.lintRoot
         plan.outsideEntryLimit = outsideEntryLimit
         plan.configs = scope.referencedConfigs
@@ -134,6 +120,7 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
         for region in regions.beside + regions.externals {
             try plan.place(URL(fileURLWithPath: region.real), at: region.mirror, regions: regions, discovery: discovery)
         }
+        try plan.placeHostedLinks(scope, regions: regions)
         try plan.checkConfigsAboveDontLeak(regions, scope: scope)
         var seen: Set<String> = []
         plan.configs = plan.configs.filter { seen.insert($0.path).inserted }.sorted { $0.path < $1.path }
@@ -267,9 +254,11 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             case .folderLink(let target):
                 // A link SwiftLint can't follow, into a folder outside every mirrored one, has
                 // nowhere to point; it isn't linted in the workspace either. A link back into a
-                // folder holding it is a cycle, whether or not the walk got that far.
-                guard !discovery.cyclicLinks.contains(entry.url.path),
-                      !MirrorRegions.isInside(folder.path, target.path),
+                // folder holding it is a cycle, whether or not the walk got that far — unless
+                // SwiftLint only goes through it on the way to an `included` entry.
+                guard discovery.linksOnTheWay.contains(entry.url.path)
+                        || (!discovery.cyclicLinks.contains(entry.url.path)
+                            && !MirrorRegions.isInside(folder.path, target.path)),
                       let targetMirrorPath = regions.mirrorPath(of: target.path) else { continue }
                 let destination = Self.relative(from: mirrorPath, to: targetMirrorPath)
                 links.append(Link(path: entryMirrorPath, destination: destination))
@@ -277,6 +266,26 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             case .fileLink(let target):
                 placeFileLink(entry, target: target, at: entryMirrorPath, in: mirrorPath, regions: regions)
             }
+        }
+    }
+
+    /// Recreates the links on the way to the folders `included` entries name beside the
+    /// workspace (see ``MirrorScope/hostedLinks``), each pointing at the mirror of its target.
+    private mutating func placeHostedLinks(_ scope: MirrorScope, regions: MirrorRegions) throws {
+        for link in scope.hostedLinks {
+            let target = URL(fileURLWithPath: link).resolvingSymlinksInPath().path
+            guard let place = MirrorRegions.besidePath(of: link, in: scope),
+                  let targetMirrorPath = regions.mirrorPath(of: target) else {
+                throw MirrorUnsupportedSetupError(
+                    reason: "The configuration's `included` runs through the symlink at \(link) to \(target), "
+                        + "which a copy of the workspace can't hold where SwiftLint finds it."
+                )
+            }
+            // A link in a folder the mirror holds anyway is there already.
+            guard !links.contains(where: { $0.path == place }) else { continue }
+            let folder = place.split(separator: "/").dropLast().joined(separator: "/")
+            links.append(Link(path: place, destination: Self.relative(from: folder, to: targetMirrorPath)))
+            linkedFolderPaths.append(targetMirrorPath)
         }
     }
 
@@ -331,33 +340,6 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             sources.append(File(source: file, path: mirrorPath))
         } else if file.lastPathComponent == ConfigTreeDiscovery.configFileName {
             configs.append(File(source: file, path: mirrorPath))
-        }
-    }
-
-    // MARK: - Helpers
-
-    /// `target` relative to the folder `from`, both relative to the mirror's container.
-    static func relative(from folder: String, to target: String) -> String {
-        let folderComponents = folder.split(separator: "/")
-        let targetComponents = target.split(separator: "/")
-        let shared = zip(folderComponents, targetComponents).prefix { $0 == $1 }.count
-        let ups = Array(repeating: "..", count: folderComponents.count - shared)
-        return (ups + targetComponents.dropFirst(shared).map(String.init)).joined(separator: "/")
-    }
-
-    /// The `.swiftlint.yml` in `folder` or the nearest folder above it, up to `/`, passing over
-    /// those in `skipping` (by resolved path), as SwiftLint passes over the configs that make up
-    /// the configuration.
-    static func nearestConfig(from folder: URL, fileManager: FileManager, skipping: Set<String> = []) -> URL? {
-        var current = folder
-        while true {
-            let candidate = current.appendingPathComponent(ConfigTreeDiscovery.configFileName)
-            if fileManager.fileExists(atPath: candidate.path),
-               !skipping.contains(candidate.resolvingSymlinksInPath().path) {
-                return candidate
-            }
-            guard current.path != "/" else { return nil }
-            current = current.deletingLastPathComponent()
         }
     }
 }
