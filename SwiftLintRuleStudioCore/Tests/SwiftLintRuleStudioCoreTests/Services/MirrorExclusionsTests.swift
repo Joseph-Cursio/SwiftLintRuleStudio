@@ -69,6 +69,14 @@ struct MirrorExclusionsTests {
         #expect(MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/xyz/Mocks"))
     }
 
+    @Test("a pattern holding a character that takes two UTF-16 units isn't counted on: SwiftLint misreads it")
+    func multiUnitPatterns() {
+        // SwiftLint's matcher skips the `e` after the set, and reads `[G😀]n`.
+        #expect(!MirrorExclusions(patterns: ["/ws/Core/[G😀]en"]).excludes("/ws/Core/Gen"))
+        #expect(!MirrorExclusions(patterns: ["/ws/Dé/Gen"]).excludes("/ws/Dé/Gen"))
+        #expect(MirrorExclusions(patterns: ["/ws/Core/[Gx]en"]).excludes("/ws/Core/Gen"))
+    }
+
     @Test("a .swift pattern names files only, and no patterns exclude nothing")
     func swiftPatternAndNone() {
         let exclusions = MirrorExclusions(patterns: ["/ws/A.swift"])

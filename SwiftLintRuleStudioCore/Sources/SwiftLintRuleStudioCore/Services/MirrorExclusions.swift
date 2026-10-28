@@ -23,8 +23,9 @@ nonisolated struct MirrorExclusions: Sendable {
 
     /// - Parameter patterns: Absolute, as SwiftLint makes each entry: its config's folder joined
     ///   with it.
+    ///   One SwiftLint can't read whole (see ``isMatchable(_:)``) isn't counted on.
     init(patterns: [String]) {
-        expressions = patterns.flatMap(Self.matcherPatterns).compactMap { pattern in
+        expressions = patterns.filter(Self.isMatchable).flatMap(Self.matcherPatterns).compactMap { pattern in
             let expression = "^(?s:" + Self.translate(pattern) + ")$"
             guard let caseless = try? NSRegularExpression(pattern: expression, options: .caseInsensitive),
                   let cased = try? NSRegularExpression(pattern: expression) else { return nil }
@@ -38,6 +39,15 @@ nonisolated struct MirrorExclusions: Sendable {
         return expressions.contains { pair in
             [pair.caseless, pair.cased].allSatisfy { $0.firstMatch(in: path, range: range) != nil }
         }
+    }
+
+    /// Whether SwiftLint reads `text`, a pattern or a path, whole. Its matcher counts characters
+    /// where it means UTF-16 units — matching a path short, skipping part of a pattern — and it
+    /// spells a link's path with accents decomposed; so text holding a character that takes two
+    /// units, as written or decomposed (an accented letter, an emoji), may not match as written.
+    static func isMatchable(_ text: String) -> Bool {
+        let decomposed = text.decomposedStringWithCanonicalMapping
+        return text.count == text.utf16.count && decomposed.count == decomposed.utf16.count
     }
 
     /// SwiftLint's `Glob.createFilenameMatchers`: a pattern also covers what is inside a folder

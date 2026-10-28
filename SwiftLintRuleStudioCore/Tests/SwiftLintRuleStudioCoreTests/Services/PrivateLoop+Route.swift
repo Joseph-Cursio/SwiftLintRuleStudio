@@ -118,6 +118,15 @@ nonisolated extension PrivateLoop {
             underPrivate: false,
             outcome: .refused(saying: nil)
         ),
+        // SwiftLint's matcher skips the `e` after a set holding an emoji: it never skips Gen.
+        Case(
+            testDescription: "folder on the way named by a glob holding an emoji, outside /private",
+            config: "excluded:\n  - \"Core/[G😀]en\"\n",
+            files: ["ws/Core/C.swift", "ws/Core/Gen/G.swift"],
+            links: [link("ws/App/L4", to: "../Core"), link("ws/Core/Gen/L1", to: "../../App")],
+            underPrivate: false,
+            outcome: .refused(saying: nil)
+        ),
         // A CJK compatibility ideograph takes two UTF-16 units however it is spelled to SwiftLint.
         Case(
             testDescription: "excluded link on the way, under CJK compatibility ideographs, outside /private",
