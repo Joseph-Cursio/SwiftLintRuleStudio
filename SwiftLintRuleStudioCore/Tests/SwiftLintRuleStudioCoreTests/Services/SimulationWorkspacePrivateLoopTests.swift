@@ -128,6 +128,14 @@ struct SimulationWorkspacePrivateLoopTests {
         try check(loopCase)
     }
 
+    @Test(
+        "outside /private an excluded folder or link on the way keeps SwiftLint out of a loop beyond",
+        arguments: PrivateLoop.routeOutsidePrivate
+    )
+    func routeOutsidePrivate(_ loopCase: PrivateLoop.Case) throws {
+        try check(loopCase)
+    }
+
     private func check(_ loopCase: PrivateLoop.Case) throws {
         let base = FileManager.default.temporaryDirectory
             .appendingPathComponent("ShadowSymlinkTests", isDirectory: true)

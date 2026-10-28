@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - With `excluded` set, Rule Audit reads an `included` folder beside the workspace spelled through a symlink as `swiftlint lint` does, by its real path: it no longer counts its files twice when another link reaches them, ignores an exclusion naming their real place, or applies one written through the link
 - Rule Audit no longer trusts a parent config's `excluded` entry that SwiftLint drops because a child config includes the same path, which let it measure a workspace `swiftlint lint` crashes on
 - Rule Audit refuses a workspace whose path above it holds a `[` when the configuration has `included` or `excluded` entries: SwiftLint reads the `[` as a pattern, so those entries name nothing there, and the audit used to count as if they did
+- Outside `/tmp` and `/var`, Rule Audit no longer refuses a workspace whose symlink loop SwiftLint never reaches because an excluded folder or symlink lies on the way to it: `swiftlint lint` matches every folder and symlink it meets by its real path and skips an excluded one, as it does the looping symlink itself. When it does refuse a loop, the reason names the symlink by its real path, which is what an `excluded` entry has to name
 
 ---
 
