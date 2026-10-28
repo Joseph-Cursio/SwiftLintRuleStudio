@@ -40,6 +40,25 @@ struct MirrorExclusionsTests {
         #expect(exclusions.excludes("/ws/x[y"))
     }
 
+    @Test("a * before more of the pattern matches as little as it can and never gives it back, as in fnmatch")
+    func atomicStars() {
+        let exclusions = MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"])
+
+        #expect(exclusions.excludes("/ws/A/Gen/B/Mocks"))
+        // The first star stops at the first `/`, then **/ takes all it can, up to the second Gen:
+        // `/Mocks` can't follow.
+        #expect(!exclusions.excludes("/ws/A/Gen/B/Gen/Mocks"))
+        #expect(MirrorExclusions(patterns: ["/ws/*/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/Gen/Mocks"))
+    }
+
+    @Test("a [ in brackets stands for itself, a range runs forwards only, and & ~ | in brackets match nothing")
+    func bracketSets() {
+        #expect(MirrorExclusions(patterns: ["/ws/Vendor [[]old]"]).excludes("/ws/Vendor [old]"))
+        #expect(MirrorExclusions(patterns: ["/ws/[a-c]x"]).excludes("/ws/bx"))
+        #expect(!MirrorExclusions(patterns: ["/ws/[c-a]x"]).excludes("/ws/bx"))
+        #expect(!MirrorExclusions(patterns: ["/ws/[|]x"]).excludes("/ws/|x"))
+    }
+
     @Test("a .swift pattern names files only, and no patterns exclude nothing")
     func swiftPatternAndNone() {
         let exclusions = MirrorExclusions(patterns: ["/ws/A.swift"])

@@ -250,7 +250,8 @@ nonisolated struct MirrorLinkDiscovery {
     /// `/private` dropped against patterns that keep it.
     private func isExcluded(_ path: String, target: String, at linkPath: String) -> Bool {
         guard isUnderPrivate else {
-            return exclusions.excludes(path) || exclusions.excludes(target) || isKeptOut(by: walking, toward: linkPath)
+            return [path, target].contains { Self.isMatchable($0) && exclusions.excludes($0) }
+                || isKeptOut(by: walking, toward: linkPath)
         }
         return isKeptOut(by: walking, toward: linkPath)
     }
@@ -269,15 +270,22 @@ nonisolated struct MirrorLinkDiscovery {
     /// Under `/private` that path keeps `/private` as the patterns do, so SwiftLint skips a plain
     /// folder, but neither a link nor where one leads, which it matches with `/private` dropped;
     /// nor a folder it matches by any path but the one here (see ``isMatchedAsSpelled(_:)``).
-    /// It measures a path in characters but matches it as UTF-16, so one holding a character
-    /// that takes two units it may not match: such a folder isn't counted on to be skipped.
     private func isSkipped(_ folder: URL, through link: String?) -> Bool {
         guard !isUnderPrivate else {
             return link == nil && exclusions.excludes(folder.path) && Self.isMatchedAsSpelled(folder)
         }
         return [link, folder.path].compactMap(\.self).contains { path in
-            path.count == path.utf16.count && exclusions.excludes(path)
+            Self.isMatchable(path) && exclusions.excludes(path)
         }
+    }
+
+    /// Whether SwiftLint can match `path` against `excluded` whole. It measures a path in
+    /// characters but matches it as UTF-16, and spells a link's path with accents decomposed, so
+    /// a path holding an accented letter or a character that takes two units it may match short:
+    /// an exclusion isn't counted on to keep SwiftLint off one.
+    private static func isMatchable(_ path: String) -> Bool {
+        let decomposed = path.decomposedStringWithCanonicalMapping
+        return decomposed.count == decomposed.utf16.count
     }
 
     /// How deep below the workspace the walk that reaches `path` starts, or nil when that can't
@@ -312,9 +320,17 @@ nonisolated struct MirrorLinkDiscovery {
     /// naming a folder on the way to it, which SwiftLint lists from the workspace, does.
     private func loopAdvice(forLink link: String, at linkPath: String) -> String {
         guard isUnderPrivate else {
+            guard Self.isMatchable(link) else {
+                return "SwiftLint can't match its path, which holds an accented letter or an emoji, against "
+                    + "`excluded`: remove the link."
+            }
+            // SwiftLint reads an entry as a glob: a character it gives a meaning stands for itself
+            // in brackets.
             let real = WorkspaceMirrorPlan.relative(from: workspaceRoot, to: link)
-            guard real != linkPath else { return "Add it to `excluded` and SwiftLint skips it." }
-            return "Add \(real), the link's real path, to `excluded` and SwiftLint skips it."
+            let entry = real.reduce(into: "") { $0 += "*?[".contains($1) ? "[\($1)]" : String($1) }
+            guard entry != linkPath else { return "Add it to `excluded` and SwiftLint skips it." }
+            let which = real == linkPath ? "its path written as a glob" : "the link's real path"
+            return "Add \(entry), \(which), to `excluded` and SwiftLint skips it."
         }
         let skipsNoLink = "In a workspace under /tmp or /var, SwiftLint doesn't skip a symlink `excluded` names: "
         // Named as written in `excluded`, the folder must be matched by that path, not as a glob.

@@ -165,6 +165,8 @@ struct SimulationWorkspacePrivateLoopTests {
         case .keeps(let path):
             let plan = try plan(layout, underPrivate: loopCase.underPrivate)
             #expect(plan.links.contains { $0.path == path }, "\(plan.links.map(\.path))")
+            // A link with nowhere to point dangles: SwiftLint finds nothing through it.
+            #expect(!plan.links.map(\.destination).contains(""), "\(plan.links)")
         }
     }
 }
