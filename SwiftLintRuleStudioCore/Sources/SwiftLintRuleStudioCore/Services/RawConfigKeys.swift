@@ -18,12 +18,16 @@ import Yams
 nonisolated struct RawConfigKeys: Sendable {
     let excluded: [String]
     let included: [String]
-    /// `parent_config` and `child_config`, in that order, where present.
-    let referencedConfigs: [String]
+    let parentConfig: String?
+    let childConfig: String?
     /// The names `custom_rules` defines: SwiftLint reports each one's violations under its own
     /// name, not `custom_rules`.
     let customRuleIds: [String]
 
+    /// `parent_config` and `child_config`, in that order, where present.
+    var referencedConfigs: [String] {
+        [parentConfig, childConfig].compactMap(\.self)
+    }
     /// The keys of the config at `url`, or nil when it can't be read as a YAML mapping.
     static func read(_ url: URL) -> Self? {
         guard let text = try? String(contentsOf: url, encoding: .utf8),
@@ -31,7 +35,8 @@ nonisolated struct RawConfigKeys: Sendable {
         return Self(
             excluded: strings(dictionary["excluded"]),
             included: strings(dictionary["included"]),
-            referencedConfigs: ["parent_config", "child_config"].compactMap { dictionary[$0] as? String },
+            parentConfig: dictionary["parent_config"] as? String,
+            childConfig: dictionary["child_config"] as? String,
             customRuleIds: ((dictionary["custom_rules"] as? [String: Any])?.keys).map { Array($0).sorted() } ?? []
         )
     }

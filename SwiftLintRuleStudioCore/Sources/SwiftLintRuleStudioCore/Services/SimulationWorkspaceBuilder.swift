@@ -197,8 +197,9 @@ final class SimulationWorkspace {
 /// `opt_in_rules` / `analyzer_rules` — so the mirror stays a file SwiftLint accepts. That
 /// routing reads the rule's deprecated names as the rule, as SwiftLint does, so
 /// `disabled_rules: [variable_name]` stops holding `identifier_name` off.
-/// Preserves the config's `included:`/`excluded:` exactly as written — in the mirror those
-/// relative paths resolve correctly, so no absolutizing is needed.
+/// Preserves the config's `included:`/`excluded:` as loaded — relative paths resolve the same in
+/// the mirror, and loading writes the rest to name their place there (see
+/// `SimulationWorkspaceBuilder.mirrorExclusions(in:pulledIn:plan:)`).
 enum ConfigRuleEnabler {
 
     static func enableRule(

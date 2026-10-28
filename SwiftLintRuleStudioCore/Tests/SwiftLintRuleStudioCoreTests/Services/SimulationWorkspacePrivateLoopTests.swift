@@ -120,6 +120,14 @@ struct SimulationWorkspacePrivateLoopTests {
         try check(loopCase)
     }
 
+    @Test(
+        "the mirror keeps the links SwiftLint goes through on the way to what `included` names",
+        arguments: PrivateLoop.throughLinks
+    )
+    func linksOnTheWay(_ loopCase: PrivateLoop.Case) throws {
+        try check(loopCase)
+    }
+
     private func check(_ loopCase: PrivateLoop.Case) throws {
         let base = FileManager.default.temporaryDirectory
             .appendingPathComponent("ShadowSymlinkTests", isDirectory: true)

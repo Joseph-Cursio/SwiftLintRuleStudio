@@ -8,18 +8,21 @@
 import Foundation
 
 nonisolated extension PrivateLoop {
-    /// What the mirror reproduces: it copies the config as written, so an exclusion keeps
-    /// SwiftLint out there only when written relative and inside the folder the container
-    /// stands for; and an `included` entry needs every link on the way to it.
+    /// What the mirror reproduces: it writes each `excluded` entry to name its place in the
+    /// container, so one written absolute, or climbing past the folder the container stands for,
+    /// keeps SwiftLint out there as in the workspace; and an `included` entry needs every link on
+    /// the way to it.
     static let mirror: [Case] = [
-        // SwiftLint skips G in the workspace, and the mirror's copy of the config names the
-        // original G. No crash in the workspace; the mirror would go round for ever.
+        // SwiftLint skips G in the workspace, and the mirror writes the entry to name its copy of
+        // G, so it skips that too. No crash in either.
         Case(
             testDescription: "loop behind an absolute exclusion",
             config: "excluded:\n  - <base>/ws/Core/G\n",
             links: [link("ws/App/L4", to: "../Core"), link("ws/Core/G/L1", to: "../../App")],
-            outcome: .refused(saying: nil)
+            outcome: .keeps("ws/App/L4")
         ),
+        // The same in kit, beside the folder the container stands for: the mirror writes the entry
+        // to name G in its outside copy of kit.
         Case(
             testDescription: "loop behind an exclusion climbing past what the container stands for",
             workspace: "top/ws",
@@ -29,18 +32,18 @@ nonisolated extension PrivateLoop {
                 link("top/ws/Generated/L2", to: "../../../kit"),
                 link("kit/G/L1", to: "../../top/ws/App")
             ],
-            outcome: .refused(saying: nil)
+            outcome: .keeps(".swiftlint-rule-studio-outside/0/tree/G/L1")
         ),
         // SwiftLint lints through M for T/Sub/M/Z, and only the absolute entry keeps it from
-        // coming back round through M on its walk of A. The mirror, keeping M, goes round for
-        // ever; leaving it out, it misses t1.swift.
+        // coming back round through M on its walk of A. The mirror keeps M, and with the entry
+        // written to name its copy, skips it there too.
         Case(
             testDescription: "followed link looping where only an absolute exclusion stops it, outside /private",
             config: "included:\n  - A\n  - T/Sub/M/Z\nexcluded:\n  - <base>/ws/T/Sub/M\n",
             files: ["ws/A/a2.swift", "ws/A/Z/a1.swift", "ws/T/Sub/t1.swift"],
             links: [link("ws/A/L", to: "../T"), link("ws/T/Sub/M", to: "../../A")],
             underPrivate: false,
-            outcome: .refused(saying: "Write that entry relative to the workspace")
+            outcome: .keeps("ws/T/Sub/M")
         ),
         Case(
             testDescription: "followed link looping where only a climbing exclusion stops it, outside /private",
@@ -51,11 +54,11 @@ nonisolated extension PrivateLoop {
                 link("top/ws/A/Lnk", to: "../T"), link("top/ws/T/Sub/toA", to: "../../A"), link("top/ws/C", to: "T/Sub")
             ],
             underPrivate: false,
-            outcome: .refused(saying: "Write that entry relative to the workspace")
+            outcome: .keeps("ws/T/Sub/toA")
         ),
         // Packages/Kit is on the way to an `included` entry, so the mirror keeps it; the Modules
         // walk reaches it again through Siblings, and only the absolute entry stops SwiftLint
-        // there. The mirror's copy names the original: it would go round for ever.
+        // there, in the mirror as in the workspace.
         Case(
             testDescription: "link toward an `included` entry looping behind an absolute exclusion, outside /private",
             config: "included:\n  - Packages/Kit/Sources\n  - Modules\nexcluded:\n  - <base>/ws/Packages/Kit\n",
@@ -65,7 +68,7 @@ nonisolated extension PrivateLoop {
                 link("ws/Modules/Kit/Siblings", to: "../../Packages")
             ],
             underPrivate: false,
-            outcome: .refused(saying: "Write that entry relative to the workspace")
+            outcome: .keeps("ws/Packages/Kit")
         ),
         Case(
             testDescription: "the same behind an exclusion climbing past the anchor, outside /private",
@@ -77,7 +80,7 @@ nonisolated extension PrivateLoop {
                 link("top/ws/Modules/Kit/Siblings", to: "../../Packages")
             ],
             underPrivate: false,
-            outcome: .refused(saying: "Write that entry relative to the workspace")
+            outcome: .keeps("ws/Packages/Kit")
         ),
         // APFS lists Packages before Modules, and Vendor after: there the loop is seen before
         // the link is followed.
@@ -90,9 +93,9 @@ nonisolated extension PrivateLoop {
                 link("ws/Modules/Kit/Siblings", to: "../../Vendor")
             ],
             underPrivate: false,
-            outcome: .refused(saying: "Write that entry relative to the workspace")
+            outcome: .keeps("ws/Vendor/Kit")
         ),
-        // The same written relative: the mirror reproduces it, and keeps every link.
+        // The same written relative.
         Case(
             testDescription: "followed link looping where a relative exclusion stops it, outside /private",
             config: "included:\n  - A/Lnk/Sub\n  - C/toA/Z\nexcluded:\n  - T\n",
