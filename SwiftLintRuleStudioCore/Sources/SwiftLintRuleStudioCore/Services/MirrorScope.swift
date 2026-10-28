@@ -42,6 +42,9 @@ nonisolated private struct MirrorScopeBuilder {
     var configGraph: Set<String> = []
     /// Absolute, as SwiftLint makes them: each config's folder joined with the entry.
     var excludedPatterns: [String] = []
+    /// The entries written relative, absolute as in ``excludedPatterns``, with the fewest path
+    /// components the entry climbs to on the way there.
+    private var relativeExcludedPatterns: [(pattern: String, highest: Int)] = []
     /// A config excludes something.
     var excludesAnything = false
     private var includedTargets: [Target] = []
@@ -53,13 +56,22 @@ nonisolated private struct MirrorScopeBuilder {
         rootComponents = root.pathComponents
     }
 
+    /// Records the `excluded` entry `written` in a config read relative to `base`.
+    private mutating func addExclusion(_ written: String, base: URL) {
+        let (entry, entryBase) = expandingPWD(written, base: base)
+        let pattern = entry.hasPrefix("/") ? entry : Self.absolute(entry, base: entryBase)
+        excludedPatterns.append(pattern)
+        guard !entry.hasPrefix("/"), !entry.hasPrefix("~") else { return }
+        let parts = entryBase.pathComponents + entry.split(separator: "/").map(String.init)
+        relativeExcludedPatterns.append((pattern, Self.highest(parts)))
+    }
+
     mutating func visit(_ config: URL, base: URL) throws {
         guard visited.insert(config.standardizedFileURL.path).inserted,
               let keys = RawConfigKeys.read(config) else { return }
         if !keys.excluded.isEmpty { excludesAnything = true }
         for written in keys.excluded {
-            let (entry, entryBase) = expandingPWD(written, base: base)
-            excludedPatterns.append(entry.hasPrefix("/") ? entry : Self.absolute(entry, base: entryBase))
+            addExclusion(written, base: base)
         }
         for written in keys.included {
             let (entry, entryBase) = expandingPWD(written, base: base)
@@ -170,6 +182,16 @@ nonisolated private struct MirrorScopeBuilder {
         )
     }
 
+    /// The patterns SwiftLint applies in the mirror too, which copies the config as written. In
+    /// it an absolute entry still names the original folder, and one climbing past the anchor a
+    /// folder the container doesn't hold at that place, if at all.
+    func mirroredExcludedPatterns(anchor: String) -> [String] {
+        let anchorCount = URL(fileURLWithPath: anchor).pathComponents.count
+        return relativeExcludedPatterns
+            .filter { $0.highest >= anchorCount && $0.pattern.hasPrefix(anchor + "/") }
+            .map(\.pattern)
+    }
+
     /// Refuses a path whose first folder in the container is one the container keeps for itself.
     private func checkReserved(_ path: String, written: String, config: String) throws {
         let first = path.split(separator: "/").first.map(String.init) ?? ""
@@ -191,6 +213,21 @@ nonisolated private struct MirrorScopeBuilder {
     private static func absolute(_ entry: String, base: URL) -> String {
         let components = standardized(base.pathComponents + entry.split(separator: "/").map(String.init))
         return "/" + components.dropFirst().joined(separator: "/")
+    }
+
+    /// The fewest components `components` comes down to, standardized one at a time.
+    private static func highest(_ components: [String]) -> Int {
+        var count = 0
+        var fewest = Int.max
+        for component in components where component != "." && !component.isEmpty {
+            if component == ".." {
+                count = max(count - 1, 1)
+                fewest = min(fewest, count)
+            } else {
+                count += 1
+            }
+        }
+        return min(fewest, count)
     }
 
     /// `components` with `.` dropped and each `..` taking the one before it, as SwiftLint
@@ -252,6 +289,10 @@ nonisolated struct MirrorScope: Sendable {
     let configGraph: Set<String>
     /// What the root config and the configs it pulls in exclude.
     let exclusions: MirrorExclusions
+    /// What of ``exclusions`` SwiftLint applies in the mirror too: the entries written relative
+    /// that stay inside the anchor. Under `/private` only these may keep it out of a loop the
+    /// mirror keeps.
+    let mirroredExclusions: MirrorExclusions
     /// Whether the workspace lies under `/private`, as `/tmp` and `/var` do. SwiftLint reads a
     /// path there under two spellings, which changes what it does; see
     /// ``SimulationWorkspaceBuilder``.
@@ -299,6 +340,7 @@ nonisolated struct MirrorScope: Sendable {
             referencedConfigs: placed.referencedConfigs,
             configGraph: builder.configGraph,
             exclusions: MirrorExclusions(patterns: builder.excludedPatterns),
+            mirroredExclusions: MirrorExclusions(patterns: builder.mirroredExcludedPatterns(anchor: placed.anchor)),
             isUnderPrivate: isUnderPrivate
         )
     }

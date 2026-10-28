@@ -22,6 +22,7 @@ extension MirrorScope {
             referencedConfigs: referencedConfigs,
             configGraph: configGraph,
             exclusions: exclusions,
+            mirroredExclusions: mirroredExclusions,
             isUnderPrivate: isUnderPrivate
         )
     }
