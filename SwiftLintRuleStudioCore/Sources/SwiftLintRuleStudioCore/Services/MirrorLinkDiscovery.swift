@@ -53,6 +53,10 @@ nonisolated struct MirrorLinkDiscovery {
     /// Links SwiftLint follows without coming back round: on a route it walks, or on the way to
     /// a walk an `included` entry starts beyond the link.
     private var followedLinks: Set<String> = []
+    /// Links SwiftLint comes back round through on a route it walks but for an exclusion the
+    /// mirror doesn't reproduce: the mirror keeps it off that route only by leaving the link
+    /// out, so it can't also keep one SwiftLint follows.
+    private var unmirroredLoops: Set<String> = []
     private var visited: Set<String> = []
     /// Folders outside the workspace whose entries count toward ``outsideEntryLimit``: the
     /// mirror copies each once, however many routes lead there.
@@ -161,32 +165,12 @@ nonisolated struct MirrorLinkDiscovery {
     private mutating func follow(_ link: MirrorDirectoryEntry, to target: URL, at linkPath: String) throws {
         guard reach.follows(linkAt: linkPath) else { return }
         if walking.contains(where: { MirrorRegions.isInside($0.path, target.path) }) {
-            if !followedLinks.contains(link.url.path) {
-                cyclicLinks.insert(link.url.path)
-            }
-            // The mirror leaves the link out. Following every link, SwiftLint resolves it and
-            // walks the folder again, and again, until it crashes — if it walks where the link
-            // is and no exclusion keeps it out — so the mirror would measure a workspace
-            // SwiftLint can't lint. Following only the way to an `included` entry, SwiftLint
-            // goes through it once, and the mirror without it would lint less.
-            switch reach {
-            case .everyLink:
-                if isWalked(linkPath), !isExcluded(link.url.path, target: target.path, at: linkPath) {
-                    throw MirrorUnsupportedSetupError(
-                        reason: "SwiftLint follows the symlink at \(linkPath) back into a folder that holds it, round "
-                            + "and round until it crashes. " + loopAdvice(forLinkAt: linkPath)
-                    )
-                }
-                // A walk an `included` entry starts beyond the link begins in the folder it points
-                // at, which holds the link: no exclusion above it keeps that walk out.
-                guard hasWalkStart(below: linkPath) else { return }
-                throw Self.includedThroughLoop(at: linkPath)
-            case .towardIncluded:
-                throw Self.includedThroughLoop(at: linkPath)
-            }
+            try closeLoop(link, to: target, at: linkPath)
+            return
         }
         if reach == .everyLink, hasWalkStart(below: linkPath)
             || (isWalked(linkPath) && !isExcluded(link.url.path, target: target.path, at: linkPath)) {
+            guard !unmirroredLoops.contains(link.url.path) else { throw Self.unmirroredLoop(at: linkPath) }
             followedLinks.insert(link.url.path)
             cyclicLinks.remove(link.url.path)
         }
@@ -197,11 +181,62 @@ nonisolated struct MirrorLinkDiscovery {
         try explore(target, at: linkPath, isLinkTarget: true)
     }
 
+    /// Records the link at `linkPath` to `target`, which points back into a folder being walked,
+    /// or throws when the mirror can't reproduce what SwiftLint makes of it.
+    private mutating func closeLoop(_ link: MirrorDirectoryEntry, to target: URL, at linkPath: String) throws {
+        if !followedLinks.contains(link.url.path) {
+            cyclicLinks.insert(link.url.path)
+        }
+        // The mirror leaves the link out. Following every link, SwiftLint resolves it and
+        // walks the folder again, and again, until it crashes — if it walks where the link
+        // is and no exclusion keeps it out — so the mirror would measure a workspace
+        // SwiftLint can't lint. Following only the way to an `included` entry, SwiftLint
+        // goes through it once, and the mirror without it would lint less.
+        switch reach {
+        case .everyLink:
+            if isWalked(linkPath) {
+                guard isExcluded(link.url.path, target: target.path, at: linkPath) else {
+                    throw MirrorUnsupportedSetupError(
+                        reason: "SwiftLint follows the symlink at \(linkPath) back into a folder that holds it, round "
+                            + "and round until it crashes. " + loopAdvice(forLinkAt: linkPath)
+                    )
+                }
+                // An exclusion the mirror doesn't reproduce keeps SwiftLint out there only while
+                // the mirror leaves the link out, which it can't when SwiftLint follows it too.
+                if !isMirroredExclusion(link.url.path, target: target.path) {
+                    guard !followedLinks.contains(link.url.path) else { throw Self.unmirroredLoop(at: linkPath) }
+                    unmirroredLoops.insert(link.url.path)
+                }
+            }
+            // A walk an `included` entry starts beyond the link begins in the folder it points
+            // at, which holds the link: no exclusion above it keeps that walk out.
+            guard hasWalkStart(below: linkPath) else { return }
+            throw Self.includedThroughLoop(at: linkPath)
+        case .towardIncluded:
+            throw Self.includedThroughLoop(at: linkPath)
+        }
+    }
+
     private static func includedThroughLoop(at linkPath: String) -> MirrorUnsupportedSetupError {
         MirrorUnsupportedSetupError(
             reason: "An `included` entry runs through the symlink at \(linkPath), which points back into a "
                 + "folder that holds it."
         )
+    }
+
+    private static func unmirroredLoop(at linkPath: String) -> MirrorUnsupportedSetupError {
+        MirrorUnsupportedSetupError(
+            reason: "The symlink at \(linkPath) leads back into a folder that holds it on a route only an `excluded` "
+                + "entry written as an absolute path, or climbing above the workspace, keeps SwiftLint off, and "
+                + "SwiftLint follows it on another. In a copy of the workspace that entry still names the original "
+                + "files. Write that entry relative to the workspace to simulate."
+        )
+    }
+
+    /// Whether the exclusion that keeps SwiftLint from walking into the link at `path` to
+    /// `target` keeps it out in the mirror too. Under `/private` only such exclusions count.
+    private func isMirroredExclusion(_ path: String, target: String) -> Bool {
+        isUnderPrivate || mirroredExclusions.excludes(path) || mirroredExclusions.excludes(target)
     }
 
     /// Whether an exclusion keeps SwiftLint from walking into the link at `path` to `target`,
