@@ -59,6 +59,16 @@ struct MirrorExclusionsTests {
         #expect(!MirrorExclusions(patterns: ["/ws/[|]x"]).excludes("/ws/|x"))
     }
 
+    @Test("a path counts as excluded only when it matches both minding and ignoring case, as SwiftLint ignores it")
+    func bothCases() {
+        // SwiftLint's [^a], ignoring case, doesn't take A.
+        #expect(!MirrorExclusions(patterns: ["/ws/[!a]"]).excludes("/ws/A"))
+        #expect(MirrorExclusions(patterns: ["/ws/[!a]"]).excludes("/ws/B"))
+        // Ignoring case, the **/ settles on the later gen/, and /Mocks can't follow.
+        #expect(!MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/gen/Mocks"))
+        #expect(MirrorExclusions(patterns: ["/ws/*/**/Gen/*/Mocks"]).excludes("/ws/A/Gen/B/xyz/Mocks"))
+    }
+
     @Test("a .swift pattern names files only, and no patterns exclude nothing")
     func swiftPatternAndNone() {
         let exclusions = MirrorExclusions(patterns: ["/ws/A.swift"])

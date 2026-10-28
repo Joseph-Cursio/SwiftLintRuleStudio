@@ -109,6 +109,28 @@ nonisolated extension PrivateLoop {
             underPrivate: false,
             outcome: .keeps("out/N/lk")
         ),
+        // SwiftLint ignores case: its [^m] doesn't take the M of Mocks, so it follows Mocks into kit.
+        Case(
+            testDescription: "link on the way only a case-minding match would exclude, outside /private",
+            config: "excluded:\n  - \"App/[!m]ocks\"\n",
+            files: ["ws/App/a.swift", "kit/G/k.swift"],
+            links: [link("ws/App/Mocks", to: "../../kit"), link("kit/G/L1", to: "../../ws/App")],
+            underPrivate: false,
+            outcome: .refused(saying: nil)
+        ),
+        // A CJK compatibility ideograph takes two UTF-16 units however it is spelled to SwiftLint.
+        Case(
+            testDescription: "excluded link on the way, under CJK compatibility ideographs, outside /private",
+            workspace: "\u{2F800}\u{2F800}/ws",
+            config: "excluded:\n  - App/L4\n",
+            files: ["\u{2F800}\u{2F800}/kit/G/G.swift"],
+            links: [
+                link("\u{2F800}\u{2F800}/ws/App/L4", to: "../../kit"),
+                link("\u{2F800}\u{2F800}/kit/G/L1", to: "../../ws/App")
+            ],
+            underPrivate: false,
+            outcome: .refused(saying: "remove the link")
+        ),
         // SwiftLint matches the link by a path whose accent it spells decomposed, and cuts it short.
         Case(
             testDescription: "loop excluded by its real path in a folder with an accented name, outside /private",

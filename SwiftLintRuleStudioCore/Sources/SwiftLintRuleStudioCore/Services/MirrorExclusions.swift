@@ -9,26 +9,35 @@ import Foundation
 
 /// The root config's `excluded` patterns, matched as SwiftLint matches them: Python `fnmatch`
 /// with `**` for any run of folders (its `FilenameMatcher`), against the whole absolute path,
-/// and a pattern naming a folder taking everything in it. SwiftLint ignores case; this doesn't,
-/// so it never counts on an exclusion SwiftLint might not apply.
+/// and a pattern naming a folder taking everything in it.
 ///
 /// The mirror itself never needs this — SwiftLint applies the exclusions in the mirror — except
 /// to tell whether SwiftLint walks into a link that loops, which it follows until it crashes.
+/// So it only counts an exclusion SwiftLint surely applies: SwiftLint ignores case, and a path
+/// matching both ignoring and minding case is one it excludes, while minding case alone could
+/// take one it doesn't — `[!a]` takes `A`, and a `**/` before more of the pattern settles on a
+/// different folder.
 nonisolated struct MirrorExclusions: Sendable {
-    private let expressions: [NSRegularExpression]
+    /// Each pattern twice: as SwiftLint matches it, ignoring case, and minding case.
+    private let expressions: [(caseless: NSRegularExpression, cased: NSRegularExpression)]
 
     /// - Parameter patterns: Absolute, as SwiftLint makes each entry: its config's folder joined
     ///   with it.
     init(patterns: [String]) {
         expressions = patterns.flatMap(Self.matcherPatterns).compactMap { pattern in
-            try? NSRegularExpression(pattern: "^(?s:" + Self.translate(pattern) + ")$")
+            let expression = "^(?s:" + Self.translate(pattern) + ")$"
+            guard let caseless = try? NSRegularExpression(pattern: expression, options: .caseInsensitive),
+                  let cased = try? NSRegularExpression(pattern: expression) else { return nil }
+            return (caseless, cased)
         }
     }
 
-    /// Whether SwiftLint excludes the file or folder at the absolute `path`.
+    /// Whether SwiftLint surely excludes the file or folder at the absolute `path`.
     func excludes(_ path: String) -> Bool {
         let range = NSRange(path.startIndex..., in: path)
-        return expressions.contains { $0.firstMatch(in: path, range: range) != nil }
+        return expressions.contains { pair in
+            [pair.caseless, pair.cased].allSatisfy { $0.firstMatch(in: path, range: range) != nil }
+        }
     }
 
     /// SwiftLint's `Glob.createFilenameMatchers`: a pattern also covers what is inside a folder
