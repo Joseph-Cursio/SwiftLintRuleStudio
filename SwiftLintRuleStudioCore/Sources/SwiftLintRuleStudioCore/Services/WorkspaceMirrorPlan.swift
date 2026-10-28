@@ -95,6 +95,7 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             reach: scope.reach,
             workspaceRoot: scope.workspaceRoot,
             exclusions: scope.exclusions,
+            mirroredExclusions: scope.mirroredExclusions,
             walkRoots: scope.walkRoots,
             isUnderPrivate: scope.isUnderPrivate,
             outsideEntryLimit: outsideEntryLimit
