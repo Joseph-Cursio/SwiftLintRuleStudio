@@ -87,4 +87,17 @@ struct ConfigTreeDiscoveryRootGraphTests {
         #expect(tree.rootGraph.isEmpty)
         #expect(Self.positions(in: tree).isEmpty)
     }
+
+    @Test("excluded in a config the root pulls in is not flagged as ignored, as in any other nested config")
+    func pulledInExclusionsAreEffective() throws {
+        let root = try Self.workspace([
+            "": "child_config: Shared/.swiftlint.yml\n",
+            "Shared": "excluded:\n  - Generated\n",
+            "Sub": "excluded:\n  - Generated\n"
+        ])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let tree = ConfigTreeDiscovery().discover(in: root)
+
+        #expect(tree.configsWithIneffectiveExclusions.map(\.relativePath) == ["Sub/.swiftlint.yml"])
+    }
 }

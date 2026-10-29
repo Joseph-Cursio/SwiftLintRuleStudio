@@ -165,8 +165,10 @@ public struct DiscoveredConfig: Identifiable, Sendable {
     /// A nested config that sets `excluded:`/`included:` — which SwiftLint
     /// **ignores** outside the root config. This is the "excluded trap" from the
     /// doc: the developer thinks they excluded a file, but it is still linted.
+    /// A config the root pulls in is part of the root configuration, whose
+    /// `excluded`/`included` SwiftLint merges from every config in it.
     nonisolated public var hasIneffectiveExclusions: Bool {
-        !isRoot && (summary.setsExcluded || summary.setsIncluded)
+        !isRoot && rootGraphPosition == nil && (summary.setsExcluded || summary.setsIncluded)
     }
 }
 
