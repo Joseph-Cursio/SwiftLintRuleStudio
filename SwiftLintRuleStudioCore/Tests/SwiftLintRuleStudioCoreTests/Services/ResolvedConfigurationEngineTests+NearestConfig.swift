@@ -90,4 +90,45 @@ extension ResolvedConfigurationEngineTests {
         #expect(resolved.optInRules.map(\.identifier) == ["empty_count"])
         #expect(resolved.disabledRules.isEmpty)
     }
+
+    // MARK: - The configs the root pulls in
+
+    @Test("a config the root pulls in with child_config stays part of the root's settings")
+    @MainActor
+    func testRootChildConfigIsPartOfTheRoot() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("opt_in_rules:\n  - empty_count\nchild_config: Sub/.swiftlint.yml\n", at: "", in: root)
+        try writeConfig("disabled_rules:\n  - force_cast\n", at: "Sub", in: root)
+        try writeConfig("disabled_rules:\n  - todo\n", at: "Sub/Deeper", in: root)
+
+        // SwiftLint passes over Sub's config as a nested one, but has merged it
+        // into the root: beneath Sub/Deeper's own config it still applies…
+        let atDeeper = resolve(at: "Sub/Deeper", in: root)
+        #expect(atDeeper.layerChain.map(\.displayName) == ["root", "Sub", "Deeper"])
+        #expect(atDeeper.skippedLayers.isEmpty)
+        #expect(atDeeper.disabledRules.map(\.identifier) == ["force_cast", "todo"])
+
+        // …and in a folder nowhere near Sub.
+        let atOther = resolve(at: "Other", in: root)
+        #expect(atOther.layerChain.map(\.displayName) == ["root", "Sub"])
+        #expect(atOther.disabledRules.map(\.identifier) == ["force_cast"])
+        #expect(atOther.optInRules.map(\.identifier) == ["empty_count"])
+    }
+
+    @Test("a config the root pulls in with parent_config merges beneath the root's own settings")
+    @MainActor
+    func testRootParentConfigMergesFirst() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("parent_config: Shared/.swiftlint.yml\nopt_in_rules:\n  - empty_count\n", at: "", in: root)
+        try writeConfig("disabled_rules:\n  - empty_count\n  - todo\n", at: "Shared", in: root)
+
+        let resolved = resolve(at: "Sources", in: root)
+        #expect(resolved.layerChain.map(\.displayName) == ["Shared", "root"])
+        // The root is the child here: its opt-in overrides the parent's disable.
+        #expect(resolved.optInRules.map(\.identifier) == ["empty_count"])
+        #expect(resolved.optInRules.first?.setBy.isRoot == true)
+        #expect(resolved.disabledRules.map(\.identifier) == ["todo"])
+    }
 }

@@ -30,7 +30,8 @@ public struct ConfigTreeRow: Identifiable, Sendable {
     /// Whether the config failed to parse.
     nonisolated public let hasParseError: Bool
     /// The nested config this one takes the place of beneath its folder — its
-    /// parent row, when that is not the root (`Sub` for `Sub/Deeper`). SwiftLint
+    /// parent row, when that is neither the root nor a config the root pulls in
+    /// with `parent_config`/`child_config` (`Sub` for `Sub/Deeper`). SwiftLint
     /// merges a file's nearest nested config onto the root config alone, so files
     /// under this config's folder get none of that config's settings.
     nonisolated public let replaces: String?

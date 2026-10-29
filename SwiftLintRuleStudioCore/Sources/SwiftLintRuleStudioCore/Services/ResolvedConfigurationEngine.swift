@@ -3,9 +3,10 @@
 //  SwiftLintRuleStudio
 //
 //  Computes the effective merged SwiftLint configuration for a folder from its
-//  layer chain — the root config, then the nearest nested config at or above the
-//  folder, as SwiftLint picks them — applying SwiftLint's non-uniform merge
-//  semantics and attributing each decision to the layer that set it.
+//  layer chain — the root config with the configs it pulls in, then the nearest
+//  nested config at or above the folder, as SwiftLint picks them — applying
+//  SwiftLint's non-uniform merge semantics and attributing each decision to the
+//  layer that set it.
 //
 //  ⚠️ These merge rules drift across SwiftLint versions. This reimplementation
 //  drives the UI (it is fast and attributable); it must be reconciled against an
@@ -22,13 +23,18 @@ public struct ResolvedConfigurationEngine {
 
     /// Resolves the effective configuration that applies to `targetDirectory`.
     ///
-    /// The layer chain is the root config and the nearest nested config at or
-    /// above `targetDirectory` (see ``layerChain(for:in:)``); the other configs
-    /// above it are reported as skipped. Configs that failed to parse contribute
-    /// nothing rather than aborting the merge.
+    /// The layer chain is the root config with the configs it pulls in, then the
+    /// nearest nested config at or above `targetDirectory` (see
+    /// ``layerChain(for:in:)``); the other configs above it are reported as
+    /// skipped. Configs that failed to parse contribute nothing rather than
+    /// aborting the merge.
+    ///
+    /// Of the configs the root pulls in, only their rule settings are merged:
+    /// `excluded`, `included` and `reporter` are still read from the root config
+    /// alone.
     public func resolve(at targetDirectory: URL, in tree: ConfigTree) -> ResolvedConfiguration {
         let ancestors = Self.ancestorConfigs(of: targetDirectory, in: tree)
-        let chain = Self.layerChain(among: ancestors)
+        let chain = Self.layerChain(among: ancestors, in: tree)
         let chainIDs = Set(chain.map(\.id))
         var accumulator = Accumulator()
         for discovered in chain {
@@ -54,8 +60,9 @@ public struct ResolvedConfigurationEngine {
 
     // MARK: - Layer chain
 
-    /// The configs SwiftLint applies to `targetDirectory`, ordered root → nearest:
-    /// the root config, then the nearest nested config at or above the folder.
+    /// The configs SwiftLint applies to `targetDirectory`: the root config with
+    /// the configs it pulls in (``ConfigTree/rootGraph``), then the nearest nested
+    /// config at or above the folder.
     ///
     /// SwiftLint's `configuration(forDirectory:)` walks up from a file's folder and
     /// merges the root configuration with the first nested `.swiftlint.yml` it
@@ -65,8 +72,15 @@ public struct ResolvedConfigurationEngine {
     /// `empty_count` the root opts in. SwiftLint picks the nearest config by its
     /// presence alone, so one that failed to parse here still stands in for those
     /// above it, and contributes nothing.
+    ///
+    /// The configs the root pulls in with `parent_config` and `child_config` are
+    /// part of the root configuration, so they apply in every folder, in the
+    /// order SwiftLint merges them. Its search for the nearest config passes over
+    /// them: with the root's `child_config: Sub/.swiftlint.yml`, a file in
+    /// `Sub/Deeper` beside its own config gets `Sub`'s settings as part of the
+    /// root's, and those of `Sub/Deeper` on top.
     nonisolated static func layerChain(for targetDirectory: URL, in tree: ConfigTree) -> [DiscoveredConfig] {
-        layerChain(among: ancestorConfigs(of: targetDirectory, in: tree))
+        layerChain(among: ancestorConfigs(of: targetDirectory, in: tree), in: tree)
     }
 
     /// Every config whose governed directory is `targetDirectory` or one of its
@@ -81,11 +95,14 @@ public struct ResolvedConfigurationEngine {
         return ancestors.sorted { $0.depth < $1.depth }
     }
 
-    /// The root config and the deepest of `ancestors` below it, from `ancestors`
-    /// ordered root → deepest.
-    nonisolated private static func layerChain(among ancestors: [DiscoveredConfig]) -> [DiscoveredConfig] {
-        let nearest = ancestors.last { !$0.isRoot }
-        return ancestors.filter(\.isRoot) + (nearest.map { [$0] } ?? [])
+    /// The tree's root graph, then the deepest of `ancestors` outside it, from
+    /// `ancestors` ordered root → deepest.
+    nonisolated private static func layerChain(
+        among ancestors: [DiscoveredConfig],
+        in tree: ConfigTree
+    ) -> [DiscoveredConfig] {
+        let nearest = ancestors.last { !$0.isRoot && $0.rootGraphPosition == nil }
+        return tree.rootGraph + (nearest.map { [$0] } ?? [])
     }
 
     // MARK: - Merge

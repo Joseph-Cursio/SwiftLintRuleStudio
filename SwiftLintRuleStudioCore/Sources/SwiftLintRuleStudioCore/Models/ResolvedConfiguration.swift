@@ -137,16 +137,20 @@ public struct ResolvedRuleConfiguration: Sendable {
 }
 
 /// The effective configuration that applies to a folder, merged from its layer
-/// chain: the root config, then the nearest nested config at or above the folder.
+/// chain: the root config with the configs it pulls in, then the nearest nested
+/// config at or above the folder.
 public struct ResolvedConfiguration: Sendable {
     /// The folder this configuration was resolved for.
     nonisolated public let targetDirectory: URL
-    /// The layers that applied, ordered root → deepest: the root config, then the
-    /// nearest nested config at or above the folder. Either may be absent.
+    /// The layers that applied, in the order they merged: the root config with the
+    /// configs it pulls in with `parent_config`/`child_config` (the furthest parent
+    /// first), then the nearest nested config at or above the folder. Any of them
+    /// may be absent.
     nonisolated public let layerChain: [ConfigLayer]
     /// The nested configs above the nearest one, ordered root → deepest: their
     /// folders hold `targetDirectory`, but SwiftLint merges the root config with
-    /// the nearest nested config alone, so none of them applies here.
+    /// the nearest nested config alone, so none of them applies here. A config the
+    /// root pulls in is never among them: it is part of the root's settings.
     nonisolated public let skippedLayers: [ConfigLayer]
     /// Effective `disabled_rules`, each attributed to the layer that disabled it.
     nonisolated public let disabledRules: [ResolvedRuleDecision]

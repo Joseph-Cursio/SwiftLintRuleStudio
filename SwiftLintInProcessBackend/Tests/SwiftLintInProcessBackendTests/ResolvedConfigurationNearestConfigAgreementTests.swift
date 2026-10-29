@@ -5,16 +5,17 @@
 //  Which of a workspace's nested configs apply to a file, checked against the linked SwiftLint:
 //  its `configuration(forDirectory:)` walks up from the file's folder and merges the root config
 //  with the first nested `.swiftlint.yml` it meets, passing over the configs in the folders
-//  between. Core's `ResolvedConfigurationEngine`, which the Config Map and its verification read,
-//  must pick the same configs.
+//  between and those the root pulls in with `parent_config`/`child_config`, which are part of the
+//  root configuration everywhere. Core's `ResolvedConfigurationEngine`, which the Config Map and
+//  its verification read, must pick the same configs.
 //
 
 import Foundation
 import SwiftLintRuleStudioCore
 import Testing
 
-/// Configs in up to four levels of folders, and what SwiftLint does with one rule for a file in
-/// one of them.
+/// Configs in up to four levels of folders, some pulled in by the root, and what SwiftLint does
+/// with one rule for a file in one of them.
 struct NearestConfigCase: Sendable, CustomTestStringConvertible {
     let name: String
     /// Each config's YAML, by the folder that holds it, relative to the workspace (`""` for the
@@ -49,7 +50,16 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
         "Sub/Deeper": "disabled_rules:\n  - force_cast\n"
     ]
 
-    nonisolated static let cases: [Case] = [
+    /// A root that pulls `Sub`'s config in as its `child_config`, with a nested config beneath it.
+    nonisolated private static let pulledInChild: [String: String] = [
+        "": "opt_in_rules:\n  - empty_count\nchild_config: Sub/.swiftlint.yml\n",
+        "Sub": "disabled_rules:\n  - force_cast\n",
+        "Sub/Deeper": "disabled_rules:\n  - todo\n"
+    ]
+
+    nonisolated static let cases: [Case] = threeLevelCases + rootGraphCases
+
+    nonisolated private static let threeLevelCases: [Case] = [
         Case(
             name: "A config between the root and the nearest one doesn't disable a rule the root opts in",
             configs: threeLevels,
@@ -124,6 +134,37 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
         )
     ]
 
+    nonisolated private static let rootGraphCases: [Case] = [
+        Case(
+            name: "A config the root pulls in with child_config still applies beneath a nested config",
+            configs: pulledInChild,
+            folder: "Sub/Deeper",
+            skipped: [],
+            rule: "force_cast",
+            runs: false
+        ),
+        Case(
+            name: "A config the root pulls in with child_config applies in every folder",
+            configs: pulledInChild,
+            folder: "Other",
+            skipped: [],
+            rule: "force_cast",
+            runs: false
+        ),
+        Case(
+            name: "A config the root pulls in with parent_config merges beneath the root's own settings",
+            configs: [
+                "": "parent_config: Shared/.swiftlint.yml\nopt_in_rules:\n  - empty_count\n",
+                "Shared": "disabled_rules:\n  - empty_count\n  - todo\n",
+                "Sub": "disabled_rules:\n  - force_cast\n"
+            ],
+            folder: "Sub",
+            skipped: [],
+            rule: "empty_count",
+            runs: true
+        )
+    ]
+
     /// One probe per rule SwiftLint has registered, for the harness to ask about.
     private static let probes: [RuleProbe] = Probe.registeredRules.map {
         RuleProbe(ruleIdentifier: $0.id, isOptIn: $0.isOptIn, triggeringSource: "")
@@ -149,6 +190,9 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
         let harness = ConfigVerificationHarness { probe, _ in swiftLintRuns.contains(probe.ruleIdentifier) }
         let report = try await harness.verify(resolved, probes: Self.probes)
         #expect(report.divergences.isEmpty, "\(report.divergences.map(\.ruleIdentifier))")
+        // The case's own rule was among those asked about, and the engine answers it as SwiftLint does.
+        let verdict = report.verifications.first { $0.ruleIdentifier == testCase.rule }
+        #expect(verdict?.engineClaimsActive == testCase.runs)
     }
 
     private static func makeWorkspace(_ testCase: Case) throws -> URL {

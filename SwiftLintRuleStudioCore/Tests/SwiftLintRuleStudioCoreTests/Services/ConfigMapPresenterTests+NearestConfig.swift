@@ -98,4 +98,31 @@ extension ConfigMapPresenterTests {
         #expect(rows.map(\.displayName) == ["A", "B", "C"])
         #expect(rows.map(\.replaces) == [nil, "A", "B"])
     }
+
+    @Test("a config the root pulls in is not replaced, skipped, or inherited from in its own right")
+    @MainActor
+    func testRootGraphConfigIsPartOfTheRoot() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("child_config: Sub/.swiftlint.yml\n", at: "", in: root)
+        try writeConfig("disabled_rules:\n  - force_cast\n", at: "Sub", in: root)
+        try writeConfig("disabled_rules:\n  - todo\n", at: "Sub/Deeper", in: root)
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent("Other", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+
+        let rows = ConfigMapPresenter().treeRows(for: tree(in: root))
+        #expect(rows.map(\.displayName) == ["root", "Sub", "Deeper"])
+        #expect(rows.map(\.replaces) == [nil, nil, nil])
+
+        let atDeeper = display(at: "Sub/Deeper", in: root)
+        #expect(atDeeper.layerChainLabels == ["root", "Sub", "Deeper"])
+        #expect(atDeeper.skippedNotice == nil)
+
+        // A folder with no config inherits the root's settings, Sub's among them.
+        let atOther = display(at: "Other", in: root)
+        #expect(atOther.layerChainLabels == ["root", "Sub"])
+        #expect(atOther.inheritsNotice == "No config in this folder — it inherits from root.")
+    }
 }

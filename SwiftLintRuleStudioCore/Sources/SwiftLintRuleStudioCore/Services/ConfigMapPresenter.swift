@@ -23,7 +23,8 @@ public struct ConfigMapPresenter {
     ///
     /// Nesting follows folders, not merging: SwiftLint merges each nested config
     /// onto the root alone. So a row under a nested config's row says which config
-    /// it replaces, lest it read as building on it.
+    /// it replaces, lest it read as building on it — unless the root pulls that
+    /// config in, which makes it part of the root's settings everywhere.
     public func treeRows(for tree: ConfigTree) -> [ConfigTreeRow] {
         var childrenByParent: [URL: [DiscoveredConfig]] = [:]
         var roots: [DiscoveredConfig] = []
@@ -37,7 +38,8 @@ public struct ConfigMapPresenter {
 
         var rows: [ConfigTreeRow] = []
         func visit(_ config: DiscoveredConfig, parent: DiscoveredConfig?, level: Int) {
-            rows.append(Self.row(for: config, indentLevel: level, replacing: parent.flatMap { $0.isRoot ? nil : $0 }))
+            let replaced = parent.flatMap { $0.isRoot || $0.rootGraphPosition != nil ? nil : $0 }
+            rows.append(Self.row(for: config, indentLevel: level, replacing: replaced))
             let children = (childrenByParent[config.id] ?? [])
                 .sorted { $0.relativePath < $1.relativePath }
             for child in children {
@@ -170,7 +172,11 @@ public struct ConfigMapPresenter {
             $0.directoryPath.standardizedFileURL.path == targetPath
         }
         guard definesOwnConfig == false else { return nil }
-        let inheritedFrom = resolved.layerChain.last?.displayName ?? "the SwiftLint defaults"
+        // The configs the root pulls in are part of the root's settings, not a
+        // layer the folder inherits from in their own right.
+        let rootGraph = Set(tree.rootGraph.filter { !$0.isRoot }.map(\.id))
+        let inheritedFrom = resolved.layerChain.last { !rootGraph.contains($0.id) }?.displayName
+            ?? "the SwiftLint defaults"
         return "No config in this folder — it inherits from \(inheritedFrom)."
     }
 
