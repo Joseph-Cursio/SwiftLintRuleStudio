@@ -244,13 +244,14 @@ struct ResolveInvariantPropertyLawTests {
             // Present exactly when the ROOT sets them — a nested layer setting the
             // same keys contributes nothing, however deep it is.
             let rootSets = specs[0].setsRootOnlyKeys
-            #expect((resolved.excluded != nil) == rootSets)
-            #expect((resolved.included != nil) == rootSets)
+            #expect(resolved.excluded.isEmpty != rootSets)
+            #expect(resolved.included.isEmpty != rootSets)
             #expect((resolved.reporter != nil) == rootSets)
 
             // And when present they are always attributed to the root.
-            #expect(resolved.excluded.map(\.setBy.isRoot) ?? true)
-            #expect(resolved.included.map(\.setBy.isRoot) ?? true)
+            let excludedByRoot = resolved.excluded.allSatisfy(\.setBy.isRoot)
+            let includedByRoot = resolved.included.allSatisfy(\.setBy.isRoot)
+            #expect(excludedByRoot && includedByRoot)
             #expect(resolved.reporter.map(\.setBy.isRoot) ?? true)
         }
     }
@@ -271,9 +272,8 @@ struct ResolveInvariantPropertyLawTests {
                     #expect(chainIDs.contains(previous.id))
                 }
             }
-            for identifier in [resolved.excluded?.setBy.id, resolved.included?.setBy.id, resolved.reporter?.setBy.id] {
-                if let identifier { #expect(chainIDs.contains(identifier)) }
-            }
+            let setters = (resolved.excluded + resolved.included).map(\.setBy) + [resolved.reporter?.setBy]
+            for setter in setters { #expect(setter.map { chainIDs.contains($0.id) } ?? true) }
         }
     }
 
@@ -291,8 +291,8 @@ struct ResolveInvariantPropertyLawTests {
         #expect(resolved.analyzerRules.isEmpty)
         #expect(resolved.ruleConfigurations.isEmpty)
         #expect(resolved.onlyRules == nil)
-        #expect(resolved.excluded == nil)
-        #expect(resolved.included == nil)
+        #expect(resolved.excluded.isEmpty)
+        #expect(resolved.included.isEmpty)
         #expect(resolved.reporter == nil)
     }
 
@@ -314,7 +314,7 @@ struct ResolveInvariantPropertyLawTests {
         #expect(resolved.disabledRules.isEmpty)
         #expect(resolved.optInRules.isEmpty)
         #expect(resolved.ruleConfigurations.isEmpty)
-        #expect(resolved.excluded == nil)
+        #expect(resolved.excluded.isEmpty)
     }
 
     // MARK: - The self-contradiction tie-break

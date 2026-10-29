@@ -49,8 +49,8 @@ struct ConfigVerificationHarnessTests {
                 )
             },
             ruleConfigurations: [],
-            excluded: nil,
-            included: nil,
+            excluded: [],
+            included: [],
             reporter: nil
         )
     }

@@ -34,7 +34,8 @@ struct ConfigTreeRowViewTests {
             badge: "-2 disabled",
             hasIneffectiveExclusions: false,
             hasParseError: false,
-            replaces: nil
+            replaces: nil,
+            pullsIn: []
         )
 
         let rendered = try texts(ConfigTreeRowView(row: row))
@@ -53,7 +54,8 @@ struct ConfigTreeRowViewTests {
             badge: nil,
             hasIneffectiveExclusions: false,
             hasParseError: false,
-            replaces: nil
+            replaces: nil,
+            pullsIn: []
         )
 
         let rendered = try texts(ConfigTreeRowView(row: row))
@@ -72,11 +74,31 @@ struct ConfigTreeRowViewTests {
             badge: "-1 disabled",
             hasIneffectiveExclusions: false,
             hasParseError: false,
-            replaces: "Sub"
+            replaces: "Sub",
+            pullsIn: []
         )
 
         let rendered = try texts(ConfigTreeRowView(row: row))
         #expect(rendered.contains("Deeper"))
         #expect(rendered.contains("replaces Sub"))
+    }
+
+    @Test("the root row names the configs it pulls in from beyond the workspace")
+    func testPullsInNote() throws {
+        let row = ConfigTreeRow(
+            id: URL(fileURLWithPath: "/ws/.swiftlint.yml"),
+            displayName: "root",
+            relativePath: ".swiftlint.yml",
+            indentLevel: 0,
+            isRoot: true,
+            badge: "-1 disabled",
+            hasIneffectiveExclusions: false,
+            hasParseError: false,
+            replaces: nil,
+            pullsIn: ["../../.swiftlint.yml", "https://example.com/strict.yml"]
+        )
+
+        let rendered = try texts(ConfigTreeRowView(row: row))
+        #expect(rendered.contains("pulls in ../../.swiftlint.yml, https://example.com/strict.yml"))
     }
 }

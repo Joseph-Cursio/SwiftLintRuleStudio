@@ -25,6 +25,9 @@ public struct ConfigMapPresenter {
     /// onto the root alone. So a row under a nested config's row says which config
     /// it replaces, lest it read as building on it — unless the root pulls that
     /// config in, which makes it part of the root's settings everywhere.
+    ///
+    /// A config the root pulls in from beyond the workspace's own files has no
+    /// folder here to be a row for; the root's row names it instead.
     public func treeRows(for tree: ConfigTree) -> [ConfigTreeRow] {
         var childrenByParent: [URL: [DiscoveredConfig]] = [:]
         var roots: [DiscoveredConfig] = []
@@ -39,7 +42,8 @@ public struct ConfigMapPresenter {
         var rows: [ConfigTreeRow] = []
         func visit(_ config: DiscoveredConfig, parent: DiscoveredConfig?, level: Int) {
             let replaced = parent.flatMap { $0.isRoot || $0.rootGraphPosition != nil ? nil : $0 }
-            rows.append(Self.row(for: config, indentLevel: level, replacing: replaced))
+            let pullsIn = config.isRoot ? tree.referencedConfigs.map(\.displayName) : []
+            rows.append(Self.row(for: config, indentLevel: level, replacing: replaced, pullsIn: pullsIn))
             let children = (childrenByParent[config.id] ?? [])
                 .sorted { $0.relativePath < $1.relativePath }
             for child in children {
@@ -63,7 +67,8 @@ public struct ConfigMapPresenter {
             onlyRulesNotice: Self.onlyRulesNotice(for: resolved),
             excludedNotice: Self.excludedNotice(for: resolved),
             inheritsNotice: Self.inheritsNotice(for: resolved, in: tree),
-            skippedNotice: Self.skippedNotice(for: resolved)
+            skippedNotice: Self.skippedNotice(for: resolved),
+            unreadNotice: Self.unreadNotice(for: resolved, in: tree)
         )
     }
 
@@ -72,18 +77,20 @@ public struct ConfigMapPresenter {
     private static func row(
         for config: DiscoveredConfig,
         indentLevel: Int,
-        replacing replaced: DiscoveredConfig?
+        replacing replaced: DiscoveredConfig?,
+        pullsIn: [String]
     ) -> ConfigTreeRow {
         ConfigTreeRow(
             id: config.id,
-            displayName: config.isRoot ? "root" : config.directoryPath.lastPathComponent,
+            displayName: config.displayName,
             relativePath: config.relativePath,
             indentLevel: indentLevel,
             isRoot: config.isRoot,
             badge: badge(for: config),
             hasIneffectiveExclusions: config.hasIneffectiveExclusions,
             hasParseError: config.parseError != nil,
-            replaces: replaced?.directoryPath.lastPathComponent
+            replaces: replaced?.directoryPath.lastPathComponent,
+            pullsIn: pullsIn
         )
     }
 
@@ -161,9 +168,24 @@ public struct ConfigMapPresenter {
         return "Only \(count) rule\(count == 1 ? "" : "s") run here — only_rules set by \(declaredBy)."
     }
 
+    /// What the root configuration excludes, each entry with the config that
+    /// excludes it: `excluded (root): Generated`, or, from several configs,
+    /// `excluded: ../../Pods (../../.swiftlint.yml); Generated (root)`.
     private static func excludedNotice(for resolved: ResolvedConfiguration) -> String? {
-        guard let excluded = resolved.excluded else { return nil }
-        return "excluded (\(excluded.setBy.displayName)): \(excluded.value.joined(separator: ", "))"
+        var groups: [(layer: ConfigLayer, paths: [String])] = []
+        for entry in resolved.excluded {
+            if let last = groups.last, last.layer.id == entry.setBy.id {
+                groups[groups.count - 1].paths.append(entry.value)
+            } else {
+                groups.append((entry.setBy, [entry.value]))
+            }
+        }
+        guard let first = groups.first else { return nil }
+        guard groups.count > 1 else {
+            return "excluded (\(first.layer.displayName)): \(first.paths.joined(separator: ", "))"
+        }
+        let named = groups.map { "\($0.paths.joined(separator: ", ")) (\($0.layer.displayName))" }
+        return "excluded: \(named.joined(separator: "; "))"
     }
 
     private static func inheritsNotice(for resolved: ResolvedConfiguration, in tree: ConfigTree) -> String? {
@@ -193,6 +215,21 @@ public struct ConfigMapPresenter {
         let applied = resolved.layerChain.contains(where: \.isRoot) ? "the root config and " : ""
         return "\(skipped) apply here — SwiftLint applies only \(applied)the nearest nested config, "
             + "\(nearest.displayName)."
+    }
+
+    /// Names the configs in the chain, pulled in from beyond the workspace's own
+    /// files, whose settings can't be shown: the Config Tree has no row to flag
+    /// them on.
+    private static func unreadNotice(for resolved: ResolvedConfiguration, in tree: ConfigTree) -> String? {
+        let chainIDs = Set(resolved.layerChain.map(\.id))
+        let unread = tree.referencedConfigs.filter { chainIDs.contains($0.id) && $0.config == nil }
+        guard !unread.isEmpty else { return nil }
+        let sentences = unread.map { config in
+            config.isAwaitingFetch
+                ? "\(config.displayName) isn't shown: SwiftLint fetches it the next time it lints here."
+                : "\(config.displayName) couldn't be read, so its settings aren't shown."
+        }
+        return sentences.joined(separator: " ")
     }
 
     private static func relativeLabel(of directory: URL, root: URL) -> String {

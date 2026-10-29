@@ -31,6 +31,13 @@ struct ConfigTreeRowView: View {
                         .foregroundStyle(.secondary)
                         .help("SwiftLint applies only the nearest nested config: files here get none of \(replaced)'s.")
                 }
+                if !row.pullsIn.isEmpty {
+                    Text(pullsInText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .help("The root config pulls these in with parent_config or child_config. "
+                            + "Their settings are part of the root's, in every folder.")
+                }
             }
             Spacer(minLength: 0)
             if row.hasIneffectiveExclusions {
@@ -45,10 +52,15 @@ struct ConfigTreeRowView: View {
         .accessibilityLabel(accessibilityText)
     }
 
+    private var pullsInText: String {
+        "pulls in \(row.pullsIn.joined(separator: ", "))"
+    }
+
     private var accessibilityText: String {
         var parts = [row.displayName]
         if let badge = row.badge { parts.append(badge) }
         if let replaced = row.replaces { parts.append("replaces \(replaced)") }
+        if !row.pullsIn.isEmpty { parts.append(pullsInText) }
         if row.hasIneffectiveExclusions { parts.append("ineffective exclusions") }
         return parts.joined(separator: ", ")
     }

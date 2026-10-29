@@ -35,6 +35,11 @@ public struct ConfigTreeRow: Identifiable, Sendable {
     /// merges a file's nearest nested config onto the root config alone, so files
     /// under this config's folder get none of that config's settings.
     nonisolated public let replaces: String?
+    /// The configs the root config pulls in that have no row of their own — files
+    /// outside the workspace or under another name, remote configs — by their
+    /// display names, in the order SwiftLint merges them. Empty on every row but
+    /// the root's.
+    nonisolated public let pullsIn: [String]
 
     nonisolated public init(
         id: URL,
@@ -45,7 +50,8 @@ public struct ConfigTreeRow: Identifiable, Sendable {
         badge: String?,
         hasIneffectiveExclusions: Bool,
         hasParseError: Bool,
-        replaces: String?
+        replaces: String?,
+        pullsIn: [String]
     ) {
         self.id = id
         self.displayName = displayName
@@ -56,6 +62,7 @@ public struct ConfigTreeRow: Identifiable, Sendable {
         self.hasIneffectiveExclusions = hasIneffectiveExclusions
         self.hasParseError = hasParseError
         self.replaces = replaces
+        self.pullsIn = pullsIn
     }
 }
 
@@ -93,13 +100,17 @@ public struct ResolvedConfigDisplay: Sendable {
     nonisolated public let ruleRows: [ResolvedRuleRow]
     /// Set when an `only_rules` whitelist is in effect for the subtree.
     nonisolated public let onlyRulesNotice: String?
-    /// Set when the root config declares `excluded`.
+    /// Set when the root configuration excludes anything.
     nonisolated public let excludedNotice: String?
     /// Set when the folder has no config of its own (it inherits its ancestors).
     nonisolated public let inheritsNotice: String?
     /// Set when nested configs in folders above this one don't apply here:
     /// SwiftLint applies the root config and the nearest nested config alone.
     nonisolated public let skippedNotice: String?
+    /// Set when a config the root pulls in from beyond the workspace's own files
+    /// couldn't be read — a remote config SwiftLint hasn't fetched yet, or a file
+    /// that doesn't parse — so the settings shown leave out its own.
+    nonisolated public let unreadNotice: String?
 
     nonisolated public init(
         targetLabel: String,
@@ -108,7 +119,8 @@ public struct ResolvedConfigDisplay: Sendable {
         onlyRulesNotice: String?,
         excludedNotice: String?,
         inheritsNotice: String?,
-        skippedNotice: String?
+        skippedNotice: String?,
+        unreadNotice: String?
     ) {
         self.targetLabel = targetLabel
         self.layerChainLabels = layerChainLabels
@@ -117,6 +129,7 @@ public struct ResolvedConfigDisplay: Sendable {
         self.excludedNotice = excludedNotice
         self.inheritsNotice = inheritsNotice
         self.skippedNotice = skippedNotice
+        self.unreadNotice = unreadNotice
     }
 }
 

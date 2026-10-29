@@ -9,7 +9,8 @@
 //  *non-uniform* semantics (see docs/nested-config-visibility.md): rule configs
 //  override, disabled/opt-in accumulate, only_rules hard-resets (and a deeper
 //  layer's disabled/opt-in then edit that whitelist), and
-//  excluded/included/reporter come from the root config alone.
+//  excluded/included/reporter come from the root config and the configs it
+//  pulls in alone.
 //
 
 import Foundation
@@ -19,13 +20,17 @@ import Foundation
 public struct ConfigLayer: Identifiable, Sendable {
     /// Matches the originating ``DiscoveredConfig/id`` — the config file's path.
     nonisolated public let id: URL
-    /// Path relative to the workspace root, e.g. `Tests/.swiftlint.yml`.
+    /// Path relative to the workspace root, e.g. `Tests/.swiftlint.yml`, or
+    /// `../../.swiftlint.yml` for a config the root pulls in from outside it; a
+    /// remote config's URL.
     nonisolated public let relativePath: String
     /// Directory depth below the workspace root (root layer is `0`).
     nonisolated public let depth: Int
     /// Whether this is the workspace root layer.
     nonisolated public let isRoot: Bool
-    /// Short label for the UI — `root`, or the governed directory name (`Tests`).
+    /// Short label for the UI — `root`, the governed directory name (`Tests`), or
+    /// the path or URL of a config the root pulls in from elsewhere (see
+    /// ``DiscoveredConfig/displayName``).
     nonisolated public let displayName: String
 
     nonisolated public init(
@@ -49,7 +54,7 @@ public struct ConfigLayer: Identifiable, Sendable {
             relativePath: config.relativePath,
             depth: config.depth,
             isRoot: config.isRoot,
-            displayName: config.isRoot ? "root" : config.directoryPath.lastPathComponent
+            displayName: config.displayName
         )
     }
 }
@@ -165,11 +170,19 @@ public struct ResolvedConfiguration: Sendable {
     nonisolated public let onlyRules: ResolvedOnlyRules?
     /// Per-rule configurations (severity/params), each with override history.
     nonisolated public let ruleConfigurations: [ResolvedRuleConfiguration]
-    /// `excluded:` — honored only from the root config.
-    nonisolated public let excluded: AttributedValue<[String]>?
-    /// `included:` — honored only from the root config.
-    nonisolated public let included: AttributedValue<[String]>?
-    /// `reporter:` — honored only from the root config.
+    /// `excluded:` of the root configuration: the entries of the root config and of
+    /// the configs it pulls in, merged as SwiftLint merges them, each attributed to
+    /// the config that wrote it. SwiftLint reads an entry relative to that config's
+    /// folder, so each is given as a path from the workspace (`../../Pods` for
+    /// `Pods` in `../../.swiftlint.yml`); an absolute entry, as written. A nested
+    /// config's are ignored, as SwiftLint ignores them. Empty when nothing is
+    /// excluded.
+    nonisolated public let excluded: [AttributedValue<String>]
+    /// `included:` of the root configuration, read as ``excluded`` is.
+    nonisolated public let included: [AttributedValue<String>]
+    /// `reporter:` — SwiftLint takes it from the first config of the root
+    /// configuration alone: the root's furthest `parent_config`, or the root
+    /// config. `nil` where that config sets none, for SwiftLint's default.
     nonisolated public let reporter: AttributedValue<String>?
 
     nonisolated public init(
@@ -181,8 +194,8 @@ public struct ResolvedConfiguration: Sendable {
         analyzerRules: [ResolvedRuleDecision],
         onlyRules: ResolvedOnlyRules?,
         ruleConfigurations: [ResolvedRuleConfiguration],
-        excluded: AttributedValue<[String]>?,
-        included: AttributedValue<[String]>?,
+        excluded: [AttributedValue<String>],
+        included: [AttributedValue<String>],
         reporter: AttributedValue<String>?
     ) {
         self.targetDirectory = targetDirectory

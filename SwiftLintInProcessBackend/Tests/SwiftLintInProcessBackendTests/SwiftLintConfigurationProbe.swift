@@ -56,6 +56,15 @@ enum SwiftLintConfigurationProbe {
         }
     }
 
+    /// The run-level settings of a root configuration SwiftLint built.
+    struct RootSettings: Sendable {
+        /// `included`, each entry absolute and standardized.
+        let included: [String]
+        /// `excluded`, each entry absolute and standardized.
+        let excluded: [String]
+        let reporter: String?
+    }
+
     /// Every rule the in-process SwiftLint has registered.
     static var registeredRules: [RegisteredRule] {
         SwiftLintInProcessActor.prepare()
@@ -128,6 +137,23 @@ enum SwiftLintConfigurationProbe {
             try InProcessConfiguration.checkNestedConfigs(for: [lintable], root: root, fileGraph: fileGraph)
             let configuration = SwiftLintInProcessActor.withConfigurationCaches { root.configuration(for: lintable) }
             return Set(configuration.rules.map { type(of: $0).identifier })
+        }
+    }
+
+    /// The root configuration's `included`, `excluded` and reporter, as SwiftLint builds it for a
+    /// lint of `workspace`, whose configs are already written: from the workspace's
+    /// `.swiftlint.yml` and the configs it pulls in.
+    static func rootSettings(in workspace: URL) throws -> RootSettings {
+        SwiftLintInProcessActor.prepare()
+        return try CurrentWorkingDirectory.$url.withValue(workspace) {
+            let (root, _) = try SwiftLintInProcessActor.withConfigurationCaches {
+                try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            }
+            return RootSettings(
+                included: root.includedPaths.map(\.standardizedFileURL.path),
+                excluded: root.excludedPaths.map(\.standardizedFileURL.path),
+                reporter: root.reporter
+            )
         }
     }
 }
