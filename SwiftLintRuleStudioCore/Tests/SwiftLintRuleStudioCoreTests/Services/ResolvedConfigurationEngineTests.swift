@@ -181,4 +181,153 @@ struct ResolvedConfigurationEngineTests {
         let atRoot = resolve(at: "", in: root)
         #expect(atRoot.isOnlyRulesMode == false)
     }
+
+    @Test("an empty only_rules is no list: the layer stays in default mode")
+    @MainActor
+    func testEmptyOnlyRulesIsNoList() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules: []\ndisabled_rules:\n  - todo\n", at: "", in: root)
+
+        let resolved = resolve(at: "", in: root)
+        #expect(resolved.isOnlyRulesMode == false)
+        #expect(resolved.disabledRules.map(\.identifier) == ["todo"])
+    }
+
+    @Test("an empty only_rules beneath a parent's keeps the parent's list")
+    @MainActor
+    func testEmptyOnlyRulesKeepsParentList() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules:\n  - force_cast\n  - todo\n", at: "", in: root)
+        try writeConfig("only_rules: []\n", at: "Sub", in: root)
+
+        let atSub = resolve(at: "Sub", in: root)
+        #expect(atSub.onlyRules?.value == ["force_cast", "todo"])
+        #expect(atSub.onlyRules?.setBy.isRoot == true)
+    }
+
+    // MARK: - Deprecated aliases (#101)
+
+    @Test("a child disabling a rule under its alias turns off the rule its parent opted in, in one row")
+    @MainActor
+    func testAliasInChildDisabledRulesOverridesParent() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("opt_in_rules:\n  - shorthand_optional_binding\n", at: "", in: root)
+        try writeConfig("disabled_rules:\n  - if_let_shadowing\n", at: "Sub", in: root)
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+        let atSub = ResolvedConfigurationEngine().resolve(at: root.appendingPathComponent("Sub"), in: tree)
+
+        #expect(atSub.disabledRules.map(\.identifier) == ["shorthand_optional_binding"])
+        #expect(atSub.disablingLayer(for: "shorthand_optional_binding")?.displayName == "Sub")
+        #expect(atSub.optInRules.isEmpty)
+
+        let rows = ConfigMapPresenter().display(for: atSub, in: tree).ruleRows
+        #expect(rows.map(\.id) == ["shorthand_optional_binding"])
+        #expect(rows.first?.state == "off (disabled)")
+    }
+
+    @Test("a child opting in a rule its parent disabled under an alias turns it back on")
+    @MainActor
+    func testChildOptInOverridesAliasInParentDisabledRules() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("disabled_rules:\n  - variable_name\n", at: "", in: root)
+        try writeConfig("opt_in_rules:\n  - identifier_name\n", at: "Sub", in: root)
+
+        let atRoot = resolve(at: "", in: root)
+        #expect(atRoot.disabledRules.map(\.identifier) == ["identifier_name"])
+
+        let atSub = resolve(at: "Sub", in: root)
+        #expect(atSub.disabledRules.isEmpty)
+        #expect(atSub.optInRules.map(\.identifier) == ["identifier_name"])
+        #expect(atSub.optInRules.first?.setBy.displayName == "Sub")
+    }
+
+    @Test("a layer naming one rule in both lists, once by its alias, leaves it disabled")
+    @MainActor
+    func testAliasAndCurrentNameInOneLayerResolveToDisabled() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(
+            "disabled_rules:\n  - redundant_self_in_closure\nopt_in_rules:\n  - redundant_self\n",
+            at: "",
+            in: root
+        )
+
+        let resolved = resolve(at: "", in: root)
+        #expect(resolved.disabledRules.map(\.identifier) == ["redundant_self"])
+        #expect(resolved.optInRules.isEmpty)
+    }
+
+    @Test("only_rules names each rule once, under its current name")
+    @MainActor
+    func testOnlyRulesReadsAliases() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(
+            "only_rules:\n  - variable_name\n  - identifier_name\n  - force_cast\n",
+            at: "",
+            in: root
+        )
+
+        let resolved = resolve(at: "", in: root)
+        #expect(resolved.onlyRules?.value == ["force_cast", "identifier_name"])
+    }
+
+    @Test("a child configuring a rule under its current name overrides its parent's alias, in one row")
+    @MainActor
+    func testRuleConfigurationUnderAliasIsOverridden() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("variable_name:\n  min_length: 2\n", at: "", in: root)
+        try writeConfig("identifier_name:\n  min_length: 3\n", at: "Sub", in: root)
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+        let atSub = ResolvedConfigurationEngine().resolve(at: root.appendingPathComponent("Sub"), in: tree)
+
+        #expect(atSub.ruleConfigurations.map(\.identifier) == ["identifier_name"])
+        let identifierName = try #require(atSub.configuration(for: "identifier_name"))
+        #expect(identifierName.setBy.displayName == "Sub")
+        #expect(identifierName.overridesAncestor)
+        #expect(identifierName.previousSetBy?.isRoot == true)
+
+        let rows = ConfigMapPresenter().display(for: atSub, in: tree).ruleRows
+        #expect(rows.map(\.id) == ["identifier_name"])
+    }
+
+    @Test("a rule configured only under its alias resolves under its current name")
+    @MainActor
+    func testRuleConfiguredOnlyUnderAlias() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("variable_name:\n  min_length: 2\n", at: "", in: root)
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+        let resolved = ResolvedConfigurationEngine().resolve(at: root, in: tree)
+
+        let identifierName = try #require(resolved.configuration(for: "identifier_name"))
+        #expect(identifierName.identifier == "identifier_name")
+        #expect(ConfigMapPresenter().display(for: resolved, in: tree).ruleRows.map(\.id) == ["identifier_name"])
+    }
+
+    @Test("a layer configuring a rule under both names keeps the current name's entry")
+    @MainActor
+    func testRuleConfiguredUnderBothNamesInOneLayer() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(
+            "variable_name:\n  min_length: 2\nidentifier_name:\n  min_length: 3\n",
+            at: "",
+            in: root
+        )
+
+        let resolved = resolve(at: "", in: root)
+        #expect(resolved.ruleConfigurations.map(\.identifier) == ["identifier_name"])
+        let identifierName = try #require(resolved.configuration(for: "identifier_name"))
+        #expect(identifierName.overridesAncestor == false)
+        #expect(identifierName.configuration.parameters?["min_length"]?.value as? Int == 3)
+    }
 }

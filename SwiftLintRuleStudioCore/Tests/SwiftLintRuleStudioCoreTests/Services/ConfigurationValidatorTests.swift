@@ -199,6 +199,36 @@ struct ConfigurationValidatorTests {
         #expect(conflictErrors.isEmpty)
     }
 
+    @Test("A rule in disabled_rules and its alias in opt_in_rules fails validation, named as written")
+    func testAliasConflictFails() throws {
+        let validator = ConfigurationValidator()
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.disabledRules = ["shorthand_optional_binding"]
+        config.optInRules = ["if_let_shadowing", "empty_count"]
+        let result = validator.validate(config, knownRuleIds: [])
+
+        #expect(result.isValid == false)
+        #expect(result.errors.count == 1)
+        let error = try #require(result.errors.first)
+        #expect(error.field == .rule("shorthand_optional_binding"))
+        #expect(error.message.contains("both disabled_rules and opt_in_rules"))
+        #expect(error.message.contains("'shorthand_optional_binding' and 'if_let_shadowing'"))
+    }
+
+    @Test("An alias beside its rule's current name is one conflict, reported as the literal duplicate")
+    func testLiteralDuplicateWinsOverAlias() throws {
+        let validator = ConfigurationValidator()
+        var config = YAMLConfigurationEngine.YAMLConfig()
+        config.disabledRules = ["variable_name"]
+        config.optInRules = ["identifier_name", "variable_name"]
+        let result = validator.validate(config, knownRuleIds: [])
+
+        #expect(result.errors.count == 1)
+        let error = try #require(result.errors.first)
+        #expect(error.field == .rule("variable_name"))
+        #expect(error.message == "Rule appears in both disabled_rules and opt_in_rules")
+    }
+
     // MARK: - Duplicate Detection Tests
 
     @Test("Duplicate rules in disabled_rules generates warning")

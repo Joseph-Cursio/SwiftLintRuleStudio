@@ -109,4 +109,25 @@ enum SwiftLintConfigurationProbe {
             })
         ))
     }
+
+    /// The identifiers of the rules SwiftLint runs on `file`, a Swift file in `workspace` whose
+    /// `.swiftlint.yml` files are already written: the root configuration merged with the nested
+    /// config SwiftLint's search finds for that file, each built as an in-process lint builds it.
+    static func enabledRuleIds(for file: String, in workspace: URL) throws -> Set<String> {
+        SwiftLintInProcessActor.prepare()
+        return try CurrentWorkingDirectory.$url.withValue(workspace) {
+            let (root, fileGraph) = try SwiftLintInProcessActor.withConfigurationCaches {
+                try InProcessConfiguration.root(configPath: nil, workspacePath: workspace)
+            }
+            // Taken from SwiftLint's own file walk, so the nested-config search starts from the
+            // file's folder spelled as a lint spells it.
+            let files = root.lintableFiles(inPath: workspace, forceExclude: false, excludeByPrefix: false)
+            guard let lintable = files.first(where: { $0.path?.path.hasSuffix("/" + file) == true }) else {
+                throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: file])
+            }
+            try InProcessConfiguration.checkNestedConfigs(for: [lintable], root: root, fileGraph: fileGraph)
+            let configuration = SwiftLintInProcessActor.withConfigurationCaches { root.configuration(for: lintable) }
+            return Set(configuration.rules.map { type(of: $0).identifier })
+        }
+    }
 }

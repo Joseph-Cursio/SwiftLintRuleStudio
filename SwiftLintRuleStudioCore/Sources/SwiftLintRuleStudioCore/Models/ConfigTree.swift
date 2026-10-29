@@ -29,7 +29,7 @@ public struct ConfigSummary: Sendable {
     /// Count of rules given an explicit configuration (severity/params).
     nonisolated public let configuredRuleCount: Int
     /// `only_rules` whitelist, if present. When set, this layer hard-resets the
-    /// active rule set for its subtree.
+    /// active rule set for its subtree. An empty list is none, as SwiftLint reads it.
     nonisolated public let onlyRules: [String]?
     /// Whether the config sets `excluded:`.
     nonisolated public let setsExcluded: Bool

@@ -80,7 +80,9 @@ public struct ConfigMapPresenter {
         if config.parseError != nil { return "parse error" }
         let summary = config.summary
         if summary.declaresOnlyRules {
-            let count = summary.onlyRules?.count ?? 0
+            // Rules, not entries, as SwiftLint reads the list and the inspector's notice
+            // counts it: an alias beside its rule's current name is one rule.
+            let count = Set((summary.onlyRules ?? []).map(SwiftLintDeprecations.currentName(of:))).count
             return "only \(count) rule\(count == 1 ? "" : "s")"
         }
         var parts: [String] = []

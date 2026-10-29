@@ -298,6 +298,9 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
         }
     }
 
+    /// SwiftLint reads both lists through the rules' aliases: `opt_in_rules: [if_let_shadowing]` beside
+    /// `disabled_rules: [shorthand_optional_binding]` is a literal duplicate's contradiction, resolved the
+    /// same way (the rule doesn't run). Each conflict names the rule as the user wrote it.
     private func validateNoConflicts(
         _ config: YAMLConfigurationEngine.YAMLConfig,
         errors: inout [ValidationResult.ValidationError]
@@ -305,14 +308,18 @@ public class ConfigurationValidator: ConfigurationValidatorProtocol {
         guard let disabledRules = config.disabledRules,
               let optInRules = config.optInRules else { return }
 
-        let disabledSet = Set(disabledRules)
-        let optInSet = Set(optInRules)
-        let conflicts = disabledSet.intersection(optInSet)
+        let disabledByRule = Dictionary(grouping: disabledRules, by: SwiftLintDeprecations.currentName(of:))
+        let optInByRule = Dictionary(grouping: optInRules, by: SwiftLintDeprecations.currentName(of:))
 
-        for conflictingRule in conflicts {
+        for rule in Set(disabledByRule.keys).intersection(optInByRule.keys).sorted() {
+            let disabledNames = disabledByRule[rule] ?? []
+            let optInNames = optInByRule[rule] ?? []
+            // Grouping never makes an empty list, so each side has a first name.
+            let sharedName = optInNames.first(where: disabledNames.contains)
+            let aliasNote = sharedName == nil ? ": '\(disabledNames[0])' and '\(optInNames[0])' name the same rule" : ""
             errors.append(ValidationResult.ValidationError(
-                field: .rule(conflictingRule),
-                message: "Rule appears in both disabled_rules and opt_in_rules",
+                field: .rule(sharedName ?? rule),
+                message: "Rule appears in both disabled_rules and opt_in_rules" + aliasNote,
                 suggestion: "Remove from one of the lists"
             ))
         }

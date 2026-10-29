@@ -98,6 +98,31 @@ struct ConfigMapPresenterTests {
         #expect(byName["Nested"]?.hasIneffectiveExclusions == true)
     }
 
+    @Test("the only-rules badge counts an alias and its rule's current name once, as the notice does")
+    @MainActor
+    func testOnlyRulesBadgeCountsRulesNotEntries() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules:\n  - variable_name\n  - identifier_name\n  - force_cast\n", at: "", in: root)
+
+        let configTree = tree(in: root)
+        #expect(ConfigMapPresenter().treeRows(for: configTree).first?.badge == "only 2 rules")
+        let resolved = ResolvedConfigurationEngine().resolve(at: root, in: configTree)
+        let notice = try #require(ConfigMapPresenter().display(for: resolved, in: configTree).onlyRulesNotice)
+        #expect(notice.hasPrefix("Only 2 rules run here"))
+    }
+
+    @Test("an empty only_rules gets no only-rules badge")
+    @MainActor
+    func testBadgeIgnoresEmptyOnlyRules() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules: []\ndisabled_rules:\n  - todo\n", at: "", in: root)
+
+        let rows = ConfigMapPresenter().treeRows(for: tree(in: root))
+        #expect(rows.first?.badge == "-1 disabled")
+    }
+
     // MARK: - Resolved inspector display
 
     @Test("display shows the layer chain, disabled rules, and excluded notice")
