@@ -251,4 +251,58 @@ struct ResolvedConfigurationEngineTests {
         let resolved = resolve(at: "", in: root)
         #expect(resolved.onlyRules?.value == ["force_cast", "identifier_name"])
     }
+
+    @Test("a child configuring a rule under its current name overrides its parent's alias, in one row")
+    @MainActor
+    func testRuleConfigurationUnderAliasIsOverridden() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("variable_name:\n  min_length: 2\n", at: "", in: root)
+        try writeConfig("identifier_name:\n  min_length: 3\n", at: "Sub", in: root)
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+        let atSub = ResolvedConfigurationEngine().resolve(at: root.appendingPathComponent("Sub"), in: tree)
+
+        #expect(atSub.ruleConfigurations.map(\.identifier) == ["identifier_name"])
+        let identifierName = try #require(atSub.configuration(for: "identifier_name"))
+        #expect(identifierName.setBy.displayName == "Sub")
+        #expect(identifierName.overridesAncestor)
+        #expect(identifierName.previousSetBy?.isRoot == true)
+
+        let rows = ConfigMapPresenter().display(for: atSub, in: tree).ruleRows
+        #expect(rows.map(\.id) == ["identifier_name"])
+    }
+
+    @Test("a rule configured only under its alias resolves under its current name")
+    @MainActor
+    func testRuleConfiguredOnlyUnderAlias() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("variable_name:\n  min_length: 2\n", at: "", in: root)
+
+        let tree = ConfigTreeDiscovery().discover(in: root)
+        let resolved = ResolvedConfigurationEngine().resolve(at: root, in: tree)
+
+        let identifierName = try #require(resolved.configuration(for: "identifier_name"))
+        #expect(identifierName.identifier == "identifier_name")
+        #expect(ConfigMapPresenter().display(for: resolved, in: tree).ruleRows.map(\.id) == ["identifier_name"])
+    }
+
+    @Test("a layer configuring a rule under both names keeps the current name's entry")
+    @MainActor
+    func testRuleConfiguredUnderBothNamesInOneLayer() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(
+            "variable_name:\n  min_length: 2\nidentifier_name:\n  min_length: 3\n",
+            at: "",
+            in: root
+        )
+
+        let resolved = resolve(at: "", in: root)
+        #expect(resolved.ruleConfigurations.map(\.identifier) == ["identifier_name"])
+        let identifierName = try #require(resolved.configuration(for: "identifier_name"))
+        #expect(identifierName.overridesAncestor == false)
+        #expect(identifierName.configuration.parameters?["min_length"]?.value as? Int == 3)
+    }
 }

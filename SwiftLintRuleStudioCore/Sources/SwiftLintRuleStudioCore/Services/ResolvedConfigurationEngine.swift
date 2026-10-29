@@ -167,15 +167,22 @@ public struct ResolvedConfigurationEngine {
 
     /// Rule configuration (severity/params): a deeper layer overrides a shallower
     /// one; the overridden value is kept for "was …" diffs.
+    ///
+    /// SwiftLint applies a configuration keyed by an alias to the rule itself, so
+    /// a child's `identifier_name:` overrides its parent's `variable_name:`. It
+    /// refuses a file that configures one rule under both names; here the entry
+    /// under the current name is kept.
     private static func mergeRuleConfigurations(
         config: YAMLConfig,
         layer: ConfigLayer,
         into accumulator: inout Accumulator
     ) {
         for (ruleIdentifier, ruleConfiguration) in config.rules {
-            let prior = accumulator.ruleConfigurations[ruleIdentifier]
-            accumulator.ruleConfigurations[ruleIdentifier] = ResolvedRuleConfiguration(
-                identifier: ruleIdentifier,
+            let rule = SwiftLintDeprecations.currentName(of: ruleIdentifier)
+            if rule != ruleIdentifier, config.rules[rule] != nil { continue }
+            let prior = accumulator.ruleConfigurations[rule]
+            accumulator.ruleConfigurations[rule] = ResolvedRuleConfiguration(
+                identifier: rule,
                 configuration: ruleConfiguration,
                 setBy: layer,
                 previousConfiguration: prior?.configuration,
