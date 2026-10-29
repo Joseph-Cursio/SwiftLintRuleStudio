@@ -156,11 +156,10 @@ struct ResolvedConfigurationEngineTests {
 
         let resolved = resolve(at: "Tests", in: root)
 
-        let excluded = try #require(resolved.excluded)
-        #expect(excluded.value == ["Generated"])
-        #expect(excluded.setBy.isRoot == true)
+        #expect(resolved.excluded.map(\.value) == ["Generated"])
+        let excludedByRoot = resolved.excluded.allSatisfy(\.setBy.isRoot)
+        #expect(excludedByRoot)
         // The Tests-layer `excluded: [IgnoredInTests.swift]` must NOT appear.
-        #expect(excluded.value.contains("IgnoredInTests.swift") == false)
     }
 
     // MARK: - only_rules hard reset

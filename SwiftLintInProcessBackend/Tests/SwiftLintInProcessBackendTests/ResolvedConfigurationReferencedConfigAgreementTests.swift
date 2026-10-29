@@ -152,6 +152,103 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
         )
     ]
 
+    /// What SwiftLint excludes, includes and reports with, for a package in a repository.
+    struct RootSettingsCase: Sendable, CustomTestStringConvertible {
+        let name: String
+        /// As ``ReferencedConfigCase/files``.
+        let files: [String: String]
+        /// As ``ReferencedConfigCase/remote``.
+        var remote: [String: String] = [:]
+        /// The root configuration's `excluded`, each entry a path from the workspace.
+        let excluded: [String]
+        var included: [String] = []
+        /// SwiftLint's own reporter name; `xcode` is its default.
+        var reporter = "xcode"
+
+        var testDescription: String { name }
+    }
+
+    nonisolated static let rootSettingsCases: [RootSettingsCase] = [
+        RootSettingsCase(
+            name: "A package's parent_config outside the workspace excludes a folder beside the package",
+            files: [
+                ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nexcluded:\n  - Generated\n",
+                "../../.swiftlint.yml": "excluded:\n  - Pods\n"
+            ],
+            excluded: ["../../Pods", "Generated"]
+        ),
+        RootSettingsCase(
+            name: "The package's included takes back its parent's exclusion of the same folder",
+            files: [
+                ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nincluded:\n  - Sources\n",
+                "../../.swiftlint.yml": "excluded:\n  - Packages/Foo/Sources\n  - Pods\n"
+            ],
+            excluded: ["../../Pods"],
+            included: ["Sources"]
+        ),
+        RootSettingsCase(
+            name: "A child_config's exclusion drops the root's inclusion of the same folder",
+            files: [
+                ".swiftlint.yml": "child_config: ../Shared/strict.yml\nincluded:\n  - Sources\n  - Tests\n",
+                "../Shared/strict.yml": "excluded:\n  - ../Foo/Tests\n"
+            ],
+            excluded: ["Tests"],
+            included: ["Sources"]
+        ),
+        RootSettingsCase(
+            name: "A remote config's excluded is read from the folder of the config that pulls it in",
+            files: [".swiftlint.yml": "parent_config: \(remoteBase)\n"],
+            remote: [remoteBase: "excluded:\n  - Generated\n"],
+            excluded: ["Generated"]
+        ),
+        RootSettingsCase(
+            name: "A nested config's excluded is ignored",
+            files: [".swiftlint.yml": "excluded:\n  - Generated\n", "Sub/.swiftlint.yml": "excluded:\n  - Legacy\n"],
+            excluded: ["Generated"]
+        ),
+        RootSettingsCase(
+            name: "The root config's reporter gives way to its parent_config's default",
+            files: [
+                ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nreporter: json\n",
+                "../../.swiftlint.yml": "excluded:\n  - Pods\n"
+            ],
+            excluded: ["../../Pods"]
+        ),
+        RootSettingsCase(
+            name: "The reporter is the furthest parent_config's",
+            files: [
+                ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nreporter: json\n",
+                "../../.swiftlint.yml": "reporter: emoji\n"
+            ],
+            excluded: [],
+            reporter: "emoji"
+        )
+    ]
+
+    @Test("The resolved excluded, included and reporter are SwiftLint's", arguments: rootSettingsCases)
+    func rootSettingsAgreeWithSwiftLint(_ testCase: RootSettingsCase) throws {
+        let (repository, workspace) = try Self.makeWorkspace(
+            Case(name: testCase.name, files: testCase.files, chain: [], runs: false, remote: testCase.remote)
+        )
+        defer { try? FileManager.default.removeItem(at: repository) }
+        func absolute(_ paths: [String]) -> [String] {
+            paths.map { workspace.appending(path: $0).standardizedFileURL.path }
+        }
+
+        let swiftLint = try Probe.rootSettings(in: workspace)
+        #expect(swiftLint.excluded == absolute(testCase.excluded))
+        #expect(swiftLint.included == absolute(testCase.included))
+        #expect(swiftLint.reporter == testCase.reporter)
+
+        let resolved = ResolvedConfigurationEngine().resolve(
+            at: workspace.appending(path: "Sub", directoryHint: .isDirectory),
+            in: ConfigTreeDiscovery().discover(in: workspace)
+        )
+        #expect(absolute(resolved.excluded.map(\.value)) == swiftLint.excluded)
+        #expect(absolute(resolved.included.map(\.value)) == swiftLint.included)
+        #expect(resolved.reporter?.value ?? "xcode" == swiftLint.reporter)
+    }
+
     /// One probe per rule SwiftLint has registered, for the harness to ask about.
     private static let probes: [RuleProbe] = Probe.registeredRules.map {
         RuleProbe(ruleIdentifier: $0.id, isOptIn: $0.isOptIn, triggeringSource: "")

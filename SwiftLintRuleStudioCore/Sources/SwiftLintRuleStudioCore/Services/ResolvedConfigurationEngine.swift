@@ -29,9 +29,9 @@ public struct ResolvedConfigurationEngine {
     /// skipped. Configs that failed to parse contribute nothing rather than
     /// aborting the merge.
     ///
-    /// Of the configs the root pulls in, only their rule settings are merged:
-    /// `excluded`, `included` and `reporter` are still read from the root config
-    /// alone.
+    /// `excluded`, `included` and `reporter` are read from the root configuration
+    /// alone — the root config and the configs it pulls in — as SwiftLint reads
+    /// them (see ``mergeRootConfigurationKeys(config:of:layer:workspaceRoot:into:)``).
     public func resolve(at targetDirectory: URL, in tree: ConfigTree) -> ResolvedConfiguration {
         let ancestors = Self.ancestorConfigs(of: targetDirectory, in: tree)
         let chain = Self.layerChain(among: ancestors, in: tree)
@@ -39,12 +39,22 @@ public struct ResolvedConfigurationEngine {
         var accumulator = Accumulator()
         for discovered in chain {
             guard let config = discovered.config else { continue }
-            Self.merge(
-                config: config,
-                layer: ConfigLayer(discovered),
-                isRoot: discovered.isRoot,
-                into: &accumulator
-            )
+            let layer = ConfigLayer(discovered)
+            Self.merge(config: config, layer: layer, into: &accumulator)
+            if discovered.isRoot || discovered.rootGraphPosition != nil {
+                Self.mergeRootConfigurationKeys(
+                    config: config,
+                    of: discovered,
+                    layer: layer,
+                    workspaceRoot: tree.workspaceRoot,
+                    into: &accumulator
+                )
+            }
+        }
+        // SwiftLint keeps the reporter of the first config it builds the root
+        // configuration from, its default where that config names none.
+        if let first = tree.rootGraph.first, let reporterName = first.config?.reporter {
+            accumulator.reporter = AttributedValue(value: reporterName, setBy: ConfigLayer(first))
         }
         return accumulator.resolved(
             targetDirectory: targetDirectory,
@@ -114,8 +124,8 @@ public struct ResolvedConfigurationEngine {
         var analyzer = AttributedSet()
         var only: OnlyRules?
         var ruleConfigurations: [String: ResolvedRuleConfiguration] = [:]
-        var excluded: AttributedValue<[String]>?
-        var included: AttributedValue<[String]>?
+        var excluded: [PathEntry] = []
+        var included: [PathEntry] = []
         var reporter: AttributedValue<String>?
 
         func resolved(
@@ -132,9 +142,34 @@ public struct ResolvedConfigurationEngine {
                 analyzerRules: analyzer.decisions(),
                 onlyRules: only.map { ResolvedOnlyRules(declaredBy: $0.declaredBy, rules: $0.rules.decisions()) },
                 ruleConfigurations: ruleConfigurations.values.sorted { $0.identifier < $1.identifier },
-                excluded: excluded,
-                included: included,
+                excluded: excluded.map(\.entry),
+                included: included.map(\.entry),
                 reporter: reporter
+            )
+        }
+    }
+
+    /// An `excluded`/`included` entry: as the resolved configuration shows it, and
+    /// the path SwiftLint compares it by.
+    private struct PathEntry {
+        let entry: AttributedValue<String>
+        /// Absolute and standardized, with the entry's trailing `/` kept: SwiftLint
+        /// compares entries as URLs, which tell `Pods/` from `Pods`.
+        let path: String
+
+        init(written: String, folder: URL, layer: ConfigLayer, workspaceRoot: URL) {
+            let isAbsolute = written.hasPrefix("/")
+            // The folder is standardized before the entry joins it: that drops a
+            // `/private` the file walk spells and the workspace's path may not, which
+            // standardizing does only for a path that exists.
+            let url = isAbsolute
+                ? URL(fileURLWithPath: written)
+                : folder.standardizedFileURL.appendingPathComponent(written)
+            let trailing = written.hasSuffix("/") ? "/" : ""
+            path = url.standardizedFileURL.path + trailing
+            entry = AttributedValue(
+                value: isAbsolute ? written : ConfigTreeDiscovery.path(of: url, from: workspaceRoot),
+                setBy: layer
             )
         }
     }
@@ -170,7 +205,6 @@ public struct ResolvedConfigurationEngine {
     private static func merge(
         config: YAMLConfig,
         layer: ConfigLayer,
-        isRoot: Bool,
         into accumulator: inout Accumulator
     ) {
         // An empty `only_rules` is no list (``YAMLConfig/usesOnlyRules``): SwiftLint
@@ -181,9 +215,6 @@ public struct ResolvedConfigurationEngine {
             mergeMembership(config: config, layer: layer, into: &accumulator)
         }
         mergeRuleConfigurations(config: config, layer: layer, into: &accumulator)
-        if isRoot {
-            mergeRootOnlyKeys(config: config, layer: layer, into: &accumulator)
-        }
     }
 
     /// disabled_rules / opt_in_rules accumulate symmetrically (opting a rule in
@@ -293,21 +324,34 @@ public struct ResolvedConfigurationEngine {
         }
     }
 
-    /// excluded / included / reporter are honored only from the root config;
-    /// SwiftLint ignores nested values for these keys.
-    private static func mergeRootOnlyKeys(
+    /// `excluded` and `included`, which SwiftLint reads from the root
+    /// configuration alone: a nested config's have no effect on which files it
+    /// lints.
+    ///
+    /// SwiftLint merges each config of the root's chain onto those before it
+    /// (`Configuration.merged(withChild:)`), the furthest parent first: a config's
+    /// `excluded` entries drop the `included` entries before it that name the same
+    /// path, its `included` entries drop such `excluded` entries, and then its own
+    /// are added. So a parent's exclusion of a folder its child includes keeps
+    /// nothing out. Each entry is read relative to the folder of the config that
+    /// writes it — a remote config's, the folder of the config that pulled it in.
+    private static func mergeRootConfigurationKeys(
         config: YAMLConfig,
+        of discovered: DiscoveredConfig,
         layer: ConfigLayer,
+        workspaceRoot: URL,
         into accumulator: inout Accumulator
     ) {
-        if let exclusions = config.excluded, !exclusions.isEmpty {
-            accumulator.excluded = AttributedValue(value: exclusions, setBy: layer)
+        func entries(_ written: [String]?) -> [PathEntry] {
+            (written ?? []).map {
+                PathEntry(written: $0, folder: discovered.directoryPath, layer: layer, workspaceRoot: workspaceRoot)
+            }
         }
-        if let inclusions = config.included, !inclusions.isEmpty {
-            accumulator.included = AttributedValue(value: inclusions, setBy: layer)
-        }
-        if let reporterName = config.reporter {
-            accumulator.reporter = AttributedValue(value: reporterName, setBy: layer)
-        }
+        let included = entries(config.included)
+        let excluded = entries(config.excluded)
+        let includedPaths = Set(included.map(\.path))
+        let excludedPaths = Set(excluded.map(\.path))
+        accumulator.included = accumulator.included.filter { !excludedPaths.contains($0.path) } + included
+        accumulator.excluded = accumulator.excluded.filter { !includedPaths.contains($0.path) } + excluded
     }
 }

@@ -9,7 +9,8 @@
 //  *non-uniform* semantics (see docs/nested-config-visibility.md): rule configs
 //  override, disabled/opt-in accumulate, only_rules hard-resets (and a deeper
 //  layer's disabled/opt-in then edit that whitelist), and
-//  excluded/included/reporter come from the root config alone.
+//  excluded/included/reporter come from the root config and the configs it
+//  pulls in alone.
 //
 
 import Foundation
@@ -169,11 +170,19 @@ public struct ResolvedConfiguration: Sendable {
     nonisolated public let onlyRules: ResolvedOnlyRules?
     /// Per-rule configurations (severity/params), each with override history.
     nonisolated public let ruleConfigurations: [ResolvedRuleConfiguration]
-    /// `excluded:` — honored only from the root config.
-    nonisolated public let excluded: AttributedValue<[String]>?
-    /// `included:` — honored only from the root config.
-    nonisolated public let included: AttributedValue<[String]>?
-    /// `reporter:` — honored only from the root config.
+    /// `excluded:` of the root configuration: the entries of the root config and of
+    /// the configs it pulls in, merged as SwiftLint merges them, each attributed to
+    /// the config that wrote it. SwiftLint reads an entry relative to that config's
+    /// folder, so each is given as a path from the workspace (`../../Pods` for
+    /// `Pods` in `../../.swiftlint.yml`); an absolute entry, as written. A nested
+    /// config's are ignored, as SwiftLint ignores them. Empty when nothing is
+    /// excluded.
+    nonisolated public let excluded: [AttributedValue<String>]
+    /// `included:` of the root configuration, read as ``excluded`` is.
+    nonisolated public let included: [AttributedValue<String>]
+    /// `reporter:` — SwiftLint takes it from the first config of the root
+    /// configuration alone: the root's furthest `parent_config`, or the root
+    /// config. `nil` where that config sets none, for SwiftLint's default.
     nonisolated public let reporter: AttributedValue<String>?
 
     nonisolated public init(
@@ -185,8 +194,8 @@ public struct ResolvedConfiguration: Sendable {
         analyzerRules: [ResolvedRuleDecision],
         onlyRules: ResolvedOnlyRules?,
         ruleConfigurations: [ResolvedRuleConfiguration],
-        excluded: AttributedValue<[String]>?,
-        included: AttributedValue<[String]>?,
+        excluded: [AttributedValue<String>],
+        included: [AttributedValue<String>],
         reporter: AttributedValue<String>?
     ) {
         self.targetDirectory = targetDirectory

@@ -75,4 +75,73 @@ extension ResolvedConfigurationEngineTests {
         #expect(resolved.disabledRules.map(\.identifier) == ["todo"])
         #expect(resolved.disablingLayer(for: "todo")?.displayName == "https://example.com/base.yml")
     }
+
+    // MARK: - excluded, included and reporter
+
+    @Test("excluded and included merge across the root configuration, each read from its own config's folder")
+    @MainActor
+    func testRootConfigurationPathsMerge() throws {
+        let repository = try makeWorkspace()
+        defer { cleanup(repository) }
+        try writeConfig(
+            "excluded:\n  - Pods\n  - Packages/Foo/Generated\nincluded:\n  - Packages\n",
+            at: "",
+            in: repository
+        )
+        try writeConfig(
+            "parent_config: ../../.swiftlint.yml\n"
+                + "included:\n  - Generated\n  - Sources\nexcluded:\n  - Sources/Legacy\n",
+            at: "Packages/Foo",
+            in: repository
+        )
+        try writeConfig("excluded:\n  - Ignored\n", at: "Packages/Foo/Sub", in: repository)
+        let workspace = repository.appendingPathComponent("Packages/Foo", isDirectory: true)
+
+        let resolved = resolve(at: "Sub", in: workspace)
+        // The repository's `Packages/Foo/Generated` is the package's `Generated`, which the
+        // package's config includes: it drops out. A nested config's `excluded` is ignored.
+        #expect(resolved.excluded.map(\.value) == ["../../Pods", "Sources/Legacy"])
+        #expect(resolved.excluded.map(\.setBy.displayName) == ["../../.swiftlint.yml", "root"])
+        #expect(resolved.included.map(\.value) == ["..", "Generated", "Sources"])
+        #expect(resolved.included.map(\.setBy.displayName) == ["../../.swiftlint.yml", "root", "root"])
+    }
+
+    @Test("a remote config's excluded is read from the folder of the config that pulled it in")
+    @MainActor
+    func testRemoteConfigPaths() throws {
+        let repository = try makeWorkspace()
+        defer { cleanup(repository) }
+        try writeConfig("parent_config: https://example.com/base.yml\n", at: "Packages/Foo", in: repository)
+        let workspace = repository.appendingPathComponent("Packages/Foo", isDirectory: true)
+        let cached = ConfigTreeDiscovery.remoteConfigCacheURL(for: "https://example.com/base.yml", in: workspace)
+        try FileManager.default.createDirectory(
+            at: cached.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try "excluded:\n  - Generated\n".write(to: cached, atomically: true, encoding: .utf8)
+
+        let resolved = resolve(at: "", in: workspace)
+        #expect(resolved.excluded.map(\.value) == ["Generated"])
+        #expect(resolved.excluded.first?.setBy.displayName == "https://example.com/base.yml")
+    }
+
+    @Test("the reporter is the first config's of the root configuration, not the root config's")
+    @MainActor
+    func testReporterComesFromTheFurthestParent() throws {
+        let (repository, workspace) = try makePackageWorkspace()
+        defer { cleanup(repository) }
+        try writeConfig(
+            "parent_config: ../../.swiftlint.yml\nreporter: json\n",
+            at: "Packages/Foo",
+            in: repository
+        )
+
+        // The repository's config names no reporter: SwiftLint uses its default.
+        #expect(resolve(at: "", in: workspace).reporter == nil)
+
+        try writeConfig("reporter: emoji\n", at: "", in: repository)
+        let reporter = try #require(resolve(at: "", in: workspace).reporter)
+        #expect(reporter.value == "emoji")
+        #expect(reporter.setBy.displayName == "../../.swiftlint.yml")
+    }
 }

@@ -161,9 +161,24 @@ public struct ConfigMapPresenter {
         return "Only \(count) rule\(count == 1 ? "" : "s") run here — only_rules set by \(declaredBy)."
     }
 
+    /// What the root configuration excludes, each entry with the config that
+    /// excludes it: `excluded (root): Generated`, or, from several configs,
+    /// `excluded: ../../Pods (../../.swiftlint.yml); Generated (root)`.
     private static func excludedNotice(for resolved: ResolvedConfiguration) -> String? {
-        guard let excluded = resolved.excluded else { return nil }
-        return "excluded (\(excluded.setBy.displayName)): \(excluded.value.joined(separator: ", "))"
+        var groups: [(layer: ConfigLayer, paths: [String])] = []
+        for entry in resolved.excluded {
+            if let last = groups.last, last.layer.id == entry.setBy.id {
+                groups[groups.count - 1].paths.append(entry.value)
+            } else {
+                groups.append((entry.setBy, [entry.value]))
+            }
+        }
+        guard let first = groups.first else { return nil }
+        guard groups.count > 1 else {
+            return "excluded (\(first.layer.displayName)): \(first.paths.joined(separator: ", "))"
+        }
+        let named = groups.map { "\($0.paths.joined(separator: ", ")) (\($0.layer.displayName))" }
+        return "excluded: \(named.joined(separator: "; "))"
     }
 
     private static func inheritsNotice(for resolved: ResolvedConfiguration, in tree: ConfigTree) -> String? {

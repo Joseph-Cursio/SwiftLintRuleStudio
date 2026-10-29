@@ -93,7 +93,7 @@ public struct ResolvedConfigDisplay: Sendable {
     nonisolated public let ruleRows: [ResolvedRuleRow]
     /// Set when an `only_rules` whitelist is in effect for the subtree.
     nonisolated public let onlyRulesNotice: String?
-    /// Set when the root config declares `excluded`.
+    /// Set when the root configuration excludes anything.
     nonisolated public let excludedNotice: String?
     /// Set when the folder has no config of its own (it inherits its ancestors).
     nonisolated public let inheritsNotice: String?
