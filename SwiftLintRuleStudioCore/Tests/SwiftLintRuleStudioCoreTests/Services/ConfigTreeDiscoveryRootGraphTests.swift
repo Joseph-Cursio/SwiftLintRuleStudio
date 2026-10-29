@@ -60,10 +60,10 @@ struct ConfigTreeDiscoveryRootGraphTests {
         ])
     }
 
-    @Test("a nested config's own references, remote ones, and files that aren't discovered configs are not followed")
-    func followsOnlyTheRootsLocalReferences() throws {
+    @Test("a nested config's own references, and files that don't exist, are not followed")
+    func followsOnlyTheRootsReferences() throws {
         let root = try Self.workspace([
-            "": "child_config: Shared/custom.yml\nparent_config: https://example.com/.swiftlint.yml\n",
+            "": "child_config: Shared/custom.yml\n",
             "Shared": "disabled_rules: [todo]\n",
             "Sub": "child_config: ../Other/.swiftlint.yml\n",
             "Other": "disabled_rules: [force_cast]\n"
@@ -72,6 +72,7 @@ struct ConfigTreeDiscoveryRootGraphTests {
         let tree = ConfigTreeDiscovery().discover(in: root)
 
         #expect(Self.positions(in: tree).isEmpty)
+        #expect(tree.referencedConfigs.isEmpty)
         #expect(tree.rootGraph.map(\.relativePath) == [".swiftlint.yml"])
     }
 

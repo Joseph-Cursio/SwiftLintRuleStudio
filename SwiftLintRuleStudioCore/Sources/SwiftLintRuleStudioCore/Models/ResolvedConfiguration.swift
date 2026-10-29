@@ -19,13 +19,17 @@ import Foundation
 public struct ConfigLayer: Identifiable, Sendable {
     /// Matches the originating ``DiscoveredConfig/id`` — the config file's path.
     nonisolated public let id: URL
-    /// Path relative to the workspace root, e.g. `Tests/.swiftlint.yml`.
+    /// Path relative to the workspace root, e.g. `Tests/.swiftlint.yml`, or
+    /// `../../.swiftlint.yml` for a config the root pulls in from outside it; a
+    /// remote config's URL.
     nonisolated public let relativePath: String
     /// Directory depth below the workspace root (root layer is `0`).
     nonisolated public let depth: Int
     /// Whether this is the workspace root layer.
     nonisolated public let isRoot: Bool
-    /// Short label for the UI — `root`, or the governed directory name (`Tests`).
+    /// Short label for the UI — `root`, the governed directory name (`Tests`), or
+    /// the path or URL of a config the root pulls in from elsewhere (see
+    /// ``DiscoveredConfig/displayName``).
     nonisolated public let displayName: String
 
     nonisolated public init(
@@ -49,7 +53,7 @@ public struct ConfigLayer: Identifiable, Sendable {
             relativePath: config.relativePath,
             depth: config.depth,
             isRoot: config.isRoot,
-            displayName: config.isRoot ? "root" : config.directoryPath.lastPathComponent
+            displayName: config.displayName
         )
     }
 }

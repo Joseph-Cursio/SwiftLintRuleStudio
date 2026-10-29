@@ -76,16 +76,10 @@ public struct ConfigTreeDiscovery {
         let pendings = urls.map { url in
             Self.parse(url: url, rootComponents: rootComponents)
         }
-        let rootGraphPositions = Self.rootGraphPositions(among: pendings)
+        let rootGraph = Self.rootGraph(among: pendings, workspaceRoot: workspaceRoot)
 
         let configs = pendings.map { pending -> DiscoveredConfig in
-            let summary: ConfigSummary
-            if let parsed = pending.config {
-                summary = Self.summarize(parsed)
-            } else {
-                summary = .empty
-            }
-            return DiscoveredConfig(
+            DiscoveredConfig(
                 configPath: pending.configPath,
                 directoryPath: pending.directoryPath,
                 relativePath: pending.relativePath,
@@ -94,12 +88,26 @@ public struct ConfigTreeDiscovery {
                 parentID: Self.parentID(for: pending, among: pendings),
                 config: pending.config,
                 parseError: pending.parseError,
-                summary: summary,
-                rootGraphPosition: rootGraphPositions[pending.configPath.standardizedFileURL.path]
+                summary: pending.config.map(Self.summarize) ?? .empty,
+                rootGraphPosition: rootGraph.positions[pending.configPath.standardizedFileURL.path]
             )
         }
 
-        return ConfigTree(workspaceRoot: workspaceRoot, configs: configs)
+        return ConfigTree(workspaceRoot: workspaceRoot, configs: configs, referencedConfigs: rootGraph.referenced)
+    }
+
+    /// Where SwiftLint keeps its copy of the remote config at `reference`, which it
+    /// fetches whenever it lints in `workspaceRoot` and falls back to when it can't
+    /// (`Configuration.FileGraph.FilePath`'s remote config cache).
+    public static func remoteConfigCacheURL(for reference: String, in workspaceRoot: URL) -> URL {
+        var name = reference
+        for character in [":", "<", ">", "\"", "/", "\\", "|", "?", "*"] {
+            name = name.replacingOccurrences(of: character, with: "_")
+        }
+        name = name.trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        return workspaceRoot
+            .appendingPathComponent(".swiftlint/RemoteConfigCache/v1", isDirectory: true)
+            .appendingPathComponent(name + ".yml")
     }
 
     // MARK: - Internals
@@ -128,14 +136,7 @@ public struct ConfigTreeDiscovery {
             ? configFileName
             : relativeComponents.joined(separator: "/")
         let depth = max(0, directoryComponents.count - rootComponents.count)
-
-        var parsedConfig: YAMLConfig?
-        var parseError: String?
-        do {
-            parsedConfig = try YAMLConfigurationEngine.loadConfig(at: url)
-        } catch {
-            parseError = error.localizedDescription
-        }
+        let loaded = load(url)
 
         return PendingConfig(
             configPath: url,
@@ -144,8 +145,8 @@ public struct ConfigTreeDiscovery {
             relativePath: relativePath,
             depth: depth,
             isRoot: depth == 0,
-            config: parsedConfig,
-            parseError: parseError
+            config: loaded.config,
+            parseError: loaded.parseError
         )
     }
 
@@ -180,41 +181,146 @@ public struct ConfigTreeDiscovery {
         return nearest?.configPath
     }
 
-    /// Each discovered config the root config pulls in, by path, with its place in
-    /// the chain counted from the root (see ``DiscoveredConfig/rootGraphPosition``).
+    /// The configs the root config pulls in: each discovered one's place in the
+    /// chain counted from the root, by path (see ``DiscoveredConfig/rootGraphPosition``),
+    /// and the others, read here.
+    private struct RootGraph {
+        var positions: [String: Int] = [:]
+        /// See ``ConfigTree/referencedConfigs``.
+        var referenced: [DiscoveredConfig] = []
+    }
+
+    /// A config on the walk of the root's chain, as the walk needs it.
+    private struct GraphNode {
+        let config: YAMLConfig?
+        /// The folder SwiftLint reads the config's references from.
+        let folder: URL
+        let isRemote: Bool
+    }
+
+    /// Follows the root config's `parent_config` and `child_config` references.
     ///
     /// SwiftLint follows `parent_config` up from the root and `child_config` down
     /// from it, each reference read relative to the folder of the config that
-    /// writes it. The chain must be linear — SwiftLint refuses a config with two
+    /// writes it; a remote config's, relative to the folder of the config that
+    /// pulled it in. The chain must be linear — SwiftLint refuses a config with two
     /// parents or two children — so following one key each way finds all of it.
-    /// A remote reference, or one outside the workspace, is not a discovered
-    /// config; the walk stops there. A nested config's own references are not
-    /// followed: SwiftLint ignores them.
-    private static func rootGraphPositions(among pendings: [PendingConfig]) -> [String: Int] {
-        guard let root = pendings.first(where: \.isRoot) else { return [:] }
+    ///
+    /// A reference to one of the workspace's `.swiftlint.yml` files places it in
+    /// the chain. Any other file — outside the workspace, or under another name —
+    /// is read as a referenced config, and so is a remote one, from the copy
+    /// SwiftLint keeps in the workspace. The walk stops at a file that doesn't
+    /// exist, which SwiftLint ignores; at a remote config it hasn't fetched yet,
+    /// whose references can't be read; at a local reference in a remote config,
+    /// which SwiftLint refuses; and where the chain comes back on itself. A nested
+    /// config's own references are not followed: SwiftLint ignores them.
+    private static func rootGraph(among pendings: [PendingConfig], workspaceRoot: URL) -> RootGraph {
+        guard let root = pendings.first(where: \.isRoot) else { return RootGraph() }
         let byPath = Dictionary(pendings.map { ($0.configPath.standardizedFileURL.path, $0) }) { first, _ in first }
-        func referenced(_ key: String, by pending: PendingConfig) -> PendingConfig? {
-            guard let written = pending.config?.passthroughNodes[key]?.string,
-                  !written.hasPrefix("http://"), !written.hasPrefix("https://") else { return nil }
-            let url = written.hasPrefix("/")
-                ? URL(fileURLWithPath: written)
-                : pending.directoryPath.appendingPathComponent(written)
-            return byPath[url.standardizedFileURL.path]
-        }
 
-        var positions: [String: Int] = [:]
+        var graph = RootGraph()
         var visited: Set<String> = [root.configPath.standardizedFileURL.path]
         for (key, step) in [("parent_config", -1), ("child_config", 1)] {
-            var current = root
+            var current = GraphNode(config: root.config, folder: root.directoryPath, isRemote: false)
             var position = 0
-            while let next = referenced(key, by: current),
-                  visited.insert(next.configPath.standardizedFileURL.path).inserted {
+            while let written = current.config?.passthroughNodes[key]?.string {
                 position += step
-                positions[next.configPath.standardizedFileURL.path] = position
-                current = next
+                if written.hasPrefix("http://") || written.hasPrefix("https://") {
+                    guard let url = URL(string: written), visited.insert(written).inserted else { break }
+                    let remote = remoteConfig(
+                        at: url,
+                        written: written,
+                        pulledInFrom: current.folder,
+                        position: position,
+                        workspaceRoot: workspaceRoot
+                    )
+                    graph.referenced.append(remote)
+                    current = GraphNode(config: remote.config, folder: current.folder, isRemote: true)
+                    continue
+                }
+                let file = (written.hasPrefix("/")
+                    ? URL(fileURLWithPath: written)
+                    : current.folder.appendingPathComponent(written)).standardizedFileURL
+                guard !current.isRemote, visited.insert(file.path).inserted else { break }
+                if let discovered = byPath[file.path] {
+                    graph.positions[file.path] = position
+                    current = GraphNode(config: discovered.config, folder: discovered.directoryPath, isRemote: false)
+                } else {
+                    guard FileManager.default.fileExists(atPath: file.path) else { break }
+                    let referenced = referencedFile(at: file, position: position, workspaceRoot: workspaceRoot)
+                    graph.referenced.append(referenced)
+                    current = GraphNode(config: referenced.config, folder: referenced.directoryPath, isRemote: false)
+                }
             }
         }
-        return positions
+        graph.referenced.sort { ($0.rootGraphPosition ?? 0) < ($1.rootGraphPosition ?? 0) }
+        return graph
+    }
+
+    /// A file the root config pulls in that isn't one of the workspace's own
+    /// `.swiftlint.yml` files.
+    private static func referencedFile(at file: URL, position: Int, workspaceRoot: URL) -> DiscoveredConfig {
+        let loaded = load(file)
+        return DiscoveredConfig(
+            configPath: file,
+            directoryPath: file.deletingLastPathComponent(),
+            relativePath: path(of: file, from: workspaceRoot),
+            depth: 0,
+            isRoot: false,
+            parentID: nil,
+            config: loaded.config,
+            parseError: loaded.parseError,
+            summary: loaded.config.map(summarize) ?? .empty,
+            rootGraphPosition: position,
+            origin: .referencedFile
+        )
+    }
+
+    /// A remote config the root config pulls in, as SwiftLint last fetched it into
+    /// the workspace; with no config when it hasn't yet.
+    private static func remoteConfig(
+        at url: URL,
+        written: String,
+        pulledInFrom folder: URL,
+        position: Int,
+        workspaceRoot: URL
+    ) -> DiscoveredConfig {
+        let cached = remoteConfigCacheURL(for: written, in: workspaceRoot)
+        let loaded = FileManager.default.fileExists(atPath: cached.path)
+            ? load(cached)
+            : (config: nil, parseError: nil)
+        return DiscoveredConfig(
+            configPath: url,
+            directoryPath: folder,
+            relativePath: written,
+            depth: 0,
+            isRoot: false,
+            parentID: nil,
+            config: loaded.config,
+            parseError: loaded.parseError,
+            summary: loaded.config.map(summarize) ?? .empty,
+            rootGraphPosition: position,
+            origin: .remote
+        )
+    }
+
+    /// `url`'s path from the folder `base`, climbing out of it with `..` where it
+    /// lies outside, as a config in `base` would name it: `../../.swiftlint.yml`.
+    /// `.` for `base` itself.
+    nonisolated static func path(of url: URL, from base: URL) -> String {
+        let baseComponents = base.standardizedFileURL.pathComponents
+        let components = url.standardizedFileURL.pathComponents
+        let common = zip(baseComponents, components).prefix { $0 == $1 }.count
+        let path = Array(repeating: "..", count: baseComponents.count - common) + components.dropFirst(common)
+        return path.isEmpty ? "." : path.joined(separator: "/")
+    }
+
+    private static func load(_ file: URL) -> (config: YAMLConfig?, parseError: String?) {
+        do {
+            return (try YAMLConfigurationEngine.loadConfig(at: file), nil)
+        } catch {
+            return (nil, error.localizedDescription)
+        }
     }
 
     private static func summarize(_ config: YAMLConfig) -> ConfigSummary {

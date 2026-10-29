@@ -76,7 +76,7 @@ public struct ConfigMapPresenter {
     ) -> ConfigTreeRow {
         ConfigTreeRow(
             id: config.id,
-            displayName: config.isRoot ? "root" : config.directoryPath.lastPathComponent,
+            displayName: config.displayName,
             relativePath: config.relativePath,
             indentLevel: indentLevel,
             isRoot: config.isRoot,
