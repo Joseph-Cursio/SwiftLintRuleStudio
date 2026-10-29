@@ -121,7 +121,8 @@ public struct ResolvedConfigurationEngine {
         mergeMembership(config: config, layer: layer, into: &accumulator)
         mergeRuleConfigurations(config: config, layer: layer, into: &accumulator)
         if let only = config.onlyRules {
-            accumulator.onlyRules = AttributedValue(value: only.sorted(), setBy: layer)
+            let rules = Set(only.map(SwiftLintDeprecations.currentName(of:)))
+            accumulator.onlyRules = AttributedValue(value: rules.sorted(), setBy: layer)
         }
         if isRoot {
             mergeRootOnlyKeys(config: config, layer: layer, into: &accumulator)
@@ -140,20 +141,28 @@ public struct ResolvedConfigurationEngine {
     /// the contradiction is resolved silently rather than rejected. Dropping the
     /// opt-in side up front is what keeps a rule from landing in both resolved
     /// sets — the mutual-exclusion invariant the property laws pin.
+    ///
+    /// SwiftLint maps each config's lists through the rules' aliases before it
+    /// merges them (`RulesMode.applied(aliasResolver:)`), so a layer can opt in or
+    /// disable a rule under either name. Every entry is read the same way here,
+    /// and each rule is one decision, under its current name, however it was
+    /// written: `disabled_rules: [if_let_shadowing]` beneath a parent's
+    /// `opt_in_rules: [shorthand_optional_binding]` turns that rule off.
     private static func mergeMembership(
         config: YAMLConfig,
         layer: ConfigLayer,
         into accumulator: inout Accumulator
     ) {
-        let childDisabled = config.disabledRules ?? []
+        let currentNames = { (rules: [String]?) in (rules ?? []).map(SwiftLintDeprecations.currentName(of:)) }
+        let childDisabled = currentNames(config.disabledRules)
         let disabledHere = Set(childDisabled)
-        let childOptIn = (config.optInRules ?? []).filter { !disabledHere.contains($0) }
+        let childOptIn = currentNames(config.optInRules).filter { !disabledHere.contains($0) }
 
         for rule in childOptIn { accumulator.disabled.remove(rule) }
         for rule in childDisabled { accumulator.optIn.remove(rule) }
         for rule in childDisabled { accumulator.disabled.insert(rule, setBy: layer) }
         for rule in childOptIn { accumulator.optIn.insert(rule, setBy: layer) }
-        for rule in config.analyzerRules ?? [] { accumulator.analyzer.insert(rule, setBy: layer) }
+        for rule in currentNames(config.analyzerRules) { accumulator.analyzer.insert(rule, setBy: layer) }
     }
 
     /// Rule configuration (severity/params): a deeper layer overrides a shallower

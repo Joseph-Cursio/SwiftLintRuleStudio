@@ -66,6 +66,8 @@ public struct AttributedValue<Value: Sendable>: Sendable {
 /// A rule's membership in an accumulated set (`disabled_rules`, `opt_in_rules`,
 /// `analyzer_rules`), attributed to the layer that last set it.
 public struct ResolvedRuleDecision: Sendable {
+    /// The rule's current name, also where a config listed it under a deprecated
+    /// alias (`variable_name` for `identifier_name`), as SwiftLint reads the lists.
     nonisolated public let identifier: String
     nonisolated public let setBy: ConfigLayer
 
@@ -119,7 +121,7 @@ public struct ResolvedConfiguration: Sendable {
     nonisolated public let analyzerRules: [ResolvedRuleDecision]
     /// The `only_rules` whitelist, if any layer declares one. When present, only
     /// these rules run in this subtree (a hard reset); `setBy` is the deepest
-    /// declaring layer.
+    /// declaring layer. Each rule appears once, under its current name.
     nonisolated public let onlyRules: AttributedValue<[String]>?
     /// Per-rule configurations (severity/params), each with override history.
     nonisolated public let ruleConfigurations: [ResolvedRuleConfiguration]
