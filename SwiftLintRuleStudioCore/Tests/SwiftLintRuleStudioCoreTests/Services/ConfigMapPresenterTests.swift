@@ -203,5 +203,58 @@ struct ConfigMapPresenterTests {
         )
         let notice = try #require(atSub.onlyRulesNotice)
         #expect(notice.contains("Sub"))
+        // The root's disabled_rules no longer decide anything beneath Sub's whitelist.
+        let todo = try #require(atSub.ruleRows.first { $0.id == "todo" })
+        #expect(todo.state == "on (only_rules)")
+        #expect(todo.setBy == "Sub")
+    }
+
+    // MARK: - only_rules rows
+
+    @Test("in only_rules mode each rule that runs has a row, attributed to the layer that added it")
+    @MainActor
+    func testOnlyRulesRowsFollowTheEditedList() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules:\n  - force_cast\n  - force_try\n", at: "", in: root)
+        try writeConfig("disabled_rules:\n  - force_try\nopt_in_rules:\n  - empty_count\n", at: "Sub", in: root)
+        let configTree = tree(in: root)
+
+        let atSub = ConfigMapPresenter().display(
+            for: ResolvedConfigurationEngine().resolve(
+                at: root.appendingPathComponent("Sub", isDirectory: true),
+                in: configTree
+            ),
+            in: configTree
+        )
+
+        #expect(atSub.ruleRows.map(\.id) == ["empty_count", "force_cast", "force_try"])
+        #expect(atSub.ruleRows.map(\.state) == ["on (opt-in)", "on (only_rules)", "off (disabled)"])
+        #expect(atSub.ruleRows.map(\.setBy) == ["Sub", "root", "Sub"])
+        let notice = try #require(atSub.onlyRulesNotice)
+        #expect(notice.hasPrefix("Only 2 rules run here"))
+    }
+
+    @Test("in only_rules mode a rule configured outside the whitelist reads as off")
+    @MainActor
+    func testConfiguredRuleOutsideOnlyRulesReadsOff() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig(
+            "only_rules:\n  - force_cast\nforce_cast:\n  severity: error\nline_length:\n  warning: 100\n",
+            at: "",
+            in: root
+        )
+        let configTree = tree(in: root)
+
+        let display = ConfigMapPresenter().display(
+            for: ResolvedConfigurationEngine().resolve(at: root, in: configTree),
+            in: configTree
+        )
+
+        let forceCast = try #require(display.ruleRows.first { $0.id == "force_cast" })
+        #expect(forceCast.state == "error")
+        let lineLength = try #require(display.ruleRows.first { $0.id == "line_length" })
+        #expect(lineLength.state == "off (not in only_rules)")
     }
 }

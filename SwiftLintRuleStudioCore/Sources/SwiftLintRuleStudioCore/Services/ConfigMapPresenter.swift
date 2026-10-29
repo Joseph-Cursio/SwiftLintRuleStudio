@@ -116,13 +116,20 @@ public struct ConfigMapPresenter {
             )
         }
         for configuration in resolved.ruleConfigurations where rowsByRule[configuration.identifier] == nil {
+            let runs = resolved.onlyRules?.contains(configuration.identifier) ?? true
             rowsByRule[configuration.identifier] = ResolvedRuleRow(
                 id: configuration.identifier,
-                state: state(for: configuration.configuration),
+                state: runs ? state(for: configuration.configuration) : "off (not in only_rules)",
                 setBy: configuration.setBy.displayName,
                 detail: configuration.overridesAncestor
                     ? "overrides \(configuration.previousSetBy?.displayName ?? "ancestor")"
                     : nil
+            )
+        }
+        // In only_rules mode the whitelist is what runs, so each of its rules gets a row.
+        for decision in resolved.onlyRules?.rules ?? [] where rowsByRule[decision.identifier] == nil {
+            rowsByRule[decision.identifier] = ResolvedRuleRow(
+                id: decision.identifier, state: "on (only_rules)", setBy: decision.setBy.displayName, detail: nil
             )
         }
         return rowsByRule.values.sorted { $0.id < $1.id }
