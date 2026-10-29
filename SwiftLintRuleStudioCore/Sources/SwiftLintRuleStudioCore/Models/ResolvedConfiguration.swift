@@ -6,8 +6,9 @@
 //  folder — with each decision attributed to the config layer that set it.
 //  This is the model the resolved-config inspector renders. The merge follows
 //  SwiftLint's *non-uniform* nested semantics (see docs/nested-config-visibility.md):
-//  rule configs override, disabled/opt-in accumulate, only_rules hard-resets,
-//  and excluded/included/reporter come from the root config alone.
+//  rule configs override, disabled/opt-in accumulate, only_rules hard-resets
+//  (and a deeper layer's disabled/opt-in then edit that whitelist), and
+//  excluded/included/reporter come from the root config alone.
 //
 
 import Foundation
@@ -77,6 +78,34 @@ public struct ResolvedRuleDecision: Sendable {
     }
 }
 
+/// The `only_rules` whitelist in effect for a folder, with each rule attributed to
+/// the layer that put it there.
+///
+/// The deepest layer that declares `only_rules` starts the whitelist with its
+/// `only_rules` and `analyzer_rules`. A deeper layer without `only_rules` edits it,
+/// as SwiftLint merges a child in default mode beneath an only-mode parent: the
+/// child's `opt_in_rules` and `analyzer_rules` join, and its `disabled_rules` leave.
+public struct ResolvedOnlyRules: Sendable {
+    /// The deepest layer that declares `only_rules`.
+    nonisolated public let declaredBy: ConfigLayer
+    /// The rules that run, sorted, each under its current name and attributed to the
+    /// layer that last added it.
+    nonisolated public let rules: [ResolvedRuleDecision]
+
+    nonisolated public init(declaredBy: ConfigLayer, rules: [ResolvedRuleDecision]) {
+        self.declaredBy = declaredBy
+        self.rules = rules
+    }
+
+    /// The identifiers of the rules that run, sorted.
+    nonisolated public var identifiers: [String] { rules.map(\.identifier) }
+
+    /// Whether `ruleIdentifier` runs.
+    nonisolated public func contains(_ ruleIdentifier: String) -> Bool {
+        rules.contains { $0.identifier == ruleIdentifier }
+    }
+}
+
 /// A rule's resolved configuration (severity/parameters), the layer that set it,
 /// and the value it overrode — so the inspector can show "was ⚠️ 120 → 200".
 public struct ResolvedRuleConfiguration: Sendable {
@@ -120,9 +149,10 @@ public struct ResolvedConfiguration: Sendable {
     /// Effective `analyzer_rules`, each attributed to the layer that added it.
     nonisolated public let analyzerRules: [ResolvedRuleDecision]
     /// The `only_rules` whitelist, if any layer declares one. When present, only
-    /// these rules run in this subtree (a hard reset); `setBy` is the deepest
-    /// declaring layer. Each rule appears once, under its current name.
-    nonisolated public let onlyRules: AttributedValue<[String]>?
+    /// these rules run here, and ``disabledRules``, ``optInRules`` and
+    /// ``analyzerRules`` hold only the decisions of the declaring layer and the
+    /// layers beneath it: those above it no longer decide anything.
+    nonisolated public let onlyRules: ResolvedOnlyRules?
     /// Per-rule configurations (severity/params), each with override history.
     nonisolated public let ruleConfigurations: [ResolvedRuleConfiguration]
     /// `excluded:` — honored only from the root config.
@@ -138,7 +168,7 @@ public struct ResolvedConfiguration: Sendable {
         disabledRules: [ResolvedRuleDecision],
         optInRules: [ResolvedRuleDecision],
         analyzerRules: [ResolvedRuleDecision],
-        onlyRules: AttributedValue<[String]>?,
+        onlyRules: ResolvedOnlyRules?,
         ruleConfigurations: [ResolvedRuleConfiguration],
         excluded: AttributedValue<[String]>?,
         included: AttributedValue<[String]>?,

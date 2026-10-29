@@ -17,7 +17,7 @@ struct ResolvedConfigurationEngineTests {
 
     // MARK: - Helpers
 
-    private func makeWorkspace() throws -> URL {
+    func makeWorkspace() throws -> URL {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("ResolvedConfigTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -26,7 +26,7 @@ struct ResolvedConfigurationEngineTests {
     }
 
     @discardableResult
-    private func writeConfig(_ content: String, at relativeDirectory: String, in root: URL) throws -> URL {
+    func writeConfig(_ content: String, at relativeDirectory: String, in root: URL) throws -> URL {
         let directory = relativeDirectory.isEmpty
             ? root
             : root.appendingPathComponent(relativeDirectory, isDirectory: true)
@@ -36,7 +36,7 @@ struct ResolvedConfigurationEngineTests {
         return configPath
     }
 
-    private func cleanup(_ root: URL) {
+    func cleanup(_ root: URL) {
         try? FileManager.default.removeItem(at: root)
     }
 
@@ -78,7 +78,7 @@ struct ResolvedConfigurationEngineTests {
         return root
     }
 
-    private func resolve(at relativeDirectory: String, in root: URL) -> ResolvedConfiguration {
+    func resolve(at relativeDirectory: String, in root: URL) -> ResolvedConfiguration {
         let directory = relativeDirectory.isEmpty
             ? root
             : root.appendingPathComponent(relativeDirectory, isDirectory: true)
@@ -170,13 +170,16 @@ struct ResolvedConfigurationEngineTests {
     func testOnlyRulesHardReset() throws {
         let root = try makeWorkspace()
         defer { cleanup(root) }
-        try writeConfig("opt_in_rules:\n  - empty_count\n", at: "", in: root)
+        try writeConfig("opt_in_rules:\n  - empty_count\ndisabled_rules:\n  - todo\n", at: "", in: root)
         try writeConfig("only_rules:\n  - todo\n  - line_length\n", at: "Sub", in: root)
 
         let atSub = resolve(at: "Sub", in: root)
         #expect(atSub.isOnlyRulesMode)
-        #expect(atSub.onlyRules?.value == ["line_length", "todo"])
-        #expect(atSub.onlyRules?.setBy.displayName == "Sub")
+        #expect(atSub.onlyRules?.identifiers == ["line_length", "todo"])
+        #expect(atSub.onlyRules?.declaredBy.displayName == "Sub")
+        // The root's decisions no longer decide anything beneath the whitelist.
+        #expect(atSub.optInRules.isEmpty)
+        #expect(atSub.disabledRules.isEmpty)
 
         let atRoot = resolve(at: "", in: root)
         #expect(atRoot.isOnlyRulesMode == false)
@@ -203,8 +206,8 @@ struct ResolvedConfigurationEngineTests {
         try writeConfig("only_rules: []\n", at: "Sub", in: root)
 
         let atSub = resolve(at: "Sub", in: root)
-        #expect(atSub.onlyRules?.value == ["force_cast", "todo"])
-        #expect(atSub.onlyRules?.setBy.isRoot == true)
+        #expect(atSub.onlyRules?.identifiers == ["force_cast", "todo"])
+        #expect(atSub.onlyRules?.declaredBy.isRoot == true)
     }
 
     // MARK: - Deprecated aliases (#101)
@@ -274,7 +277,7 @@ struct ResolvedConfigurationEngineTests {
         )
 
         let resolved = resolve(at: "", in: root)
-        #expect(resolved.onlyRules?.value == ["force_cast", "identifier_name"])
+        #expect(resolved.onlyRules?.identifiers == ["force_cast", "identifier_name"])
     }
 
     @Test("a child configuring a rule under its current name overrides its parent's alias, in one row")

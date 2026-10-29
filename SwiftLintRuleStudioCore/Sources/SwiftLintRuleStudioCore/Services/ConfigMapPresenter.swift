@@ -137,8 +137,9 @@ public struct ConfigMapPresenter {
 
     private static func onlyRulesNotice(for resolved: ResolvedConfiguration) -> String? {
         guard let onlyRules = resolved.onlyRules else { return nil }
-        let count = onlyRules.value.count
-        return "Only \(count) rule\(count == 1 ? "" : "s") run here — only_rules set by \(onlyRules.setBy.displayName)."
+        let count = onlyRules.rules.count
+        let declaredBy = onlyRules.declaredBy.displayName
+        return "Only \(count) rule\(count == 1 ? "" : "s") run here — only_rules set by \(declaredBy)."
     }
 
     private static func excludedNotice(for resolved: ResolvedConfiguration) -> String? {
