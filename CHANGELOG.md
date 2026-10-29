@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Simulations now count what enabling a rule really does in workspaces that use symlinks, `included`/`excluded` (list or single-string form), `**` and brace globs, `parent_config`/`child_config`, folders beside the workspace (`../Shared`), or a repository config pulled in by a package opened on its own (`parent_config: ../../.swiftlint.yml`)
 - A rule is simulated as Enable enables it: in the root config and the configs it pulls in. A nested config that disables the rule still disables it beneath it, as it will after Enable
 - A rule disabled under a deprecated name (`variable_name`, `if_let_shadowing`, `redundant_optional_initialization`, `operator_whitespace`, `redundant_self_in_closure`) is now enabled and counted
+- Validation now flags a rule listed in both `opt_in_rules` and `disabled_rules` under two names, one of them a deprecated alias (`if_let_shadowing` beside `shorthand_optional_binding`) (#101). SwiftLint reads this the same way as a rule listed twice under one name: the rule doesn't run. The error names the rule as you wrote it
 - `custom_rules` now counts the violations of every custom rule; it used to measure 0
 - A config's `baseline:` filters simulated violations as it filters real ones, and `write_baseline:` is never written by a simulation, so the user's baseline file is left alone
 - An `included`/`excluded` list containing a non-string entry is ignored, as SwiftLint ignores it
