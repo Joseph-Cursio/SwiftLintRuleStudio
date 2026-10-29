@@ -182,6 +182,31 @@ struct ResolvedConfigurationEngineTests {
         #expect(atRoot.isOnlyRulesMode == false)
     }
 
+    @Test("an empty only_rules is no list: the layer stays in default mode")
+    @MainActor
+    func testEmptyOnlyRulesIsNoList() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules: []\ndisabled_rules:\n  - todo\n", at: "", in: root)
+
+        let resolved = resolve(at: "", in: root)
+        #expect(resolved.isOnlyRulesMode == false)
+        #expect(resolved.disabledRules.map(\.identifier) == ["todo"])
+    }
+
+    @Test("an empty only_rules beneath a parent's keeps the parent's list")
+    @MainActor
+    func testEmptyOnlyRulesKeepsParentList() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules:\n  - force_cast\n  - todo\n", at: "", in: root)
+        try writeConfig("only_rules: []\n", at: "Sub", in: root)
+
+        let atSub = resolve(at: "Sub", in: root)
+        #expect(atSub.onlyRules?.value == ["force_cast", "todo"])
+        #expect(atSub.onlyRules?.setBy.isRoot == true)
+    }
+
     // MARK: - Deprecated aliases (#101)
 
     @Test("a child disabling a rule under its alias turns off the rule its parent opted in, in one row")

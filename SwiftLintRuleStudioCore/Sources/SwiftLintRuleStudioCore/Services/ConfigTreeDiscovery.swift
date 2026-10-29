@@ -183,7 +183,7 @@ public struct ConfigTreeDiscovery {
             optInRuleCount: config.optInRules?.count ?? 0,
             analyzerRuleCount: config.analyzerRules?.count ?? 0,
             configuredRuleCount: config.rules.count,
-            onlyRules: config.onlyRules,
+            onlyRules: config.usesOnlyRules ? config.onlyRules : nil,
             setsExcluded: !(config.excluded?.isEmpty ?? true),
             setsIncluded: !(config.included?.isEmpty ?? true),
             setsReporter: config.reporter != nil

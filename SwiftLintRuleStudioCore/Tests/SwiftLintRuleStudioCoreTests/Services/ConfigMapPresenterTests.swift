@@ -98,6 +98,17 @@ struct ConfigMapPresenterTests {
         #expect(byName["Nested"]?.hasIneffectiveExclusions == true)
     }
 
+    @Test("an empty only_rules gets no only-rules badge")
+    @MainActor
+    func testBadgeIgnoresEmptyOnlyRules() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("only_rules: []\ndisabled_rules:\n  - todo\n", at: "", in: root)
+
+        let rows = ConfigMapPresenter().treeRows(for: tree(in: root))
+        #expect(rows.first?.badge == "-1 disabled")
+    }
+
     // MARK: - Resolved inspector display
 
     @Test("display shows the layer chain, disabled rules, and excluded notice")

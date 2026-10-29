@@ -120,7 +120,9 @@ public struct ResolvedConfigurationEngine {
     ) {
         mergeMembership(config: config, layer: layer, into: &accumulator)
         mergeRuleConfigurations(config: config, layer: layer, into: &accumulator)
-        if let only = config.onlyRules {
+        // An empty `only_rules` is no list (``YAMLConfig/usesOnlyRules``): SwiftLint
+        // stays in default mode, and beneath a parent's list keeps the parent's.
+        if let only = config.onlyRules, !only.isEmpty {
             let rules = Set(only.map(SwiftLintDeprecations.currentName(of:)))
             accumulator.onlyRules = AttributedValue(value: rules.sorted(), setBy: layer)
         }
