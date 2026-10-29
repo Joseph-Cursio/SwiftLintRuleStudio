@@ -10,10 +10,15 @@
 //  `mergeMembership` removes a rule from the opposite set before inserting it,
 //  so a rule must never end up both disabled and opted in.
 //
-//  Generators build a linear three-layer chain (/ws → /ws/a → /ws/a/b). A rule
-//  alphabet of three keeps the layers colliding on most trials — the interesting
-//  cases are where a deeper layer contradicts a shallower one, and a wide
-//  alphabet would almost never produce that.
+//  Generators build a linear three-layer tree (/ws → /ws/a → /ws/a/b) and pick
+//  one of its folders to resolve. SwiftLint applies to a folder the root config
+//  and the nearest nested config at or above it, and passes over the configs
+//  between (`configuration(forDirectory:)`): at /ws/a/b the layers that apply are
+//  /ws and /ws/a/b, and /ws/a contributes nothing. So the deeper-wins laws range
+//  over the layers that apply, and `skippedLayerContributesNothing` pins the
+//  pass-over directly. A rule alphabet of three keeps the layers colliding on
+//  most trials — the interesting cases are where a deeper layer contradicts a
+//  shallower one, and a wide alphabet would almost never produce that.
 //
 //  Layers are allowed to contradict *themselves* too — a rule can be generated
 //  into both `disabled_rules` and `opt_in_rules` of the same config — so the
@@ -31,7 +36,7 @@ import Testing
 /// One generated layer, kept to primitives so it can cross the generator
 /// boundary — `YAMLConfig` is main-actor-isolated and cannot be built inside a
 /// `Sendable` closure.
-private struct LayerSpec: Sendable {
+struct LayerSpec: Sendable {
     /// Per rule: 0 = unmentioned, 1 = disabled, 2 = opted in, 3 = listed in BOTH
     /// keys of the same config — the self-contradiction SwiftLint resolves as
     /// disabled.
@@ -47,16 +52,16 @@ private struct LayerSpec: Sendable {
 struct ResolveInvariantPropertyLawTests {
 
     nonisolated private static let ruleNames = ["todo", "force_cast", "line_length"]
-    nonisolated private static let layerCount = 3
+    nonisolated static let layerCount = 3
     nonisolated private static let root = URL(fileURLWithPath: "/ws")
 
-    /// `/ws`, `/ws/a`, `/ws/a/b` — a linear chain, so every layer applies to the
-    /// deepest target and `layerChain` is the whole tree in depth order.
-    nonisolated private static var directories: [URL] {
+    /// `/ws`, `/ws/a`, `/ws/a/b` — a linear chain, so each layer's folder holds
+    /// every deeper one's.
+    nonisolated static var directories: [URL] {
         [root, root.appendingPathComponent("a"), root.appendingPathComponent("a/b")]
     }
 
-    nonisolated private static func layerSpecsGenerator()
+    nonisolated static func layerSpecsGenerator()
     -> Generator<[LayerSpec], some SendableSequenceType> {
         // Membership spans 0...3 so a layer can list a rule in both keys;
         // `configures` only needs 0...2 (unset / warning / error).
@@ -129,28 +134,31 @@ struct ResolveInvariantPropertyLawTests {
         )
     }
 
-    private func makeTree(from specs: [LayerSpec]) -> ConfigTree {
-        let configs = specs.enumerated().map { depth, spec in
+    /// One config per spec, at the directory of its depth — leaving out the layer
+    /// at `omitted`, as if its folder had no config.
+    func makeTree(from specs: [LayerSpec], omitting omitted: Int? = nil) -> ConfigTree {
+        let configs = specs.enumerated().filter { $0.offset != omitted }.map { depth, spec in
             makeDiscovered(directory: Self.directories[depth], depth: depth, config: makeConfig(from: spec))
         }
         return ConfigTree(workspaceRoot: Self.root, configs: configs)
     }
 
-    /// The deepest layer index whose `selector` is non-zero, or nil.
+    /// The deepest of `layers` whose `selector` is non-zero, or nil.
     nonisolated private static func deepestLayer(
         _ specs: [LayerSpec],
+        among layers: [Int],
         where selector: (LayerSpec) -> Int
     ) -> Int? {
-        specs.indices.reversed().first { selector(specs[$0]) != 0 }
+        layers.reversed().first { selector(specs[$0]) != 0 }
     }
 
     // MARK: - The invariant
 
     @Test("a rule is never both disabled and opted in")
     func mutualExclusionInvariant() async {
-        await propertyCheck(input: Self.layerSpecsGenerator()) { specs in
+        await propertyCheck(input: Self.layerSpecsGenerator(), Self.targetGenerator()) { specs, target in
             let resolved = ResolvedConfigurationEngine()
-                .resolve(at: Self.directories[Self.layerCount - 1], in: makeTree(from: specs))
+                .resolve(at: Self.directories[target], in: makeTree(from: specs))
 
             let disabled = Set(resolved.disabledRules.map(\.identifier))
             let optedIn = Set(resolved.optInRules.map(\.identifier))
@@ -158,12 +166,12 @@ struct ResolveInvariantPropertyLawTests {
         }
     }
 
-    @Test("the deepest layer that mentions a rule decides its membership and owns the attribution")
+    @Test("the deepest applied layer that mentions a rule decides its membership and owns the attribution")
     func deepestMentionWins() async {
-        await propertyCheck(input: Self.layerSpecsGenerator()) { specs in
+        await propertyCheck(input: Self.layerSpecsGenerator(), Self.targetGenerator()) { specs, target in
             let tree = makeTree(from: specs)
             let resolved = ResolvedConfigurationEngine()
-                .resolve(at: Self.directories[Self.layerCount - 1], in: tree)
+                .resolve(at: Self.directories[target], in: tree)
 
             let disabled = Dictionary(
                 uniqueKeysWithValues: resolved.disabledRules.map { ($0.identifier, $0.setBy) }
@@ -173,9 +181,11 @@ struct ResolveInvariantPropertyLawTests {
             )
 
             for (index, name) in Self.ruleNames.enumerated() {
-                let deepest = Self.deepestLayer(specs) { $0.membership[index] }
+                let deepest = Self.deepestLayer(specs, among: Self.appliedLayers(at: target)) {
+                    $0.membership[index]
+                }
                 guard let deepest else {
-                    // Unmentioned everywhere ⇒ absent from both sets.
+                    // Unmentioned by every applied layer ⇒ absent from both sets.
                     #expect(disabled[name] == nil)
                     #expect(optedIn[name] == nil)
                     continue
@@ -193,17 +203,17 @@ struct ResolveInvariantPropertyLawTests {
         }
     }
 
-    @Test("rule configurations are deeper-wins, and keep the next-deepest as history")
+    @Test("rule configurations are deeper-wins among applied layers, and keep the next-deepest as history")
     func ruleConfigurationsAreDeeperWins() async {
-        await propertyCheck(input: Self.layerSpecsGenerator()) { specs in
+        await propertyCheck(input: Self.layerSpecsGenerator(), Self.targetGenerator()) { specs, target in
             let resolved = ResolvedConfigurationEngine()
-                .resolve(at: Self.directories[Self.layerCount - 1], in: makeTree(from: specs))
+                .resolve(at: Self.directories[target], in: makeTree(from: specs))
             let byIdentifier = Dictionary(
                 uniqueKeysWithValues: resolved.ruleConfigurations.map { ($0.identifier, $0) }
             )
 
             for (index, name) in Self.ruleNames.enumerated() {
-                let setters = specs.indices.filter { specs[$0].configures[index] != 0 }
+                let setters = Self.appliedLayers(at: target).filter { specs[$0].configures[index] != 0 }
                 guard let deepest = setters.last else {
                     #expect(byIdentifier[name] == nil)
                     continue
@@ -227,9 +237,9 @@ struct ResolveInvariantPropertyLawTests {
 
     @Test("excluded, included and reporter are honored only from the root layer")
     func rootOnlyKeysIgnoreNestedLayers() async {
-        await propertyCheck(input: Self.layerSpecsGenerator()) { specs in
+        await propertyCheck(input: Self.layerSpecsGenerator(), Self.targetGenerator()) { specs, target in
             let resolved = ResolvedConfigurationEngine()
-                .resolve(at: Self.directories[Self.layerCount - 1], in: makeTree(from: specs))
+                .resolve(at: Self.directories[target], in: makeTree(from: specs))
 
             // Present exactly when the ROOT sets them — a nested layer setting the
             // same keys contributes nothing, however deep it is.
@@ -247,9 +257,9 @@ struct ResolveInvariantPropertyLawTests {
 
     @Test("every attribution names a layer that is actually in the chain")
     func attributionsComeFromTheChain() async {
-        await propertyCheck(input: Self.layerSpecsGenerator()) { specs in
+        await propertyCheck(input: Self.layerSpecsGenerator(), Self.targetGenerator()) { specs, target in
             let resolved = ResolvedConfigurationEngine()
-                .resolve(at: Self.directories[Self.layerCount - 1], in: makeTree(from: specs))
+                .resolve(at: Self.directories[target], in: makeTree(from: specs))
             let chainIDs = Set(resolved.layerChain.map(\.id))
 
             for decision in resolved.disabledRules + resolved.optInRules + resolved.analyzerRules {
@@ -275,6 +285,7 @@ struct ResolveInvariantPropertyLawTests {
             .resolve(at: Self.root, in: ConfigTree(workspaceRoot: Self.root, configs: []))
 
         #expect(resolved.layerChain.isEmpty)
+        #expect(resolved.skippedLayers.isEmpty)
         #expect(resolved.disabledRules.isEmpty)
         #expect(resolved.optInRules.isEmpty)
         #expect(resolved.analyzerRules.isEmpty)
@@ -297,7 +308,9 @@ struct ResolveInvariantPropertyLawTests {
         let resolved = ResolvedConfigurationEngine()
             .resolve(at: Self.directories[Self.layerCount - 1], in: makeTree(from: specs))
 
-        #expect(resolved.layerChain.count == Self.layerCount)
+        // The root and the nearest nested config; the one between is passed over.
+        #expect(resolved.layerChain.map(\.depth) == [0, Self.layerCount - 1])
+        #expect(resolved.skippedLayers.map(\.depth) == Array(1 ..< Self.layerCount - 1))
         #expect(resolved.disabledRules.isEmpty)
         #expect(resolved.optInRules.isEmpty)
         #expect(resolved.ruleConfigurations.isEmpty)

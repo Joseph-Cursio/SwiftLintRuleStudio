@@ -5,10 +5,14 @@
 //  Property laws for `ResolvedConfigurationEngine.layerChain` — a path-prefix
 //  *selection* the toolchain could only give the non-refutable determinism law
 //  (no template names a selection/ancestry shape). Hand-stating the reference
-//  definition is the point: a correct layerChain returns exactly the configs
-//  whose directory is an ancestor of the target, drawn from the tree, ordered by
-//  depth. Generators draw directories from a three-name alphabet so ancestry
-//  actually occurs — the counterexamples live where prefixes nearly coincide.
+//  definition is the point. SwiftLint applies to a folder the root config and the
+//  first nested `.swiftlint.yml` it meets walking up from there, and no other
+//  (`configuration(forDirectory:)`), so a correct layerChain returns, drawn from
+//  the tree and ordered by depth, the root config and the deepest of the target's
+//  other ancestor configs — passing over the ones between. Generators draw
+//  directories from a three-name alphabet so ancestry actually occurs — the
+//  counterexamples live where prefixes nearly coincide — and keep one config per
+//  directory, as a workspace does: a config is the file at its path.
 //
 
 import Foundation
@@ -60,26 +64,33 @@ struct LayerChainPropertyLawTests {
         directoryGenerator()
             .map { makeConfig(directory: $0.0, depth: $0.1) }
             .array(of: 0...5)
+            .map { configs in
+                var directories: Set<String> = []
+                return configs.filter { directories.insert($0.directoryPath.standardizedFileURL.path).inserted }
+            }
             .map { ConfigTree(workspaceRoot: root, configs: $0) }
+    }
+
+    nonisolated private static func isAncestor(_ config: DiscoveredConfig, of target: URL) -> Bool {
+        let targetComponents = target.standardizedFileURL.pathComponents
+        let directoryComponents = config.directoryPath.standardizedFileURL.pathComponents
+        return directoryComponents.count <= targetComponents.count
+            && Array(targetComponents.prefix(directoryComponents.count)) == directoryComponents
     }
 
     private static func targetGenerator() -> Generator<URL, some SendableSequenceType> {
         directoryGenerator().map(\.0)
     }
 
-    @Test("layerChain selects tree ancestors of the target, ordered by depth")
+    @Test("layerChain is the root config and the target's nearest nested config, ordered by depth")
     func layerChainLaws() async {
         await propertyCheck(input: Self.treeGenerator(), Self.targetGenerator()) { tree, target in
             let chain = ResolvedConfigurationEngine.layerChain(for: target, in: tree)
-            let targetComponents = target.standardizedFileURL.pathComponents
+            let ancestors = tree.configs.filter { Self.isAncestor($0, of: target) }
 
             // Ancestry — every selected config governs a directory that is a prefix
             // (ancestor) of the target directory.
-            for config in chain {
-                let directoryComponents = config.directoryPath.standardizedFileURL.pathComponents
-                #expect(directoryComponents.count <= targetComponents.count)
-                #expect(Array(targetComponents.prefix(directoryComponents.count)) == directoryComponents)
-            }
+            #expect(chain.allSatisfy { Self.isAncestor($0, of: target) })
 
             // From the tree — the chain invents no config.
             let treeDirectories = Set(tree.configs.map(\.directoryPath.standardizedFileURL.path))
@@ -87,6 +98,20 @@ struct LayerChainPropertyLawTests {
 
             // Ordered by depth ascending — the root layer first.
             #expect(chain.map(\.depth) == chain.map(\.depth).sorted())
+
+            // The root config applies wherever it is an ancestor — and every target
+            // here is under the root.
+            #expect(chain.filter(\.isRoot).count == ancestors.filter(\.isRoot).count)
+
+            // One nested config at most, and the nearest: none of the target's
+            // ancestor configs is deeper than it, and there is one whenever the
+            // target has a nested ancestor config at all.
+            let nested = chain.filter { !$0.isRoot }
+            #expect(nested.count <= 1)
+            #expect(nested.isEmpty == ancestors.allSatisfy(\.isRoot))
+            if let nearest = nested.first {
+                #expect(ancestors.allSatisfy { $0.depth <= nearest.depth })
+            }
         }
     }
 }

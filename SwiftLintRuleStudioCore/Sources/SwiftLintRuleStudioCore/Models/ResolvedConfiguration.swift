@@ -4,10 +4,11 @@
 //
 //  The effective, merged SwiftLint configuration that applies to a particular
 //  folder — with each decision attributed to the config layer that set it.
-//  This is the model the resolved-config inspector renders. The merge follows
-//  SwiftLint's *non-uniform* nested semantics (see docs/nested-config-visibility.md):
-//  rule configs override, disabled/opt-in accumulate, only_rules hard-resets
-//  (and a deeper layer's disabled/opt-in then edit that whitelist), and
+//  This is the model the resolved-config inspector renders. SwiftLint merges the
+//  root config with the nearest nested config alone, and the merge follows its
+//  *non-uniform* semantics (see docs/nested-config-visibility.md): rule configs
+//  override, disabled/opt-in accumulate, only_rules hard-resets (and a deeper
+//  layer's disabled/opt-in then edit that whitelist), and
 //  excluded/included/reporter come from the root config alone.
 //
 
@@ -136,12 +137,17 @@ public struct ResolvedRuleConfiguration: Sendable {
 }
 
 /// The effective configuration that applies to a folder, merged from its layer
-/// chain (root → … → folder).
+/// chain: the root config, then the nearest nested config at or above the folder.
 public struct ResolvedConfiguration: Sendable {
     /// The folder this configuration was resolved for.
     nonisolated public let targetDirectory: URL
-    /// The layers that applied, ordered root → deepest.
+    /// The layers that applied, ordered root → deepest: the root config, then the
+    /// nearest nested config at or above the folder. Either may be absent.
     nonisolated public let layerChain: [ConfigLayer]
+    /// The nested configs above the nearest one, ordered root → deepest: their
+    /// folders hold `targetDirectory`, but SwiftLint merges the root config with
+    /// the nearest nested config alone, so none of them applies here.
+    nonisolated public let skippedLayers: [ConfigLayer]
     /// Effective `disabled_rules`, each attributed to the layer that disabled it.
     nonisolated public let disabledRules: [ResolvedRuleDecision]
     /// Effective `opt_in_rules`, each attributed to the layer that opted it in.
@@ -165,6 +171,7 @@ public struct ResolvedConfiguration: Sendable {
     nonisolated public init(
         targetDirectory: URL,
         layerChain: [ConfigLayer],
+        skippedLayers: [ConfigLayer],
         disabledRules: [ResolvedRuleDecision],
         optInRules: [ResolvedRuleDecision],
         analyzerRules: [ResolvedRuleDecision],
@@ -176,6 +183,7 @@ public struct ResolvedConfiguration: Sendable {
     ) {
         self.targetDirectory = targetDirectory
         self.layerChain = layerChain
+        self.skippedLayers = skippedLayers
         self.disabledRules = disabledRules
         self.optInRules = optInRules
         self.analyzerRules = analyzerRules

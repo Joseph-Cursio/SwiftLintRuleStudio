@@ -6,11 +6,12 @@
 > the folder-specific rules, but this GUI totally hides that this is happening."
 
 **Correct.** SwiftLint supports **nested configurations**: a `.swiftlint.yml` in a
-subdirectory is merged with its ancestors, and applies to files under that
-directory. The classic use case is relaxing rules for tests — e.g. *"all tests
-should be able to `try!`/force-unwrap freely"* (the Jon Reid pattern): a
-`Tests/.swiftlint.yml` that disables `force_try` / `force_unwrapping` so you never
-think about it in test code.
+subdirectory is merged with the root config, and applies to files under that
+directory — down to the next nested config, which takes its place there. The
+classic use case is relaxing rules for tests — e.g. *"all tests should be able to
+`try!`/force-unwrap freely"* (the Jon Reid pattern): a `Tests/.swiftlint.yml` that
+disables `force_try` / `force_unwrapping` so you never think about it in test
+code.
 
 But it's worse than "hidden." The GUI runs SwiftLint with **`--config <root>`**,
 and **`--config` disables nested configuration**. So the GUI doesn't just fail to
@@ -100,17 +101,18 @@ A panel/sidebar showing the hierarchy:
 └─ Generated/.swiftlint.yml   (excluded)
 ```
 
-Each nested node badges *what it changes relative to its parent* and is
-**clickable to edit** — so nested configs are first-class, not invisible. The
-config editor should let you choose *which* `.swiftlint.yml` you're editing, not
-silently assume root.
+Each nested node badges *what it changes relative to the root config it merges
+onto* and is **clickable to edit** — so nested configs are first-class, not
+invisible. The config editor should let you choose *which* `.swiftlint.yml`
+you're editing, not silently assume root.
 
 ### 4. Per-folder / per-file "resolved config" inspector
 
 Pick a folder (or file) → see the **effective merged config** that applies there
-(root → ancestors → this folder), with each rule annotated by *which layer set
-it*. This answers "what rules actually apply to my test files?" directly — and is
-the within-repo analogue of the resolved-config inspector.
+(the root config merged with the nearest nested config at or above this folder),
+with each rule annotated by *which layer set it*. This answers "what rules
+actually apply to my test files?" directly — and is the within-repo analogue of
+the resolved-config inspector.
 
 ### 5. Override / drift warnings
 
@@ -220,6 +222,7 @@ linted both ways):
 
 | Config key | Nested-merge behavior | Implication for the inspector |
 |---|---|---|
+| **Which nested configs apply** | SwiftLint merges the root config with the **nearest** nested `.swiftlint.yml` at or above a file's folder, and with no other. A config in a folder between the two is **passed over**: with `Sub/.swiftlint.yml` disabling `empty_count` the root opts in, a file in `Sub/Deeper/` beside a `Sub/Deeper/.swiftlint.yml` still runs `empty_count` (verified against the linked SwiftLint, 0.65.0). SwiftLint also passes over a nested config the root pulls in with `parent_config`/`child_config` | The layer chain is root ▸ nearest. Name the configs passed over ("`Sub` doesn't apply here"), and in the Config Tree mark a config nested inside another as replacing it. Not yet modeled: configs the root pulls in with `parent_config`/`child_config` |
 | **Rule configuration** (severity, params — `line_length: {warning: 120}`, etc.) | **Child overrides** the parent for that rule | "Set by: `<nearest layer that sets it>`"; show the overridden value + what it was |
 | **`only_rules`** (whitelist) | **Child replaces** the active rule set for that subtree: the whitelist is the child's `only_rules` ∪ `analyzer_rules`, and the parent's whitelist or disabled/opt-in sets no longer count. A child **without** `only_rules` beneath one **edits** it (`RulesWrapper.mergeDefaultMode`): `only = (childOptIn ∪ childAnalyzer ∪ parentOnly) − childDisabled`. An empty `only_rules: []` is no whitelist | A child `only_rules` is a hard reset — show "only N rules run here," not the inherited 42. List each whitelisted rule with the layer that added it, and a child's removals as "off (disabled)" set by that child |
 | **`disabled_rules` / `opt_in_rules`** | **Accumulate** — child adds to / removes from the inherited sets. Beneath an `only_rules` layer they edit the whitelist instead (row above) | `effectiveDisabled = parentDisabled − childOptIn + childDisabled` (and symmetrically for opt-in) |
@@ -255,14 +258,14 @@ view that hasn't been reconciled against an actual lint of that subtree.
 
 ### Layer attribution
 
-For each rule in the resolved view, walk the layer chain **root → … → folder**
-and record the *last* layer that set its state (enabled/disabled/severity/params).
-That layer is the "Set by" attribution, and the diff ("was ⚠️ warning at root →
-off at Tests/") is the previous layer's value. For `only_rules`, each
-whitelisted rule is attributed to the layer that added it: the declaring layer
-for its own `only_rules` and `analyzer_rules`, or a deeper layer whose
-`opt_in_rules` or `analyzer_rules` added it. The "only N rules run here" notice
-names the declaring layer.
+For each rule in the resolved view, walk the layer chain — **the root, then the
+nearest nested config** — and record the *last* layer that set its state
+(enabled/disabled/severity/params). That layer is the "Set by" attribution, and
+the diff ("was ⚠️ warning at root → off at Tests/") is the previous layer's value.
+For `only_rules`, each whitelisted rule is attributed to the layer that added it:
+the declaring layer for its own `only_rules` and `analyzer_rules`, or a deeper
+layer whose `opt_in_rules` or `analyzer_rules` added it. The "only N rules run
+here" notice names the declaring layer.
 
 ## Impact on the freemium tiers (this revises `freemium-paid-tier-features.md`)
 
