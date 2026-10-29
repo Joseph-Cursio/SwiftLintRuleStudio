@@ -68,7 +68,7 @@ public struct ResolvedConfigurationEngine {
         var disabled = AttributedSet()
         var optIn = AttributedSet()
         var analyzer = AttributedSet()
-        var onlyRules: AttributedValue<[String]>?
+        var only: OnlyRules?
         var ruleConfigurations: [String: ResolvedRuleConfiguration] = [:]
         var excluded: AttributedValue<[String]>?
         var included: AttributedValue<[String]>?
@@ -81,7 +81,7 @@ public struct ResolvedConfigurationEngine {
                 disabledRules: disabled.decisions(),
                 optInRules: optIn.decisions(),
                 analyzerRules: analyzer.decisions(),
-                onlyRules: onlyRules,
+                onlyRules: only.map { ResolvedOnlyRules(declaredBy: $0.declaredBy, rules: $0.rules.decisions()) },
                 ruleConfigurations: ruleConfigurations.values.sorted { $0.identifier < $1.identifier },
                 excluded: excluded,
                 included: included,
@@ -112,20 +112,26 @@ public struct ResolvedConfigurationEngine {
         }
     }
 
+    /// The `only_rules` whitelist, from the deepest layer that declares one on.
+    private struct OnlyRules {
+        let declaredBy: ConfigLayer
+        var rules = AttributedSet()
+    }
+
     private static func merge(
         config: YAMLConfig,
         layer: ConfigLayer,
         isRoot: Bool,
         into accumulator: inout Accumulator
     ) {
-        mergeMembership(config: config, layer: layer, into: &accumulator)
-        mergeRuleConfigurations(config: config, layer: layer, into: &accumulator)
         // An empty `only_rules` is no list (``YAMLConfig/usesOnlyRules``): SwiftLint
         // stays in default mode, and beneath a parent's list keeps the parent's.
         if let only = config.onlyRules, !only.isEmpty {
-            let rules = Set(only.map(SwiftLintDeprecations.currentName(of:)))
-            accumulator.onlyRules = AttributedValue(value: rules.sorted(), setBy: layer)
+            declareOnlyRules(only, config: config, layer: layer, into: &accumulator)
+        } else {
+            mergeMembership(config: config, layer: layer, into: &accumulator)
         }
+        mergeRuleConfigurations(config: config, layer: layer, into: &accumulator)
         if isRoot {
             mergeRootOnlyKeys(config: config, layer: layer, into: &accumulator)
         }
@@ -150,21 +156,66 @@ public struct ResolvedConfigurationEngine {
     /// and each rule is one decision, under its current name, however it was
     /// written: `disabled_rules: [if_let_shadowing]` beneath a parent's
     /// `opt_in_rules: [shorthand_optional_binding]` turns that rule off.
+    ///
+    /// Beneath a layer that declares `only_rules`, the same lists edit the
+    /// whitelist instead, as SwiftLint merges a child in default mode beneath an
+    /// only-mode parent (`RulesWrapper.mergeDefaultMode`): the whitelist becomes
+    /// `(childOptIn ∪ childAnalyzer ∪ parentOnly) − childDisabled`. SwiftLint
+    /// reads a config's `analyzer_rules` as opt-ins (`RulesMode.init`), so they
+    /// join the whitelist too, unless the same layer disables them.
     private static func mergeMembership(
         config: YAMLConfig,
         layer: ConfigLayer,
         into accumulator: inout Accumulator
     ) {
-        let currentNames = { (rules: [String]?) in (rules ?? []).map(SwiftLintDeprecations.currentName(of:)) }
         let childDisabled = currentNames(config.disabledRules)
         let disabledHere = Set(childDisabled)
         let childOptIn = currentNames(config.optInRules).filter { !disabledHere.contains($0) }
+        let childAnalyzer = currentNames(config.analyzerRules)
 
         for rule in childOptIn { accumulator.disabled.remove(rule) }
         for rule in childDisabled { accumulator.optIn.remove(rule) }
         for rule in childDisabled { accumulator.disabled.insert(rule, setBy: layer) }
         for rule in childOptIn { accumulator.optIn.insert(rule, setBy: layer) }
-        for rule in currentNames(config.analyzerRules) { accumulator.analyzer.insert(rule, setBy: layer) }
+        for rule in childAnalyzer { accumulator.analyzer.insert(rule, setBy: layer) }
+
+        if var only = accumulator.only {
+            for rule in childDisabled { only.rules.remove(rule) }
+            for rule in childOptIn + childAnalyzer where !disabledHere.contains(rule) {
+                only.rules.insert(rule, setBy: layer)
+            }
+            accumulator.only = only
+        }
+    }
+
+    /// A layer that declares `only_rules` starts a new whitelist: SwiftLint reads
+    /// that config in only mode, and a child's whitelist replaces its parent's
+    /// (`RulesWrapper.merged(with:)`). Its `analyzer_rules` join the whitelist, as
+    /// `RulesMode.init` folds them in. The membership decisions of the layers above
+    /// it no longer decide anything, so they are dropped.
+    ///
+    /// SwiftLint refuses `disabled_rules` or `opt_in_rules` beside `only_rules`
+    /// (the configuration validator flags it), so this layer's own are not read.
+    private static func declareOnlyRules(
+        _ onlyRules: [String],
+        config: YAMLConfig,
+        layer: ConfigLayer,
+        into accumulator: inout Accumulator
+    ) {
+        let analyzerRules = currentNames(config.analyzerRules)
+        var only = OnlyRules(declaredBy: layer)
+        for rule in currentNames(onlyRules) + analyzerRules { only.rules.insert(rule, setBy: layer) }
+        accumulator.only = only
+        accumulator.disabled = AttributedSet()
+        accumulator.optIn = AttributedSet()
+        accumulator.analyzer = AttributedSet()
+        for rule in analyzerRules { accumulator.analyzer.insert(rule, setBy: layer) }
+    }
+
+    /// A rule list read the way SwiftLint reads it: each entry under the current
+    /// name of the rule it names.
+    private static func currentNames(_ rules: [String]?) -> [String] {
+        (rules ?? []).map(SwiftLintDeprecations.currentName(of:))
     }
 
     /// Rule configuration (severity/params): a deeper layer overrides a shallower

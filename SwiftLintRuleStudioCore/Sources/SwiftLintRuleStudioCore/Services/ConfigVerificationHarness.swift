@@ -94,7 +94,8 @@ public struct ConfigVerificationHarness: Sendable {
 
     /// Whether the resolved config says a probe's rule runs in the folder.
     ///
-    /// - `only_rules` mode: active iff the rule is in the whitelist.
+    /// - `only_rules` mode: active iff the rule is in the whitelist, as the layers
+    ///   beneath the declaring one edited it.
     /// - otherwise: a disabled rule is inactive; an opt-in rule is active only
     ///   when opted in; a default-on rule is active unless disabled.
     nonisolated static func engineClaimsRuleActive(
@@ -102,7 +103,7 @@ public struct ConfigVerificationHarness: Sendable {
         in resolved: ResolvedConfiguration
     ) -> Bool {
         if let onlyRules = resolved.onlyRules {
-            return onlyRules.value.contains(probe.ruleIdentifier)
+            return onlyRules.contains(probe.ruleIdentifier)
         }
         if resolved.disabledRules.contains(where: { $0.identifier == probe.ruleIdentifier }) {
             return false

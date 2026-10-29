@@ -41,7 +41,12 @@ struct ConfigVerificationHarnessTests {
             disabledRules: disabled.map { ResolvedRuleDecision(identifier: $0, setBy: rootLayer) },
             optInRules: optIn.map { ResolvedRuleDecision(identifier: $0, setBy: rootLayer) },
             analyzerRules: [],
-            onlyRules: onlyRules.map { AttributedValue(value: $0, setBy: rootLayer) },
+            onlyRules: onlyRules.map { rules in
+                ResolvedOnlyRules(
+                    declaredBy: rootLayer,
+                    rules: rules.map { ResolvedRuleDecision(identifier: $0, setBy: rootLayer) }
+                )
+            },
             ruleConfigurations: [],
             excluded: nil,
             included: nil,

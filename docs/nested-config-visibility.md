@@ -221,10 +221,10 @@ linted both ways):
 | Config key | Nested-merge behavior | Implication for the inspector |
 |---|---|---|
 | **Rule configuration** (severity, params — `line_length: {warning: 120}`, etc.) | **Child overrides** the parent for that rule | "Set by: `<nearest layer that sets it>`"; show the overridden value + what it was |
-| **`only_rules`** (whitelist) | **Child replaces** the active rule set for that subtree | A child `only_rules` is a hard reset — show "only N rules run here," not the inherited 42 |
-| **`disabled_rules` / `opt_in_rules`** | **Accumulate** — child adds to / removes from the inherited sets | `effectiveDisabled = parentDisabled − childOptIn + childDisabled` (and symmetrically for opt-in) |
+| **`only_rules`** (whitelist) | **Child replaces** the active rule set for that subtree: the whitelist is the child's `only_rules` ∪ `analyzer_rules`, and the parent's whitelist or disabled/opt-in sets no longer count. A child **without** `only_rules` beneath one **edits** it (`RulesWrapper.mergeDefaultMode`): `only = (childOptIn ∪ childAnalyzer ∪ parentOnly) − childDisabled`. An empty `only_rules: []` is no whitelist | A child `only_rules` is a hard reset — show "only N rules run here," not the inherited 42. List each whitelisted rule with the layer that added it, and a child's removals as "off (disabled)" set by that child |
+| **`disabled_rules` / `opt_in_rules`** | **Accumulate** — child adds to / removes from the inherited sets. Beneath an `only_rules` layer they edit the whitelist instead (row above) | `effectiveDisabled = parentDisabled − childOptIn + childDisabled` (and symmetrically for opt-in) |
 | **`custom_rules`** | Merge by name; child overrides a same-named custom rule | Attribute each custom rule to its defining layer |
-| **`analyzer_rules`** | Like opt-in, accumulate | Only relevant for `swiftlint analyze` |
+| **`analyzer_rules`** | Like opt-in, accumulate. In `only_rules` mode SwiftLint folds them into the whitelist: the declaring layer's, and a deeper layer's unless it also disables them | Only relevant for `swiftlint analyze` |
 | **`excluded` / `included`** | ⚠️ **Nested values are IGNORED — only the root/main config's apply** | **Surface this as a warning** (see below) |
 | **`reporter`, `swiftlint_version`, run-level keys** | Taken from the root/main config only | Don't show as per-folder; they're global |
 
@@ -258,8 +258,11 @@ view that hasn't been reconciled against an actual lint of that subtree.
 For each rule in the resolved view, walk the layer chain **root → … → folder**
 and record the *last* layer that set its state (enabled/disabled/severity/params).
 That layer is the "Set by" attribution, and the diff ("was ⚠️ warning at root →
-off at Tests/") is the previous layer's value. For `only_rules`, attribution
-collapses to the single layer that declared the whitelist.
+off at Tests/") is the previous layer's value. For `only_rules`, each
+whitelisted rule is attributed to the layer that added it: the declaring layer
+for its own `only_rules` and `analyzer_rules`, or a deeper layer whose
+`opt_in_rules` or `analyzer_rules` added it. The "only N rules run here" notice
+names the declaring layer.
 
 ## Impact on the freemium tiers (this revises `freemium-paid-tier-features.md`)
 
