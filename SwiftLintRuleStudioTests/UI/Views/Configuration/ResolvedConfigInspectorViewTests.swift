@@ -36,7 +36,8 @@ struct ResolvedConfigInspectorViewTests {
             onlyRulesNotice: nil,
             excludedNotice: "excluded (root): Generated",
             inheritsNotice: nil,
-            skippedNotice: nil
+            skippedNotice: nil,
+            unreadNotice: nil
         )
 
         let rendered = try texts(ResolvedConfigInspectorView(display: display))
@@ -60,7 +61,8 @@ struct ResolvedConfigInspectorViewTests {
             onlyRulesNotice: nil,
             excludedNotice: nil,
             inheritsNotice: "No config in this folder — it inherits from root.",
-            skippedNotice: nil
+            skippedNotice: nil,
+            unreadNotice: nil
         )
 
         let rendered = try texts(ResolvedConfigInspectorView(display: display))
@@ -80,12 +82,33 @@ struct ResolvedConfigInspectorViewTests {
             onlyRulesNotice: nil,
             excludedNotice: nil,
             inheritsNotice: nil,
-            skippedNotice: notice
+            skippedNotice: notice,
+            unreadNotice: nil
         )
 
         let rendered = try texts(ResolvedConfigInspectorView(display: display))
 
         #expect(rendered.contains("Layer chain: root ▸ Deeper"))
+        #expect(rendered.contains(notice))
+    }
+
+    @Test("renders the notice naming a pulled-in config it can't read")
+    func testUnreadNotice() throws {
+        let notice = "https://example.com/strict.yml isn't shown: SwiftLint fetches it the next time it lints here."
+        let display = ResolvedConfigDisplay(
+            targetLabel: "root",
+            layerChainLabels: ["root", "https://example.com/strict.yml"],
+            ruleRows: [],
+            onlyRulesNotice: nil,
+            excludedNotice: nil,
+            inheritsNotice: nil,
+            skippedNotice: nil,
+            unreadNotice: notice
+        )
+
+        let rendered = try texts(ResolvedConfigInspectorView(display: display))
+
+        #expect(rendered.contains("Layer chain: root ▸ https://example.com/strict.yml"))
         #expect(rendered.contains(notice))
     }
 }
