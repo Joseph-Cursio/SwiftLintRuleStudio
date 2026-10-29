@@ -29,6 +29,11 @@ public struct ConfigTreeRow: Identifiable, Sendable {
     nonisolated public let hasIneffectiveExclusions: Bool
     /// Whether the config failed to parse.
     nonisolated public let hasParseError: Bool
+    /// The nested config this one takes the place of beneath its folder — its
+    /// parent row, when that is not the root (`Sub` for `Sub/Deeper`). SwiftLint
+    /// merges a file's nearest nested config onto the root config alone, so files
+    /// under this config's folder get none of that config's settings.
+    nonisolated public let replaces: String?
 
     nonisolated public init(
         id: URL,
@@ -38,7 +43,8 @@ public struct ConfigTreeRow: Identifiable, Sendable {
         isRoot: Bool,
         badge: String?,
         hasIneffectiveExclusions: Bool,
-        hasParseError: Bool
+        hasParseError: Bool,
+        replaces: String?
     ) {
         self.id = id
         self.displayName = displayName
@@ -48,6 +54,7 @@ public struct ConfigTreeRow: Identifiable, Sendable {
         self.badge = badge
         self.hasIneffectiveExclusions = hasIneffectiveExclusions
         self.hasParseError = hasParseError
+        self.replaces = replaces
     }
 }
 

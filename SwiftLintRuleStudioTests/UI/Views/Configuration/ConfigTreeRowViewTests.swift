@@ -33,7 +33,8 @@ struct ConfigTreeRowViewTests {
             isRoot: false,
             badge: "-2 disabled",
             hasIneffectiveExclusions: false,
-            hasParseError: false
+            hasParseError: false,
+            replaces: nil
         )
 
         let rendered = try texts(ConfigTreeRowView(row: row))
@@ -51,10 +52,31 @@ struct ConfigTreeRowViewTests {
             isRoot: true,
             badge: nil,
             hasIneffectiveExclusions: false,
-            hasParseError: false
+            hasParseError: false,
+            replaces: nil
         )
 
         let rendered = try texts(ConfigTreeRowView(row: row))
         #expect(rendered.contains("root"))
+        #expect(rendered.contains { $0.hasPrefix("replaces") } == false)
+    }
+
+    @Test("a config nested in another nested config says which one it replaces")
+    func testReplacesNote() throws {
+        let row = ConfigTreeRow(
+            id: URL(fileURLWithPath: "/ws/Sub/Deeper/.swiftlint.yml"),
+            displayName: "Deeper",
+            relativePath: "Sub/Deeper/.swiftlint.yml",
+            indentLevel: 2,
+            isRoot: false,
+            badge: "-1 disabled",
+            hasIneffectiveExclusions: false,
+            hasParseError: false,
+            replaces: "Sub"
+        )
+
+        let rendered = try texts(ConfigTreeRowView(row: row))
+        #expect(rendered.contains("Deeper"))
+        #expect(rendered.contains("replaces Sub"))
     }
 }

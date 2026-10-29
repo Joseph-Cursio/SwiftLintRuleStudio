@@ -69,4 +69,33 @@ extension ConfigMapPresenterTests {
                 == "The configs in A and B don't apply here — SwiftLint applies only the nearest nested config, C."
         )
     }
+
+    @Test("a tree row nested under another nested config's row says which config it replaces")
+    @MainActor
+    func testTreeRowsSayWhatTheyReplace() throws {
+        let root = try makeThreeLevelWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("disabled_rules:\n  - todo\n", at: "Other", in: root)
+
+        let rows = ConfigMapPresenter().treeRows(for: tree(in: root))
+
+        // Folders still nest the rows; only a row under a nested config's row replaces it.
+        #expect(rows.map(\.displayName) == ["root", "Other", "Sub", "Deeper"])
+        #expect(rows.map(\.indentLevel) == [0, 1, 1, 2])
+        #expect(rows.map(\.replaces) == [nil, nil, nil, "Sub"])
+    }
+
+    @Test("with no root config, a config nested in another still replaces it")
+    @MainActor
+    func testTreeRowReplacesWithoutRoot() throws {
+        let root = try makeWorkspace()
+        defer { cleanup(root) }
+        try writeConfig("disabled_rules:\n  - todo\n", at: "A", in: root)
+        try writeConfig("disabled_rules:\n  - force_try\n", at: "A/B", in: root)
+        try writeConfig("disabled_rules:\n  - force_cast\n", at: "A/B/C", in: root)
+
+        let rows = ConfigMapPresenter().treeRows(for: tree(in: root))
+        #expect(rows.map(\.displayName) == ["A", "B", "C"])
+        #expect(rows.map(\.replaces) == [nil, "A", "B"])
+    }
 }

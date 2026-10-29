@@ -20,6 +20,10 @@ public struct ConfigMapPresenter {
     /// subtree), indented by position in the *config* tree rather than directory
     /// depth — so a deep config whose nearest ancestor config is the root still
     /// sits one level under it.
+    ///
+    /// Nesting follows folders, not merging: SwiftLint merges each nested config
+    /// onto the root alone. So a row under a nested config's row says which config
+    /// it replaces, lest it read as building on it.
     public func treeRows(for tree: ConfigTree) -> [ConfigTreeRow] {
         var childrenByParent: [URL: [DiscoveredConfig]] = [:]
         var roots: [DiscoveredConfig] = []
@@ -32,16 +36,16 @@ public struct ConfigMapPresenter {
         }
 
         var rows: [ConfigTreeRow] = []
-        func visit(_ config: DiscoveredConfig, level: Int) {
-            rows.append(Self.row(for: config, indentLevel: level))
+        func visit(_ config: DiscoveredConfig, parent: DiscoveredConfig?, level: Int) {
+            rows.append(Self.row(for: config, indentLevel: level, replacing: parent.flatMap { $0.isRoot ? nil : $0 }))
             let children = (childrenByParent[config.id] ?? [])
                 .sorted { $0.relativePath < $1.relativePath }
             for child in children {
-                visit(child, level: level + 1)
+                visit(child, parent: config, level: level + 1)
             }
         }
         for root in roots.sorted(by: { $0.relativePath < $1.relativePath }) {
-            visit(root, level: 0)
+            visit(root, parent: nil, level: 0)
         }
         return rows
     }
@@ -63,7 +67,11 @@ public struct ConfigMapPresenter {
 
     // MARK: - Tree row helpers
 
-    private static func row(for config: DiscoveredConfig, indentLevel: Int) -> ConfigTreeRow {
+    private static func row(
+        for config: DiscoveredConfig,
+        indentLevel: Int,
+        replacing replaced: DiscoveredConfig?
+    ) -> ConfigTreeRow {
         ConfigTreeRow(
             id: config.id,
             displayName: config.isRoot ? "root" : config.directoryPath.lastPathComponent,
@@ -72,7 +80,8 @@ public struct ConfigMapPresenter {
             isRoot: config.isRoot,
             badge: badge(for: config),
             hasIneffectiveExclusions: config.hasIneffectiveExclusions,
-            hasParseError: config.parseError != nil
+            hasParseError: config.parseError != nil,
+            replaces: replaced?.directoryPath.lastPathComponent
         )
     }
 

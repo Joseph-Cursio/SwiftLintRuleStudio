@@ -3,8 +3,8 @@
 //  SwiftLintRuleStudio
 //
 //  Data model for the workspace's nested `.swiftlint.yml` configuration tree.
-//  SwiftLint merges a `.swiftlint.yml` in a subdirectory with its ancestors and
-//  applies it to files beneath that directory. The GUI historically saw only the
+//  SwiftLint merges a `.swiftlint.yml` in a subdirectory with the root config and
+//  applies it to files beneath that directory, down to the next nested config. The GUI historically saw only the
 //  root config; these types make the whole tree first-class so it can be shown,
 //  inspected, and edited. See docs/nested-config-visibility.md.
 //
@@ -101,8 +101,11 @@ public struct DiscoveredConfig: Identifiable, Sendable {
     nonisolated public let depth: Int
     /// Whether this config sits at the workspace root.
     nonisolated public let isRoot: Bool
-    /// The path of the nearest ancestor config (its parent layer), or `nil` for
-    /// the top-most discovered config.
+    /// The path of the config in the nearest folder above this one, or `nil` for
+    /// the top-most discovered config. It is this config's parent in the Config
+    /// Tree, not a layer it builds on: SwiftLint merges a nested config onto the
+    /// root config alone, so beneath this config's folder a nested parent doesn't
+    /// apply at all.
     nonisolated public let parentID: URL?
     /// The parsed configuration, or `nil` if it failed to parse.
     nonisolated public let config: YAMLConfig?
