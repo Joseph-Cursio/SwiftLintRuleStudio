@@ -4,7 +4,7 @@
 //
 //  The resolved-config inspector for the folder selected in the Config Map:
 //  layer chain, per-rule state with "set by" attribution, and only_rules /
-//  excluded / inherits notices.
+//  excluded / inherits / skipped-config notices.
 //
 
 import SwiftLintRuleStudioCore
@@ -45,6 +45,9 @@ struct ResolvedConfigInspectorView: View {
     private var notices: some View {
         if let inherits = display.inheritsNotice {
             noticeRow(inherits, systemImage: "info.circle", tint: .blue)
+        }
+        if let skipped = display.skippedNotice {
+            noticeRow(skipped, systemImage: "eye.slash", tint: .orange)
         }
         if let only = display.onlyRulesNotice {
             noticeRow(only, systemImage: "lock.fill", tint: .orange)

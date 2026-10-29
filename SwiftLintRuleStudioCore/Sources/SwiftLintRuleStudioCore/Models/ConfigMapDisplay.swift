@@ -89,6 +89,9 @@ public struct ResolvedConfigDisplay: Sendable {
     nonisolated public let excludedNotice: String?
     /// Set when the folder has no config of its own (it inherits its ancestors).
     nonisolated public let inheritsNotice: String?
+    /// Set when nested configs in folders above this one don't apply here:
+    /// SwiftLint applies the root config and the nearest nested config alone.
+    nonisolated public let skippedNotice: String?
 
     nonisolated public init(
         targetLabel: String,
@@ -96,7 +99,8 @@ public struct ResolvedConfigDisplay: Sendable {
         ruleRows: [ResolvedRuleRow],
         onlyRulesNotice: String?,
         excludedNotice: String?,
-        inheritsNotice: String?
+        inheritsNotice: String?,
+        skippedNotice: String?
     ) {
         self.targetLabel = targetLabel
         self.layerChainLabels = layerChainLabels
@@ -104,6 +108,7 @@ public struct ResolvedConfigDisplay: Sendable {
         self.onlyRulesNotice = onlyRulesNotice
         self.excludedNotice = excludedNotice
         self.inheritsNotice = inheritsNotice
+        self.skippedNotice = skippedNotice
     }
 }
 

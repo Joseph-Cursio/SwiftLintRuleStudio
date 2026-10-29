@@ -56,7 +56,8 @@ public struct ConfigMapPresenter {
             ruleRows: Self.ruleRows(for: resolved),
             onlyRulesNotice: Self.onlyRulesNotice(for: resolved),
             excludedNotice: Self.excludedNotice(for: resolved),
-            inheritsNotice: Self.inheritsNotice(for: resolved, in: tree)
+            inheritsNotice: Self.inheritsNotice(for: resolved, in: tree),
+            skippedNotice: Self.skippedNotice(for: resolved)
         )
     }
 
@@ -162,6 +163,21 @@ public struct ConfigMapPresenter {
         guard definesOwnConfig == false else { return nil }
         let inheritedFrom = resolved.layerChain.last?.displayName ?? "the SwiftLint defaults"
         return "No config in this folder — it inherits from \(inheritedFrom)."
+    }
+
+    /// Names the nested configs above the folder that don't apply here. Without it
+    /// the chain `root ▸ Deeper` reads as though `Sub`, between them, had been
+    /// forgotten rather than passed over.
+    private static func skippedNotice(for resolved: ResolvedConfiguration) -> String? {
+        guard let nearest = resolved.layerChain.last(where: { !$0.isRoot }),
+              let last = resolved.skippedLayers.last else { return nil }
+        let names = resolved.skippedLayers.map(\.displayName)
+        let skipped = names.count == 1
+            ? "\(last.displayName)'s config doesn't"
+            : "The configs in \(names.dropLast().joined(separator: ", ")) and \(last.displayName) don't"
+        let applied = resolved.layerChain.contains(where: \.isRoot) ? "the root config and " : ""
+        return "\(skipped) apply here — SwiftLint applies only \(applied)the nearest nested config, "
+            + "\(nearest.displayName)."
     }
 
     private static func relativeLabel(of directory: URL, root: URL) -> String {
