@@ -35,7 +35,8 @@ struct ResolvedConfigInspectorViewTests {
             ],
             onlyRulesNotice: nil,
             excludedNotice: "excluded (root): Generated",
-            inheritsNotice: nil
+            inheritsNotice: nil,
+            skippedNotice: nil
         )
 
         let rendered = try texts(ResolvedConfigInspectorView(display: display))
@@ -58,12 +59,33 @@ struct ResolvedConfigInspectorViewTests {
             ruleRows: [],
             onlyRulesNotice: nil,
             excludedNotice: nil,
-            inheritsNotice: "No config in this folder — it inherits from root."
+            inheritsNotice: "No config in this folder — it inherits from root.",
+            skippedNotice: nil
         )
 
         let rendered = try texts(ResolvedConfigInspectorView(display: display))
 
         #expect(rendered.contains("No config in this folder — it inherits from root."))
         #expect(rendered.contains("No rule changes from the SwiftLint defaults in this folder."))
+    }
+
+    @Test("renders the notice naming the nested configs that don't apply")
+    func testSkippedNotice() throws {
+        let notice = "Sub's config doesn't apply here — SwiftLint applies only the root config and "
+            + "the nearest nested config, Deeper."
+        let display = ResolvedConfigDisplay(
+            targetLabel: "Sub/Deeper",
+            layerChainLabels: ["root", "Deeper"],
+            ruleRows: [],
+            onlyRulesNotice: nil,
+            excludedNotice: nil,
+            inheritsNotice: nil,
+            skippedNotice: notice
+        )
+
+        let rendered = try texts(ResolvedConfigInspectorView(display: display))
+
+        #expect(rendered.contains("Layer chain: root ▸ Deeper"))
+        #expect(rendered.contains(notice))
     }
 }

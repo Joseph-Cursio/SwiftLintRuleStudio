@@ -3,8 +3,8 @@
 //  SwiftLintRuleStudio
 //
 //  Data model for the workspace's nested `.swiftlint.yml` configuration tree.
-//  SwiftLint merges a `.swiftlint.yml` in a subdirectory with its ancestors and
-//  applies it to files beneath that directory. The GUI historically saw only the
+//  SwiftLint merges a `.swiftlint.yml` in a subdirectory with the root config and
+//  applies it to files beneath that directory, down to the next nested config. The GUI historically saw only the
 //  root config; these types make the whole tree first-class so it can be shown,
 //  inspected, and edited. See docs/nested-config-visibility.md.
 //
@@ -101,8 +101,11 @@ public struct DiscoveredConfig: Identifiable, Sendable {
     nonisolated public let depth: Int
     /// Whether this config sits at the workspace root.
     nonisolated public let isRoot: Bool
-    /// The path of the nearest ancestor config (its parent layer), or `nil` for
-    /// the top-most discovered config.
+    /// The path of the config in the nearest folder above this one, or `nil` for
+    /// the top-most discovered config. It is this config's parent in the Config
+    /// Tree, not a layer it builds on: SwiftLint merges a nested config onto the
+    /// root config alone, so beneath this config's folder a nested parent doesn't
+    /// apply at all.
     nonisolated public let parentID: URL?
     /// The parsed configuration, or `nil` if it failed to parse.
     nonisolated public let config: YAMLConfig?
@@ -110,6 +113,16 @@ public struct DiscoveredConfig: Identifiable, Sendable {
     nonisolated public let parseError: String?
     /// What this config declares on its own.
     nonisolated public let summary: ConfigSummary
+    /// This config's place in the chain of configs the root config pulls in with
+    /// `parent_config` and `child_config`, counted from the root: `-1` for the
+    /// root's `parent_config`, `-2` for that config's own, `1` for the root's
+    /// `child_config`, and so on. `nil` for the root and for every config the root
+    /// doesn't pull in.
+    ///
+    /// SwiftLint builds the root configuration from that chain, merged from the
+    /// furthest parent down to the last child, and applies it in every folder; its
+    /// search for a file's nested config passes over the configs in it.
+    nonisolated public let rootGraphPosition: Int?
 
     /// A config's identity is where it is.
     ///
@@ -134,7 +147,8 @@ public struct DiscoveredConfig: Identifiable, Sendable {
         parentID: URL?,
         config: YAMLConfig?,
         parseError: String?,
-        summary: ConfigSummary
+        summary: ConfigSummary,
+        rootGraphPosition: Int? = nil
     ) {
         self.configPath = configPath
         self.directoryPath = directoryPath
@@ -145,13 +159,16 @@ public struct DiscoveredConfig: Identifiable, Sendable {
         self.config = config
         self.parseError = parseError
         self.summary = summary
+        self.rootGraphPosition = rootGraphPosition
     }
 
     /// A nested config that sets `excluded:`/`included:` — which SwiftLint
     /// **ignores** outside the root config. This is the "excluded trap" from the
     /// doc: the developer thinks they excluded a file, but it is still linted.
+    /// A config the root pulls in is part of the root configuration, whose
+    /// `excluded`/`included` SwiftLint merges from every config in it.
     nonisolated public var hasIneffectiveExclusions: Bool {
-        !isRoot && (summary.setsExcluded || summary.setsIncluded)
+        !isRoot && rootGraphPosition == nil && (summary.setsExcluded || summary.setsIncluded)
     }
 }
 
@@ -176,6 +193,16 @@ public struct ConfigTree: Sendable {
     /// All configs below the workspace root.
     nonisolated public var nestedConfigs: [DiscoveredConfig] {
         configs.filter { !$0.isRoot }
+    }
+
+    /// The root config and the configs in this workspace it pulls in with
+    /// `parent_config` and `child_config`, in the order SwiftLint merges them into
+    /// the root configuration: the furthest parent first, the last child last.
+    /// Empty when the workspace has no root config.
+    nonisolated public var rootGraph: [DiscoveredConfig] {
+        configs
+            .filter { $0.isRoot || $0.rootGraphPosition != nil }
+            .sorted { ($0.rootGraphPosition ?? 0) < ($1.rootGraphPosition ?? 0) }
     }
 
     /// Whether the workspace has no `.swiftlint.yml` at all.

@@ -25,6 +25,12 @@ struct ConfigTreeRowView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                if let replaced = row.replaces {
+                    Text("replaces \(replaced)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .help("SwiftLint applies only the nearest nested config: files here get none of \(replaced)'s.")
+                }
             }
             Spacer(minLength: 0)
             if row.hasIneffectiveExclusions {
@@ -42,6 +48,7 @@ struct ConfigTreeRowView: View {
     private var accessibilityText: String {
         var parts = [row.displayName]
         if let badge = row.badge { parts.append(badge) }
+        if let replaced = row.replaces { parts.append("replaces \(replaced)") }
         if row.hasIneffectiveExclusions { parts.append("ineffective exclusions") }
         return parts.joined(separator: ", ")
     }

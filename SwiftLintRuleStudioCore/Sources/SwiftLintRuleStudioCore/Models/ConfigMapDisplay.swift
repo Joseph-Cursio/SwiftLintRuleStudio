@@ -29,6 +29,12 @@ public struct ConfigTreeRow: Identifiable, Sendable {
     nonisolated public let hasIneffectiveExclusions: Bool
     /// Whether the config failed to parse.
     nonisolated public let hasParseError: Bool
+    /// The nested config this one takes the place of beneath its folder — its
+    /// parent row, when that is neither the root nor a config the root pulls in
+    /// with `parent_config`/`child_config` (`Sub` for `Sub/Deeper`). SwiftLint
+    /// merges a file's nearest nested config onto the root config alone, so files
+    /// under this config's folder get none of that config's settings.
+    nonisolated public let replaces: String?
 
     nonisolated public init(
         id: URL,
@@ -38,7 +44,8 @@ public struct ConfigTreeRow: Identifiable, Sendable {
         isRoot: Bool,
         badge: String?,
         hasIneffectiveExclusions: Bool,
-        hasParseError: Bool
+        hasParseError: Bool,
+        replaces: String?
     ) {
         self.id = id
         self.displayName = displayName
@@ -48,6 +55,7 @@ public struct ConfigTreeRow: Identifiable, Sendable {
         self.badge = badge
         self.hasIneffectiveExclusions = hasIneffectiveExclusions
         self.hasParseError = hasParseError
+        self.replaces = replaces
     }
 }
 
@@ -89,6 +97,9 @@ public struct ResolvedConfigDisplay: Sendable {
     nonisolated public let excludedNotice: String?
     /// Set when the folder has no config of its own (it inherits its ancestors).
     nonisolated public let inheritsNotice: String?
+    /// Set when nested configs in folders above this one don't apply here:
+    /// SwiftLint applies the root config and the nearest nested config alone.
+    nonisolated public let skippedNotice: String?
 
     nonisolated public init(
         targetLabel: String,
@@ -96,7 +107,8 @@ public struct ResolvedConfigDisplay: Sendable {
         ruleRows: [ResolvedRuleRow],
         onlyRulesNotice: String?,
         excludedNotice: String?,
-        inheritsNotice: String?
+        inheritsNotice: String?,
+        skippedNotice: String?
     ) {
         self.targetLabel = targetLabel
         self.layerChainLabels = layerChainLabels
@@ -104,6 +116,7 @@ public struct ResolvedConfigDisplay: Sendable {
         self.onlyRulesNotice = onlyRulesNotice
         self.excludedNotice = excludedNotice
         self.inheritsNotice = inheritsNotice
+        self.skippedNotice = skippedNotice
     }
 }
 

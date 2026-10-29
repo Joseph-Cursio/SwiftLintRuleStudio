@@ -20,6 +20,11 @@ public struct ConfigMapPresenter {
     /// subtree), indented by position in the *config* tree rather than directory
     /// depth — so a deep config whose nearest ancestor config is the root still
     /// sits one level under it.
+    ///
+    /// Nesting follows folders, not merging: SwiftLint merges each nested config
+    /// onto the root alone. So a row under a nested config's row says which config
+    /// it replaces, lest it read as building on it — unless the root pulls that
+    /// config in, which makes it part of the root's settings everywhere.
     public func treeRows(for tree: ConfigTree) -> [ConfigTreeRow] {
         var childrenByParent: [URL: [DiscoveredConfig]] = [:]
         var roots: [DiscoveredConfig] = []
@@ -32,16 +37,17 @@ public struct ConfigMapPresenter {
         }
 
         var rows: [ConfigTreeRow] = []
-        func visit(_ config: DiscoveredConfig, level: Int) {
-            rows.append(Self.row(for: config, indentLevel: level))
+        func visit(_ config: DiscoveredConfig, parent: DiscoveredConfig?, level: Int) {
+            let replaced = parent.flatMap { $0.isRoot || $0.rootGraphPosition != nil ? nil : $0 }
+            rows.append(Self.row(for: config, indentLevel: level, replacing: replaced))
             let children = (childrenByParent[config.id] ?? [])
                 .sorted { $0.relativePath < $1.relativePath }
             for child in children {
-                visit(child, level: level + 1)
+                visit(child, parent: config, level: level + 1)
             }
         }
         for root in roots.sorted(by: { $0.relativePath < $1.relativePath }) {
-            visit(root, level: 0)
+            visit(root, parent: nil, level: 0)
         }
         return rows
     }
@@ -56,13 +62,18 @@ public struct ConfigMapPresenter {
             ruleRows: Self.ruleRows(for: resolved),
             onlyRulesNotice: Self.onlyRulesNotice(for: resolved),
             excludedNotice: Self.excludedNotice(for: resolved),
-            inheritsNotice: Self.inheritsNotice(for: resolved, in: tree)
+            inheritsNotice: Self.inheritsNotice(for: resolved, in: tree),
+            skippedNotice: Self.skippedNotice(for: resolved)
         )
     }
 
     // MARK: - Tree row helpers
 
-    private static func row(for config: DiscoveredConfig, indentLevel: Int) -> ConfigTreeRow {
+    private static func row(
+        for config: DiscoveredConfig,
+        indentLevel: Int,
+        replacing replaced: DiscoveredConfig?
+    ) -> ConfigTreeRow {
         ConfigTreeRow(
             id: config.id,
             displayName: config.isRoot ? "root" : config.directoryPath.lastPathComponent,
@@ -71,7 +82,8 @@ public struct ConfigMapPresenter {
             isRoot: config.isRoot,
             badge: badge(for: config),
             hasIneffectiveExclusions: config.hasIneffectiveExclusions,
-            hasParseError: config.parseError != nil
+            hasParseError: config.parseError != nil,
+            replaces: replaced?.directoryPath.lastPathComponent
         )
     }
 
@@ -160,8 +172,27 @@ public struct ConfigMapPresenter {
             $0.directoryPath.standardizedFileURL.path == targetPath
         }
         guard definesOwnConfig == false else { return nil }
-        let inheritedFrom = resolved.layerChain.last?.displayName ?? "the SwiftLint defaults"
+        // The configs the root pulls in are part of the root's settings, not a
+        // layer the folder inherits from in their own right.
+        let rootGraph = Set(tree.rootGraph.filter { !$0.isRoot }.map(\.id))
+        let inheritedFrom = resolved.layerChain.last { !rootGraph.contains($0.id) }?.displayName
+            ?? "the SwiftLint defaults"
         return "No config in this folder — it inherits from \(inheritedFrom)."
+    }
+
+    /// Names the nested configs above the folder that don't apply here. Without it
+    /// the chain `root ▸ Deeper` reads as though `Sub`, between them, had been
+    /// forgotten rather than passed over.
+    private static func skippedNotice(for resolved: ResolvedConfiguration) -> String? {
+        guard let nearest = resolved.layerChain.last(where: { !$0.isRoot }),
+              let last = resolved.skippedLayers.last else { return nil }
+        let names = resolved.skippedLayers.map(\.displayName)
+        let skipped = names.count == 1
+            ? "\(last.displayName)'s config doesn't"
+            : "The configs in \(names.dropLast().joined(separator: ", ")) and \(last.displayName) don't"
+        let applied = resolved.layerChain.contains(where: \.isRoot) ? "the root config and " : ""
+        return "\(skipped) apply here — SwiftLint applies only \(applied)the nearest nested config, "
+            + "\(nearest.displayName)."
     }
 
     private static func relativeLabel(of directory: URL, root: URL) -> String {

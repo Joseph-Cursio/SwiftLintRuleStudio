@@ -9,6 +9,7 @@
 //
 
 import Foundation
+import Yams
 
 /// Discovers the nested `.swiftlint.yml` configuration tree for a workspace.
 public struct ConfigTreeDiscovery {
@@ -75,6 +76,7 @@ public struct ConfigTreeDiscovery {
         let pendings = urls.map { url in
             Self.parse(url: url, rootComponents: rootComponents)
         }
+        let rootGraphPositions = Self.rootGraphPositions(among: pendings)
 
         let configs = pendings.map { pending -> DiscoveredConfig in
             let summary: ConfigSummary
@@ -92,7 +94,8 @@ public struct ConfigTreeDiscovery {
                 parentID: Self.parentID(for: pending, among: pendings),
                 config: pending.config,
                 parseError: pending.parseError,
-                summary: summary
+                summary: summary,
+                rootGraphPosition: rootGraphPositions[pending.configPath.standardizedFileURL.path]
             )
         }
 
@@ -175,6 +178,43 @@ public struct ConfigTreeDiscovery {
         }
 
         return nearest?.configPath
+    }
+
+    /// Each discovered config the root config pulls in, by path, with its place in
+    /// the chain counted from the root (see ``DiscoveredConfig/rootGraphPosition``).
+    ///
+    /// SwiftLint follows `parent_config` up from the root and `child_config` down
+    /// from it, each reference read relative to the folder of the config that
+    /// writes it. The chain must be linear — SwiftLint refuses a config with two
+    /// parents or two children — so following one key each way finds all of it.
+    /// A remote reference, or one outside the workspace, is not a discovered
+    /// config; the walk stops there. A nested config's own references are not
+    /// followed: SwiftLint ignores them.
+    private static func rootGraphPositions(among pendings: [PendingConfig]) -> [String: Int] {
+        guard let root = pendings.first(where: \.isRoot) else { return [:] }
+        let byPath = Dictionary(pendings.map { ($0.configPath.standardizedFileURL.path, $0) }) { first, _ in first }
+        func referenced(_ key: String, by pending: PendingConfig) -> PendingConfig? {
+            guard let written = pending.config?.passthroughNodes[key]?.string,
+                  !written.hasPrefix("http://"), !written.hasPrefix("https://") else { return nil }
+            let url = written.hasPrefix("/")
+                ? URL(fileURLWithPath: written)
+                : pending.directoryPath.appendingPathComponent(written)
+            return byPath[url.standardizedFileURL.path]
+        }
+
+        var positions: [String: Int] = [:]
+        var visited: Set<String> = [root.configPath.standardizedFileURL.path]
+        for (key, step) in [("parent_config", -1), ("child_config", 1)] {
+            var current = root
+            var position = 0
+            while let next = referenced(key, by: current),
+                  visited.insert(next.configPath.standardizedFileURL.path).inserted {
+                position += step
+                positions[next.configPath.standardizedFileURL.path] = position
+                current = next
+            }
+        }
+        return positions
     }
 
     private static func summarize(_ config: YAMLConfig) -> ConfigSummary {

@@ -15,7 +15,7 @@ struct ConfigMapPresenterTests {
 
     // MARK: - Helpers
 
-    private func makeWorkspace() throws -> URL {
+    func makeWorkspace() throws -> URL {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("ConfigMapTests", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -24,7 +24,7 @@ struct ConfigMapPresenterTests {
     }
 
     @discardableResult
-    private func writeConfig(_ content: String, at relativeDirectory: String, in root: URL) throws -> URL {
+    func writeConfig(_ content: String, at relativeDirectory: String, in root: URL) throws -> URL {
         let directory = relativeDirectory.isEmpty
             ? root
             : root.appendingPathComponent(relativeDirectory, isDirectory: true)
@@ -34,7 +34,7 @@ struct ConfigMapPresenterTests {
         return configPath
     }
 
-    private func cleanup(_ root: URL) {
+    func cleanup(_ root: URL) {
         try? FileManager.default.removeItem(at: root)
     }
 
@@ -56,7 +56,7 @@ struct ConfigMapPresenterTests {
         return root
     }
 
-    private func tree(in root: URL) -> ConfigTree {
+    func tree(in root: URL) -> ConfigTree {
         ConfigTreeDiscovery().discover(in: root)
     }
 

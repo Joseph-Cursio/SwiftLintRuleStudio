@@ -38,6 +38,7 @@ struct ConfigVerificationHarnessTests {
         return ResolvedConfiguration(
             targetDirectory: URL(fileURLWithPath: "/tmp/probe-target"),
             layerChain: [rootLayer],
+            skippedLayers: [],
             disabledRules: disabled.map { ResolvedRuleDecision(identifier: $0, setBy: rootLayer) },
             optInRules: optIn.map { ResolvedRuleDecision(identifier: $0, setBy: rootLayer) },
             analyzerRules: [],
