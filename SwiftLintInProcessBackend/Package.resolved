@@ -1,5 +1,5 @@
 {
-  "originHash" : "be8b5daf68dccc602436f0bd20038ae1f18966b97d129d50cf098f5c9181abc3",
+  "originHash" : "8815f1c2ccc6ca4da3340385c760a4af3781c5d6ceac6dda7945689f5248148f",
   "pins" : [
     {
       "identity" : "collectionconcurrencykit",
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jpsim/SourceKitten.git",
       "state" : {
-        "revision" : "6529c17fe80dd94843a3df7ed3e6a239790d5c91",
-        "version" : "0.37.3"
+        "revision" : "1cde6e9fb78e64f9b9d38c4992cac4f071d7eb63",
+        "version" : "0.39.0"
       }
     },
     {
