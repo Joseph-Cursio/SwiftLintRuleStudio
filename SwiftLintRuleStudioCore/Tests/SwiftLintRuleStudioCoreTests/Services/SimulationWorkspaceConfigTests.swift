@@ -250,6 +250,53 @@ struct SimulationWorkspaceConfigTests {
         }
     }
 
+    @Test("a refusal over case says which way the workspace's volume goes, and what a copy would get wrong")
+    func caseMismatchReason() throws {
+        let layout = try makeLayout(config: "disabled_rules:\n  - todo\n")
+        defer { layout.remove() }
+        let scope = try MirrorScope.make(workspaceRoot: layout.workspace, rootConfig: nil)
+        let workspace = scope.workspaceRoot
+
+        // Only the workspace's volume goes that way, so nowhere to mirror it matches.
+        func reason(workspaceIsCaseSensitive: Bool) -> String? {
+            do {
+                _ = try SimulationWorkspaceBuilder.mirrorsFolder(for: scope, fileManager: .default) { url in
+                    url.path.hasPrefix(workspace) == workspaceIsCaseSensitive
+                }
+                return nil
+            } catch {
+                return (error as? MirrorUnsupportedSetupError)?.reason
+            }
+        }
+        let sensitive = "\(workspace) is on a volume that tells file names apart by case, and the simulation has "
+            + "nowhere to copy it that does too; in a copy, names that differ only in case would collide."
+        let insensitive = "\(workspace) is on a volume that doesn't tell file names apart by case, and the "
+            + "simulation has nowhere to copy it that doesn't too; in a copy, names that differ only in case would "
+            + "come apart."
+
+        #expect(reason(workspaceIsCaseSensitive: true) == sensitive)
+        #expect(reason(workspaceIsCaseSensitive: false) == insensitive)
+    }
+
+    @Test("a mirrors folder not made yet is judged by the nearest folder above it that is")
+    func mirrorsFolderNotMadeYet() throws {
+        let layout = try makeLayout(config: "disabled_rules:\n  - todo\n")
+        defer { layout.remove() }
+        let scope = try MirrorScope.make(workspaceRoot: layout.workspace, rootConfig: nil)
+        try #require(layout.fileManager.folder.path.hasPrefix("/var/"), "the temporary directory isn't under /var")
+        // Spelled under /private, so it counts as there before it exists, as the temp folder does.
+        let missing = URL(fileURLWithPath: "/private" + layout.fileManager.folder.path, isDirectory: true)
+            .appendingPathComponent("Not/Made", isDirectory: true)
+        let unmade = IsolatedFileManager(folder: missing)
+
+        // As on a real volume, only a folder that exists can say it tells names apart by case.
+        let folder = try SimulationWorkspaceBuilder.mirrorsFolder(for: scope, fileManager: unmade) { url in
+            FileManager.default.fileExists(atPath: url.path)
+        }
+
+        #expect(folder == missing.appendingPathComponent("SwiftLintRuleStudio", isDirectory: true))
+    }
+
     @Test("a workspace under /private, with nowhere under /private to mirror it, is refused")
     func noPrivateFolderToMirrorIn() throws {
         let layout = try makeLayout(config: "disabled_rules:\n  - todo\n")
