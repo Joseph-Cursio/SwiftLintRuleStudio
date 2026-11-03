@@ -26,6 +26,8 @@ struct MirrorExclusionRewriteTests {
     nonisolated static let rewrites: [Rewrite] = [
         Rewrite(testDescription: "relative, below the anchor", entry: "Gen", written: "Gen"),
         Rewrite(testDescription: "climbing, but not past the anchor", entry: "../kit/G", written: "../kit/G"),
+        Rewrite(testDescription: "relative, through `./`", entry: "./Gen", written: "./Gen"),
+        Rewrite(testDescription: "relative, down and back up", entry: "Sources/../Gen", written: "Sources/../Gen"),
         Rewrite(testDescription: "absolute", entry: "/a/ws/Gen", written: "Gen"),
         Rewrite(testDescription: "absolute, beside the workspace", entry: "/a/kit/G", written: "../kit/G"),
         Rewrite(testDescription: "absolute glob", entry: "/a/ws/G*", written: "G*"),
@@ -81,6 +83,32 @@ struct MirrorExclusionRewriteTests {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         #expect(MirrorPaths.absolute("~/dev/ws/Gen", base: "/x") == home + "/dev/ws/Gen")
         #expect(MirrorPaths.absolute("~", base: "/x") == "/x/~")
+    }
+
+    @Test("`.` and empty components drop out of a path, and `..` never climbs above `/`")
+    func standardizing() {
+        #expect(MirrorPaths.absolute("./Gen", base: "/a/ws") == "/a/ws/Gen")
+        #expect(MirrorPaths.absolute("../../../Gen", base: "/a/ws") == "/Gen")
+        #expect(MirrorPaths.standardized(["/", "a", "", ".", "b"]) == ["/", "a", "b"])
+    }
+
+    @Test("the first link on the way down counts only when it leads to a folder")
+    func firstFolderLink() throws {
+        let base = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MirrorExclusionRewriteTests-\(UUID().uuidString)", isDirectory: true)
+            .resolvingSymlinksInPath()
+        defer { try? FileManager.default.removeItem(at: base) }
+        try FileManager.default.createDirectory(
+            at: base.appendingPathComponent("Real"), withIntermediateDirectories: true
+        )
+        try "".write(to: base.appendingPathComponent("file.txt"), atomically: true, encoding: .utf8)
+        try FileManager.default.createSymbolicLink(atPath: base.path + "/ToFolder", withDestinationPath: "Real")
+        try FileManager.default.createSymbolicLink(atPath: base.path + "/ToFile", withDestinationPath: "file.txt")
+
+        let under = base.pathComponents
+        #expect(MirrorPaths.firstFolderLink(on: ["ToFolder", "Gen"], under: under) == base.path + "/ToFolder")
+        #expect(MirrorPaths.firstFolderLink(on: ["ToFile"], under: under) == nil)
+        #expect(MirrorPaths.firstFolderLink(on: ["Real", "Gen"], under: under) == nil)
     }
 
     @Test("an entry starting above an outside folder the mirror copies is refused")
@@ -140,6 +168,17 @@ struct MirrorExclusionRewriteTests {
         )
 
         #expect(try scope(of: workspace).walkRoots == [["Sources"]])
+    }
+
+    @Test("`${PWD}/…` names a folder in the workspace: included, it's walked; excluded, it alone is kept out")
+    func entriesFromPWD() throws {
+        let (base, workspace) = try makeWorkspace("included:\n  - ${PWD}/Sources\nexcluded:\n  - ${PWD}/Gen\n")
+        defer { try? FileManager.default.removeItem(at: base) }
+
+        let scope = try scope(of: workspace)
+        #expect(scope.walkRoots == [["Sources"]])
+        #expect(scope.exclusions.excludes(scope.workspaceRoot + "/Gen"))
+        #expect(!scope.exclusions.excludes(scope.workspaceRoot + "/Sources"))
     }
 
     @Test("an exclusion starting above the folder the container stands for is refused")
