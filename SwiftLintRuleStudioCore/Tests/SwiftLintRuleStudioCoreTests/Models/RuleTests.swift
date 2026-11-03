@@ -104,6 +104,13 @@ struct RuleTests {
         }
     }
 
+    @Test("AnyCodable keeps a string in a list or block apart from the number it spells")
+    func testAnyCodableNestedStringsKeepTheirType() {
+        #expect(AnyCodable(["1"]) != AnyCodable([1]))
+        #expect(AnyCodable(["warning": "1"]) != AnyCodable(["warning": 1]))
+        #expect(AnyCodable(["warning": "1", "error": "2"]) == AnyCodable(["error": "2", "warning": "1"]))
+    }
+
     // MARK: - Edition availability (isUnavailableForLinting)
 
     private func makeRule(usesSourceKit: Bool) -> Rule {
