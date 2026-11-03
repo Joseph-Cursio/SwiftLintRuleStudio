@@ -45,4 +45,21 @@ struct WorkspaceManagerValidationTests {
             }
         }
     }
+
+    @Test("WorkspaceManager refuses a folder with files in it but no Swift ones")
+    func testWorkspaceWithoutSwiftFiles() async throws {
+        let tempDir = TestTempDirectory.make("wsvalidation")
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let docsDir = tempDir.appendingPathComponent("Docs", isDirectory: true)
+        try FileManager.default.createDirectory(at: docsDir, withIntermediateDirectories: true)
+        try "# Notes".write(to: tempDir.appendingPathComponent("README.md"), atomically: true, encoding: .utf8)
+        try "# Guide".write(to: docsDir.appendingPathComponent("Guide.md"), atomically: true, encoding: .utf8)
+
+        await #expect(throws: WorkspaceError.self) {
+            try await WorkspaceManagerTestHelpers.withWorkspaceManager { manager in
+                try manager.openWorkspace(at: tempDir)
+            }
+        }
+    }
 }
