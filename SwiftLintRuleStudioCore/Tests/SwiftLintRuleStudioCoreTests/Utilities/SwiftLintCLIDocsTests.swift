@@ -41,7 +41,7 @@ struct SwiftLintCLIDocsTests {
         #expect(content == "Cached docs")
     }
 
-    @Test("SwiftLintCLIActor generateDocsForRule reads existing docs directory")
+    @Test("SwiftLintCLIActor generateDocsForRule reads existing docs directory, without generating them again")
     func testGenerateDocsUsesExistingDocs() async throws {
         let cacheManager = await MainActor.run { CacheManager.createForTesting() }
         let ruleId = "existing_rule"
@@ -64,6 +64,10 @@ struct SwiftLintCLIDocsTests {
         let runner: SwiftLintCommandRunner = { _, arguments in
             if arguments == ["version"] {
                 return SwiftLintCommandOutput(stdout: Data("\(version)\n".utf8), stderr: Data(), exitCode: 0)
+            }
+            if arguments.contains("generate-docs") {
+                // Generating them again would replace what's there.
+                try? Data("Generated docs".utf8).write(to: docFile)
             }
             return SwiftLintCommandOutput(stdout: Data(), stderr: Data(), exitCode: 0)
         }
