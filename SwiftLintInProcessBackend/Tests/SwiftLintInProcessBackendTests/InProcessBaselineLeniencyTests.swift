@@ -145,7 +145,7 @@ struct InProcessBaselineLeniencyTests {
         ("strict: true\n", "lenient: true\n", "error"),
         ("lenient: true\n", "strict: true\n", "warning"),
         ("disabled_rules:\n  - trailing_newline\n", "strict: true\nlenient: true\n", nil),
-        ("disabled_rules:\n  - trailing_newline\n", "baseline: ../baseline.json\n", nil)
+        ("disabled_rules:\n  - trailing_newline\n", "baseline: ../baseline.json\n", nil),
     ])
     func onlyRootSettingsCount(root: String, nested: String, severity: String?) async throws {
         let workspace = try makeWorkspace(config: nil)
@@ -159,7 +159,7 @@ struct InProcessBaselineLeniencyTests {
         // Every violation at `severity`, or, with none, at its rule's own.
         #expect(try await reported(in: workspace) == [
             "Inner.swift force_cast \(severity ?? "error")",
-            "Inner.swift todo \(severity ?? "warning")"
+            "Inner.swift todo \(severity ?? "warning")",
         ])
     }
 
@@ -168,7 +168,7 @@ struct InProcessBaselineLeniencyTests {
     /// line 4's, which share its text, outnumber the baseline's one, and both are reported.
     @Test("strict applies before the baseline filters, as in swiftlint lint", arguments: [
         (false, ["4 warning"]),
-        (true, ["2 error", "4 error"])
+        (true, ["2 error", "4 error"]),
     ])
     func strictAppliesBeforeBaseline(strict: Bool, expected: [String]) throws {
         let workspace = try makeWorkspace(config: "only_rules:\n  - todo\n")

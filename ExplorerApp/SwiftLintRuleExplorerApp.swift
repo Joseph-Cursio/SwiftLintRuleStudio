@@ -29,10 +29,12 @@ struct SwiftLintRuleExplorerApp: App {
         // Sandboxed: persist security-scoped bookmarks so recent workspaces can be
         // reopened across launches.
         let workspaceManager = WorkspaceManager(
-            userDefaults: .standard, bookmarkStore: UserDefaultsBookmarkStore())
+            userDefaults: .standard, bookmarkStore: UserDefaultsBookmarkStore()
+        )
         let container = DependencyContainer(
             swiftLintCLI: backend, ruleRegistry: registry, cacheManager: cacheManager,
-            workspaceManager: workspaceManager)
+            workspaceManager: workspaceManager
+        )
 
         _ruleRegistry = State(initialValue: registry)
         _dependencyContainer = State(initialValue: container)

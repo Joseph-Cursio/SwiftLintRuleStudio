@@ -85,10 +85,13 @@ extension YAMLConfigurationEngine {
         switch node {
         case .scalar(let scalar):
             return parseScalarValue(scalar)
+
         case .mapping:
             return try nodeToDictionary(node)
+
         case .sequence(let sequence):
             return try parseSequence(sequence)
+
         case .alias:
             return try nodeToDictionary(node)
         }
@@ -255,7 +258,7 @@ extension YAMLConfigurationEngine {
         "write_baseline",
         "check_for_updates",
         "indentation",
-        "custom_rules"
+        "custom_rules",
     ]
 
     // This set and `defaultTopLevelKeyOrder` (Serialization) overlap heavily but legitimately
@@ -269,7 +272,7 @@ extension YAMLConfigurationEngine {
     /// Reserved top-level keys the engine actively models (parses *and* emits).
     static let modeledReservedKeys: Set<String> = [
         "rules", "included", "excluded", "reporter",
-        "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules"
+        "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules",
     ]
 
     /// Captures the parsed YAML nodes for top-level keys the engine does not
@@ -299,8 +302,8 @@ extension YAMLConfigurationEngine {
     }
 
     private static func parseRuleConfiguration(from ruleValue: Any) -> RuleConfiguration? {
-        if let boolValue = parseBoolRuleValue(from: ruleValue) {
-            return RuleConfiguration(enabled: boolValue)
+        if let switchOnly = switchConfiguration(from: ruleValue) {
+            return switchOnly
         }
         // Scalar shorthand: `line_length: 120` is sugar for `{warning: 120}`.
         if let intValue = ruleValue as? Int {
@@ -323,14 +326,14 @@ extension YAMLConfigurationEngine {
         return keys
     }
 
-    // Returns nil when the value isn't parseable as a boolean
-    // swiftlint:disable:next discouraged_optional_boolean
-    private static func parseBoolRuleValue(from ruleValue: Any) -> Bool? {
+    /// The configuration for a rule written as a bare boolean (`rule: true`, or the string
+    /// `"false"`), or nil when the value isn't one.
+    private static func switchConfiguration(from ruleValue: Any) -> RuleConfiguration? {
         if let boolRuleValue = ruleValue as? Bool {
-            return boolRuleValue
+            return RuleConfiguration(enabled: boolRuleValue)
         }
         if let str = ruleValue as? String, str == "true" || str == "false" {
-            return str == "true"
+            return RuleConfiguration(enabled: str == "true")
         }
         return nil
     }
@@ -366,7 +369,7 @@ extension YAMLConfigurationEngine {
     private static func parseRuleParameters(from ruleDict: [String: Any]) -> [String: AnyCodable]? {
         var params: [String: AnyCodable] = [:]
         for (paramKey, paramValue) in ruleDict {
-            if paramKey != "severity" && paramKey != "enabled" {
+            if paramKey != "severity", paramKey != "enabled" {
                 params[paramKey] = AnyCodable(paramValue)
             }
         }

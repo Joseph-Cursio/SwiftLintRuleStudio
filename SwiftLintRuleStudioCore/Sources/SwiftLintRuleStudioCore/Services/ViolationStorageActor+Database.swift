@@ -1,5 +1,3 @@
-import Foundation
-
 public extension ViolationStorageActor {
     /// Closes the SQLite database connection
     func closeDatabase() {

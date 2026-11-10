@@ -87,7 +87,7 @@ struct RuleBrowserViewModelTests {
                 category: .performance,
                 isOptIn: true,
                 isEnabled: false
-            ))
+            )),
         ]
 
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
@@ -136,7 +136,7 @@ struct RuleBrowserViewModelTests {
                 category: .style,
                 isOptIn: false,
                 isEnabled: true
-            ))
+            )),
         ]
 
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
@@ -175,7 +175,7 @@ struct RuleBrowserViewModelTests {
                 category: .performance,
                 isOptIn: true,
                 isEnabled: true
-            ))
+            )),
         ]
 
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
@@ -199,7 +199,7 @@ struct RuleBrowserViewModelTests {
                 category: .lint,
                 isOptIn: false,
                 isEnabled: true
-            ))
+            )),
         ]
         let viewModel = RuleBrowserViewModel(ruleRegistry: makeRegistry(with: rules))
 

@@ -30,8 +30,10 @@ public enum ViolationStorageError: LocalizedError, Sendable {
         switch self {
         case .databaseNotOpen:
             return "Database is not open"
+
         case .databaseOpenFailed(let message):
             return "Failed to open database: \(message)"
+
         case .sqlError(let message):
             return "SQL error: \(message)"
         }

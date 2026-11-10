@@ -7,7 +7,6 @@
 //  resolver and its enable/disable writes must too.
 //
 
-import Foundation
 import SwiftLintRuleStudioCore
 import Testing
 
@@ -158,6 +157,6 @@ extension RuleListsAgreementCases {
                 """,
             rejected: true,
             expected: .exactly(["shorthand_optional_binding", "empty_count"])
-        )
+        ),
     ]
 }

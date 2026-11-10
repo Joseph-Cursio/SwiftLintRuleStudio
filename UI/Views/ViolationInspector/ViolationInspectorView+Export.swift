@@ -1,19 +1,25 @@
+import AppKit
 import SwiftLintRuleStudioCore
-import SwiftUI
 import UniformTypeIdentifiers
 
 extension ViolationInspectorView {
-    func exportViolations(scope: ViolationExportScope, format: ViolationExportFormat) {
-        let violationsToExport = Self.violationsForExport(
+    /// Asks where to save, then writes the violations `scope` covers in `format`.
+    static func exportViolations(
+        scope: ViolationExportScope,
+        format: ViolationExportFormat,
+        filtered: [Violation],
+        selectedIds: Set<UUID>
+    ) {
+        let violationsToExport = violationsForExport(
             scope: scope,
-            filtered: viewModel.filteredViolations,
-            selectedIds: viewModel.selectedViolationIds
+            filtered: filtered,
+            selectedIds: selectedIds
         )
         guard !violationsToExport.isEmpty else { return }
 
         let panel = NSSavePanel()
         panel.allowedContentTypes = format == .json ? [.json] : [.commaSeparatedText]
-        panel.nameFieldStringValue = Self.exportFileName(scope: scope, format: format)
+        panel.nameFieldStringValue = exportFileName(scope: scope, format: format)
         panel.canCreateDirectories = true
 
         panel.begin { response in
@@ -37,6 +43,7 @@ extension ViolationInspectorView {
         switch scope {
         case .filtered:
             return filtered
+
         case .selected:
             return filtered.filter { selectedIds.contains($0.id) }
         }
@@ -60,6 +67,7 @@ extension ViolationInspectorView {
         switch format {
         case .json:
             try exportToJSON(violations: violations, url: url)
+
         case .csv:
             try exportToCSV(violations: violations, url: url)
         }

@@ -72,18 +72,18 @@ struct ViolationStorageMetadataTests {
             filePath: "File1.swift",
             line: 10,
             severity: .error,
-            message: "First message"
-        ,
-            id: sharedID)
+            message: "First message",
+            id: sharedID
+        )
 
         let violation2 = Violation(
             ruleID: "rule2",
             filePath: "File2.swift",
             line: 20,
             severity: .warning,
-            message: "Second message"
-        ,
-            id: sharedID)
+            message: "Second message",
+            id: sharedID
+        )
 
         try await storage.storeViolations([violation1, violation2], for: workspaceId)
 

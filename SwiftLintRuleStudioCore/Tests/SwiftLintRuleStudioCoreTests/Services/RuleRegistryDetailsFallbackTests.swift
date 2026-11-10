@@ -57,7 +57,7 @@ struct RuleRegistryDetailsFallbackTests {
         let rule = try await Self.rule(docs: "", detail: Self.realDetail)
         #expect(rule.triggeringExamples == [
             "NSNumber() as! Int",
-            "let configuration = Configuration()\nlet value = configuration as! Int"
+            "let configuration = Configuration()\nlet value = configuration as! Int",
         ])
         #expect(rule.nonTriggeringExamples == ["NSNumber() as? Int"])
         #expect(rule.name == "Force Cast")

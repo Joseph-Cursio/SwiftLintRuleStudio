@@ -3,7 +3,6 @@
 //  SwiftLintRuleStudioTests
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing

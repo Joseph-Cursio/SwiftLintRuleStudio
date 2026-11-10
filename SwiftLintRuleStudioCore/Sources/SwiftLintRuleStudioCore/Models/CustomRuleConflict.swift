@@ -8,8 +8,6 @@
 //  disabled, or configured separately. This advisory surfaces that.
 //
 
-import Foundation
-
 /// An advisory that a `custom_rules` entry shares its name with a built-in rule.
 public struct CustomRuleConflict: Identifiable, Sendable {
     /// The colliding identifier (shared by the custom rule and a built-in rule).

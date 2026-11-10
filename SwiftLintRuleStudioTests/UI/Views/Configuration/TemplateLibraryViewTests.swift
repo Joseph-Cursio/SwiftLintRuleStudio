@@ -8,10 +8,7 @@
 //  and the view renders its navigation title and project filter.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
-@testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 

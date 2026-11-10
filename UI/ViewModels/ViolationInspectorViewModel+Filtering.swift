@@ -78,17 +78,21 @@ extension ViolationInspectorViewModel {
         case .file:
             let primary = fileOrder()
             return primary == .orderedSame ? Self.compare(lhs.line, rhs.line) : primary
+
         case .rule:
             let primary = lhs.ruleID.localizedCaseInsensitiveCompare(rhs.ruleID)
             return primary == .orderedSame ? fileOrder() : primary
+
         case .severity:
             // Errors (rank 0) order ahead of warnings (rank 1) when ascending.
             let primary = Self.compare(Self.severityRank(lhs.severity), Self.severityRank(rhs.severity))
             return primary == .orderedSame ? fileOrder() : primary
+
         case .date:
             // Ascending shows newest first (compare with operands swapped).
             let primary = Self.compare(rhs.detectedAt, lhs.detectedAt)
             return primary == .orderedSame ? fileOrder() : primary
+
         case .line:
             let primary = fileOrder()
             return primary == .orderedSame ? Self.compare(lhs.line, rhs.line) : primary

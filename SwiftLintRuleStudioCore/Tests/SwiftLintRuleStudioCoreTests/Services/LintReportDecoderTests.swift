@@ -18,7 +18,7 @@ struct LintReportDecoderTests {
             "severity": "Error",
             "file": file,
             "line": 3,
-            "character": 7
+            "character": 7,
         ]
         return try JSONSerialization.data(withJSONObject: [violation])
     }

@@ -58,7 +58,7 @@ struct RuleRegistryTableParsingTests {
             "| metrics_rule | no | no | yes | metrics | no | no | |",
             "| performance_rule | no | no | yes | performance | no | no | |",
             "| idiomatic_rule | no | no | yes | idiomatic | no | no | |",
-            "| unknown_rule | no | no | yes | unknown_category | no | no | |"
+            "| unknown_rule | no | no | yes | unknown_category | no | no | |",
         ])
 
         let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
@@ -81,7 +81,7 @@ struct RuleRegistryTableParsingTests {
     func testCaseInsensitiveCategoryMapping() async throws {
         let tableData = makeRulesTableData(rows: [
             "| uppercase_rule | no | no | yes | STYLE | no | no | |",
-            "| mixed_case_rule | no | no | yes | LiNt | no | no | |"
+            "| mixed_case_rule | no | no | yes | LiNt | no | no | |",
         ])
 
         let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
@@ -101,7 +101,7 @@ struct RuleRegistryTableParsingTests {
         let tableData = makeRulesTableData(rows: [
             "| opt_in_rule | yes | no | no | style | no | no | |",
             "| default_rule | no | no | yes | style | no | no | |",
-            "| missing_opt_in | no | no | yes | style | no | no | |"
+            "| missing_opt_in | no | no | yes | style | no | no | |",
         ])
 
         let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
@@ -122,7 +122,7 @@ struct RuleRegistryTableParsingTests {
         let tableData = makeRulesTableData(rows: [
             "| rule1 | no | no | yes | style | no | no | |",
             "| rule2 | no | no | yes | lint | no | no | |",
-            "| rule3 | no | no | yes | metrics | no | no | |"
+            "| rule3 | no | no | yes | metrics | no | no | |",
         ])
 
         let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
@@ -142,7 +142,7 @@ struct RuleRegistryTableParsingTests {
     func testParseUsesSourceKitColumn() async throws {
         let tableData = makeRulesTableData(rows: [
             "| sourcekit_rule | no | no | yes | lint | no | yes | |",
-            "| plain_rule | no | no | yes | lint | no | no | |"
+            "| plain_rule | no | no | yes | lint | no | no | |",
         ])
 
         let mockCLI = MockSwiftLintCLIActor(mockRulesData: tableData)
@@ -196,7 +196,7 @@ struct RuleRegistryTableParsingTests {
         ("| Identifier | Opt-in |", false),
         ("+------------+--------+", false),
         ("", false),
-        ("force_cast  no  no  yes", false)
+        ("force_cast  no  no  yes", false),
     ])
     @MainActor
     func rowGate(line: String, parsed: Bool) {

@@ -13,7 +13,6 @@
 //  app build.
 //
 
-import Foundation
 import PropertyBased
 import PropertyLawKit
 @testable import SwiftLintRuleStudioCore

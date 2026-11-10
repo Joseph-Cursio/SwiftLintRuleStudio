@@ -6,8 +6,6 @@
 //  names, and where an `included` entry beside the workspace is spelled through a link.
 //
 
-import Foundation
-
 nonisolated extension PrivateLoop {
     /// Links SwiftLint goes through once, on the way to an entry it lints without walking what
     /// lies behind the link, the mirror keeps however they loop where SwiftLint doesn't go; and
@@ -93,6 +91,6 @@ nonisolated extension PrivateLoop {
             config: "included:\n  - ../kit/Up/ws/Sources\nexcluded:\n  - Nope\n",
             links: [link("kit/Up", to: "..")],
             outcome: .refused(saying: "which holds the workspace")
-        )
+        ),
     ]
 }

@@ -5,11 +5,8 @@
 //  Step navigation and state tests for OnboardingView
 //
 
-import Foundation
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -92,7 +89,7 @@ extension OnboardingViewInteractionTests {
         let hasCheckAgainButton = try? await MainActor.run {
             guard didFindCheckAgain else { return false }
             let checkAgainText = try? result.view.inspect().find(text: "Check Again")
-            if let checkAgainText = checkAgainText {
+            if let checkAgainText {
                 let checkAgainButton = try checkAgainText.parent().find(ViewType.Button.self)
                 try checkAgainButton.tap()
                 return true

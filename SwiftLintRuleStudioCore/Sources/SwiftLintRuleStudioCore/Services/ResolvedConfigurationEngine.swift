@@ -19,7 +19,9 @@ import Foundation
 /// Resolves the effective configuration for a folder from a ``ConfigTree``.
 public struct ResolvedConfigurationEngine {
     /// Creates a resolver.
-    nonisolated public init() {}
+    nonisolated public init() {
+        // Declared only to make the initializer public.
+    }
 
     /// Resolves the effective configuration that applies to `targetDirectory`.
     ///

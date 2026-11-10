@@ -15,7 +15,6 @@
 //    ignored the explicit tag.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 import Yams

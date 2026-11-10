@@ -6,15 +6,10 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
-    private static let responseDataKey = "MockURLProtocol.responseData"
-    private static let statusCodeKey = "MockURLProtocol.statusCode"
-
     static func createSession(responseData: Data, statusCode: Int) -> URLSession {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]
@@ -69,7 +64,9 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocolDidFinishLoading(self)
     }
 
-    override func stopLoading() {}
+    override func stopLoading() {
+        // startLoading delivers the whole stubbed response at once, so there is nothing to stop.
+    }
 }
 
 @MainActor

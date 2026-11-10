@@ -5,7 +5,6 @@
 //  What changed between two configurations, in terms of what SwiftLint does.
 //
 
-import Foundation
 import Yams
 
 /// How a rule's default is decided: on unless disabled, or off unless listed.
@@ -34,15 +33,15 @@ private struct RuleSwitches {
         // SwiftLint still reads the deprecated `enabled_rules` when `opt_in_rules` is absent.
         let optInList = config.optInRules
             ?? config.passthroughNodes["enabled_rules"]?.sequence?.compactMap(\.string)
-        let optIn = Self.canonical(optInList)
-        let analyzer = Self.canonical(config.analyzerRules)
-        let only = Self.canonical(config.onlyRules)
+        let listedOptIn = Self.canonical(optInList)
+        let listedAnalyzer = Self.canonical(config.analyzerRules)
+        let listedOnly = Self.canonical(config.onlyRules)
 
-        self.only = only.isEmpty ? nil : only
-        self.optIn = optIn.subtracting(["all"])
-        self.analyzer = analyzer.subtracting(["all"])
-        allOptIn = optIn.contains("all")
-        allAnalyzer = analyzer.contains("all")
+        self.only = listedOnly.isEmpty ? nil : listedOnly
+        self.optIn = listedOptIn.subtracting(["all"])
+        self.analyzer = listedAnalyzer.subtracting(["all"])
+        allOptIn = listedOptIn.contains("all")
+        allAnalyzer = listedAnalyzer.contains("all")
         disabled = Self.canonical(config.disabledRules)
         rules = config.ruleSettings
         switchedOff = Set(rules.filter { !$0.value.enabled }.keys)
@@ -65,8 +64,10 @@ private struct RuleSwitches {
         switch kind {
         case .standard:
             return true
+
         case .optIn:
             return allOptIn || optIn.contains(ruleId)
+
         case .analyzer:
             return allAnalyzer || analyzer.contains(ruleId)
         }
@@ -164,22 +165,22 @@ public struct ConfigChangeSummary: Equatable, Sendable {
 
         // A rule neither configuration names can still change, through `only_rules` or `all`.
         let ruleIds = old.named.union(new.named).union(catalog.keys).sorted()
-        let turnedOn = ruleIds.filter { !old.isOn($0, kind: kind($0)) && new.isOn($0, kind: kind($0)) }
-        let turnedOff = ruleIds.filter { old.isOn($0, kind: kind($0)) && !new.isOn($0, kind: kind($0)) }
+        let rulesTurnedOn = ruleIds.filter { !old.isOn($0, kind: kind($0)) && new.isOn($0, kind: kind($0)) }
+        let rulesTurnedOff = ruleIds.filter { old.isOn($0, kind: kind($0)) && !new.isOn($0, kind: kind($0)) }
 
         // A rule switched on or off isn't also reported as reconfigured.
         let reconfigurable = Set(old.rules.keys).union(new.rules.keys)
-            .subtracting(turnedOn)
-            .subtracting(turnedOff)
-        let settingsChanged = reconfigurable.sorted().compactMap { ruleId -> SettingChange? in
+            .subtracting(rulesTurnedOn)
+            .subtracting(rulesTurnedOff)
+        let changedSettings = reconfigurable.sorted().compactMap { ruleId -> SettingChange? in
             let details = Self.settingDetails(before: old.rules[ruleId], after: new.rules[ruleId])
             return details.isEmpty ? nil : SettingChange(ruleId: ruleId, details: details)
         }
 
         self.init(
-            turnedOn: turnedOn,
-            turnedOff: turnedOff,
-            settingsChanged: settingsChanged,
+            turnedOn: rulesTurnedOn,
+            turnedOff: rulesTurnedOff,
+            settingsChanged: changedSettings,
             pathChanges: Self.excludedChanges(before.excluded, after.excluded)
                 + Self.includedChanges(before.included, after.included),
             otherChanges: Self.ruleModeChanges(old: old, new: new)
@@ -202,10 +203,13 @@ public struct ConfigChangeSummary: Equatable, Sendable {
             switch (oldParameters[key], newParameters[key]) {
             case let (old?, new?) where old != new:
                 details.append("\(key): \(describe(old)) → \(describe(new))")
+
             case let (nil, new?):
                 details.append("\(key): set to \(describe(new))")
+
             case let (old?, nil):
                 details.append("\(key): removed (was \(describe(old)))")
+
             default:
                 break
             }
@@ -236,10 +240,13 @@ public struct ConfigChangeSummary: Equatable, Sendable {
         switch (old.isEmpty, new.isEmpty) {
         case (true, true):
             return []
+
         case (true, false):
             return ["Only these paths are linted now: \(new.joined(separator: ", "))"]
+
         case (false, true):
             return ["included removed: every path is linted again"]
+
         case (false, false):
             let added = new.filter { !old.contains($0) }
             let removed = old.filter { !new.contains($0) }
@@ -256,8 +263,10 @@ public struct ConfigChangeSummary: Equatable, Sendable {
         case let (nil, only?):
             let count = only.count
             lines.append("only_rules added: only the \(count) rule\(count == 1 ? "" : "s") it lists run now")
+
         case (_?, nil):
             lines.append("only_rules removed: SwiftLint's default rules run again, plus any opt-in rules listed")
+
         default:
             break
         }
@@ -296,10 +305,13 @@ public struct ConfigChangeSummary: Equatable, Sendable {
                 } else {
                     lines.append("\(key) changed")
                 }
+
             case (nil, _?):
                 lines.append("\(key) added")
+
             case (_?, nil):
                 lines.append("\(key) removed")
+
             default:
                 break
             }

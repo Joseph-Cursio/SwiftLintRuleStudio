@@ -5,8 +5,6 @@
 //  Whether simulating a rule produced a violation count, and why not when it didn't.
 //
 
-import Foundation
-
 /// Why linting cannot measure a rule.
 nonisolated public enum UnmeasurableReason: Sendable, Hashable {
     /// An analyzer rule. SwiftLint runs these only under `swiftlint analyze`, fed the compiler

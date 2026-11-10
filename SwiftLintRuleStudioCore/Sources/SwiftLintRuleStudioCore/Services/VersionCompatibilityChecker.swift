@@ -5,8 +5,6 @@
 //  Service to check config compatibility with the installed SwiftLint version
 //
 
-import Foundation
-
 // MARK: - Report Types
 
 nonisolated public struct DeprecatedRuleInfo: Sendable, Identifiable, Equatable {

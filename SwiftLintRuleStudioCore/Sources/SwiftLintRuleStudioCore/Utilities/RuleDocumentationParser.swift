@@ -60,7 +60,7 @@ public enum RuleDocumentationParser {
 
         // Limit description length for list view (first 250 characters or first sentence)
         var trimmedDescription = description
-        if !trimmedDescription.isEmpty && trimmedDescription.count > 250 {
+        if !trimmedDescription.isEmpty, trimmedDescription.count > 250 {
             // Try to find a sentence boundary near 250 characters
             let truncated = String(trimmedDescription.prefix(250))
             if let lastPeriod = truncated.lastIndex(of: ".") {
@@ -139,14 +139,16 @@ public enum RuleDocumentationParser {
                 if let colonRange = content.range(of: ":**") {
                     let key = String(content[..<colonRange.lowerBound]).lowercased()
                     var value = String(content[colonRange.upperBound...]).trimmingCharacters(in: .whitespaces)
-                    if value.hasPrefix("`") && value.hasSuffix("`") {
+                    if value.hasPrefix("`"), value.hasSuffix("`") {
                         value = String(value.dropFirst().dropLast())
                     }
                     switch key {
                     case "supports autocorrection":
                         supportsAutocorrection = value.lowercased() == "yes"
+
                     case "minimum swift compiler version":
                         minimumSwiftVersion = value
+
                     default:
                         break
                     }
@@ -246,8 +248,10 @@ public enum RuleDocumentationParser {
             switch currentSection {
             case .triggering:
                 triggeringExamples.append(example)
+
             case .nonTriggering:
                 nonTriggeringExamples.append(example)
+
             default:
                 break
             }

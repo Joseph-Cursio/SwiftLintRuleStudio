@@ -11,7 +11,6 @@ import Foundation
 import SwiftLintCLISeam
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -27,7 +26,9 @@ private struct StubMigrationAssistant: MigrationAssistantProtocol {
     func applyMigration(
         _: MigrationPlan,
         to _: inout YAMLConfigurationEngine.YAMLConfig
-    ) {}
+    ) {
+        // The stub ignores this call.
+    }
 }
 
 private struct MigrationAssistantViewStubCLI: SwiftLintCLIProtocol {

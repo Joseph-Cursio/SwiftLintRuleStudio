@@ -7,10 +7,8 @@
 //  waits rather than letting it drift out of sync with the catalogue.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 

@@ -6,7 +6,6 @@
 //  into the structured [RuleParameter] consumed by the rule-detail UI.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

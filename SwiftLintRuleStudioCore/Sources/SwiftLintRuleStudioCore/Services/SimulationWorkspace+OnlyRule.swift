@@ -6,8 +6,6 @@
 //  configs say for such a lint what they say for a lint of every rule.
 //
 
-import Foundation
-
 extension SimulationWorkspace {
 
     /// The rule to lint alone (`--only-rule`) when measuring `ruleId`, or nil when its count

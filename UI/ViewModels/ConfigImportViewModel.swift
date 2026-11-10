@@ -60,7 +60,7 @@ class ConfigImportViewModel {
     }
 
     func applyImport() {
-        guard let preview = preview, let configPath = configPath else { return }
+        guard let preview, let configPath else { return }
 
         isImporting = true
         error = nil

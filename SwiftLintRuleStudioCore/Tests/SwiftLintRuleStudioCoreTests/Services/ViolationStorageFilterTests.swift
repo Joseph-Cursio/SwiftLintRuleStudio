@@ -66,7 +66,7 @@ struct ViolationStorageFilterTests {
             [
                 Self.violation(file: "A.swift", severity: .warning),
                 Self.violation(file: "B.swift", severity: .error),
-                Self.violation(file: "C.swift", severity: .warning)
+                Self.violation(file: "C.swift", severity: .warning),
             ],
             for: workspaceId
         )
@@ -91,19 +91,19 @@ struct ViolationStorageFilterTests {
             [
                 Self.violation(file: "Suppressed.swift", suppressed: true),
                 Self.violation(file: "Open.swift"),
-                Self.violation(file: "AlsoOpen.swift")
+                Self.violation(file: "AlsoOpen.swift"),
             ],
             for: workspaceId
         )
 
         let suppressed = try await storage.fetchViolations(
-            filter: ViolationFilter(suppressedOnly: true),
+            filter: ViolationFilter(suppression: .suppressedOnly),
             workspaceId: workspaceId
         )
         #expect(suppressed.map(\.filePath) == ["Suppressed.swift"])
 
         let open = try await storage.fetchViolations(
-            filter: ViolationFilter(suppressedOnly: false),
+            filter: ViolationFilter(suppression: .unsuppressedOnly),
             workspaceId: workspaceId
         )
         #expect(Set(open.map(\.filePath)) == ["Open.swift", "AlsoOpen.swift"])

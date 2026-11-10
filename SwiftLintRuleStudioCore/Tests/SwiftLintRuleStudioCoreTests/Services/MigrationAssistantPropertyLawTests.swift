@@ -178,7 +178,7 @@ struct MigrationAssistantPropertyLawTests {
 
     private static func renames(in plan: MigrationPlan) -> [String: String] {
         var renames: [String: String] = [:]
-        for case .renameRule(let from, let newName) in plan.steps { renames[from] = newName }
+        for case let .renameRule(from, newName) in plan.steps { renames[from] = newName }
         return renames
     }
 

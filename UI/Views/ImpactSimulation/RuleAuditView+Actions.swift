@@ -6,33 +6,12 @@
 //  view state that goes with them. Running the audit lives in +Audit.
 //
 
+import Foundation
 import SwiftLintRuleStudioCore
-import SwiftUI
 
 // MARK: - Enabling Rules
 
 extension RuleAuditView {
-    func resetAuditState() {
-        // Stops a running audit, whose results belong to the workspace that just closed —
-        // even when the same folder was reopened, which keeps its workspace's identity.
-        auditRunner.cancel()
-        auditEntries = []
-        selectedRules.removeAll()
-        expandedRuleId = nil
-        totalSwiftFiles = 0
-        auditDuration = 0
-        auditProgress = nil
-        isAuditing = false
-        isEnabling = false
-        errorMessage = nil
-        showError = false
-    }
-
-    func selectAndEnableAllSafeRules() {
-        selectedRules = Set(Self.safeDisabledRuleIds(in: auditEntries))
-        enableSelectedRules()
-    }
-
     /// The ids of entries that are currently disabled and were measured with no
     /// violations, i.e. the rules that can be turned on without creating work. A
     /// failed or unmeasurable simulation is never `.safe`: its impact is unknown.
@@ -40,39 +19,6 @@ extension RuleAuditView {
         entries
             .filter { !$0.isCurrentlyEnabled && $0.effortCategory == .safe }
             .map(\.id)
-    }
-
-    func enableSingleRule(_ rule: Rule) {
-        selectedRules = [rule.id]
-        enableSelectedRules()
-    }
-
-    func enableSelectedRules() {
-        guard let configPath = Self.enableConfigPath(
-            for: dependencies.workspaceManager.currentWorkspace
-        ) else {
-            return
-        }
-
-        isEnabling = true
-        let ruleIds = selectedRules
-        let knownRules = dependencies.ruleRegistry.rules
-
-        Task {
-            do {
-                try Self.enableRules(ruleIds, configPath: configPath, rules: knownRules)
-
-                // Update entries to reflect newly enabled rules
-                auditEntries = Self.markEntriesEnabled(in: auditEntries, ruleIds: ruleIds)
-
-                selectedRules.removeAll()
-                isEnabling = false
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-                isEnabling = false
-            }
-        }
     }
 
     /// The configuration file an enable action would write to: nil when there is
@@ -161,5 +107,61 @@ extension RuleAuditView {
             object: nil,
             userInfo: ["ruleIds": ruleIds]
         )
+    }
+}
+
+extension RuleAuditContent {
+    func resetAuditState() {
+        // Stops a running audit, whose results belong to the workspace that just closed —
+        // even when the same folder was reopened, which keeps its workspace's identity.
+        model.auditRunner.cancel()
+        model.auditEntries = []
+        model.selectedRules.removeAll()
+        model.expandedRuleId = nil
+        model.totalSwiftFiles = 0
+        model.auditDuration = 0
+        model.auditProgress = nil
+        model.isAuditing = false
+        model.isEnabling = false
+        model.errorMessage = nil
+        model.showError = false
+    }
+
+    func selectAndEnableAllSafeRules() {
+        model.selectedRules = Set(RuleAuditView.safeDisabledRuleIds(in: model.auditEntries))
+        enableSelectedRules()
+    }
+
+    func enableSingleRule(_ rule: Rule) {
+        model.selectedRules = [rule.id]
+        enableSelectedRules()
+    }
+
+    func enableSelectedRules() {
+        guard let configPath = RuleAuditView.enableConfigPath(
+            for: dependencies.workspaceManager.currentWorkspace
+        ) else {
+            return
+        }
+
+        model.isEnabling = true
+        let ruleIds = model.selectedRules
+        let knownRules = dependencies.ruleRegistry.rules
+
+        Task {
+            do {
+                try RuleAuditView.enableRules(ruleIds, configPath: configPath, rules: knownRules)
+
+                // Update entries to reflect newly enabled rules
+                model.auditEntries = RuleAuditView.markEntriesEnabled(in: model.auditEntries, ruleIds: ruleIds)
+
+                model.selectedRules.removeAll()
+                model.isEnabling = false
+            } catch {
+                model.errorMessage = error.localizedDescription
+                model.showError = true
+                model.isEnabling = false
+            }
+        }
     }
 }

@@ -46,7 +46,7 @@ struct MirrorExclusionRewriteTests {
             written: "../.swiftlint-rule-studio-outside/0/tree/G"
         ),
         Rewrite(testDescription: "naming nothing the mirror holds", entry: "/opt/other/G", written: "/opt/other/G"),
-        Rewrite(testDescription: "from the folder SwiftLint runs in", entry: "${PWD}/Gen", written: "${PWD}/Gen")
+        Rewrite(testDescription: "from the folder SwiftLint runs in", entry: "${PWD}/Gen", written: "${PWD}/Gen"),
     ]
 
     /// `/opt/kit`, copied in the mirror's outside folder.
@@ -54,7 +54,7 @@ struct MirrorExclusionRewriteTests {
         WorkspaceMirrorPlan.ExternalFolder(
             original: URL(fileURLWithPath: "/opt/kit"),
             path: ".swiftlint-rule-studio-outside/0/tree"
-        )
+        ),
     ]
 
     @Test("an `excluded` entry is written to name in the container what it names in the workspace", arguments: rewrites)

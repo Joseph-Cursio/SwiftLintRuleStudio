@@ -7,7 +7,6 @@
 //  a child's own `only_rules` replaces it. `analyzer_rules` join the whitelist.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

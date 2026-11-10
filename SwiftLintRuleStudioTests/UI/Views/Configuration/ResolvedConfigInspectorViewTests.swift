@@ -6,7 +6,6 @@
 //  detail pane (layer chain, attributed rule rows, notices).
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftUI
@@ -31,7 +30,7 @@ struct ResolvedConfigInspectorViewTests {
             layerChainLabels: ["root", "Tests"],
             ruleRows: [
                 ResolvedRuleRow(id: "force_unwrapping", state: "off (disabled)", setBy: "Tests", detail: nil),
-                ResolvedRuleRow(id: "line_length", state: "configured", setBy: "Legacy", detail: "overrides root")
+                ResolvedRuleRow(id: "line_length", state: "configured", setBy: "Legacy", detail: "overrides root"),
             ],
             onlyRulesNotice: nil,
             excludedNotice: "excluded (root): Generated",

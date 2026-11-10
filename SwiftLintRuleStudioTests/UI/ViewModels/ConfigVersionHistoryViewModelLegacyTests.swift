@@ -79,7 +79,7 @@ struct ConfigVersionHistoryViewModelLegacyTests {
         #expect(fixture.viewModel.legacyBackupCount == 0)
         #expect(fixture.viewModel.backups.map(\.timestamp) == [
             Date(timeIntervalSince1970: 1_700_000_100),
-            Date(timeIntervalSince1970: 1_700_000_000)
+            Date(timeIntervalSince1970: 1_700_000_000),
         ])
         #expect(try FileManager.default.contentsOfDirectory(atPath: fixture.project.path) == [".swiftlint.yml"])
         #expect(fixture.viewModel.backupsFolder?.resolvingSymlinksInPath()

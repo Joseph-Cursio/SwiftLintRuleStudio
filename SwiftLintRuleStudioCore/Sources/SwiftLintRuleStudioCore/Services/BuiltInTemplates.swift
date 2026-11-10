@@ -201,7 +201,7 @@ public enum BuiltInTemplates {
         [
             iOSStrict, iOSBalanced, iOSLenient,
             macOSStrict, macOSBalanced, macOSLenient,
-            packageStrict, packageBalanced, packageLenient
+            packageStrict, packageBalanced, packageLenient,
         ]
     }
 }

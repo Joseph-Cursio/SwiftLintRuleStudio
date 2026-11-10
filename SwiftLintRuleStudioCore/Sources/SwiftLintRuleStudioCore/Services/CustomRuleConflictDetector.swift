@@ -6,13 +6,14 @@
 //  SwiftLint rule. SwiftLint emits no warning for this, so the app surfaces it.
 //
 
-import Foundation
 import Yams
 
 /// Finds custom rules that shadow a built-in rule of the same name.
 public struct CustomRuleConflictDetector {
     /// Creates a detector.
-    nonisolated public init() {}
+    nonisolated public init() {
+        // Declared only to make the initializer public.
+    }
 
     /// The custom rules whose identifier also names a built-in rule.
     ///

@@ -1,4 +1,3 @@
-import LintStudioCore
 import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
@@ -6,7 +5,7 @@ import SwiftUI
 extension RuleDetailView {
     /// Determines if the short description should be shown (only if it's unique and not in markdown)
     var shouldShowShortDescription: Bool {
-        guard !rule.description.isEmpty && rule.description != "No description available" else {
+        guard !rule.description.isEmpty, rule.description != "No description available" else {
             return false
         }
         // If we have markdown, check if the short description is already contained in it
@@ -28,7 +27,7 @@ extension RuleDetailView {
         return true
     }
 
-    var headerView: some View {
+    func headerView(isEnabled: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -50,38 +49,11 @@ extension RuleDetailView {
                     .scaleEffect(1.2)
             }
 
-            HStack(spacing: 16) {
-                // Neutral, like the rule list's Opt-In tag: orange means "warning"
-                // elsewhere in the app, and opt-in is a rule's type, not a problem.
-                if rule.isOptIn {
-                    Label("Opt-In Rule", systemImage: "star.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .help("SwiftLint runs this rule only when a configuration enables it")
-                }
-
-                if viewModel.isEnabled {
-                    Label("Enabled", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
-                }
-
-                if rule.supportsAutocorrection {
-                    Label("Auto-correctable", systemImage: "wand.and.stars")
-                        .font(.subheadline)
-                        .foregroundStyle(.blue)
-                }
-
-                if let minVersion = rule.minimumSwiftVersion {
-                    Label("Swift \(minVersion)+", systemImage: "swift")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            ruleTags(isEnabled: isEnabled)
         }
     }
 
-    var descriptionView: some View {
+    func descriptionView(segments cachedDocSegments: [RuleDocSegment.Rendered]?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Description")
                 .font(.headline)
@@ -96,37 +68,7 @@ extension RuleDetailView {
 
             // Show markdown documentation if available - directly below description
             if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
-                // Determine top padding: only add spacing if we showed the short description above
-                let hasShortDescription = shouldShowShortDescription
-
-                // Use the pre-built segments cached by rebuildAttributedString().
-                // NSAttributedString HTML init must NOT be called here inside body - it
-                // requires the main thread and SwiftUI layout passes can evaluate body
-                // from non-main threads, causing the
-                // "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION" crash.
-                if let segments = cachedDocSegments {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(segments) { segment in
-                            if segment.isCode {
-                                RuleDocCodeBlock(code: segment.text)
-                            } else {
-                                Text(segment.text)
-                                    .textSelection(.enabled)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                            }
-                        }
-                    }
-                    .padding(.top, hasShortDescription ? 8 : 0)
-                } else {
-                    // Fallback to plain text (shown before cache is ready or on parse failure)
-                    let processedContent = processContentForDisplay(content: markdownDoc)
-                    Text(processedContent)
-                        .textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding(.top, hasShortDescription ? 8 : 0)
-                }
+                documentation(markdownDoc, segments: cachedDocSegments)
             } else if rule.description.isEmpty || rule.description == "No description available" {
                 // Show message if we have neither description nor markdown documentation
                 Text("No description available")
@@ -198,6 +140,76 @@ extension RuleDetailView {
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .italic()
+            }
+        }
+    }
+
+    /// The rule's markdown documentation, from the cached segments once they are built.
+    @ViewBuilder
+    private func documentation(
+        _ markdownDoc: String,
+        segments cachedDocSegments: [RuleDocSegment.Rendered]?
+    ) -> some View {
+        // Determine top padding: only add spacing if we showed the short description above
+        let hasShortDescription = shouldShowShortDescription
+
+        // Use the pre-built segments cached by rebuildAttributedString().
+        // NSAttributedString HTML init must NOT be called here inside body - it
+        // requires the main thread and SwiftUI layout passes can evaluate body
+        // from non-main threads, causing the
+        // "SOME_OTHER_THREAD_SWALLOWED_AT_LEAST_ONE_EXCEPTION" crash.
+        if let segments = cachedDocSegments {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(segments) { segment in
+                    if segment.isCode {
+                        RuleDocCodeBlock(code: segment.text)
+                    } else {
+                        Text(segment.text)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                    }
+                }
+            }
+            .padding(.top, hasShortDescription ? 8 : 0)
+        } else {
+            // Fallback to plain text (shown before cache is ready or on parse failure)
+            let processedContent = processContentForDisplay(content: markdownDoc)
+            Text(processedContent)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.top, hasShortDescription ? 8 : 0)
+        }
+    }
+
+    private func ruleTags(isEnabled: Bool) -> some View {
+        HStack(spacing: 16) {
+            // Neutral, like the rule list's Opt-In tag: orange means "warning"
+            // elsewhere in the app, and opt-in is a rule's type, not a problem.
+            if rule.isOptIn {
+                Label("Opt-In Rule", systemImage: "star.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .help("SwiftLint runs this rule only when a configuration enables it")
+            }
+
+            if isEnabled {
+                Label("Enabled", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(.green)
+            }
+
+            if rule.supportsAutocorrection {
+                Label("Auto-correctable", systemImage: "wand.and.stars")
+                    .font(.subheadline)
+                    .foregroundStyle(.blue)
+            }
+
+            if let minVersion = rule.minimumSwiftVersion {
+                Label("Swift \(minVersion)+", systemImage: "swift")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
     }

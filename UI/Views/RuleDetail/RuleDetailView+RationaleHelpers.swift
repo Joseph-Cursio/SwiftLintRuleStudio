@@ -26,6 +26,7 @@ extension RuleDetailView {
                 case .start:
                     inRationaleSection = true
                     continue
+
                 case .stop:
                     inRationaleSection = false
                     continue
@@ -82,7 +83,7 @@ extension RuleDetailView {
             #"https?://github\.com/apple/swift-evolution/blob/.*SE-\d+"#,
             #"https?://github\.com/apple/swift-evolution/.*SE-\d+"#,
             #"SE-\d+"#,
-            #"swift-evolution.*SE-\d+"#
+            #"swift-evolution.*SE-\d+"#,
         ]
 
         for pattern in patterns {
@@ -90,10 +91,10 @@ extension RuleDetailView {
             let range = NSRange(markdown.startIndex..<markdown.endIndex, in: markdown)
 
             regex?.enumerateMatches(in: markdown, options: [], range: range) { match, _, _ in
-                guard let match = match,
-                      let range = Range(match.range, in: markdown) else { return }
+                guard let match,
+                      let matchRange = Range(match.range, in: markdown) else { return }
 
-                let matchedString = String(markdown[range])
+                let matchedString = String(markdown[matchRange])
 
                 // Convert to full URL if needed
                 if matchedString.hasPrefix("http") {

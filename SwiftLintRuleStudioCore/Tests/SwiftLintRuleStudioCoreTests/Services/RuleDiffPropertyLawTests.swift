@@ -118,10 +118,13 @@ struct RuleDiffPropertyLawTests {
             switch (first.parameters?["warning"], second.parameters?["warning"]) {
             case (_?, _?):
                 #expect(message.contains(Self.firstLabel) && message.contains(Self.secondLabel))
+
             case (_?, nil):
                 #expect(message.contains("only \(Self.firstLabel)"))
+
             case (nil, _?):
                 #expect(message.contains("only \(Self.secondLabel)"))
+
             case (nil, nil):
                 Issue.record("a message for a setting neither side has")
             }

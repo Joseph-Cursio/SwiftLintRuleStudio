@@ -36,7 +36,7 @@ struct ViolationInspectorViewModelLoadingTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -108,7 +108,7 @@ struct ViolationInspectorViewModelLoadingTests {
 
         let newViolations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3"),
         ]
         await MainActor.run {
             mockAnalyzer.mockViolations = newViolations
@@ -144,7 +144,7 @@ struct ViolationInspectorViewModelLoadingTests {
 
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
         ]
         await MainActor.run {
             mockAnalyzer.mockViolations = violations

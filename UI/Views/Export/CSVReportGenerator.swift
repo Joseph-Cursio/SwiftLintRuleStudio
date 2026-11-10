@@ -21,7 +21,7 @@ enum CSVReportGenerator {
             "Detected At",
             "Resolved At",
             "Suppressed",
-            "Suppression Reason"
+            "Suppression Reason",
         ].joined(separator: ",")
 
         let isoFormatter = ISO8601DateFormatter()
@@ -38,12 +38,11 @@ enum CSVReportGenerator {
                 isoFormatter.string(from: violation.detectedAt),
                 violation.resolvedAt.map { isoFormatter.string(from: $0) } ?? "",
                 violation.suppressed ? "true" : "false",
-                violation.suppressionReason.map { CSVEscaping.escape($0) } ?? ""
+                violation.suppressionReason.map { CSVEscaping.escape($0) } ?? "",
             ].joined(separator: ",")
             csv += row + "\n"
         }
 
         return csv
     }
-
 }

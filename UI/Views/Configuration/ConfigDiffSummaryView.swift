@@ -99,7 +99,7 @@ struct ConfigDiffSummaryView: View {
             )
         }
 
-        if diff.addedRules.isEmpty && diff.removedRules.isEmpty && diff.modifiedRules.isEmpty {
+        if diff.addedRules.isEmpty, diff.removedRules.isEmpty, diff.modifiedRules.isEmpty {
             Text("No changes detected")
                 .foregroundStyle(.secondary)
                 .italic()

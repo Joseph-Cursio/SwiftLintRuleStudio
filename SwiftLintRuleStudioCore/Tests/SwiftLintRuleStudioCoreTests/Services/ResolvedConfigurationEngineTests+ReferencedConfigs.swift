@@ -70,7 +70,7 @@ extension ResolvedConfigurationEngineTests {
         #expect(resolved.layerChain.map(\.displayName) == [
             "https://example.com/base.yml",
             "root",
-            "https://example.com/strict.yml"
+            "https://example.com/strict.yml",
         ])
         #expect(resolved.disabledRules.map(\.identifier) == ["todo"])
         #expect(resolved.disablingLayer(for: "todo")?.displayName == "https://example.com/base.yml")

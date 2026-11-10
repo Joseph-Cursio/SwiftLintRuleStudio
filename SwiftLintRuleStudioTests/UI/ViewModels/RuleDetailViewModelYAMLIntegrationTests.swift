@@ -24,16 +24,16 @@ struct RuleDetailViewModelYAMLIntegrationTests {
             enabled: true
             severity: warning
         """
-        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
+        let configPath = try RuleDetailIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: initialConfig
         )
-        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -75,12 +75,12 @@ struct RuleDetailViewModelYAMLIntegrationTests {
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
-        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "new_rule", isOptIn: false)
-        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -132,16 +132,16 @@ struct RuleDetailViewModelYAMLIntegrationTests {
             enabled: true
             severity: error
         """
-        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
+        let configPath = try RuleDetailIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: initialConfig
         )
-        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
 
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "rule_1", isOptIn: false)
-        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )

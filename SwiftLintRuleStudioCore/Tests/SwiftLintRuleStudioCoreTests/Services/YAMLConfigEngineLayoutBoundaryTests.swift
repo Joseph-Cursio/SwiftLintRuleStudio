@@ -6,7 +6,6 @@
 //  section it has to step over or read through.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 
@@ -24,7 +23,7 @@ struct YAMLConfigEngineLayoutBoundaryTests {
           arguments: [
               "disabled_rules:\n  - todo\n---\nopt_in_rules:\n  - empty_count\n",
               "disabled_rules:\n  - todo\n...\n",
-              "disabled_rules:\n  - todo\n\topt_in_rules: [empty_count]\n"
+              "disabled_rules:\n  - todo\n\topt_in_rules: [empty_count]\n",
           ])
     func refusesWhatIsNotOneBlockMapping(existing: String) {
         let regenerated = "disabled_rules:\n  - todo\nopt_in_rules:\n  - empty_count\n"

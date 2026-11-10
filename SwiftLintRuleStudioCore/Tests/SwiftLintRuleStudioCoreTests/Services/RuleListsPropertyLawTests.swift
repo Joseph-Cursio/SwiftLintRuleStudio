@@ -16,7 +16,6 @@
 //  The lists may name a rule by a deprecated alias, which SwiftLint reads as the rule.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing
@@ -46,7 +45,7 @@ struct RuleListsPropertyLawTests {
         ("unused_import", .analyzer),
         ("explicit_self", .analyzer),
         ("identifier_name", .standard),
-        ("shorthand_optional_binding", .optIn)
+        ("shorthand_optional_binding", .optIn),
     ]
 
     /// What a list entry may say: a rule's id, or the alias SwiftLint reads as one of them.
@@ -62,8 +61,8 @@ struct RuleListsPropertyLawTests {
     private static func config(for spec: RuleListSpec) -> YAMLConfigurationEngine.YAMLConfig {
         func ids(_ indices: [Int]) -> [String]? {
             var seen: Set<String> = []
-            let ids = indices.map { listNames[$0] }.filter { seen.insert($0).inserted }
-            return ids.isEmpty ? nil : ids
+            let unique = indices.map { listNames[$0] }.filter { seen.insert($0).inserted }
+            return unique.isEmpty ? nil : unique
         }
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.onlyRules = ids(spec.only)

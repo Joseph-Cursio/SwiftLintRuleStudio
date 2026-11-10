@@ -1,0 +1,233 @@
+//
+//  RuleAuditView+Subviews.swift
+//  SwiftLintRuleStudio
+//
+//  Subviews for the Rule Audit view: summary cards, rule rows, expanded detail, status bar
+//
+
+import LintStudioUI
+import SwiftUI
+
+// MARK: - Summary Cards
+//
+// The card view is the shared LintStudioUI.SummaryCard. This screen lays the
+// cards out in a horizontal scroller, so each is pinned to a fixed 180×70 with
+// .frame; the shared card is otherwise flexible (maxWidth: .infinity,
+// minHeight: 60).
+
+extension RuleAuditContent {
+    var summaryCardsView: some View {
+        let summary = AuditSummary(
+            entries: model.auditEntries,
+            totalSwiftFiles: model.totalSwiftFiles,
+            auditDuration: model.auditDuration
+        )
+
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                SummaryCard(
+                    title: "SAFE TO ENABLE",
+                    count: summary.safeCount,
+                    subtitle: "0 violations",
+                    color: .green
+                )
+                .frame(width: 180, height: 70)
+
+                // Beside the count it acts on, so cards added after it can't push it off the
+                // right edge of the scroller at the default window width.
+                enableAllSafeButton(safeCount: summary.safeCount)
+
+                effortCards(summary: summary)
+
+                unmeasuredCards(summary: summary)
+            }
+            .padding()
+        }
+    }
+
+    /// Cards for the rules the audit has no count for, shown only when there are some.
+    /// They sit apart from the effort cards because their impact is unknown, not zero.
+    @ViewBuilder
+    private func unmeasuredCards(summary: AuditSummary) -> some View {
+        if summary.failedCount > 0 {
+            SummaryCard(
+                title: "SIMULATION FAILED",
+                count: summary.failedCount,
+                subtitle: "impact unknown",
+                color: EffortCategory.failed.color
+            )
+            .frame(width: 180, height: 70)
+        }
+
+        if summary.unmeasurableCount > 0 {
+            SummaryCard(
+                title: "CAN'T MEASURE",
+                count: summary.unmeasurableCount,
+                subtitle: "not measurable here",
+                color: .gray
+            )
+            .frame(width: 180, height: 70)
+        }
+    }
+
+    private func enableAllSafeButton(safeCount: Int) -> some View {
+        Button {
+            selectAndEnableAllSafeRules()
+        } label: {
+            VStack(spacing: 6) {
+                Text("Enable All Safe Rules")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text("\(safeCount) rules")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Text("0 new violations")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .frame(width: 160, height: 70)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(safeCount == 0 || model.isEnabling)
+        .accessibilityIdentifier("EnableAllSafeRulesButton")
+    }
+
+    /// The low, moderate and high effort cards.
+    @ViewBuilder
+    private func effortCards(summary: AuditSummary) -> some View {
+        SummaryCard(
+            title: "LOW EFFORT",
+            count: summary.lowCount,
+            subtitle: "1-5 violations",
+            color: .yellow
+        )
+        .frame(width: 180, height: 70)
+
+        SummaryCard(
+            title: "MODERATE EFFORT",
+            count: summary.moderateCount,
+            subtitle: "6-25 violations",
+            color: .orange
+        )
+        .frame(width: 180, height: 70)
+
+        SummaryCard(
+            title: "HIGH EFFORT",
+            count: summary.highCount,
+            subtitle: "26+ violations",
+            color: .red
+        )
+        .frame(width: 180, height: 70)
+    }
+
+    var ruleListView: some View {
+        VStack(spacing: 0) {
+            columnHeader
+            Divider()
+            List {
+                ForEach(model.auditEntries) { entry in
+                    RuleAuditRow(
+                        entry: entry,
+                        isExpanded: model.expandedRuleId == entry.id,
+                        isSelected: model.selectedRules.contains(entry.id),
+                        totalSwiftFiles: model.totalSwiftFiles,
+                        maxViolationCount: maxViolationCount,
+                        onToggleExpand: { toggleExpanded(entry.id) },
+                        onToggleSelect: { toggleSelection(for: entry.id) },
+                        onEnable: { enableSingleRule(entry.rule) }
+                    )
+                }
+            }
+            .listStyle(.inset(alternatesRowBackgrounds: true))
+        }
+    }
+
+    private var columnHeader: some View {
+        HStack(spacing: AuditColumnWidths.spacing) {
+            // Checkbox placeholder
+            Spacer().frame(width: AuditColumnWidths.checkbox)
+            // Disclosure placeholder
+            Spacer().frame(width: AuditColumnWidths.disclosure)
+            // Rule name (flexible)
+            Text("RULE")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text("CATEGORY")
+                .frame(width: AuditColumnWidths.category)
+            Text("VIOLATIONS")
+                .frame(width: AuditColumnWidths.violations)
+            Text("AUTO-FIX")
+                .frame(width: AuditColumnWidths.autoFix)
+            Text("FILES")
+                .frame(width: AuditColumnWidths.affectedFiles)
+            Text("STATUS")
+                .frame(width: AuditColumnWidths.status)
+            Text("ACTION")
+                .frame(width: AuditColumnWidths.action)
+        }
+        .font(.caption2)
+        .fontWeight(.semibold)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+    }
+
+    private var maxViolationCount: Int {
+        model.auditEntries.compactMap(\.violationCount).max() ?? 1
+    }
+
+    func toggleExpanded(_ ruleId: String) {
+        if model.expandedRuleId == ruleId {
+            model.expandedRuleId = nil
+        } else {
+            model.expandedRuleId = ruleId
+        }
+    }
+
+    func toggleSelection(for ruleId: String) {
+        if model.selectedRules.contains(ruleId) {
+            model.selectedRules.remove(ruleId)
+        } else {
+            model.selectedRules.insert(ruleId)
+        }
+    }
+
+    var statusBar: some View {
+        HStack(spacing: 16) {
+            let summary = AuditSummary(
+                entries: model.auditEntries,
+                totalSwiftFiles: model.totalSwiftFiles,
+                auditDuration: model.auditDuration
+            )
+
+            Text("Audit completed in \(String(format: "%.1fs", summary.auditDuration))")
+                .foregroundStyle(.secondary)
+
+            Divider().frame(height: 12)
+
+            if model.totalSwiftFiles > 0 {
+                Text("\(summary.totalRulesTested) rules tested against \(model.totalSwiftFiles) Swift files")
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("\(summary.totalRulesTested) rules tested")
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider().frame(height: 12)
+
+            Text("\(summary.safeCount) safe rules ready to enable")
+                .foregroundStyle(.green)
+
+            Spacer()
+
+            if !model.selectedRules.isEmpty {
+                Text("\(model.selectedRules.count) rules selected")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption)
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+}

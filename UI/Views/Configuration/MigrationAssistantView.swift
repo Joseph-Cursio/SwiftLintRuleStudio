@@ -44,35 +44,14 @@ struct MigrationAssistantView: View {
                 .font(.headline)
 
             HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Previous Version")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("e.g. 0.45.0", text: Bindable(viewModel).previousVersion)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 120)
-                        .accessibilityIdentifier("MigrationPreviousVersionField")
-                }
+                previousVersionField
 
                 Image(systemName: "arrow.right")
                     .font(.title2)
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Current Version")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let version = viewModel.currentVersion {
-                        Text(version)
-                            .font(.body)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.blue)
-                    } else {
-                        Text("Auto-detected")
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                currentVersionLabel
 
                 Spacer()
 
@@ -132,20 +111,7 @@ struct MigrationAssistantView: View {
                         stepRow(step)
                     }
 
-                    HStack {
-                        if !plan.autoApplyableSteps.isEmpty {
-                            Button("Preview Changes") {
-                                viewModel.previewChanges()
-                            }
-                            .buttonStyle(.bordered)
-                        }
-
-                        if !plan.manualSteps.isEmpty {
-                            Text("\(plan.manualSteps.count) manual step(s) require your attention")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                        }
-                    }
+                    planActions(plan)
                 }
             }
             .padding()
@@ -164,44 +130,9 @@ struct MigrationAssistantView: View {
                 if viewModel.previewRewritesConfig {
                     RuleChangeSummary(diff: diff)
 
-                    DisclosureGroup("Full Diff") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Before")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.red)
-                            Text(diff.before.isEmpty ? "(empty)" : diff.before)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding(8)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(NSColor.textBackgroundColor))
-                                .clipShape(.rect(cornerRadius: 4))
+                    fullDiff(diff)
 
-                            Text("After")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.green)
-                            Text(diff.after.isEmpty ? "(empty)" : diff.after)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding(8)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(NSColor.textBackgroundColor))
-                                .clipShape(.rect(cornerRadius: 4))
-                        }
-                    }
-
-                    HStack {
-                        Button("Apply All Auto-Fixes") {
-                            viewModel.applyMigration()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(viewModel.isMigrating || viewModel.migrationComplete)
-
-                        if viewModel.migrationComplete {
-                            Label("Migration applied!", systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                        }
-                    }
+                    applyRow
                 } else {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
@@ -246,5 +177,94 @@ struct MigrationAssistantView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private var applyRow: some View {
+        HStack {
+            Button("Apply All Auto-Fixes") {
+                viewModel.applyMigration()
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(viewModel.isMigrating || viewModel.migrationComplete)
+
+            if viewModel.migrationComplete {
+                Label("Migration applied!", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            }
+        }
+    }
+
+    private func fullDiff(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
+        DisclosureGroup("Full Diff") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Before")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.red)
+                Text(diff.before.isEmpty ? "(empty)" : diff.before)
+                    .font(.system(.caption, design: .monospaced))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(NSColor.textBackgroundColor))
+                    .clipShape(.rect(cornerRadius: 4))
+
+                Text("After")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.green)
+                Text(diff.after.isEmpty ? "(empty)" : diff.after)
+                    .font(.system(.caption, design: .monospaced))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(NSColor.textBackgroundColor))
+                    .clipShape(.rect(cornerRadius: 4))
+            }
+        }
+    }
+
+    private func planActions(_ plan: MigrationPlan) -> some View {
+        HStack {
+            if !plan.autoApplyableSteps.isEmpty {
+                Button("Preview Changes") {
+                    viewModel.previewChanges()
+                }
+                .buttonStyle(.bordered)
+            }
+
+            if !plan.manualSteps.isEmpty {
+                Text("\(plan.manualSteps.count) manual step(s) require your attention")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+        }
+    }
+
+    private var currentVersionLabel: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Current Version")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if let version = viewModel.currentVersion {
+                Text(version)
+                    .font(.body)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.blue)
+            } else {
+                Text("Auto-detected")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var previousVersionField: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Previous Version")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            TextField("e.g. 0.45.0", text: Bindable(viewModel).previousVersion)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 120)
+                .accessibilityIdentifier("MigrationPreviousVersionField")
+        }
     }
 }

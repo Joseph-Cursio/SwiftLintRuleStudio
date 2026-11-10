@@ -14,8 +14,6 @@ import UserNotifications
 #endif
 
 private struct AppSettingsView: View {
-    @Environment(\.dependencies) var dependencies: DependencyContainer
-
     var body: some View {
         TabView {
             GeneralSettingsView()
@@ -73,17 +71,17 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
             .environment(\.ruleRegistry, dependencies.0)
             .environment(\.dependencies, dependencies.1)
         let hostingView = NSHostingView(rootView: rootView)
-        let window = NSWindow(
+        let testWindow = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 980, height: 700),
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
-        window.title = "SwiftLintRuleStudio"
-        window.contentView = hostingView
-        window.makeKeyAndOrderFront(nil)
+        testWindow.title = "SwiftLintRuleStudio"
+        testWindow.contentView = hostingView
+        testWindow.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
-        self.window = window
+        self.window = testWindow
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool { false }
@@ -117,6 +115,7 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
     nonisolated func userNotificationCenter(
         _: UNUserNotificationCenter,
         willPresent _: UNNotification,
+        // swiftlint:disable:next unneeded_escaping - must match the UNUserNotificationCenterDelegate requirement
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         completionHandler([.banner, .sound])
@@ -125,6 +124,7 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
     nonisolated func userNotificationCenter(
         _: UNUserNotificationCenter,
         didReceive _: UNNotificationResponse,
+        // swiftlint:disable:next unneeded_escaping - must match the UNUserNotificationCenterDelegate requirement
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         Task { @MainActor in
@@ -142,20 +142,22 @@ struct SwiftLintRuleStudioApp: App {
 
 #if os(macOS)
     @NSApplicationDelegateAdaptor(UITestWindowBootstrapper.self)
+    // swiftlint:disable:next unused_declaration - the property wrapper installs the app delegate; nothing reads it
     private var uiTestWindowBootstrapper
 #endif
 
     init() {
         let cacheManager = CacheManager()
         let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
-        let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
+        let registry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let container = DependencyContainer(
-            swiftLintCLI: swiftLintCLI, ruleRegistry: ruleRegistry, cacheManager: cacheManager)
+            swiftLintCLI: swiftLintCLI, ruleRegistry: registry, cacheManager: cacheManager
+        )
 
-        _ruleRegistry = State(initialValue: ruleRegistry)
+        _ruleRegistry = State(initialValue: registry)
         _dependencyContainer = State(initialValue: container)
 #if os(macOS)
-        UITestWindowBootstrapper.dependencies = (ruleRegistry, container)
+        UITestWindowBootstrapper.dependencies = (registry, container)
 #endif
     }
 
@@ -236,7 +238,8 @@ struct SwiftLintRuleStudioApp: App {
 #if os(macOS)
     private func requestNotificationPermission() async {
         _ = try? await UNUserNotificationCenter.current().requestAuthorization(
-            options: [.alert, .sound])
+            options: [.alert, .sound]
+        )
     }
 #endif
 }

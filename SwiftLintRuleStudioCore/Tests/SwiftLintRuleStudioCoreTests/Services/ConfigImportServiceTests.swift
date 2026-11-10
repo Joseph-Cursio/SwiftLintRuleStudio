@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 private final class MockURLConfigFetcher: URLConfigFetcherProtocol, @unchecked Sendable {
@@ -39,14 +38,6 @@ struct ConfigImportServiceTests {
         let configPath = tempDir.appendingPathComponent(".swiftlint.yml")
         try content.write(to: configPath, atomically: true, encoding: .utf8)
         return configPath
-    }
-
-    private func createTempDir() throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("ConfigImportTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        return tempDir.appendingPathComponent(".swiftlint.yml")
     }
 
     private func cleanup(_ path: URL) {

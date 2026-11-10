@@ -153,7 +153,7 @@ struct RuleAuditPipelineTests {
             Self.makeRule("on_by_default"),
             Self.makeRule("turned_off"),
             Self.makeRule("opted_in", isOptIn: true),
-            Self.makeRule("not_opted_in", isOptIn: true)
+            Self.makeRule("not_opted_in", isOptIn: true),
         ]
 
         let (enabled, disabled) = RuleAuditView.partitionRules(rules, config: config)
@@ -235,7 +235,7 @@ struct RuleAuditPipelineTests {
         let rules = [
             Self.makeRule("plain_off"),
             Self.makeRule("opted_in", isOptIn: true),
-            Self.makeRule("analyzed", isAnalyzer: true)
+            Self.makeRule("analyzed", isAnalyzer: true),
         ]
 
         _ = try await RuleAuditView.performAudit(
@@ -294,7 +294,7 @@ struct RuleAuditPipelineTests {
                     violations: [],
                     affectedFiles: ["A.swift"],
                     simulationDuration: 0.2
-                )
+                ),
             ],
             totalDuration: 4.0
         )

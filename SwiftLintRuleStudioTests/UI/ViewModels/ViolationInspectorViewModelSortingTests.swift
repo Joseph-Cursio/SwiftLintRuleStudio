@@ -1,7 +1,6 @@
 import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -29,7 +28,7 @@ struct ViolationInspectorViewModelSortingTests {
                 ruleID: "rule3",
                 filePath: "FileC.swift",
                 line: 15
-            )
+            ),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -69,7 +68,7 @@ struct ViolationInspectorViewModelSortingTests {
                 ruleID: "rule3",
                 filePath: "Test.swift",
                 line: 20
-            )
+            ),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -97,7 +96,7 @@ struct ViolationInspectorViewModelSortingTests {
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .warning),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .error),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .warning)
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .warning),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -126,7 +125,7 @@ struct ViolationInspectorViewModelSortingTests {
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", detectedAt: oldDate),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", detectedAt: newDate),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", detectedAt: oldDate)
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", detectedAt: oldDate),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -157,7 +156,7 @@ struct ViolationInspectorViewModelSortingTests {
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .warning),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .error),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .warning)
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .warning),
         ]
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
@@ -184,7 +183,7 @@ struct ViolationInspectorViewModelSortingTests {
         let newDate = Date.now
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "old", detectedAt: oldDate),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "new", detectedAt: newDate)
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "new", detectedAt: newDate),
         ]
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)
@@ -217,7 +216,7 @@ struct ViolationInspectorViewModelSortingTests {
             ),
             ViolationInspectorViewModelTestHelpers.createTestViolation(
                 ruleID: "rule3", filePath: "Test.swift", line: 20
-            )
+            ),
         ]
         try await mockStorage.storeViolations(violations, for: workspaceId)
         try await viewModel.loadViolations(for: workspaceId)

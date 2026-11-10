@@ -35,18 +35,8 @@ struct SimulationWorkspaceLinkReachTests {
         try FileManager.default.createSymbolicLink(atPath: url.path, withDestinationPath: destination)
     }
 
-    private func loadConfig(at url: URL) throws -> YAMLConfigurationEngine.YAMLConfig {
-        let engine = YAMLConfigurationEngine(configPath: url)
-        try engine.load()
-        return engine.getConfig()
-    }
-
     private func isSymlink(_ url: URL) -> Bool {
         (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true
-    }
-
-    private func resolved(_ url: URL) -> String {
-        url.resolvingSymlinksInPath().path
     }
 
     /// A temp folder holding a workspace and, beside it, a folder outside it.

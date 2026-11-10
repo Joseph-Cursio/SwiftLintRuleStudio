@@ -196,7 +196,6 @@ struct OnboardingViewInteractionTests {
         #expect(didAdvance || hasWorkspace == true,
                 "Should advance to complete step when workspace is selected")
     }
-
 }
 
 // MARK: - ViewInspector Extensions

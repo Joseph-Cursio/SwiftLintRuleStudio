@@ -16,6 +16,7 @@ extension UnmeasurableReason {
         case .analyzerRule:
             "This is an analyzer rule, which SwiftLint runs only under swiftlint analyze, "
                 + "so it isn't checked in this app. You can still add it to your configuration."
+
         case .sourceKitUnavailable:
             "This rule depends on SourceKit, so it isn't checked in this "
                 + "app. You can still add it to your configuration."
@@ -30,6 +31,7 @@ extension UnmeasurableReason {
                 + "analyzer rules only under swiftlint analyze, which needs the compiler "
                 + "arguments of a full build. You can still add it to your configuration "
                 + "and run swiftlint analyze yourself."
+
         case .sourceKitUnavailable:
             "This rule depends on SourceKit, so it isn't checked in this "
                 + "app. You can still add it to your configuration. SwiftLint "

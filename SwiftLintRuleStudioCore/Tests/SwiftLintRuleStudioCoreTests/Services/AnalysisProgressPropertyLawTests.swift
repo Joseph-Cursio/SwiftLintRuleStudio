@@ -10,7 +10,6 @@
 //  within its total, and 0.0 when the total is unknown or zero.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing

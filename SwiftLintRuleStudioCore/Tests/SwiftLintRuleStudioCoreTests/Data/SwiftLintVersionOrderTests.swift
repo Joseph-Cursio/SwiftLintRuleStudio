@@ -6,7 +6,6 @@
 //  order; these check it is the right one.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

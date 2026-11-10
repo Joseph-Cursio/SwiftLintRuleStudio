@@ -24,15 +24,6 @@ struct SwiftLintCLICachingTests {
         return (CacheManager(cacheDirectory: tempDir), tempDir)
     }
 
-    // Helper to create mock SwiftLint CLI that simulates version
-    private func createMockCLIWithVersion(
-        _: String, cacheManager _: CacheManagerProtocol
-    ) -> MockSwiftLintCLIActor {
-        // Override getVersion to return specific version
-        // Note: This requires modifying MockSwiftLintCLIActor or using a different approach
-        MockSwiftLintCLIActor()
-    }
-
     @Test("generateDocsForRule saves version to cache after generation")
     func testVersionCachingAfterGeneration() throws {
         // This test would require actual SwiftLint installation

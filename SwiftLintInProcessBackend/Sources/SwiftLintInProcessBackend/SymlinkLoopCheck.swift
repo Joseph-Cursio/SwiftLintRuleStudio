@@ -93,7 +93,7 @@ enum SymlinkLoopCheck {
         private static let keys: Set<URLResourceKey> = [.isRegularFileKey, .isSymbolicLinkKey]
         private static let options: FileManager.DirectoryEnumerationOptions = [
             .skipsPackageDescendants,
-            .skipsSubdirectoryDescendants
+            .skipsSubdirectoryDescendants,
         ]
 
         let matchers: [FilenameMatcher]

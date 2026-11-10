@@ -44,9 +44,9 @@ public extension WorkspaceAnalyzer {
     /// Returns the effective config file path, falling back to the workspace default
     func resolveConfigPath(_ configPath: URL?, workspace: Workspace) -> URL? {
         let configPathToUse = configPath ?? workspace.configPath
-        if let configPath = configPathToUse,
-           FileManager.default.fileExists(atPath: configPath.path) {
-            return configPath
+        if let existingPath = configPathToUse,
+           FileManager.default.fileExists(atPath: existingPath.path) {
+            return existingPath
         }
         return nil
     }
@@ -282,7 +282,7 @@ public extension WorkspaceAnalyzer {
 
     /// Computes a SHA-256 hash of the config file for change detection
     func calculateConfigHash(configPath: URL?) throws -> String? {
-        guard let configPath = configPath,
+        guard let configPath,
               FileManager.default.fileExists(atPath: configPath.path) else {
             return nil
         }

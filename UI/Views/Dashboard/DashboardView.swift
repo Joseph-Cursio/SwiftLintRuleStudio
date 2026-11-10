@@ -6,7 +6,6 @@
 //  configuration health report.
 //
 
-import Combine
 import SwiftLintRuleStudioCore
 import SwiftUI
 
@@ -58,15 +57,6 @@ struct DashboardView: View {
         )
     }
 
-    /// Fires when an analysis finishes, wherever it was started from.
-    private var analysisFinished: AnyPublisher<Bool, Never> {
-        dependencies.workspaceAnalyzer.isAnalyzingPublisher
-            .removeDuplicates()
-            .dropFirst()
-            .filter { !$0 }
-            .eraseToAnyPublisher()
-    }
-
     var body: some View {
         content
             .navigationTitle("Dashboard")
@@ -85,7 +75,7 @@ struct DashboardView: View {
             .onReceive(NotificationCenter.default.publisher(for: .ruleConfigurationDidChange)) { _ in
                 Task { await reload() }
             }
-            .onReceive(analysisFinished) { _ in
+            .onReceive(dependencies.workspaceAnalyzer.analysisFinishedPublisher) {
                 Task { await reload() }
             }
     }

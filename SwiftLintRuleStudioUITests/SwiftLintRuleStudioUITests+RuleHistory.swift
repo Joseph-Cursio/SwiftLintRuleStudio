@@ -93,14 +93,22 @@ extension SwiftLintRuleStudioUITests {
 
         // The check runs on appear. if_let_shadowing is deprecated and renamed;
         // unused_capture_list is removed. The two live rules are no issue at all.
-        XCTAssertTrue(text(in: report, "3 issues found").waitForExistence(timeout: 30),
-                      "Version Check should find exactly three issues")
-        XCTAssertTrue(text(in: report, "unused_capture_list").exists,
-                      "unused_capture_list should be reported")
-        XCTAssertTrue(text(in: report, "Removed in 0.58.0").exists,
-                      "unused_capture_list was removed in 0.58.0")
-        XCTAssertTrue(text(in: report, "Use: shorthand_optional_binding").exists,
-                      "if_let_shadowing should point at shorthand_optional_binding")
+        XCTAssertTrue(
+            text(in: report, "3 issues found").waitForExistence(timeout: 30),
+            "Version Check should find exactly three issues"
+        )
+        XCTAssertTrue(
+            text(in: report, "unused_capture_list").exists,
+            "unused_capture_list should be reported"
+        )
+        XCTAssertTrue(
+            text(in: report, "Removed in 0.58.0").exists,
+            "unused_capture_list was removed in 0.58.0"
+        )
+        XCTAssertTrue(
+            text(in: report, "Use: shorthand_optional_binding").exists,
+            "if_let_shadowing should point at shorthand_optional_binding"
+        )
 
         let fixButtons = report.buttons.matching(NSPredicate(format: "label == %@ OR title == %@", "Fix", "Fix"))
         XCTAssertEqual(fixButtons.count, 1, "Only if_let_shadowing should be offered as a rename")
@@ -108,8 +116,10 @@ extension SwiftLintRuleStudioUITests {
         let wrong = [
             "multiple_closures_with_trailing_closure", "generic_type_name", "trailing_closure", "unused_closure_use"
         ]
-        XCTAssertEqual(texts(in: report, matching: wrong).count, 0,
-                       "No live rule, or rule that never existed, should be reported")
+        XCTAssertEqual(
+            texts(in: report, matching: wrong).count, 0,
+            "No live rule, or rule that never existed, should be reported"
+        )
 
         // The new rules are sorted, and the grid is three wide: anyobject_protocol would sit
         // beside async_without_await, and opaque_over_existential beside
@@ -141,8 +151,10 @@ extension SwiftLintRuleStudioUITests {
 
         let detect = findElement(in: window, identifier: "MigrationDetectButton")
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: detect)
-        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed,
-                       "Detect Migrations should enable once a version is entered")
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [enabled], timeout: 5), .completed,
+            "Detect Migrations should enable once a version is entered"
+        )
         detect.click()
 
         let migration = scrollView(in: window, showing: "Version Migration")
@@ -163,7 +175,7 @@ extension SwiftLintRuleStudioUITests {
         // note must not offer it.
         let unmentioned = [
             "multiple_closures_with_trailing_closure", "generic_type_name", "unused_closure_use",
-            "opaque_over_existential"
+            "opaque_over_existential",
         ]
         for rule in unmentioned {
             XCTAssertEqual(texts(in: migration, containing: rule).count, 0, "The plan should not mention \(rule)")

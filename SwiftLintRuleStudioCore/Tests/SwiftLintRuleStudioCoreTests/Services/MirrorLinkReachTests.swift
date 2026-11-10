@@ -5,7 +5,6 @@
 //  Which links SwiftLint can reach on the way to an `included` entry, and where it walks.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

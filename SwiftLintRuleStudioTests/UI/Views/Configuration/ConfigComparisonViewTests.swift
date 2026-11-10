@@ -8,9 +8,9 @@
 //  ("Left Config" / "Right Config") render.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 

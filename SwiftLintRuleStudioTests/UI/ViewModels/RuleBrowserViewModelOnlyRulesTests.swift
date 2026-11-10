@@ -11,7 +11,6 @@ import Foundation
 import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -28,7 +27,7 @@ struct RuleBrowserViewModelOnlyRulesTests {
             Rule(
                 id: "unused_declaration", name: "Unused Declaration", description: "",
                 category: .lint, isOptIn: true, isAnalyzer: true
-            )
+            ),
         ])
         return RuleBrowserViewModel(ruleRegistry: registry)
     }

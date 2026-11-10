@@ -1,4 +1,3 @@
-import Foundation
 @testable import SwiftLintInProcessBackend
 import SwiftLintRuleStudioCore
 import Testing
@@ -15,7 +14,7 @@ struct RulePresetDataTests {
     func presetsNameOnlyCurrentRules() {
         let liveRules = Set(
             // A key path to a static member through `any Rule.Type` crashes the Swift 6.4 compiler.
-            // swiftlint:disable:next prefer_key_path
+            // swiftlint:disable:next prefer_key_path - a key path here crashes the compiler
             SwiftLintInProcessActor.sortedRules().map { $0.description.identifier }
         )
         for preset in RulePresets.allPresets {

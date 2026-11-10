@@ -19,10 +19,13 @@ public enum XcodeIntegrationError: LocalizedError, Sendable {
         switch self {
         case .fileNotFound(let path):
             return "File not found: \(path)"
+
         case .invalidPath(let path):
             return "Invalid file path: \(path)"
+
         case .xcodeNotInstalled:
             return "Xcode is not installed"
+
         case .failedToOpen:
             return "Failed to open file in Xcode"
         }
@@ -184,7 +187,7 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
         }
 
         // Cache the result
-        if let selected = selected {
+        if let selected {
             projectCache[workspace.path] = selected
         }
 
@@ -251,9 +254,9 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
         let pathString = fileURL.path
         var queryItems = [
             URLQueryItem(name: "path", value: pathString),
-            URLQueryItem(name: "line", value: "\(line)")
+            URLQueryItem(name: "line", value: "\(line)"),
         ]
-        if let column = column {
+        if let column {
             queryItems.append(URLQueryItem(name: "column", value: "\(column)"))
         }
         components.queryItems = queryItems

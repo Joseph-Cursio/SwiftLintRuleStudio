@@ -35,10 +35,10 @@ struct ViolationInspectorViewInteractionTests {
             filePath: filePath,
             line: line,
             severity: severity,
-            message: message
-        ,
+            message: message,
             id: id,
-            column: column)
+            column: column
+        )
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views
@@ -62,7 +62,7 @@ struct ViolationInspectorViewInteractionTests {
         let container = DependencyContainer.createForTesting()
 
         // Set up workspace if provided
-        if let workspace = workspace {
+        if let workspace {
             try? container.workspaceManager.openWorkspace(at: workspace.path)
         }
 
@@ -70,23 +70,6 @@ struct ViolationInspectorViewInteractionTests {
             .environment(\.dependencies, container)
 
         return ViewResult(view: view, container: container)
-    }
-
-    private func waitForText(
-        in view: AnyView,
-        text: String,
-        timeoutSeconds: TimeInterval = 1.0
-    ) async -> Bool {
-        @MainActor
-        struct ViewWrapper: @unchecked Sendable {
-            let view: AnyView
-        }
-        let wrapper = ViewWrapper(view: view)
-        return await UIAsyncTestHelpers.waitForText(
-            in: wrapper.view,
-            text: text,
-            timeout: timeoutSeconds
-        )
     }
 
     private func waitForSearchFieldInput(
@@ -131,7 +114,7 @@ struct ViolationInspectorViewInteractionTests {
     func testSearchFiltersByRuleID() async throws {
         _ = [
             makeTestViolation(ruleID: "force_cast", message: "Force cast violation"),
-            makeTestViolation(ruleID: "unused_import", message: "Unused import violation")
+            makeTestViolation(ruleID: "unused_import", message: "Unused import violation"),
         ]
 
         // Create view with violations loaded in view model
@@ -246,7 +229,7 @@ struct ViolationInspectorViewInteractionTests {
                 let text = try? button.labelView().find(ViewType.Text.self).string()
                 return text == "Clear"
             }
-            if let clearButton = clearButton {
+            if let clearButton {
                 try clearButton.tap()
             }
 
@@ -332,7 +315,7 @@ struct ViolationInspectorViewInteractionTests {
             // Find clear filters button in empty state
             let clearText = try? result.view.inspect().find(text: "Clear Filters")
             let clearButton = try? clearText?.parent().find(ViewType.Button.self)
-            if let clearButton = clearButton {
+            if let clearButton {
                 try clearButton.tap()
                 return true
             }

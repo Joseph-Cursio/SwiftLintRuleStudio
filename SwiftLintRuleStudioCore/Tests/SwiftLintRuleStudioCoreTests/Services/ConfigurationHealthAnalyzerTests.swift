@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -54,7 +53,7 @@ struct ConfigurationHealthAnalyzerTests {
             "first_where",
             "sorted_first_last",
             "empty_count",
-            "reduce_into"
+            "reduce_into",
         ]
 
         let rules = [
@@ -64,7 +63,7 @@ struct ConfigurationHealthAnalyzerTests {
             createRule(id: "first_where", category: .performance, isOptIn: true),
             createRule(id: "sorted_first_last", category: .performance, isOptIn: true),
             createRule(id: "empty_count", category: .performance, isOptIn: true),
-            createRule(id: "reduce_into", category: .performance, isOptIn: true)
+            createRule(id: "reduce_into", category: .performance, isOptIn: true),
         ]
 
         let report = analyzer.analyze(config: config, knownRules: rules)
@@ -80,14 +79,14 @@ struct ConfigurationHealthAnalyzerTests {
         config.disabledRules = [
             "force_cast",
             "line_length",
-            "trailing_whitespace"
+            "trailing_whitespace",
         ]
 
         let rules = [
             createRule(id: "force_cast", category: .lint),
             createRule(id: "line_length", category: .metrics),
             createRule(id: "trailing_whitespace", category: .style),
-            createRule(id: "first_where", category: .performance, isOptIn: true)
+            createRule(id: "first_where", category: .performance, isOptIn: true),
         ]
 
         let report = analyzer.analyze(config: config, knownRules: rules)
@@ -176,7 +175,7 @@ struct ConfigurationHealthAnalyzerTests {
         let rules = [
             createRule(id: "force_cast"),
             createRule(id: "line_length"),
-            createRule(id: "first_where", isOptIn: true)
+            createRule(id: "first_where", isOptIn: true),
         ]
 
         let report = analyzer.analyze(config: config, knownRules: rules)
@@ -192,7 +191,7 @@ struct ConfigurationHealthAnalyzerTests {
 
         let rules = [
             createRule(id: "force_cast"),
-            createRule(id: "first_where", isOptIn: true)
+            createRule(id: "first_where", isOptIn: true),
         ]
 
         let report = analyzer.analyze(config: config, knownRules: rules)
@@ -266,7 +265,7 @@ struct ConfigurationHealthAnalyzerTests {
         let config1 = YAMLConfigurationEngine.YAMLConfig()
         let rules1 = [
             createRule(id: "rule1", category: .style),
-            createRule(id: "rule2", category: .style)
+            createRule(id: "rule2", category: .style),
         ]
         let report1 = analyzer.analyze(config: config1, knownRules: rules1)
 
@@ -277,7 +276,7 @@ struct ConfigurationHealthAnalyzerTests {
             createRule(id: "rule2", category: .lint),
             createRule(id: "rule3", category: .metrics),
             createRule(id: "rule4", category: .performance),
-            createRule(id: "rule5", category: .idiomatic)
+            createRule(id: "rule5", category: .idiomatic),
         ]
         let report2 = analyzer.analyze(config: config2, knownRules: rules2)
 

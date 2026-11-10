@@ -1,5 +1,4 @@
 import LintStudioCore
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 extension RuleDetailView {
@@ -13,7 +12,7 @@ extension RuleDetailView {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
 
             // Skip the main title (we already show it in the header)
-            if index == 0 && isMainTitle(trimmed) {
+            if index == 0, isMainTitle(trimmed) {
                 continue
             }
 
@@ -68,7 +67,7 @@ extension RuleDetailView {
 
     private static let htmlTableTags = [
         "<thead>", "</thead>", "<tbody>", "</tbody>",
-        "<tr>", "</tr>", "<th>", "</th>", "<td>", "</td>"
+        "<tr>", "</tr>", "<th>", "</th>", "<td>", "</td>",
     ]
 
     private func handleTableLine(_ trimmed: String) -> TableAction {
@@ -114,7 +113,7 @@ extension RuleDetailView {
             // blank lines after a paragraph becomes "<br><br>" (one empty line). After a
             // heading or other block it stays a single "<br>", and blank lines before any
             // content, or at the end, add nothing. Blank lines inside code are kept as-is.
-            if !inCodeBlock && line.trimmingCharacters(in: .whitespaces).isEmpty {
+            if !inCodeBlock, line.trimmingCharacters(in: .whitespaces).isEmpty {
                 hasPendingBlankLines = true
                 continue
             }

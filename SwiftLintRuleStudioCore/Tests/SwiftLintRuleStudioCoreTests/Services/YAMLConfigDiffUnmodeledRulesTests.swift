@@ -6,7 +6,6 @@
 //  changes, and SwiftLint's own top-level options are not taken for rules.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 
@@ -25,7 +24,7 @@ struct YAMLConfigDiffUnmodeledRulesTests {
     @Test("Renaming, removing or changing a severity-shorthand rule is a change", arguments: [
         ("redundant_self_in_closure: error\n", "redundant_self: error\n"),
         ("inert_defer: warning\nline_length: 120\n", "line_length: 120\n"),
-        ("redundant_self: error\n", "redundant_self: warning\n")
+        ("redundant_self: error\n", "redundant_self: warning\n"),
     ])
     func severityShorthandChanges(before: String, after: String) throws {
         #expect(try Self.diff(before, after).hasChanges)
@@ -44,7 +43,7 @@ struct YAMLConfigDiffUnmodeledRulesTests {
         ("enabled_rules", "enabled_rules:\n  - empty_count\n"),
         ("indentation", "indentation: 4\n"),
         ("warning_threshold", "warning_threshold: 3\n"),
-        ("custom_rules", "custom_rules:\n  todo_ticket:\n    regex: x\n")
+        ("custom_rules", "custom_rules:\n  todo_ticket:\n    regex: x\n"),
     ])
     func optionsAreNotRules(key: String, yaml: String) throws {
         let config = try YAMLConfigurationEngine.parse(yaml)

@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 /// A lightweight `RuleRegistryProtocol` stub — possible only because
@@ -30,12 +29,12 @@ private final class StubRuleRegistry: RuleRegistryProtocol {
         }
     }
 
-    // `async` satisfies the protocol requirement; these stubs return synchronously.
-    // swiftlint:disable:next async_without_await
-    func loadRules() async throws -> [Rule] { rules }
+    // Synchronous witnesses satisfy the protocol's async requirements; these stubs await nothing.
+    func loadRules() throws -> [Rule] { rules }
     func getRule(id: String) -> Rule? { rules.first { $0.id == id } }
-    // swiftlint:disable:next async_without_await
-    func refreshRules() async throws {}
+    func refreshRules() throws {
+        // The stub ignores this call.
+    }
 }
 
 @MainActor

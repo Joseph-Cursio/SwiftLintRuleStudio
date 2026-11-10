@@ -30,10 +30,13 @@ public class OnboardingManager {
             switch self {
             case .welcome:
                 return .swiftLintCheck
+
             case .swiftLintCheck:
                 return .workspaceSelection
+
             case .workspaceSelection:
                 return .complete
+
             case .complete:
                 return nil
             }
@@ -43,10 +46,13 @@ public class OnboardingManager {
             switch self {
             case .welcome:
                 return nil
+
             case .swiftLintCheck:
                 return .welcome
+
             case .workspaceSelection:
                 return .swiftLintCheck
+
             case .complete:
                 return .workspaceSelection
             }

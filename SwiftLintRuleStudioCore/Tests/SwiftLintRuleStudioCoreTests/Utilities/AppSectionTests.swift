@@ -5,7 +5,6 @@
 //  Every section is offered, and every section is named.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

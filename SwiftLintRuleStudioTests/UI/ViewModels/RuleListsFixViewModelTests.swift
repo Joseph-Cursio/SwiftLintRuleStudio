@@ -8,7 +8,6 @@
 import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // Serialized: two tests watch for the repair's announcement, which the other would post.

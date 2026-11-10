@@ -17,7 +17,7 @@ struct ViolationStorageTransactionTests {
         let workspaceId = UUID()
         let original = [
             ViolationStorageTestHelpers.createTestViolation(ruleID: "rule1"),
-            ViolationStorageTestHelpers.createTestViolation(ruleID: "rule2")
+            ViolationStorageTestHelpers.createTestViolation(ruleID: "rule2"),
         ]
         try await storage.storeViolations(original, for: workspaceId)
 
