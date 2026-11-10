@@ -16,7 +16,8 @@ excluded:
   - SwiftLintInProcessBackend/.build
   - SwiftLintRuleStudioCore/.swiftpm
   - SwiftLintInProcessBackend/.swiftpm
-  # swift-infer's transient verify work dir and its generated regression tests
-  # are machine output, not hand-written source.
+  # swift-infer's transient verify work dir and the tests it generates
+  # ("Auto-generated ... do not edit") are machine output, not hand-written source.
   - SwiftLintRuleStudioCore/.swiftinfer
   - SwiftLintRuleStudioCore/Tests/Generated
+  - SwiftLintRuleStudioCore/Tests/SwiftLintRuleStudioCoreTests/Generated
