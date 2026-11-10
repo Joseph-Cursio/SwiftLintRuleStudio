@@ -13,12 +13,9 @@ final class SwiftLintRuleStudioUITestsLaunchTests: XCTestCase {
         true
     }
 
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-    }
-
     @MainActor
     func testLaunch() throws {
+        continueAfterFailure = false
         let app = XCUIApplication()
         app.launch()
 
