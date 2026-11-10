@@ -111,4 +111,28 @@ struct CancellableSwiftLintRunTests {
             )
         }
     }
+
+    /// What a run of the shell `script` fails with: `notFound`, or the execution failure's message.
+    private func failure(of script: String) async throws -> String? {
+        do {
+            _ = try await CancellableSwiftLintRun.run(
+                binary: URL(fileURLWithPath: "/bin/sh"),
+                arguments: ["-c", script],
+                workingDirectory: FileManager.default.temporaryDirectory,
+                timeoutSeconds: 60
+            )
+            return nil
+        } catch SwiftLintError.notFound {
+            return "notFound"
+        } catch SwiftLintError.executionFailed(let message) {
+            return message
+        }
+    }
+
+    @Test("A failure says why: not found for exit code 127, else what the process wrote to stderr, else the code")
+    func failureSaysWhy() async throws {
+        #expect(try await failure(of: "exit 127") == "notFound")
+        #expect(try await failure(of: "echo ' no such rule ' >&2; exit 1") == "swiftlint failed: no such rule")
+        #expect(try await failure(of: "exit 3") == "exit code 3")
+    }
 }

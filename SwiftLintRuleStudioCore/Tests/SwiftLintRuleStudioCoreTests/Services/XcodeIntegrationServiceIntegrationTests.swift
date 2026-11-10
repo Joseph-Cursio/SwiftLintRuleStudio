@@ -104,6 +104,25 @@ struct XcodeIntegrationServiceIntegrationTests {
         }
     }
 
+    @Test("Finds the project in a folder above the file's own")
+    func testProjectAboveFile() async throws {
+        let workspace = try WorkspaceTestHelpers.createXcodeProjectWorkspace()
+        defer { WorkspaceTestHelpers.cleanupWorkspace(workspace) }
+
+        let deepFile = workspace.appendingPathComponent("Sources/Feature/DeepFile.swift")
+        try FileManager.default.createDirectory(
+            at: deepFile.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try "// Deep file".write(to: deepFile, atomically: true, encoding: .utf8)
+        let workspaceModel = await MainActor.run { Workspace(path: workspace) }
+
+        try await withService { service, _ in
+            let projectURL = service.findXcodeProject(for: deepFile, in: workspaceModel)
+            #expect(projectURL?.lastPathComponent == "TestProject.xcodeproj")
+        }
+    }
+
     @Test("Handles workspace with multiple projects")
     func testMultipleProjectsInWorkspace() async throws {
         let workspace = try WorkspaceTestHelpers.createXcodeProjectWorkspace()

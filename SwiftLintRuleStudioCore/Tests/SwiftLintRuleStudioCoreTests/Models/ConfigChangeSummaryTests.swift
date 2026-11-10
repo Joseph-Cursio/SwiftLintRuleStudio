@@ -191,8 +191,9 @@ struct ConfigChangeSummaryTests {
         #expect(changes.otherChanges.isEmpty)
     }
 
-    @Test("Renamed rules and the old enabled_rules key count as the same thing", arguments: [
+    @Test("Renamed rules, their settings and the old enabled_rules key count as the same thing", arguments: [
         ("disabled_rules:\n  - variable_name\n", "disabled_rules:\n  - identifier_name\n"),
+        ("variable_name:\n  min_length: 2\n", "identifier_name:\n  min_length: 2\n"),
         ("enabled_rules:\n  - empty_count\n", "opt_in_rules:\n  - empty_count\n"),
     ])
     func deprecatedNames(before: String, after: String) throws {
@@ -205,6 +206,17 @@ struct ConfigChangeSummaryTests {
 
         #expect(changes.turnedOn.isEmpty && changes.turnedOff.isEmpty)
         #expect(changes.otherChanges == ["opt_in_rules: all — every opt-in rule runs now"])
+    }
+
+    @Test("all under analyzer_rules gets a note when it's added and when it's taken away")
+    func allAnalyzerRules() throws {
+        let named = "analyzer_rules:\n  - unused_import\n"
+        let all = "analyzer_rules:\n  - all\n"
+
+        #expect(try summary(named, all).otherChanges == ["analyzer_rules: all — every analyzer rule runs now"])
+        #expect(try summary(all, named).otherChanges == [
+            "analyzer_rules no longer lists all: only the analyzer rules it names run"
+        ])
     }
 
     @Test("The rule catalog settles whether a rule is opt-in")

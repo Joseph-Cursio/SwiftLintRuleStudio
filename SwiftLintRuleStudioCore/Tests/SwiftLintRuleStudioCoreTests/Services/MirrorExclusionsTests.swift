@@ -84,4 +84,26 @@ struct MirrorExclusionsTests {
         #expect(!exclusions.excludes("/ws/A.swift/B.swift"))
         #expect(!MirrorExclusions(patterns: []).excludes("/ws/A.swift"))
     }
+
+    @Test("a ] straight after [ or [! is one of the set's characters, as in fnmatch")
+    func closingBracketFirst() {
+        #expect(MirrorExclusions(patterns: ["/ws/x[]a]"]).excludes("/ws/x]"))
+        #expect(MirrorExclusions(patterns: ["/ws/x[]a]"]).excludes("/ws/xa"))
+        #expect(MirrorExclusions(patterns: ["/ws/x[!]a]"]).excludes("/ws/xb"))
+        #expect(!MirrorExclusions(patterns: ["/ws/x[!]a]"]).excludes("/ws/x]"))
+    }
+
+    @Test("a [ or [! that ends the pattern is literal")
+    func openBracketAtTheEnd() {
+        #expect(MirrorExclusions(patterns: ["/ws/x["]).excludes("/ws/x["))
+        #expect(MirrorExclusions(patterns: ["/ws/x[!"]).excludes("/ws/x[!"))
+    }
+
+    @Test("a backwards range drops out of its set and leaves the rest, and a - at either end is literal")
+    func rangeEdges() {
+        #expect(MirrorExclusions(patterns: ["/ws/[c-ab]x"]).excludes("/ws/bx"))
+        #expect(!MirrorExclusions(patterns: ["/ws/[c-ab]x"]).excludes("/ws/ax"))
+        #expect(MirrorExclusions(patterns: ["/ws/[a-]x"]).excludes("/ws/-x"))
+        #expect(MirrorExclusions(patterns: ["/ws/[-a]x"]).excludes("/ws/-x"))
+    }
 }

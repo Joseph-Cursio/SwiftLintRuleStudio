@@ -238,4 +238,21 @@ public struct Rule: Identifiable, Codable, Hashable, Sendable {
     public func isUnavailableForLinting(capabilities: Set<AppCapability>) -> Bool {
         usesSourceKit && !capabilities.contains(.sourceKitRules)
     }
+
+    /// Why this app never reports this rule's violations, or nil when its linting does.
+    ///
+    /// Two kinds of rule lint clean here whatever the code holds: an analyzer rule, which
+    /// only `swiftlint analyze` runs, in every edition; and a SourceKit rule in an edition
+    /// without SourceKit (see ``isUnavailableForLinting(capabilities:)``). Either can still be
+    /// written to `.swiftlint.yml`; the reason lets the UI say why this app won't check it.
+    /// Analyzer comes first, as in the impact simulator, since it holds in every edition.
+    public func notLintedReason(capabilities: Set<AppCapability>) -> UnmeasurableReason? {
+        if isAnalyzer {
+            return .analyzerRule
+        }
+        if isUnavailableForLinting(capabilities: capabilities) {
+            return .sourceKitUnavailable
+        }
+        return nil
+    }
 }

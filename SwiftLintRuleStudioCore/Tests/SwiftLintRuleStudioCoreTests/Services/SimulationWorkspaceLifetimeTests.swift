@@ -132,6 +132,23 @@ struct SimulationWorkspaceLifetimeTests {
         #expect(!FileManager.default.fileExists(atPath: liveContainer.path))
     }
 
+    @Test("cleaning up in the background removes the mirror")
+    func cleanupInBackgroundRemovesTheMirror() async throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.base) }
+        let shadow = try mirror(fixture)
+        let container = shadow.root.deletingLastPathComponent()
+
+        shadow.cleanupInBackground()
+
+        // The removal runs detached, off the main actor.
+        let deadline = Date().addingTimeInterval(5)
+        while FileManager.default.fileExists(atPath: container.path), Date() < deadline {
+            try await Task.sleep(for: .milliseconds(25))
+        }
+        #expect(!FileManager.default.fileExists(atPath: container.path))
+    }
+
     // MARK: - The bound
 
     @Test("with nothing excluded, the bound counts what a link toward an included entry would copy")

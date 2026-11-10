@@ -20,8 +20,8 @@ struct MirrorScopeTests {
         let workspace: URL
     }
 
-    private func makeLayout(config: String) throws -> Layout {
-        let base = FileManager.default.temporaryDirectory
+    private func makeLayout(config: String, in parent: URL = FileManager.default.temporaryDirectory) throws -> Layout {
+        let base = parent
             .appendingPathComponent("MirrorScopeTests-\(UUID().uuidString)", isDirectory: true)
         let layout = Layout(base: base, workspace: base.appendingPathComponent("ws", isDirectory: true))
         try write(config, to: layout.workspace.appendingPathComponent(".swiftlint.yml"))
@@ -154,12 +154,16 @@ struct MirrorScopeTests {
     @Test("a package opened alone, pulling in its repository's config, is mirrored with the lint root deeper")
     func monorepoPackage() throws {
         // `<base>/ws` stands for `mono/Packages/Core`: the container stands for `<base>`'s parent.
-        let layout = try makeLayout(config: "parent_config: ../../.swiftlint.yml\nincluded:\n  - Sources\n  - ../Lib\n")
-        defer { try? FileManager.default.removeItem(at: layout.base) }
-        let mono = layout.base.deletingLastPathComponent()
-        let repoConfig = mono.appendingPathComponent(".swiftlint.yml")
-        try write("line_length: 100\n", to: repoConfig)
-        defer { try? FileManager.default.removeItem(at: repoConfig) }
+        // That is a folder of its own: a config in the temp folder would be above every mirror
+        // the other tests make there, and fail them while this one runs.
+        let mono = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MirrorScopeTests-mono-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: mono) }
+        let layout = try makeLayout(
+            config: "parent_config: ../../.swiftlint.yml\nincluded:\n  - Sources\n  - ../Lib\n",
+            in: mono
+        )
+        try write("line_length: 100\n", to: mono.appendingPathComponent(".swiftlint.yml"))
 
         let scope = try scope(of: layout)
 

@@ -108,6 +108,15 @@ struct YAMLConfigEngineKeyOrderTests {
         )
     }
 
+    @Test("opt_in_rules takes the place of the enabled_rules it was read from, and the other keys keep theirs")
+    func enabledRulesKeepsItsPlace() throws {
+        let config = try YAMLConfigurationEngine.parse(
+            "excluded:\n  - Pods\nenabled_rules:\n  - empty_count\nreporter: xcode\n"
+        )
+
+        #expect(config.keyOrder == ["excluded", "opt_in_rules", "reporter"])
+    }
+
     /// Extract the top-level YAML keys from raw content in their original order.
     /// A "top-level key" is one on a line with no leading whitespace, not a comment,
     /// not a list item, and containing a colon.

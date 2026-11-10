@@ -103,6 +103,13 @@ struct RuleTests {
         }
     }
 
+    @Test("AnyCodable keeps a string in a list or block apart from the number it spells")
+    func testAnyCodableNestedStringsKeepTheirType() {
+        #expect(AnyCodable(["1"]) != AnyCodable([1]))
+        #expect(AnyCodable(["warning": "1"]) != AnyCodable(["warning": 1]))
+        #expect(AnyCodable(["warning": "1", "error": "2"]) == AnyCodable(["error": "2", "warning": "1"]))
+    }
+
     // MARK: - Edition availability (isUnavailableForLinting)
 
     private func makeRule(usesSourceKit: Bool) -> Rule {
@@ -136,6 +143,48 @@ struct RuleTests {
         let rule = makeRule(usesSourceKit: false)
         #expect(rule.isUnavailableForLinting(capabilities: []) == false)
         #expect(rule.isUnavailableForLinting(capabilities: Set(AppCapability.allCases)) == false)
+    }
+
+    // MARK: - Why the app doesn't lint a rule (notLintedReason)
+
+    private func makeRule(isAnalyzer: Bool, usesSourceKit: Bool) -> Rule {
+        Rule(
+            id: "some_rule",
+            name: "Some Rule",
+            description: "",
+            category: .lint,
+            isOptIn: false,
+            isAnalyzer: isAnalyzer,
+            usesSourceKit: usesSourceKit
+        )
+    }
+
+    @Test("An analyzer rule is never linted, in either edition")
+    func testAnalyzerRuleIsNotLinted() {
+        let rule = makeRule(isAnalyzer: true, usesSourceKit: false)
+        #expect(rule.notLintedReason(capabilities: Set(AppCapability.allCases)) == .analyzerRule)
+        #expect(rule.notLintedReason(capabilities: []) == .analyzerRule)
+    }
+
+    @Test("An analyzer rule that also uses SourceKit is reported as an analyzer rule")
+    func testAnalyzerReasonWinsOverSourceKit() {
+        // Analyzer holds in every edition, so it's the reason even where SourceKit can't load.
+        let rule = makeRule(isAnalyzer: true, usesSourceKit: true)
+        #expect(rule.notLintedReason(capabilities: []) == .analyzerRule)
+    }
+
+    @Test("A SourceKit rule is not linted only where SourceKit can't load")
+    func testSourceKitRuleNotLintedWithoutCapability() {
+        let rule = makeRule(isAnalyzer: false, usesSourceKit: true)
+        #expect(rule.notLintedReason(capabilities: []) == .sourceKitUnavailable)
+        #expect(rule.notLintedReason(capabilities: [.sourceKitRules]) == nil)
+    }
+
+    @Test("A plain rule is always linted")
+    func testPlainRuleIsLinted() {
+        let rule = makeRule(isAnalyzer: false, usesSourceKit: false)
+        #expect(rule.notLintedReason(capabilities: []) == nil)
+        #expect(rule.notLintedReason(capabilities: Set(AppCapability.allCases)) == nil)
     }
 
     @Test("usesSourceKit defaults to false")

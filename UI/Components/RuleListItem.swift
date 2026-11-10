@@ -13,8 +13,8 @@ struct RuleListItem: View {
     let rule: Rule
     @Environment(\.appCapabilities) private var capabilities: Set<AppCapability>
 
-    private var isUnavailable: Bool {
-        rule.isUnavailableForLinting(capabilities: capabilities)
+    private var notLintedReason: UnmeasurableReason? {
+        rule.notLintedReason(capabilities: capabilities)
     }
 
     var body: some View {
@@ -75,12 +75,12 @@ struct RuleListItem: View {
                     .help("SwiftLint runs this rule only when a configuration enables it")
             }
 
-            if isUnavailable {
+            if let notLintedReason {
                 Label("Not checked in this app", systemImage: "nosign")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .help("This rule depends on SourceKit, so it isn't checked in this "
-                        + "app. You can still add it to your configuration.")
+                    .help(notLintedReason.notCheckedHelp)
+                    .accessibilityIdentifier("RuleNotCheckedTag")
             }
         }
     }

@@ -115,6 +115,15 @@ struct ConfigBackupStoreTests {
         #expect(fixture.store.backups(for: fixture.config).map(\.timestamp) == [at(1_712_345_678)])
     }
 
+    @Test("only ten digits of seconds make a backup's name the app's, not a sign, a letter or an exponent")
+    func backupNamesTakeOnlyDigits() {
+        let name = ".swiftlint.yml"
+        #expect(ConfigBackupStore.backupTimestamp("\(name).1700000000.backup", of: name) == at(1_700_000_000))
+        for seconds in ["+170000000", "-170000000", "17000000O0", "1e90000000"] {
+            #expect(ConfigBackupStore.backupTimestamp("\(name).\(seconds).backup", of: name) == nil, "\(seconds)")
+        }
+    }
+
     @Test("nothing to back up creates nothing")
     func missingConfigMakesNoBackup() throws {
         let fixture = try makeFixture(content: nil)
