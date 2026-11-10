@@ -22,8 +22,8 @@ final class MockWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
         self.mockStorage = mockStorage
     }
 
-    // swiftlint:disable:next async_without_await
-    func analyze(workspace: Workspace, configPath _: URL?) async throws -> AnalysisResult {
+    // Synchronous: that satisfies the protocol's async requirement, and the mock awaits nothing.
+    func analyze(workspace: Workspace, configPath _: URL?) throws -> AnalysisResult {
         analyzeCallCount += 1
 
         if shouldFail {
@@ -73,8 +73,15 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
             filtered = filtered.filter { severities.contains($0.severity) }
         }
 
-        if let suppressedOnly = filter.suppressedOnly {
-            filtered = filtered.filter { $0.suppressed == suppressedOnly }
+        switch filter.suppression {
+        case .any:
+            break
+
+        case .suppressedOnly:
+            filtered = filtered.filter(\.suppressed)
+
+        case .unsuppressedOnly:
+            filtered = filtered.filter { !$0.suppressed }
         }
 
         if let filePaths = filter.filePaths {
@@ -124,8 +131,7 @@ class MockViolationStorageForViewModel: ViolationStorageProtocol, @unchecked Sen
         storedViolations.removeAll()
     }
 
-    // swiftlint:disable:next async_without_await
-    func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) async throws -> Int {
+    func getViolationCount(filter: ViolationFilter, workspaceId: UUID?) throws -> Int {
         let violations = try fetchViolations(filter: filter, workspaceId: workspaceId)
         return violations.count
     }

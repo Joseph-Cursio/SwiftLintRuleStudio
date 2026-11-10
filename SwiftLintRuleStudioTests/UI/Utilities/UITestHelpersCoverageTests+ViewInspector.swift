@@ -14,9 +14,8 @@ import ViewInspector
 
 extension UITestHelpersCoverageTests {
 
-    @Test("ViewInspector extensions support common interactions")
-    // swiftlint:disable:next function_body_length
-    func testViewInspectorExtensions() async throws {
+    @Test("ViewInspector extensions tap and find buttons")
+    func testViewInspectorButtons() async throws {
         @MainActor
         struct ButtonView: View {
             var body: some View {
@@ -27,6 +26,21 @@ extension UITestHelpersCoverageTests {
             }
         }
 
+        let hasButton = try await MainActor.run {
+            let buttonView = ButtonView()
+            ViewHosting.expel()
+            ViewHosting.host(view: buttonView)
+            defer { ViewHosting.expel() }
+            let buttonInspector = try buttonView.inspect()
+            try buttonInspector.tapButton(text: "Tap Me")
+            _ = try buttonInspector.findButton(text: "Tap Me")
+            return true
+        }
+        #expect(hasButton)
+    }
+
+    @Test("ViewInspector extensions set and read text field input")
+    func testViewInspectorTextField() async throws {
         @MainActor
         struct TextFieldView: View {
             @State private var name = ""
@@ -35,6 +49,22 @@ extension UITestHelpersCoverageTests {
             }
         }
 
+        let inputValue = try await MainActor.run {
+            let textFieldView = TextFieldView()
+            ViewHosting.expel()
+            ViewHosting.host(view: textFieldView)
+            defer { ViewHosting.expel() }
+            let textFieldInspector = try textFieldView.inspect()
+            try textFieldInspector.setTextFieldInput("Ada")
+            let inputValue = try textFieldInspector.getTextFieldInput()
+            _ = try textFieldInspector.findTextField(placeholder: "Name")
+            return inputValue
+        }
+        #expect(inputValue == "Ada" || inputValue.isEmpty)
+    }
+
+    @Test("ViewInspector extensions find pickers")
+    func testViewInspectorPicker() async throws {
         @MainActor
         struct PickerView: View {
             @State private var selection = "A"
@@ -49,6 +79,20 @@ extension UITestHelpersCoverageTests {
             }
         }
 
+        let hasPicker = try await MainActor.run {
+            let pickerView = PickerView()
+            ViewHosting.expel()
+            ViewHosting.host(view: pickerView)
+            defer { ViewHosting.expel() }
+            let pickerInspector = try pickerView.inspect()
+            _ = try pickerInspector.findPicker(label: "Options")
+            return true
+        }
+        #expect(hasPicker)
+    }
+
+    @Test("ViewInspector extensions find and tap navigation links")
+    func testViewInspectorNavigationLink() async throws {
         @MainActor
         struct NavigationLinkView: View {
             @State private var selection: String?
@@ -66,39 +110,6 @@ extension UITestHelpersCoverageTests {
             }
         }
 
-        let hasButton = try await MainActor.run {
-            let buttonView = ButtonView()
-            ViewHosting.expel()
-            ViewHosting.host(view: buttonView)
-            defer { ViewHosting.expel() }
-            let buttonInspector = try buttonView.inspect()
-            try buttonInspector.tapButton(text: "Tap Me")
-            _ = try buttonInspector.findButton(text: "Tap Me")
-            return true
-        }
-
-        let inputValue = try await MainActor.run {
-            let textFieldView = TextFieldView()
-            ViewHosting.expel()
-            ViewHosting.host(view: textFieldView)
-            defer { ViewHosting.expel() }
-            let textFieldInspector = try textFieldView.inspect()
-            try textFieldInspector.setTextFieldInput("Ada")
-            let inputValue = try textFieldInspector.getTextFieldInput()
-            _ = try textFieldInspector.findTextField(placeholder: "Name")
-            return inputValue
-        }
-
-        let hasPicker = try await MainActor.run {
-            let pickerView = PickerView()
-            ViewHosting.expel()
-            ViewHosting.host(view: pickerView)
-            defer { ViewHosting.expel() }
-            let pickerInspector = try pickerView.inspect()
-            _ = try pickerInspector.findPicker(label: "Options")
-            return true
-        }
-
         try await MainActor.run {
             let linkView = NavigationLinkView()
             ViewHosting.expel()
@@ -108,11 +119,10 @@ extension UITestHelpersCoverageTests {
             _ = try linkInspector.findNavigationLink(text: "Details")
             try linkInspector.tapNavigationLink(text: "Details")
         }
+    }
 
-        #expect(hasButton)
-        #expect(inputValue == "Ada" || inputValue.isEmpty)
-        #expect(hasPicker)
-
+    @Test("ViewInspector extensions wait for text and look for view types")
+    func testViewInspectorWaitAndViewTypes() async {
         let waitSuccess = await Task { @MainActor in
             do {
                 let textView = Text("Hello")

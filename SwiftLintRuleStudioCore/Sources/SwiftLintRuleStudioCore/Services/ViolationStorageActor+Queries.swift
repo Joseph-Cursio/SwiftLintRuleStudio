@@ -106,9 +106,17 @@ extension ViolationStorageActor {
             parameters.append(contentsOf: severities.map(\.rawValue))
         }
 
-        if let suppressedOnly = filter.suppressedOnly {
+        switch filter.suppression {
+        case .any:
+            break
+
+        case .suppressedOnly:
             conditions.append("suppressed = ?")
-            parameters.append(suppressedOnly ? 1 : 0)
+            parameters.append(1)
+
+        case .unsuppressedOnly:
+            conditions.append("suppressed = ?")
+            parameters.append(0)
         }
 
         if let dateRange = filter.dateRange {

@@ -15,9 +15,8 @@ import ViewInspector
 @MainActor
 struct UITestHelpersCoverageTests {
 
-    @Test("UITestDataFactory creates rules and violations")
-    // swiftlint:disable:next function_body_length
-    func testDataFactoryRulesAndViolations() async throws {
+    @Test("UITestDataFactory creates rules")
+    func testDataFactoryRules() async throws {
         let rule = UITestDataFactory.createTestRule(
             id: "rule_id",
             name: "Rule Name",
@@ -64,7 +63,10 @@ struct UITestHelpersCoverageTests {
         #expect(ruleCategories.0 == 3)
         #expect(ruleCategories.1 == .lint)
         #expect(ruleCategories.2 == .style)
+    }
 
+    @Test("UITestDataFactory creates violations")
+    func testDataFactoryViolations() async throws {
         let violation = UITestDataFactory.createTestViolation(
             ruleID: "rule_id",
             filePath: "File.swift",

@@ -215,13 +215,12 @@ struct RuleDetailWorkflowIntegrationTests {
     @MainActor
     private struct RuleConfigSnapshot {
         let hasNewRule: Bool
-        // nil = rule absent from config, true/false = explicit enabled state
-        // swiftlint:disable:next discouraged_optional_boolean
-        let newRuleEnabled: Bool?
+        /// Whether the config sets the rule `enabled: true`; false when it is absent.
+        let newRuleEnabled: Bool
         let newRuleSeverity: Severity?
         let hasExistingRule: Bool
-        // swiftlint:disable:next discouraged_optional_boolean
-        let existingRuleEnabled: Bool?
+        /// Whether the config sets the rule `enabled: true`; false when it is absent.
+        let existingRuleEnabled: Bool
         let existingRuleSeverity: Severity?
     }
 
@@ -230,10 +229,10 @@ struct RuleDetailWorkflowIntegrationTests {
             let config = yamlEngine.getConfig()
             return RuleConfigSnapshot(
                 hasNewRule: config.rules["new_rule"] != nil,
-                newRuleEnabled: config.rules["new_rule"]?.enabled,
+                newRuleEnabled: config.rules["new_rule"]?.enabled == true,
                 newRuleSeverity: config.rules["new_rule"]?.severity,
                 hasExistingRule: config.rules["existing_rule"] != nil,
-                existingRuleEnabled: config.rules["existing_rule"]?.enabled,
+                existingRuleEnabled: config.rules["existing_rule"]?.enabled == true,
                 existingRuleSeverity: config.rules["existing_rule"]?.severity
             )
         }
@@ -241,10 +240,10 @@ struct RuleDetailWorkflowIntegrationTests {
 
     private func assertSnapshot(_ snapshot: RuleConfigSnapshot) {
         #expect(snapshot.hasNewRule)
-        #expect(snapshot.newRuleEnabled == true)
+        #expect(snapshot.newRuleEnabled)
         #expect(snapshot.newRuleSeverity == .error)
         #expect(snapshot.hasExistingRule)
-        #expect(snapshot.existingRuleEnabled == true)
+        #expect(snapshot.existingRuleEnabled)
         #expect(snapshot.existingRuleSeverity == .warning)
     }
 }

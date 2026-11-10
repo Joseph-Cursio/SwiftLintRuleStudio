@@ -11,27 +11,26 @@ import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 
-// The protocol's methods are async; this stub has nothing to await.
-// swiftlint:disable async_without_await
 /// Returns whatever violations it holds, ignoring the filter, so the view model's own
-/// open-violation filtering is what the tests exercise.
+/// open-violation filtering is what the tests exercise. Its methods are synchronous, which
+/// satisfies the protocol's async requirements: it has nothing to await.
 private final class StubViolationStorage: ViolationStorageProtocol, @unchecked Sendable {
     var violations: [Violation] = []
 
-    func storeViolations(_: [Violation], for _: UUID) async throws {
+    func storeViolations(_: [Violation], for _: UUID) throws {
         // The stub ignores this call.
     }
-    func fetchViolations(filter _: ViolationFilter, workspaceId _: UUID?) async throws -> [Violation] { violations }
-    func suppressViolations(_: [UUID], reason _: String) async throws {
+    func fetchViolations(filter _: ViolationFilter, workspaceId _: UUID?) throws -> [Violation] { violations }
+    func suppressViolations(_: [UUID], reason _: String) throws {
         // The stub ignores this call.
     }
-    func resolveViolations(_: [UUID]) async throws {
+    func resolveViolations(_: [UUID]) throws {
         // The stub ignores this call.
     }
-    func deleteViolations(for _: UUID) async throws {
+    func deleteViolations(for _: UUID) throws {
         // The stub ignores this call.
     }
-    func getViolationCount(filter _: ViolationFilter, workspaceId _: UUID?) async throws -> Int { violations.count }
+    func getViolationCount(filter _: ViolationFilter, workspaceId _: UUID?) throws -> Int { violations.count }
 }
 
 /// Reports the workspaces in `analyzed` as analyzed this launch; never runs an analysis.
@@ -42,13 +41,12 @@ private final class StubWorkspaceAnalyzer: WorkspaceAnalyzerProtocol {
     var isAnalyzingPublisher: AnyPublisher<Bool, Never> { Just(false).eraseToAnyPublisher() }
     var progressPublisher: AnyPublisher<AnalysisProgress?, Never> { Just(nil).eraseToAnyPublisher() }
 
-    func analyze(workspace _: Workspace, configPath _: URL?) async throws -> AnalysisResult {
+    func analyze(workspace _: Workspace, configPath _: URL?) throws -> AnalysisResult {
         AnalysisResult(violations: [], filesAnalyzed: 0, duration: 0, startedAt: .now, completedAt: .now)
     }
 
     func hasAnalyzed(workspaceID: UUID) -> Bool { analyzed.contains(workspaceID) }
 }
-// swiftlint:enable async_without_await
 
 /// A config engine whose load always fails, as an unreadable `.swiftlint.yml` would.
 private final class FailingConfigEngine: YAMLConfigurationEngineProtocol {

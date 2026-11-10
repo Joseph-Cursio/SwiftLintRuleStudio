@@ -13,8 +13,6 @@ import SwiftUI
 import Testing
 import ViewInspector
 
-// swiftlint:disable function_body_length
-
 final class MockImpactSimulator: ImpactSimulatorProtocol {
     private let safeRuleIds: [String]
     private let results: [String: RuleImpactResult]
@@ -89,7 +87,7 @@ final class MockImpactSimulator: ImpactSimulatorProtocol {
     }
 }
 
-@MainActor // swiftlint:disable:next type_body_length
+@MainActor
 struct RuleAuditViewTests {
 
     // Workaround type to bypass Sendable check for SwiftUI views
@@ -181,77 +179,14 @@ struct RuleAuditViewTests {
 
     @Test("RuleAuditView can be configured with workspace and rules")
     func testWithWorkspaceAndRules() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("RuleAuditViewTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-
-        let swiftFile = tempDir.appendingPathComponent("Test.swift")
-        try Data("struct Test {}".utf8).write(to: swiftFile)
-
-        let configURL = tempDir.appendingPathComponent(".swiftlint.yml")
-        let configContent = """
-        disabled_rules:
-          - safe_rule_1
-          - safe_rule_2
-        rules:
-          some_other_rule:
-            enabled: false
-        """
-        try Data(configContent.utf8).write(to: configURL)
-
+        let tempDir = try Self.makeAuditWorkspace()
         let rules = [
-            Rule(
-                id: "safe_rule_1",
-                name: "Safe Rule 1",
-                description: "desc",
-                category: .lint,
-                isOptIn: false,
-                severity: nil,
-                parameters: nil,
-                triggeringExamples: [],
-                nonTriggeringExamples: [],
-                documentation: nil,
-                isEnabled: false,
-                supportsAutocorrection: false,
-                minimumSwiftVersion: nil,
-                defaultSeverity: nil,
-                markdownDocumentation: nil
-            ),
-            Rule(
-                id: "safe_rule_2",
-                name: "Safe Rule 2",
-                description: "desc",
-                category: .lint,
-                isOptIn: false,
-                severity: nil,
-                parameters: nil,
-                triggeringExamples: [],
-                nonTriggeringExamples: [],
-                documentation: nil,
-                isEnabled: false,
-                supportsAutocorrection: false,
-                minimumSwiftVersion: nil,
-                defaultSeverity: nil,
-                markdownDocumentation: nil
-            ),
+            Self.disabledRule(id: "safe_rule_1", name: "Safe Rule 1"),
+            Self.disabledRule(id: "safe_rule_2", name: "Safe Rule 2"),
         ]
-
         let results = [
-            "safe_rule_1": RuleImpactResult(
-                ruleId: "safe_rule_1",
-                violationCount: 0,
-                violations: [],
-                affectedFiles: [],
-                simulationDuration: 0.1
-            ),
-            "safe_rule_2": RuleImpactResult(
-                ruleId: "safe_rule_2",
-                violationCount: 0,
-                violations: [],
-                affectedFiles: [],
-                simulationDuration: 0.1
-            ),
+            "safe_rule_1": Self.cleanResult(ruleId: "safe_rule_1"),
+            "safe_rule_2": Self.cleanResult(ruleId: "safe_rule_2"),
         ]
 
         let result = try await MainActor.run {
@@ -273,55 +208,7 @@ struct RuleAuditViewTests {
     @Test("RuleAuditView shows summary cards and status bar with pre-populated entries")
     @MainActor
     func testShowsSummaryAndStatusBar() async throws {
-        let entries = [
-            RuleAuditEntry(
-                rule: Rule(
-                    id: "safe_rule",
-                    name: "Safe Rule",
-                    description: "A safe rule",
-                    category: .lint,
-                    isOptIn: false,
-                    supportsAutocorrection: true
-                ),
-                impactResult: RuleImpactResult(
-                    ruleId: "safe_rule",
-                    violationCount: 0,
-                    violations: [],
-                    affectedFiles: [],
-                    simulationDuration: 0.1
-                ),
-                isCurrentlyEnabled: false
-            ),
-            RuleAuditEntry(
-                rule: Rule(
-                    id: "low_rule",
-                    name: "Low Rule",
-                    description: "A low effort rule",
-                    category: .style,
-                    isOptIn: false,
-                    supportsAutocorrection: false
-                ),
-                impactResult: RuleImpactResult(
-                    ruleId: "low_rule",
-                    violationCount: 3,
-                    violations: [],
-                    affectedFiles: ["file1.swift"],
-                    simulationDuration: 0.2
-                ),
-                isCurrentlyEnabled: false
-            ),
-            RuleAuditEntry(
-                rule: Rule(
-                    id: "enabled_rule",
-                    name: "Enabled Rule",
-                    description: "Already enabled",
-                    category: .metrics,
-                    isOptIn: false
-                ),
-                impactResult: nil,
-                isCurrentlyEnabled: true
-            ),
-        ]
+        let entries = Self.sampleEntries()
 
         let container = DependencyContainer.createForTesting()
         let view = RuleAuditView(
@@ -337,41 +224,13 @@ struct RuleAuditViewTests {
         }
         defer { Task { @MainActor in ViewHosting.expel() } }
 
-        // Check for summary card text
-        let hasSafeCard = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "SAFE TO ENABLE",
-            timeout: 3.0
-        )
-        let hasLowCard = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "LOW EFFORT",
-            timeout: 3.0
-        )
-
-        // Check for rule names
-        let hasSafeRule = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "safe_rule",
-            timeout: 3.0
-        )
-        let hasLowRule = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "low_rule",
-            timeout: 3.0
-        )
-        let hasEnabledRule = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "enabled_rule",
-            timeout: 3.0
-        )
-
-        // Check status bar content
-        let hasStatusBar = await UIAsyncTestHelpers.waitForText(
-            in: view,
-            text: "3 rules tested against 42 Swift files",
-            timeout: 3.0
-        )
+        // Summary cards, rule names and the status bar
+        let hasSafeCard = await Self.waitForText("SAFE TO ENABLE", in: view)
+        let hasLowCard = await Self.waitForText("LOW EFFORT", in: view)
+        let hasSafeRule = await Self.waitForText("safe_rule", in: view)
+        let hasLowRule = await Self.waitForText("low_rule", in: view)
+        let hasEnabledRule = await Self.waitForText("enabled_rule", in: view)
+        let hasStatusBar = await Self.waitForText("3 rules tested against 42 Swift files", in: view)
 
         #expect(hasSafeCard)
         #expect(hasLowCard)
@@ -381,5 +240,3 @@ struct RuleAuditViewTests {
         #expect(hasStatusBar)
     }
 }
-
-// swiftlint:enable function_body_length

@@ -334,7 +334,7 @@ struct RuleDetailView: View {
 
         Task {
             do {
-                let filter = ViolationFilter(ruleIDs: [rule.id], suppressedOnly: false)
+                let filter = ViolationFilter(ruleIDs: [rule.id], suppression: .unsuppressedOnly)
                 let count = try await dependencies.violationStorage.getViolationCount(
                     filter: filter,
                     workspaceId: workspace.id

@@ -197,12 +197,11 @@ struct ImpactSimulatorWorkflowTests {
 
     private struct RuleEnablement {
         let rule1Exists: Bool
-        // nil = rule absent from config, true/false = explicit enabled state
-        // swiftlint:disable:next discouraged_optional_boolean
-        let rule1Enabled: Bool?
+        /// Whether the config sets the rule `enabled: true`; false when it is absent.
+        let rule1Enabled: Bool
         let rule2Exists: Bool
-        // swiftlint:disable:next discouraged_optional_boolean
-        let rule2Enabled: Bool?
+        /// Whether the config sets the rule `enabled: true`; false when it is absent.
+        let rule2Enabled: Bool
     }
 
     private func enableRules(_ ruleIds: [String], configPath: URL) async throws -> RuleEnablement {
@@ -228,19 +227,19 @@ struct ImpactSimulatorWorkflowTests {
         return await MainActor.run {
             RuleEnablement(
                 rule1Exists: updatedConfig.rules["safe_rule_1"] != nil,
-                rule1Enabled: updatedConfig.rules["safe_rule_1"]?.enabled,
+                rule1Enabled: updatedConfig.rules["safe_rule_1"]?.enabled == true,
                 rule2Exists: updatedConfig.rules["safe_rule_2"] != nil,
-                rule2Enabled: updatedConfig.rules["safe_rule_2"]?.enabled
+                rule2Enabled: updatedConfig.rules["safe_rule_2"]?.enabled == true
             )
         }
     }
 
     private func assertRuleEnablement(_ ruleEnablement: RuleEnablement) {
         if ruleEnablement.rule1Exists {
-            #expect(ruleEnablement.rule1Enabled == true)
+            #expect(ruleEnablement.rule1Enabled)
         }
         if ruleEnablement.rule2Exists {
-            #expect(ruleEnablement.rule2Enabled == true)
+            #expect(ruleEnablement.rule2Enabled)
         }
     }
 

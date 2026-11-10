@@ -302,8 +302,8 @@ extension YAMLConfigurationEngine {
     }
 
     private static func parseRuleConfiguration(from ruleValue: Any) -> RuleConfiguration? {
-        if let boolValue = parseBoolRuleValue(from: ruleValue) {
-            return RuleConfiguration(enabled: boolValue)
+        if let switchOnly = switchConfiguration(from: ruleValue) {
+            return switchOnly
         }
         // Scalar shorthand: `line_length: 120` is sugar for `{warning: 120}`.
         if let intValue = ruleValue as? Int {
@@ -326,14 +326,14 @@ extension YAMLConfigurationEngine {
         return keys
     }
 
-    // Returns nil when the value isn't parseable as a boolean
-    // swiftlint:disable:next discouraged_optional_boolean
-    private static func parseBoolRuleValue(from ruleValue: Any) -> Bool? {
+    /// The configuration for a rule written as a bare boolean (`rule: true`, or the string
+    /// `"false"`), or nil when the value isn't one.
+    private static func switchConfiguration(from ruleValue: Any) -> RuleConfiguration? {
         if let boolRuleValue = ruleValue as? Bool {
-            return boolRuleValue
+            return RuleConfiguration(enabled: boolRuleValue)
         }
         if let str = ruleValue as? String, str == "true" || str == "false" {
-            return str == "true"
+            return RuleConfiguration(enabled: str == "true")
         }
         return nil
     }

@@ -150,7 +150,7 @@ enum ViolationStorageBasicTests {
             try await storage.storeViolations(violations, for: workspaceId)
             try await storage.suppressViolations([violations[0].id], reason: "Test reason")
 
-            let filter1 = ViolationFilter(suppressedOnly: true)
+            let filter1 = ViolationFilter(suppression: .suppressedOnly)
 
             let suppressed = try await storage.fetchViolations(filter: filter1, workspaceId: workspaceId)
             #expect(suppressed.count == 1)
@@ -158,7 +158,7 @@ enum ViolationStorageBasicTests {
             #expect(suppressedViolation.suppressed)
             #expect(suppressedViolation.suppressionReason == "Test reason")
 
-            let filter2 = ViolationFilter(suppressedOnly: false)
+            let filter2 = ViolationFilter(suppression: .unsuppressedOnly)
             let notSuppressed = try await storage.fetchViolations(filter: filter2, workspaceId: workspaceId)
             #expect(notSuppressed.count == 1)
             let notSuppressedViolation = try #require(notSuppressed.first)

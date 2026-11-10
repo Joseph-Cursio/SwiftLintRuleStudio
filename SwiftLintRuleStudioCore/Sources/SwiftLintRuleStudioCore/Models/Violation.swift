@@ -7,28 +7,35 @@
 
 import Foundation
 
+/// Which violations a filter keeps by whether they are suppressed.
+public enum SuppressionFilter: Sendable, Equatable {
+    /// Suppressed and unsuppressed violations alike.
+    case any
+    /// Only violations the user has suppressed.
+    case suppressedOnly
+    /// Only violations that aren't suppressed.
+    case unsuppressedOnly
+}
+
 /// Filter criteria for violations
 public struct ViolationFilter: Sendable {
     public var ruleIDs: [String]?
     public var filePaths: [String]?
     public var severities: [Severity]?
-    // nil = no filter, true = suppressed only, false = unsuppressed only
-    // swiftlint:disable:next discouraged_optional_boolean
-    public var suppressedOnly: Bool?
+    public var suppression: SuppressionFilter
     public var dateRange: ClosedRange<Date>?
 
     nonisolated public init(
         ruleIDs: [String]? = nil,
         filePaths: [String]? = nil,
         severities: [Severity]? = nil,
-        // swiftlint:disable:next discouraged_optional_boolean
-        suppressedOnly: Bool? = nil,
+        suppression: SuppressionFilter = .any,
         dateRange: ClosedRange<Date>? = nil
     ) {
         self.ruleIDs = ruleIDs
         self.filePaths = filePaths
         self.severities = severities
-        self.suppressedOnly = suppressedOnly
+        self.suppression = suppression
         self.dateRange = dateRange
     }
 

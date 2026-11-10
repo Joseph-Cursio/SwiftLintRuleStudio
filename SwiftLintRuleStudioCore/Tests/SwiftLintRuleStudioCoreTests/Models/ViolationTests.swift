@@ -56,7 +56,7 @@ struct ViolationTests {
 
         #expect(filter.ruleIDs == nil)
         #expect(filter.filePaths == nil)
-        #expect(filter.suppressedOnly == nil)
+        #expect(filter.suppression == .any)
     }
 
     @Test("Violation is Codable")
