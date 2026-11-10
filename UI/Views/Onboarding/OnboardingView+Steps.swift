@@ -111,7 +111,7 @@ extension OnboardingView {
                             .foregroundStyle(.secondary)
                     }
 
-                case .installed(let path, let version):
+                case let .installed(path, version):
                     VStack(spacing: 16) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: iconSizeMedium))

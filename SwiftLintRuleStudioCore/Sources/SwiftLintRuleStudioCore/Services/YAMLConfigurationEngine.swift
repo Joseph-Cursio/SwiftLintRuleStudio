@@ -31,7 +31,7 @@ public enum YAMLConfigError: LocalizedError, Sendable {
         case .serializationError(let message):
             return "Failed to serialize YAML: \(message)"
 
-        case .invalidSeverity(let ruleId, let severity):
+        case let .invalidSeverity(ruleId, severity):
             return "Invalid severity '\(severity)' for rule '\(ruleId)'. Must be 'warning' or 'error'."
 
         case .invalidPath(let path):

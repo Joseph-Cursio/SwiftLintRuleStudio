@@ -68,7 +68,7 @@ public struct ValidationResult: Sendable {
             case .ruleSeverity(let ruleId):
                 return "Severity for: \(ruleId)"
 
-            case .ruleParameter(let ruleId, let param):
+            case let .ruleParameter(ruleId, param):
                 return "Parameter '\(param)' for: \(ruleId)"
 
             case .includedPath(let index):

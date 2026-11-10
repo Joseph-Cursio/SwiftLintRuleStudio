@@ -17,22 +17,22 @@ public enum MigrationStep: Sendable, Identifiable, Equatable {
 
     public var id: String {
         switch self {
-        case .renameRule(let from, let newName): return "rename-\(from)-\(newName)"
+        case let .renameRule(from, newName): return "rename-\(from)-\(newName)"
         case .removeDeprecatedRule(let ruleId, _): return "remove-\(ruleId)"
-        case .updateParameter(let ruleId, let old, _): return "param-\(ruleId)-\(old)"
+        case let .updateParameter(ruleId, old, _): return "param-\(ruleId)-\(old)"
         case .manualAction(let desc): return "manual-\(desc.hashValue)"
         }
     }
 
     public var description: String {
         switch self {
-        case .renameRule(let from, let newName):
+        case let .renameRule(from, newName):
             return "Rename '\(from)' to '\(newName)'"
 
-        case .removeDeprecatedRule(let ruleId, let reason):
+        case let .removeDeprecatedRule(ruleId, reason):
             return "Remove '\(ruleId)': \(reason)"
 
-        case .updateParameter(let ruleId, let oldParam, let newParam):
+        case let .updateParameter(ruleId, oldParam, newParam):
             return "Update parameter on '\(ruleId)': '\(oldParam)' -> '\(newParam)'"
 
         case .manualAction(let desc):
@@ -171,7 +171,7 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
 
     private func applyStep(_ step: MigrationStep, to config: inout YAMLConfigurationEngine.YAMLConfig) {
         switch step {
-        case .renameRule(let from, let newName):
+        case let .renameRule(from, newName):
             config.renameRule(from, to: newName)
 
         case .removeDeprecatedRule(let ruleId, _):
@@ -183,7 +183,7 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
             removeFromList(&config.analyzerRules, item: ruleId)
             removeFromList(&config.onlyRules, item: ruleId)
 
-        case .updateParameter(let ruleId, let oldParam, let newParam):
+        case let .updateParameter(ruleId, oldParam, newParam):
             if var params = config.rules[ruleId]?.parameters {
                 if let value = params[oldParam] {
                     params.removeValue(forKey: oldParam)
