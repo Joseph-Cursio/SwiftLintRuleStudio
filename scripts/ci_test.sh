@@ -36,4 +36,11 @@ xcodebuild \
   ENABLE_THREAD_SANITIZER=NO \
   -parallel-testing-enabled NO
 
+# .swiftlint.yml takes its rules from ../SwiftLintConfig
+# (github.com/Joseph-Cursio/SwiftLintConfig). Without it SwiftLint only warns and
+# lints with its own defaults, so this check fails instead of passing on the wrong rules.
+if [ ! -f "$PROJECT_ROOT/../SwiftLintConfig/.swiftlint.yml" ]; then
+  echo "error: Shared SwiftLint config not found at $PROJECT_ROOT/../SwiftLintConfig — clone github.com/Joseph-Cursio/SwiftLintConfig next to this repo." >&2
+  exit 1
+fi
 swiftlint lint
