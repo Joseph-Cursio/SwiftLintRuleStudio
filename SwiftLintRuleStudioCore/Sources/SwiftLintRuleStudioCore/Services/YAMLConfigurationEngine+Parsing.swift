@@ -258,7 +258,7 @@ extension YAMLConfigurationEngine {
         "write_baseline",
         "check_for_updates",
         "indentation",
-        "custom_rules"
+        "custom_rules",
     ]
 
     // This set and `defaultTopLevelKeyOrder` (Serialization) overlap heavily but legitimately
@@ -272,7 +272,7 @@ extension YAMLConfigurationEngine {
     /// Reserved top-level keys the engine actively models (parses *and* emits).
     static let modeledReservedKeys: Set<String> = [
         "rules", "included", "excluded", "reporter",
-        "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules"
+        "disabled_rules", "opt_in_rules", "analyzer_rules", "only_rules",
     ]
 
     /// Captures the parsed YAML nodes for top-level keys the engine does not

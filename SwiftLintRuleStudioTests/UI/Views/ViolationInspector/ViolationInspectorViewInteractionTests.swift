@@ -131,7 +131,7 @@ struct ViolationInspectorViewInteractionTests {
     func testSearchFiltersByRuleID() async throws {
         _ = [
             makeTestViolation(ruleID: "force_cast", message: "Force cast violation"),
-            makeTestViolation(ruleID: "unused_import", message: "Unused import violation")
+            makeTestViolation(ruleID: "unused_import", message: "Unused import violation"),
         ]
 
         // Create view with violations loaded in view model

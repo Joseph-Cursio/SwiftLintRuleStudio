@@ -112,7 +112,7 @@ public struct ConfigHealthReport: Identifiable, Sendable {
                     weight: 10, description: "Avoiding deprecated rules"),
                 HealthScoreDetail(
                     name: "Path Configuration", score: pathConfiguration,
-                    weight: 15, description: "Proper include/exclude paths")
+                    weight: 15, description: "Proper include/exclude paths"),
             ]
         }
     }
@@ -182,7 +182,7 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
         "flatmap_over_map_reduce",
         "last_where",
         "modifier_order",
-        "reduce_into"
+        "reduce_into",
     ]
 
     private let deprecatedRules: Set<String> = [

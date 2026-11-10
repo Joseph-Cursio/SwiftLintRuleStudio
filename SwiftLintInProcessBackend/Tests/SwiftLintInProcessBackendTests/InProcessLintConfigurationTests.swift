@@ -217,7 +217,7 @@ struct InProcessLintConfigurationTests {
     /// SwiftLint loads nested configs itself and ends the process if one is invalid.
     @Test("An invalid nested config is an error, not a crash", arguments: [
         "only_rules:\n  - force_cast\nopt_in_rules:\n  - empty_count\n",
-        "swiftlint_version: 0.0.1\n"
+        "swiftlint_version: 0.0.1\n",
     ])
     func invalidNestedConfigThrows(nestedConfig: String) async throws {
         let workspace = try makeWorkspace(config: nil)

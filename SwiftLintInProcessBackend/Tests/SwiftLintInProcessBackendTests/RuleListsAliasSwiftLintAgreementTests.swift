@@ -158,6 +158,6 @@ extension RuleListsAgreementCases {
                 """,
             rejected: true,
             expected: .exactly(["shorthand_optional_binding", "empty_count"])
-        )
+        ),
     ]
 }

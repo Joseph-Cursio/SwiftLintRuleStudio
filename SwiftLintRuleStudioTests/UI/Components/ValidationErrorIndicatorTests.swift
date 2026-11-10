@@ -25,14 +25,14 @@ struct ValidationErrorIndicatorTests {
                         field: .rule("force_cast"),
                         message: "Invalid severity value",
                         suggestion: "Use 'warning' or 'error'"
-                    )
+                    ),
                 ],
                 warnings: [
                     ValidationResult.ValidationWarning(
                         field: .rule("unknown_rule"),
                         message: "Unknown rule identifier",
                         suggestion: "Did you mean 'force_cast'?"
-                    )
+                    ),
                 ]
             )
         }

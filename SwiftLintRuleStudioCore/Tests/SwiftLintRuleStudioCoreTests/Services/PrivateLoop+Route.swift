@@ -82,7 +82,7 @@ nonisolated extension PrivateLoop {
             files: ["ws/Pkg/a.swift", "ws/Pkg/Sources/App/Sources/Generated/g.swift", "E/e.swift"],
             links: [
                 link("ws/Pkg/Sources/App/Sources/Generated/Shared", to: "../../../../../../E"),
-                link("E/back", to: "../E")
+                link("E/back", to: "../E"),
             ],
             underPrivate: false,
             outcome: .refused(saying: nil)
@@ -95,7 +95,7 @@ nonisolated extension PrivateLoop {
             links: [
                 link("ws/Src/Gen/B/Gen/Mocks/M", to: "../../../../../../F"),
                 link("ws/Other/T/P", to: "../../../F"),
-                link("F/K", to: "../ws/Other/T")
+                link("F/K", to: "../ws/Other/T"),
             ],
             underPrivate: false,
             outcome: .keeps("F/K")
@@ -135,7 +135,7 @@ nonisolated extension PrivateLoop {
             files: ["\u{2F800}\u{2F800}/kit/G/G.swift"],
             links: [
                 link("\u{2F800}\u{2F800}/ws/App/L4", to: "../../kit"),
-                link("\u{2F800}\u{2F800}/kit/G/L1", to: "../../ws/App")
+                link("\u{2F800}\u{2F800}/kit/G/L1", to: "../../ws/App"),
             ],
             underPrivate: false,
             outcome: .refused(saying: "remove the link")
@@ -173,6 +173,6 @@ nonisolated extension PrivateLoop {
             links: [link("ws/A/Lnk", to: "../T"), link("ws/T/Sub/G/loop", to: "../..")],
             underPrivate: false,
             outcome: .leftOut
-        )
+        ),
     ]
 }

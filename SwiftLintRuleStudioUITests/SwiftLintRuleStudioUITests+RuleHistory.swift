@@ -163,7 +163,7 @@ extension SwiftLintRuleStudioUITests {
         // note must not offer it.
         let unmentioned = [
             "multiple_closures_with_trailing_closure", "generic_type_name", "unused_closure_use",
-            "opaque_over_existential"
+            "opaque_over_existential",
         ]
         for rule in unmentioned {
             XCTAssertEqual(texts(in: migration, containing: rule).count, 0, "The plan should not mention \(rule)")

@@ -234,7 +234,7 @@ struct RuleAuditViewTests {
                 minimumSwiftVersion: nil,
                 defaultSeverity: nil,
                 markdownDocumentation: nil
-            )
+            ),
         ]
 
         let results = [
@@ -251,7 +251,7 @@ struct RuleAuditViewTests {
                 violations: [],
                 affectedFiles: [],
                 simulationDuration: 0.1
-            )
+            ),
         ]
 
         let result = try await MainActor.run {
@@ -320,7 +320,7 @@ struct RuleAuditViewTests {
                 ),
                 impactResult: nil,
                 isCurrentlyEnabled: true
-            )
+            ),
         ]
 
         let container = DependencyContainer.createForTesting()

@@ -275,7 +275,7 @@ struct RuleDocumentationParserTests {
 
     @Test("Parameterized: correctly categorizes examples by section", arguments: [
         ("triggering", "## Triggering Examples", true),
-        ("nontriggering", "## Non Triggering Examples", false)
+        ("nontriggering", "## Non Triggering Examples", false),
     ])
     func testExampleCategorization(id _: String, sectionHeader: String, isTriggering: Bool) {
         let markdown = """

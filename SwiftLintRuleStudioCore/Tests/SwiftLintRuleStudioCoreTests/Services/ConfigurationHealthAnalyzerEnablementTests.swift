@@ -47,7 +47,7 @@ struct ConfigurationHealthAnalyzerEnablementTests {
             createRule(id: "style_rule", category: .style),
             createRule(id: "lint_rule", category: .lint),
             createRule(id: "metrics_rule", category: .metrics),
-            createRule(id: "performance_rule", category: .performance)
+            createRule(id: "performance_rule", category: .performance),
         ]
         let report = analyzer.analyze(config: config, knownRules: rules)
         let unrestricted = analyzer.analyze(config: YAMLConfigurationEngine.YAMLConfig(), knownRules: rules)

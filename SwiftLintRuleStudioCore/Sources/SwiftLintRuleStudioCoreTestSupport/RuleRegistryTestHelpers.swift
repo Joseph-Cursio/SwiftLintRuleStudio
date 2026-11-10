@@ -96,7 +96,7 @@ public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
         let possiblePaths = [
             "/opt/homebrew/bin/swiftlint",
             "/usr/local/bin/swiftlint",
-            "/usr/bin/swiftlint"
+            "/usr/bin/swiftlint",
         ]
         for path in possiblePaths where FileManager.default.fileExists(atPath: path) {
             return URL(fileURLWithPath: path)

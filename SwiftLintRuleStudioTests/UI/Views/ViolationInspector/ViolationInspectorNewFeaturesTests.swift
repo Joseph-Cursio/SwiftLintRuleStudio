@@ -42,7 +42,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(filePath: "File1.swift"),
             await makeTestViolation(filePath: "File1.swift"),
-            await makeTestViolation(filePath: "File2.swift")
+            await makeTestViolation(filePath: "File2.swift"),
         ]
 
         let grouped = await groupViolations(violations, by: .file)
@@ -57,7 +57,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(ruleID: "rule1"),
             await makeTestViolation(ruleID: "rule1"),
-            await makeTestViolation(ruleID: "rule2")
+            await makeTestViolation(ruleID: "rule2"),
         ]
 
         let grouped = await groupViolations(violations, by: .rule)
@@ -72,7 +72,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(severity: .error),
             await makeTestViolation(severity: .error),
-            await makeTestViolation(severity: .warning)
+            await makeTestViolation(severity: .warning),
         ]
 
         let grouped = await groupViolations(violations, by: .severity)
@@ -87,7 +87,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(),
             await makeTestViolation(),
-            await makeTestViolation()
+            await makeTestViolation(),
         ]
 
         let grouped = await groupViolations(violations, by: .ungrouped)

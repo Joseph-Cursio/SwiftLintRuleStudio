@@ -115,7 +115,7 @@ struct VersionCompatibilityHelpersTests {
         let section = Self.makeView().removedRulesSection([
             Self.makeRemoved("first_rule"),
             Self.makeRemoved("second_rule"),
-            Self.makeRemoved("third_rule")
+            Self.makeRemoved("third_rule"),
         ])
 
         #expect(Self.contains(section, text: "first_rule"))
@@ -127,7 +127,7 @@ struct VersionCompatibilityHelpersTests {
     func removedSectionReportsPerRuleVersions() {
         let section = Self.makeView().removedRulesSection([
             Self.makeRemoved("early_rule", removedIn: "0.40.0"),
-            Self.makeRemoved("late_rule", removedIn: "0.55.0")
+            Self.makeRemoved("late_rule", removedIn: "0.55.0"),
         ])
 
         #expect(Self.contains(section, text: "Removed in 0.40.0"))
@@ -172,7 +172,7 @@ struct VersionCompatibilityHelpersTests {
     func deprecatedSectionShowsPerRuleReplacements() {
         let section = Self.makeView().deprecatedRulesSection([
             Self.makeDeprecated("has_replacement", replacement: "the_new_one"),
-            Self.makeDeprecated("no_replacement", replacement: nil)
+            Self.makeDeprecated("no_replacement", replacement: nil),
         ])
 
         #expect(Self.contains(section, text: "Use: the_new_one"))
@@ -196,7 +196,7 @@ struct VersionCompatibilityHelpersTests {
     func renamedSectionOffersFixes() throws {
         let renames = [
             Self.makeRenamed("one_old", "one_new"),
-            Self.makeRenamed("two_old", "two_new")
+            Self.makeRenamed("two_old", "two_new"),
         ]
         let section = Self.makeView().renamedRulesSection(renames)
 

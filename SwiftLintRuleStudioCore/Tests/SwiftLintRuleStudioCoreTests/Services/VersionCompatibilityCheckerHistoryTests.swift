@@ -32,7 +32,7 @@ struct VersionCompatibilityCheckerHistoryTests {
         ("weak_computed_property", "0.32.0", "0.33.0"),
         ("tuple_pattern", "0.39.0", "0.39.1"),
         ("prohibited_nan_comparison", "0.39.0", "0.39.1"),
-        ("unneeded_notification_center_removal", "0.40.0", "0.41.0")
+        ("unneeded_notification_center_removal", "0.40.0", "0.41.0"),
     ])
     func testRemovedWithoutReplacement(ruleId: String, lastVersionWithIt: String, removedIn: String) throws {
         let config = makeConfig(optInRules: [ruleId])
@@ -50,7 +50,7 @@ struct VersionCompatibilityCheckerHistoryTests {
     /// gave way to the analyzer rule `unused_declaration`.
     @Test("Rules removed for another are reported removed, pointing at it", arguments: [
         ("redundant_nil_coalesing", "0.13.0", "0.13.1", "redundant_nil_coalescing"),
-        ("unused_private_declaration", "0.33.1", "0.34.0", "unused_declaration")
+        ("unused_private_declaration", "0.33.1", "0.34.0", "unused_declaration"),
     ])
     func testRemovedWithReplacement(ruleId: String, lastVersionWithIt: String, removedIn: String, replacement: String)
         throws {
@@ -89,7 +89,7 @@ struct VersionCompatibilityCheckerHistoryTests {
         ("if_let_shadowing", "shorthand_optional_binding"),
         ("redundant_optional_initialization", "implicit_optional_initialization"),
         ("operator_whitespace", "function_name_whitespace"),
-        ("redundant_self_in_closure", "redundant_self")
+        ("redundant_self_in_closure", "redundant_self"),
     ])
     func testAliasesAreRenamed(oldId: String, newId: String) {
         let config = makeConfig(optInRules: [oldId])
@@ -124,7 +124,7 @@ struct VersionCompatibilityCheckerHistoryTests {
         ("0.50.0-rc.1", "0.50.0-rc.1", false), ("0.50.0-rc", "0.50.0-rc.1", true),
         ("0.50.0-1", "0.50.0-rc", true), ("0.50.0-alpha", "0.50.0-rc.1", true),
         ("0.65.0+build.5", "0.65.0", false), ("0.65.0", "0.65.0+build.5", false),
-        ("v0.50.0-rc.1+sha.1", "0.50.0", true)
+        ("v0.50.0-rc.1+sha.1", "0.50.0", true),
     ])
     func testVersionComparisonFollowsSemver(lhs: String, rhs: String, lessThan: Bool) {
         #expect(SwiftLintDeprecations.isVersion(lhs, lessThan: rhs) == lessThan)

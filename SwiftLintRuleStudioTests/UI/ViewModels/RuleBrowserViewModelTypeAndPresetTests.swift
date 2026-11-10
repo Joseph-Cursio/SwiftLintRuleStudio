@@ -56,7 +56,7 @@ struct RuleBrowserViewModelTypeAndPresetTests {
             makeRule("default_on", isOptIn: false, isEnabled: true, category: .lint),
             makeRule("default_off", isOptIn: false, isEnabled: false, category: .style),
             makeRule("opt_in_on", isOptIn: true, isEnabled: true, category: .lint),
-            makeRule("opt_in_off", isOptIn: true, isEnabled: false, category: .style)
+            makeRule("opt_in_off", isOptIn: true, isEnabled: false, category: .style),
         ]
         let registry = RuleRegistry(swiftLintCLI: StubSwiftLintCLI(), cacheManager: CacheManager.createForTesting())
         registry.setRulesForTesting(rules)

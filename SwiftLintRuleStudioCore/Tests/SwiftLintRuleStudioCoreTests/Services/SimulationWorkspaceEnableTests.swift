@@ -123,7 +123,7 @@ struct SimulationWorkspaceEnableTests {
     func baselineKeysMove() {
         let places = [
             MirrorBaseline.Place(real: "/Users/me/App", mirror: nil),
-            MirrorBaseline.Place(real: "/Users/me/Shared", mirror: "/var/folders/xy/T/m/Shared")
+            MirrorBaseline.Place(real: "/Users/me/Shared", mirror: "/var/folders/xy/T/m/Shared"),
         ]
 
         #expect(MirrorBaseline.move("Sources/A.swift", to: places) == nil, "relative: right as it is")

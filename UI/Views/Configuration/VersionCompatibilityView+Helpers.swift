@@ -104,7 +104,7 @@ extension VersionCompatibilityView {
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
-                GridItem(.flexible())
+                GridItem(.flexible()),
             ], spacing: 8) {
                 ForEach(ruleIds, id: \.self) { ruleId in
                     Text(ruleId)

@@ -86,12 +86,12 @@ struct InProcessNestedConfigSearchTests {
         case .aboveChildConfig: [
             "ws/.swiftlint.yml": "child_config: Mod/Core/.swiftlint.yml\n",
             "ws/Mod/Core/.swiftlint.yml": Self.plainConfig,
-            "ws/Mod/Core/A.swift": Self.source
+            "ws/Mod/Core/A.swift": Self.source,
         ]
 
         case .besideLink, .besideLinkTarget: [
             "ws/.swiftlint.yml": "included:\n  - Libs/Vendor\n",
-            "ws/Shared/Vendor/X.swift": Self.source
+            "ws/Shared/Vendor/X.swift": Self.source,
         ]
 
         case .aboveWorkspace, .abovePrivateWorkspace: ["ws/Sub/A.swift": Self.source]
@@ -99,14 +99,14 @@ struct InProcessNestedConfigSearchTests {
         case .abovePrivateWorkspaceWithChildConfig: [
             "ws/.swiftlint.yml": "child_config: .swiftlint.local.yml\n",
             "ws/.swiftlint.local.yml": Self.plainConfig,
-            "ws/Sub/A.swift": Self.source
+            "ws/Sub/A.swift": Self.source,
         ]
 
         case .abovePrivateWorkspaceWithConfig: ["ws/.swiftlint.yml": Self.plainConfig, "ws/Sub/A.swift": Self.source]
 
         case .abovePrivateWorkspaceWithExcluded: [
             "ws/.swiftlint.yml": Self.plainConfig + "excluded:\n  - Build\n",
-            "ws/Sub/A.swift": Self.source
+            "ws/Sub/A.swift": Self.source,
         ]
         }
         files[contested.path] = config
@@ -184,7 +184,7 @@ struct InProcessNestedConfigSearchTests {
         "A config SwiftLint's search reaches and would end the app for is an error, not a crash",
         arguments: Contested.allCases.filter(\.isLoaded), [
             "only_rules:\n  - force_cast\nopt_in_rules:\n  - empty_count\n",
-            "swiftlint_version: 0.0.1\n"
+            "swiftlint_version: 0.0.1\n",
         ]
     )
     func badReachedConfigFailsTheLint(_ contested: Contested, config: String) async throws {

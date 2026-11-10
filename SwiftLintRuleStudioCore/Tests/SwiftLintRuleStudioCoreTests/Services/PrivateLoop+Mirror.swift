@@ -30,7 +30,7 @@ nonisolated extension PrivateLoop {
             links: [
                 link("top/ws/App/L4", to: "../../../kit"),
                 link("top/ws/Generated/L2", to: "../../../kit"),
-                link("kit/G/L1", to: "../../top/ws/App")
+                link("kit/G/L1", to: "../../top/ws/App"),
             ],
             outcome: .keeps(".swiftlint-rule-studio-outside/0/tree/G/L1")
         ),
@@ -65,7 +65,7 @@ nonisolated extension PrivateLoop {
             files: ["ws/Modules/Kit/Sources/Kit.swift"],
             links: [
                 link("ws/Packages/Kit", to: "../Modules/Kit"),
-                link("ws/Modules/Kit/Siblings", to: "../../Packages")
+                link("ws/Modules/Kit/Siblings", to: "../../Packages"),
             ],
             underPrivate: false,
             outcome: .keeps("ws/Packages/Kit")
@@ -77,7 +77,7 @@ nonisolated extension PrivateLoop {
             files: ["top/ws/Modules/Kit/Sources/Kit.swift"],
             links: [
                 link("top/ws/Packages/Kit", to: "../Modules/Kit"),
-                link("top/ws/Modules/Kit/Siblings", to: "../../Packages")
+                link("top/ws/Modules/Kit/Siblings", to: "../../Packages"),
             ],
             underPrivate: false,
             outcome: .keeps("ws/Packages/Kit")
@@ -90,7 +90,7 @@ nonisolated extension PrivateLoop {
             files: ["ws/Modules/Kit/Sources/Kit.swift"],
             links: [
                 link("ws/Vendor/Kit", to: "../Modules/Kit"),
-                link("ws/Modules/Kit/Siblings", to: "../../Vendor")
+                link("ws/Modules/Kit/Siblings", to: "../../Vendor"),
             ],
             underPrivate: false,
             outcome: .keeps("ws/Vendor/Kit")
@@ -137,7 +137,7 @@ nonisolated extension PrivateLoop {
             files: ["ws/Modules/Kit/Sources/Kit.swift"],
             links: [
                 link("ws/Packages/Kit", to: "../Modules/Kit"),
-                link("ws/Modules/Kit/Siblings", to: "../../Packages")
+                link("ws/Modules/Kit/Siblings", to: "../../Packages"),
             ],
             outcome: .keeps("ws/Packages/Kit")
         ),
@@ -147,7 +147,7 @@ nonisolated extension PrivateLoop {
             files: ["ws/Modules/Kit/Sources/Kit.swift"],
             links: [
                 link("ws/Packages/Kit", to: "../Modules/Kit"),
-                link("ws/Modules/Kit/Siblings", to: "../../Packages")
+                link("ws/Modules/Kit/Siblings", to: "../../Packages"),
             ],
             underPrivate: false,
             outcome: .keeps("ws/Packages/Kit")
@@ -163,10 +163,10 @@ nonisolated extension PrivateLoop {
             links: [
                 link("ws/App/LD", to: "../Docs"),
                 link("ws/Docs/L", to: "../Gen"),
-                link("ws/Gen/LZ", to: "../Docs")
+                link("ws/Gen/LZ", to: "../Docs"),
             ],
             underPrivate: false,
             outcome: .keeps("ws/Docs/L")
-        )
+        ),
     ]
 }

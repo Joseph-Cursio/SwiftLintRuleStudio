@@ -39,7 +39,7 @@ nonisolated let presetExpectations: [PresetExpectation] = [
     PresetExpectation(
         presetID: "documentation", expectedName: "Documentation",
         expectedCategory: .documentation, expectedRuleIDs: ["missing_docs"]
-    )
+    ),
 ]
 
 @MainActor

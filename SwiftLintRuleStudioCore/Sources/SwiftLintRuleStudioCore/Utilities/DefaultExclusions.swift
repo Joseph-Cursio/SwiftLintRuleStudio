@@ -22,7 +22,7 @@ public enum DefaultExclusions {
         "Carthage",
         ".swiftpm",
         "node_modules",
-        "Build"
+        "Build",
     ]
 
     /// Path-contains patterns for filtering file paths during enumeration.

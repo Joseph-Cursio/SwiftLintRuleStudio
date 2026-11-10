@@ -12,7 +12,7 @@ let package = Package(
         .library(
             name: "SwiftLintInProcessBackend",
             targets: ["SwiftLintInProcessBackend"]
-        )
+        ),
     ],
     dependencies: [
         .package(path: "../SwiftLintRuleStudioCore"),
@@ -35,7 +35,7 @@ let package = Package(
         .package(
             url: "https://github.com/Joseph-Cursio/SwiftLint.git",
             revision: "0c3cbb4f7e650b76ac089a53e22cf9b36bdc26f4"
-        )
+        ),
     ],
     targets: [
         .target(
@@ -46,7 +46,7 @@ let package = Package(
                 .product(name: "SwiftLintCLISeam", package: "SwiftLintRuleStudioCore"),
                 .product(name: "SwiftLintFramework", package: "SwiftLint"),
                 .product(name: "Yams", package: "Yams"),
-                .product(name: "FilenameMatcher", package: "swift-filename-matcher")
+                .product(name: "FilenameMatcher", package: "swift-filename-matcher"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
@@ -57,9 +57,9 @@ let package = Package(
                 .product(name: "SwiftLintCLISeam", package: "SwiftLintRuleStudioCore"),
                 .product(name: "SwiftLintRuleStudioCore", package: "SwiftLintRuleStudioCore"),
                 // The rule-list agreement tests read SwiftLint's own resolved configuration.
-                .product(name: "SwiftLintFramework", package: "SwiftLint")
+                .product(name: "SwiftLintFramework", package: "SwiftLint"),
             ],
             swiftSettings: [.swiftLanguageMode(.v6)]
-        )
+        ),
     ]
 )

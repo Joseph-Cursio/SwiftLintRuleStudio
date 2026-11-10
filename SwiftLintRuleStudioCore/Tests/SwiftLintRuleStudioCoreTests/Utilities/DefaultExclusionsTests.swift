@@ -40,7 +40,7 @@ struct DefaultExclusionsTests {
     func directoriesContainsExpectedEntries() {
         let expected: Set<String> = [
             ".build", "DerivedData", ".git", "Pods",
-            "Carthage", ".swiftpm", "node_modules", "Build"
+            "Carthage", ".swiftpm", "node_modules", "Build",
         ]
         #expect(Set(DefaultExclusions.directories) == expected)
     }

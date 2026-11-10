@@ -126,7 +126,7 @@ enum LayoutPreservingEdit {
         }
         let candidates = [
             editedList(section, toMatch: target, current: current, wanted: wanted),
-            editedMapping(section, toMatch: target, current: current, wanted: wanted)
+            editedMapping(section, toMatch: target, current: current, wanted: wanted),
         ]
         for case let candidate? in candidates where sameValue(value(of: candidate), wanted) {
             return candidate

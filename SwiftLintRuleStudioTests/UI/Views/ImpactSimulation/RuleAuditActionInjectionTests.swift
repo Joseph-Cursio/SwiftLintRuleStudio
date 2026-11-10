@@ -81,7 +81,7 @@ struct RuleAuditActionInjectionTests {
         let rules = [
             Self.makeRule("plain"),
             Self.makeRule("opted_in", isOptIn: true),
-            Self.makeRule("analyzed", isAnalyzer: true)
+            Self.makeRule("analyzed", isAnalyzer: true),
         ]
 
         let classification = RuleAuditView.ruleClassification(from: rules)

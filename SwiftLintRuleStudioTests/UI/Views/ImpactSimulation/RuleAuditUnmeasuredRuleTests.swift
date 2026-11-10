@@ -137,7 +137,7 @@ struct RuleAuditUnmeasuredRuleTests {
             Self.failedEntry("broken"),
             Self.failedEntry("broken_without_reason", reason: nil),
             Self.analyzerEntry("unused_import"),
-            Self.disabledEntry(.unmeasurable(ruleId: "sourcekit_rule", reason: .sourceKitUnavailable))
+            Self.disabledEntry(.unmeasurable(ruleId: "sourcekit_rule", reason: .sourceKitUnavailable)),
         ]
 
         #expect(RuleAuditView.safeDisabledRuleIds(in: entries) == ["clean"])
@@ -152,7 +152,7 @@ struct RuleAuditUnmeasuredRuleTests {
             Self.disabledEntry(Self.measuredResult("noisy", violationCount: 3)),
             Self.failedEntry("broken_one"),
             Self.failedEntry("broken_two"),
-            Self.analyzerEntry("unused_import")
+            Self.analyzerEntry("unused_import"),
         ]
 
         let summary = AuditSummary(entries: entries, totalSwiftFiles: 5, auditDuration: 1)
@@ -172,7 +172,7 @@ struct RuleAuditUnmeasuredRuleTests {
             .failed(ruleId: "broken", reason: "boom"),
             Self.measuredResult("noisy", violationCount: 30),
             .unmeasurable(ruleId: "unused_import", reason: .analyzerRule),
-            Self.measuredResult("clean", violationCount: 0)
+            Self.measuredResult("clean", violationCount: 0),
         ]
         let enabled = Self.makeRule("already_on")
 

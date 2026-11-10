@@ -49,7 +49,7 @@ struct RuleBrowserViewModelBulkTests {
                 category: .style, isOptIn: false, severity: .warning, parameters: nil,
                 triggeringExamples: [], nonTriggeringExamples: [], documentation: nil,
                 isEnabled: true, supportsAutocorrection: true
-            )
+            ),
         ])
 
         return RuleBrowserViewModel(ruleRegistry: registry)
@@ -246,7 +246,7 @@ struct RuleBrowserViewModelBulkTests {
                 category: .lint, isOptIn: false, isAnalyzer: true, severity: .warning,
                 parameters: nil, triggeringExamples: [], nonTriggeringExamples: [], documentation: nil,
                 isEnabled: false, supportsAutocorrection: false
-            )
+            ),
         ])
 
         return RuleBrowserViewModel(ruleRegistry: registry)

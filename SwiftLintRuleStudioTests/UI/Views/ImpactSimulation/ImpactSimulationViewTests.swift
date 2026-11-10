@@ -75,7 +75,7 @@ struct ImpactSimulationViewTests {
                 severity: .warning,
                 message: "Another violation"
             ,
-                column: 10)
+                column: 10),
         ]
 
         let result = RuleImpactResult(

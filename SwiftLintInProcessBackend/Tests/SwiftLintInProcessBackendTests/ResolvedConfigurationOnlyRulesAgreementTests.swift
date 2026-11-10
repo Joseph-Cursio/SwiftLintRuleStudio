@@ -94,7 +94,7 @@ struct ResolvedConfigurationOnlyRulesAgreementTests {
             child: "opt_in_rules:\n  - empty_count\n",
             runsInSub: ["force_cast", "empty_count"],
             offInSub: ["todo"]
-        )
+        ),
     ]
 
     /// One probe per rule SwiftLint has registered, for the harness to ask about.
@@ -137,7 +137,7 @@ struct ResolvedConfigurationOnlyRulesAgreementTests {
         let files: [URL: String] = [
             workspace.appending(path: ".swiftlint.yml"): testCase.parent,
             sub.appending(path: ".swiftlint.yml"): testCase.child,
-            sub.appending(path: "Probe.swift"): "let probe = 1\n"
+            sub.appending(path: "Probe.swift"): "let probe = 1\n",
         ]
         for (url, content) in files {
             try content.write(to: url, atomically: true, encoding: .utf8)

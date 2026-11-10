@@ -34,7 +34,7 @@ struct RuleDetailViewModelParameterTests {
                     defaultValue: AnyCodable(200), description: "Error threshold"),
                 RuleParameter(
                     name: "ignores_urls", type: .boolean,
-                    defaultValue: AnyCodable(true), description: "Ignore URLs")
+                    defaultValue: AnyCodable(true), description: "Ignore URLs"),
             ],
             triggeringExamples: [],
             nonTriggeringExamples: [],
@@ -253,7 +253,7 @@ struct RuleDetailViewModelParameterTests {
             viewModel.parameterValues = [
                 "warning": AnyCodable(120),
                 "error": AnyCodable(180),
-                "ignores_urls": AnyCodable(true)
+                "ignores_urls": AnyCodable(true),
             ]
             let persistable = viewModel.parametersToPersist()
             #expect(persistable.count == 1)

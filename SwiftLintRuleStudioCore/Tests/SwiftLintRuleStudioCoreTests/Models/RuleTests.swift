@@ -83,7 +83,7 @@ struct RuleTests {
             AnyCodable(42),
             AnyCodable("text"),
             AnyCodable(true),
-            AnyCodable([1, "two", false])
+            AnyCodable([1, "two", false]),
         ]
         let encoder = JSONEncoder()
         let data = try encoder.encode(values)

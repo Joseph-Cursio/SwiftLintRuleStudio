@@ -29,7 +29,7 @@ struct SwiftCodeHighlighterTests {
             #"Label(content: { Text("Download") }, icon: { Image("custom-download-icon") })"#,
             #"↓Image("my-image").resizable(true).frame(width: 48, height: 48)"#,
             "// a comment with \"quotes\" and let\nlet x = 1 /* block */",
-            #"let escaped = "she said \"hi\"""#
+            #"let escaped = "she said \"hi\"""#,
         ]
         for code in samples {
             #expect(String(SwiftCodeHighlighter.highlight(code).characters) == code)
@@ -71,7 +71,7 @@ struct SwiftCodeHighlighterTests {
     private static let palette: [Color] = [
         SwiftCodeHighlighter.Palette.keyword, SwiftCodeHighlighter.Palette.type,
         SwiftCodeHighlighter.Palette.string, SwiftCodeHighlighter.Palette.number,
-        SwiftCodeHighlighter.Palette.comment, SwiftCodeHighlighter.Palette.attribute
+        SwiftCodeHighlighter.Palette.comment, SwiftCodeHighlighter.Palette.attribute,
     ]
 
     /// The 0xRRGGBB value `color` resolves to under the named appearance.

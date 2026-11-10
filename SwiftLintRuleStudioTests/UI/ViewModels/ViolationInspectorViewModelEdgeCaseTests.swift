@@ -42,7 +42,7 @@ struct ViolationInspectorViewModelEdgeCaseTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -75,7 +75,7 @@ struct ViolationInspectorViewModelEdgeCaseTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -103,7 +103,7 @@ struct ViolationInspectorViewModelEdgeCaseTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -136,7 +136,7 @@ struct ViolationInspectorViewModelEdgeCaseTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -164,7 +164,7 @@ struct ViolationInspectorViewModelEdgeCaseTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -209,7 +209,7 @@ struct ViolationInspectorViewModelEdgeCaseTests {
                 ruleID: "rule3",
                 filePath: "File3.swift",
                 severity: .error
-            )
+            ),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)

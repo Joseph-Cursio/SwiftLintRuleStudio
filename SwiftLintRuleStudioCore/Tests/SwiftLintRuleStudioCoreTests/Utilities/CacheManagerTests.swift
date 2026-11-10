@@ -58,7 +58,7 @@ struct CacheManagerTests {
                 minimumSwiftVersion: nil,
                 defaultSeverity: nil,
                 markdownDocumentation: nil
-            )
+            ),
         ]
 
         // Save rules
@@ -108,7 +108,7 @@ struct CacheManagerTests {
                 minimumSwiftVersion: nil,
                 defaultSeverity: nil,
                 markdownDocumentation: nil
-            )
+            ),
         ]
 
         // Save and verify

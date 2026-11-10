@@ -46,7 +46,7 @@ struct RuleListsPropertyLawTests {
         ("unused_import", .analyzer),
         ("explicit_self", .analyzer),
         ("identifier_name", .standard),
-        ("shorthand_optional_binding", .optIn)
+        ("shorthand_optional_binding", .optIn),
     ]
 
     /// What a list entry may say: a rule's id, or the alias SwiftLint reads as one of them.

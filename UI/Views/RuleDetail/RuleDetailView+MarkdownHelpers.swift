@@ -68,7 +68,7 @@ extension RuleDetailView {
 
     private static let htmlTableTags = [
         "<thead>", "</thead>", "<tbody>", "</tbody>",
-        "<tr>", "</tr>", "<th>", "</th>", "<td>", "</td>"
+        "<tr>", "</tr>", "<th>", "</th>", "<td>", "</td>",
     ]
 
     private func handleTableLine(_ trimmed: String) -> TableAction {

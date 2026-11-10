@@ -233,7 +233,7 @@ struct RuleDetailView: View {
                       .characterEncoding: String.Encoding.utf8.rawValue,
                       NSAttributedString.DocumentReadingOptionKey.defaultAttributes: [
                           NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
-                      ]
+                      ],
                   ],
                   documentAttributes: nil
               ) else {

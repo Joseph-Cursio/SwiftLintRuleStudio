@@ -254,7 +254,7 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
         let pathString = fileURL.path
         var queryItems = [
             URLQueryItem(name: "path", value: pathString),
-            URLQueryItem(name: "line", value: "\(line)")
+            URLQueryItem(name: "line", value: "\(line)"),
         ]
         if let column = column {
             queryItems.append(URLQueryItem(name: "column", value: "\(column)"))

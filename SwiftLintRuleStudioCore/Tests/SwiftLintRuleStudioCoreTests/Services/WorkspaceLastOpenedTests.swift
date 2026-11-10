@@ -79,7 +79,7 @@ struct WorkspaceLastOpenedTests {
             LegacyWorkspaceData(
                 id: UUID(), path: path.path, name: path.lastPathComponent,
                 configPath: nil, lastAnalyzed: Self.opened
-            )
+            ),
         ]
         defaults.set(
             try JSONEncoder().encode(legacy),

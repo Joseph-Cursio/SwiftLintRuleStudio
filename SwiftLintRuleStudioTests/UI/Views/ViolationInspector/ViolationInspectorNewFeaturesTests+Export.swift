@@ -24,7 +24,7 @@ extension ViolationInspectorNewFeaturesTests {
                 filePath: "Test.swift",
                 line: 10,
                 severity: .error
-            )
+            ),
         ]
 
         let tempURL = FileManager.default.temporaryDirectory
@@ -55,7 +55,7 @@ extension ViolationInspectorNewFeaturesTests {
                 filePath: "Test.swift",
                 line: 10,
                 severity: .error
-            )
+            ),
         ]
 
         let tempURL = FileManager.default.temporaryDirectory

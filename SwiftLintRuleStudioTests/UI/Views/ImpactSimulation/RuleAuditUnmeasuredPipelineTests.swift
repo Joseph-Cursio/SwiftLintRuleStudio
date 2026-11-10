@@ -114,7 +114,7 @@ struct RuleAuditUnmeasuredPipelineTests {
         let simulator = RecordingImpactSimulator(
             results: [
                 "broken": .failed(ruleId: "broken", reason: "Invalid configuration"),
-                "analyzed": .unmeasurable(ruleId: "analyzed", reason: .analyzerRule)
+                "analyzed": .unmeasurable(ruleId: "analyzed", reason: .analyzerRule),
             ]
         )
         let rules = [Self.makeRule("broken"), Self.makeRule("analyzed"), Self.makeRule("clean")]

@@ -161,7 +161,7 @@ struct RuleAuditRowExpandedDetailTests {
             violations: Self.makeViolations([
                 ("One.swift", 7), ("Two.swift", 6), ("Three.swift", 5),
                 ("Four.swift", 4), ("Five.swift", 3), ("Six.swift", 2),
-                ("Seven.swift", 1)
+                ("Seven.swift", 1),
             ])
         )
 
@@ -177,7 +177,7 @@ struct RuleAuditRowExpandedDetailTests {
         let row = Self.makeRow(
             violations: Self.makeViolations([
                 ("One.swift", 5), ("Two.swift", 4), ("Three.swift", 3),
-                ("Four.swift", 2), ("Five.swift", 1)
+                ("Four.swift", 2), ("Five.swift", 1),
             ])
         )
 
@@ -197,7 +197,7 @@ struct RuleAuditRowExpandedDetailTests {
                 line: 42,
                 severity: .warning,
                 message: "Force casts should be avoided"
-            )
+            ),
         ]
         let row = Self.makeRow(violations: violations)
 

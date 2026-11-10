@@ -206,7 +206,7 @@ struct HTMLReportGeneratorTests {
         let violations = [
             makeViolation(severity: .error),
             makeViolation(severity: .warning),
-            makeViolation(severity: .warning)
+            makeViolation(severity: .warning),
         ]
         let options = makeOptions(violations: violations, includeSummary: true)
         let html = HTMLReportGenerator.generate(options: options)
@@ -234,7 +234,7 @@ struct HTMLReportGeneratorTests {
         let violations = [
             makeViolation(filePath: "/src/Alpha.swift", line: 10),
             makeViolation(filePath: "/src/Alpha.swift", line: 20),
-            makeViolation(filePath: "/src/Beta.swift", line: 5)
+            makeViolation(filePath: "/src/Beta.swift", line: 5),
         ]
         let options = makeOptions(violations: violations, includeDetailedList: true)
         let html = HTMLReportGenerator.generate(options: options)
@@ -248,7 +248,7 @@ struct HTMLReportGeneratorTests {
     func detailedListShowsSeverity() {
         let violations = [
             makeViolation(severity: .error),
-            makeViolation(line: 50, severity: .warning)
+            makeViolation(line: 50, severity: .warning),
         ]
         let options = makeOptions(violations: violations, includeDetailedList: true)
         let html = HTMLReportGenerator.generate(options: options)
@@ -274,7 +274,7 @@ struct HTMLReportGeneratorTests {
         let violations = [
             makeViolation(line: 99, message: "Late violation"),
             makeViolation(line: 5, message: "Early violation"),
-            makeViolation(line: 42, message: "Middle violation")
+            makeViolation(line: 42, message: "Middle violation"),
         ]
         let options = makeOptions(violations: violations, includeDetailedList: true)
         let html = HTMLReportGenerator.generate(options: options)
@@ -300,7 +300,7 @@ struct HTMLReportGeneratorTests {
         let violations = [
             makeViolation(ruleID: "force_cast"),
             makeViolation(ruleID: "force_cast"),
-            makeViolation(ruleID: "line_length")
+            makeViolation(ruleID: "line_length"),
         ]
         let cacheManager = CacheManager.createForTesting()
         let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
@@ -317,7 +317,7 @@ struct HTMLReportGeneratorTests {
                 category: .lint,
                 isOptIn: false,
                 supportsAutocorrection: false
-            )
+            ),
         ])
 
         let options = HTMLReportOptions(

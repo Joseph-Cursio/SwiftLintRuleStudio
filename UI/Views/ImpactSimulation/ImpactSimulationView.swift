@@ -308,7 +308,7 @@ struct ImpactSimulationView: View {
                 severity: .warning,
                 message: "Force casts should be avoided",
                 column: 12
-            )
+            ),
         ],
         affectedFiles: ["Test.swift", "Another.swift"],
         simulationDuration: 1.23

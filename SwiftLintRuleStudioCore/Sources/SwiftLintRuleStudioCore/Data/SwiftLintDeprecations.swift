@@ -61,7 +61,7 @@ public enum SwiftLintDeprecations {
         // 0.61.0
         "operator_whitespace": "function_name_whitespace",
         // 0.63.0
-        "redundant_self_in_closure": "redundant_self"
+        "redundant_self_in_closure": "redundant_self",
     ]
 
     // MARK: - Aliases (old identifier -> current identifier)
@@ -78,7 +78,7 @@ public enum SwiftLintDeprecations {
         "redundant_optional_initialization": "implicit_optional_initialization",
         "operator_whitespace": "function_name_whitespace",
         "redundant_self_in_closure": "redundant_self",
-        "if_let_shadowing": "shorthand_optional_binding"
+        "if_let_shadowing": "shorthand_optional_binding",
     ]
 
     /// The rule SwiftLint reads `ruleId` as: the current name for one of its ``ruleAliases``,
@@ -135,7 +135,7 @@ public enum SwiftLintDeprecations {
             deprecatedInVersion: "0.63.0",
             replacement: "redundant_self",
             message: "Renamed to 'redundant_self' (broader scope). Kept as a deprecated alias."
-        )
+        ),
     ]
 
     // MARK: - Removed Rules (no longer recognized by SwiftLint)
@@ -215,7 +215,7 @@ public enum SwiftLintDeprecations {
             removedInVersion: "0.59.1",
             replacement: nil,
             message: "Removed because it caused too many false positives."
-        )
+        ),
     ]
 
     // MARK: - Version Rule Additions (version -> new rules added)
@@ -269,9 +269,9 @@ public enum SwiftLintDeprecations {
             "invisible_character",
             "legacy_uigraphics_function",
             "redundant_final",
-            "variable_shadowing"
+            "variable_shadowing",
         ],
-        "0.65.1": ["legacy_swiftui_aspect_ratio"]
+        "0.65.1": ["legacy_swiftui_aspect_ratio"],
     ]
 
     // MARK: - Helpers

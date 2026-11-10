@@ -29,7 +29,7 @@ struct RuleDocSegmentTests {
         #expect(RuleDocSegment.split(markdown) == [
             .prose("## Triggering Examples"),
             .code("let a = 1\nlet b = 2"),
-            .prose("After the code.")
+            .prose("After the code."),
         ])
     }
 

@@ -46,7 +46,7 @@ extension ResolveInvariantPropertyLawTests {
         let memberships = [
             ("disabled", resolved.disabledRules),
             ("opt-in", resolved.optInRules),
-            ("analyzer", resolved.analyzerRules)
+            ("analyzer", resolved.analyzerRules),
         ].flatMap { list, decisions in
             decisions.map { "\(list) \($0.identifier) by \($0.setBy.depth)" }
         }
@@ -62,7 +62,7 @@ extension ResolveInvariantPropertyLawTests {
             "only_rules \(String(describing: resolved.onlyRules))",
             "excluded \(String(describing: resolved.excluded))",
             "included \(String(describing: resolved.included))",
-            "reporter \(String(describing: resolved.reporter))"
+            "reporter \(String(describing: resolved.reporter))",
         ]
     }
 }

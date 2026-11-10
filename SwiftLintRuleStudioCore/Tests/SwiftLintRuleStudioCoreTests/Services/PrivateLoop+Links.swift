@@ -93,6 +93,6 @@ nonisolated extension PrivateLoop {
             config: "included:\n  - ../kit/Up/ws/Sources\nexcluded:\n  - Nope\n",
             links: [link("kit/Up", to: "..")],
             outcome: .refused(saying: "which holds the workspace")
-        )
+        ),
     ]
 }

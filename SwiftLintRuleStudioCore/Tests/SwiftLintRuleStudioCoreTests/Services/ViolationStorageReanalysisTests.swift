@@ -91,7 +91,7 @@ struct ViolationStorageReanalysisTests {
         try await storage.storeViolations(
             [
                 Self.reportedFinding(ruleID: "rule_alpha", filePath: "Alpha.swift"),
-                Self.reportedFinding(ruleID: "rule_beta", filePath: "Beta.swift")
+                Self.reportedFinding(ruleID: "rule_beta", filePath: "Beta.swift"),
             ],
             for: workspaceId
         )
@@ -139,7 +139,7 @@ struct ViolationStorageReanalysisTests {
         try await storage.storeViolations(
             [
                 Self.reportedFinding(ruleID: "rule_existing", filePath: "Existing.swift"),
-                Self.reportedFinding(ruleID: "rule_new", filePath: "New.swift")
+                Self.reportedFinding(ruleID: "rule_new", filePath: "New.swift"),
             ],
             for: workspaceId
         )

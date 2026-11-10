@@ -89,7 +89,7 @@ struct ConfigComparisonServiceTests {
             "severity: Server default, Client error",
             "error: only Client sets it (200)",
             "ignores_urls: only Server sets it (true)",
-            "warning: Server 160, Client 120"
+            "warning: Server 160, Client 120",
         ])
     }
 
@@ -103,7 +103,7 @@ struct ConfigComparisonServiceTests {
         #expect(result.pathDifferences == [
             "Excluded only in Server: .build, Tests",
             "Excluded only in Client: build",
-            "Server lints only Sources; Client lints every path"
+            "Server lints only Sources; Client lints every path",
         ])
     }
 
@@ -155,7 +155,7 @@ struct ConfigComparisonServiceTests {
                 category: .style,
                 isOptIn: false
             ),
-            Rule(id: "trailing_closure", name: "", description: "", category: .style, isOptIn: true)
+            Rule(id: "trailing_closure", name: "", description: "", category: .style, isOptIn: true),
         ]
         let result = try compare(
             "opt_in_rules:\n  - trailing_closure\ndisabled_rules:\n  - multiple_closures_with_trailing_closure\n",
@@ -182,7 +182,7 @@ struct ConfigComparisonServiceTests {
             Rule(id: "identifier_name", name: "", description: "", category: .style, isOptIn: false),
             Rule(id: "todo", name: "", description: "", category: .lint, isOptIn: false),
             Rule(id: "empty_count", name: "", description: "", category: .performance, isOptIn: true),
-            Rule(id: "array_init", name: "", description: "", category: .lint, isOptIn: true)
+            Rule(id: "array_init", name: "", description: "", category: .lint, isOptIn: true),
         ]
 
         let only = try compare(

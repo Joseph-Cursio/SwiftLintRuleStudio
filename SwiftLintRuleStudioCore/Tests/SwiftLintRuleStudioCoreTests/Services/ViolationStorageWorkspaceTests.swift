@@ -40,7 +40,7 @@ struct ViolationStorageWorkspaceTests {
         let firstViolations = [
             ViolationStorageTestHelpers.createTestViolation(ruleID: "rule1"),
             ViolationStorageTestHelpers.createTestViolation(ruleID: "rule2"),
-            ViolationStorageTestHelpers.createTestViolation(ruleID: "rule3")
+            ViolationStorageTestHelpers.createTestViolation(ruleID: "rule3"),
         ]
         try await storage.storeViolations(firstViolations, for: workspaceId)
 
@@ -49,7 +49,7 @@ struct ViolationStorageWorkspaceTests {
 
         let secondViolations = [
             ViolationStorageTestHelpers.createTestViolation(ruleID: "rule4"),
-            ViolationStorageTestHelpers.createTestViolation(ruleID: "rule5")
+            ViolationStorageTestHelpers.createTestViolation(ruleID: "rule5"),
         ]
         try await storage.storeViolations(secondViolations, for: workspaceId)
 

@@ -27,7 +27,7 @@ struct RuleBrowserViewModelBulkErrorTests {
                 category: .style, isOptIn: false, severity: .warning, parameters: nil,
                 triggeringExamples: [], nonTriggeringExamples: [], documentation: nil,
                 isEnabled: true, supportsAutocorrection: false
-            )
+            ),
         ])
         return RuleBrowserViewModel(ruleRegistry: registry)
     }

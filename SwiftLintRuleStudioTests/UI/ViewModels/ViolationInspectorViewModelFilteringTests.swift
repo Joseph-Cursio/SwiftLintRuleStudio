@@ -21,19 +21,19 @@ enum ViewModelFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
         case .byRuleID: [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3"),
         ]
 
         case .bySeverity: [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .error),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .warning),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .error)
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .error),
         ]
 
         case .byFilePath: [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", filePath: "File1.swift"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", filePath: "File2.swift"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", filePath: "File1.swift")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", filePath: "File1.swift"),
         ]
         }
     }
@@ -75,7 +75,7 @@ struct ViolationInspectorViewModelFilteringTests {
             ViolationInspectorViewModelTestHelpers.createTestViolation(
                 ruleID: "line_length",
                 message: "Line too long"
-            )
+            ),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)

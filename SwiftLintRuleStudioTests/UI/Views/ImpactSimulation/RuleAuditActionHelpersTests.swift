@@ -91,7 +91,7 @@ struct RuleAuditActionHelpersTests {
         let entries = RuleAuditView.buildAuditEntries(
             disabledResults: [
                 Self.makeResult("known_rule", violationCount: 1),
-                Self.makeResult("ghost_rule", violationCount: 99)
+                Self.makeResult("ghost_rule", violationCount: 99),
             ],
             enabledRules: [],
             allRules: [known]
@@ -124,7 +124,7 @@ struct RuleAuditActionHelpersTests {
             disabledResults: [
                 Self.makeResult("high", violationCount: 40),
                 Self.makeResult("safe", violationCount: 0),
-                Self.makeResult("mid", violationCount: 7)
+                Self.makeResult("mid", violationCount: 7),
             ],
             enabledRules: [],
             allRules: rules
@@ -169,7 +169,7 @@ struct RuleAuditActionHelpersTests {
             Self.makeEntry("safe_one", violationCount: 0, isEnabled: false),
             Self.makeEntry("safe_two", violationCount: 0, isEnabled: false),
             Self.makeEntry("has_violations", violationCount: 4, isEnabled: false),
-            Self.makeEntry("already_on", violationCount: 0, isEnabled: true)
+            Self.makeEntry("already_on", violationCount: 0, isEnabled: true),
         ]
 
         let safeIds = RuleAuditView.safeDisabledRuleIds(in: entries)
@@ -181,7 +181,7 @@ struct RuleAuditActionHelpersTests {
     func selectsNothingWhenNoSafeRules() {
         let entries = [
             Self.makeEntry("noisy", violationCount: 30, isEnabled: false),
-            Self.makeEntry("already_on", violationCount: 0, isEnabled: true)
+            Self.makeEntry("already_on", violationCount: 0, isEnabled: true),
         ]
 
         #expect(RuleAuditView.safeDisabledRuleIds(in: entries).isEmpty)
@@ -198,7 +198,7 @@ struct RuleAuditActionHelpersTests {
     func marksNamedEntriesEnabled() {
         let entries = [
             Self.makeEntry("target", violationCount: 5, isEnabled: false),
-            Self.makeEntry("untouched", violationCount: 2, isEnabled: false)
+            Self.makeEntry("untouched", violationCount: 2, isEnabled: false),
         ]
 
         let updated = RuleAuditView.markEntriesEnabled(in: entries, ruleIds: ["target"])
@@ -214,7 +214,7 @@ struct RuleAuditActionHelpersTests {
         let entries = [
             Self.makeEntry("first", violationCount: 9, isEnabled: false),
             Self.makeEntry("second", violationCount: 1, isEnabled: false),
-            Self.makeEntry("third", violationCount: 4, isEnabled: false)
+            Self.makeEntry("third", violationCount: 4, isEnabled: false),
         ]
 
         let updated = RuleAuditView.markEntriesEnabled(in: entries, ruleIds: ["second", "third"])

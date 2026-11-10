@@ -115,7 +115,7 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
             [
                 .file("base/other/O.swift"),
                 .link("base/real/Nested", destination: "../other"),
-                .link("ws/Linked", destination: "../real")
+                .link("ws/Linked", destination: "../real"),
             ]
 
         case .linkInsideIncludedFolderWithExclusions, .includedEntriesThroughLinkWithExclusions:
@@ -131,7 +131,7 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
             [
                 .text("base/config/tests.yml", content: "force_cast:\n  severity: warning\n"),
                 .file("ws/Tests/T.swift"),
-                .link("ws/Tests/.swiftlint.yml", destination: "../../config/tests.yml")
+                .link("ws/Tests/.swiftlint.yml", destination: "../../config/tests.yml"),
             ]
 
         case .exclusionUnderLinkPath: [.file("base/real/Generated/G.swift"), .link("ws/Shared", destination: "../real")]
@@ -143,13 +143,13 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
             [
                 .file("ws/App/Main.swift"),
                 .link("ws/App/Shared", destination: "../../real"),
-                .link("ws/Widget/Shared", destination: "../../real")
+                .link("ws/Widget/Shared", destination: "../../real"),
             ]
 
         case .configAboveOutsideFolderWithExclusions:
             [
                 .text("base/.swiftlint.yml", content: "force_cast:\n  severity: warning\n"),
-                .link("ws/Linked", destination: "../real")
+                .link("ws/Linked", destination: "../real"),
             ]
 
         case .cyclicLinkWithoutExclusions: [.link("ws/Sources/loop", destination: "..")]
@@ -158,14 +158,14 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
             [
                 .text("base/elsewhere/.swiftlint.yml", content: "force_cast:\n  severity: warning\n"),
                 .file("base/elsewhere/E.swift"),
-                .link("ws/Sources/E.swift", destination: "../../elsewhere/E.swift")
+                .link("ws/Sources/E.swift", destination: "../../elsewhere/E.swift"),
             ]
 
         case .includedLinkIntoPrunedFolder:
             [
                 .file("ws/Sources/S.swift"),
                 .file("ws/.build/plugins/outputs/gen/G.swift"),
-                .link("ws/Generated", destination: ".build/plugins/outputs/gen")
+                .link("ws/Generated", destination: ".build/plugins/outputs/gen"),
             ]
         }
     }

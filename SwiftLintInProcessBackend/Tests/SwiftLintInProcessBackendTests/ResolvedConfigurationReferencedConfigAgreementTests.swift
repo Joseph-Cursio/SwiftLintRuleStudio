@@ -82,7 +82,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             name: "The package's own config overrides the parent_config outside the workspace",
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\n" + disable,
-                "../../.swiftlint.yml": optIn
+                "../../.swiftlint.yml": optIn,
             ],
             chain: ["../../.swiftlint.yml", ".swiftlint.yml"],
             runs: false
@@ -92,7 +92,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\n",
                 "../../.swiftlint.yml": optIn,
-                "Sub/.swiftlint.yml": disable
+                "Sub/.swiftlint.yml": disable,
             ],
             chain: ["../../.swiftlint.yml", ".swiftlint.yml", "Sub/.swiftlint.yml"],
             runs: false,
@@ -103,7 +103,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\n",
                 "../../.swiftlint.yml": "parent_config: Shared/base.yml\ndisabled_rules:\n  - todo\n",
-                "../../Shared/base.yml": optIn
+                "../../Shared/base.yml": optIn,
             ],
             chain: ["../../Shared/base.yml", "../../.swiftlint.yml", ".swiftlint.yml"],
             runs: true
@@ -125,7 +125,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             files: [".swiftlint.yml": "parent_config: ../../missing.yml\n" + optIn],
             chain: [".swiftlint.yml"],
             runs: true
-        )
+        ),
     ]
 
     nonisolated private static let remoteCases: [Case] = [
@@ -149,7 +149,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             chain: [".swiftlint.yml", remoteStrict],
             runs: false,
             remote: [remoteStrict: disable]
-        )
+        ),
     ]
 
     /// What SwiftLint excludes, includes and reports with, for a package in a repository.
@@ -173,7 +173,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             name: "A package's parent_config outside the workspace excludes a folder beside the package",
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nexcluded:\n  - Generated\n",
-                "../../.swiftlint.yml": "excluded:\n  - Pods\n"
+                "../../.swiftlint.yml": "excluded:\n  - Pods\n",
             ],
             excluded: ["../../Pods", "Generated"]
         ),
@@ -181,7 +181,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             name: "The package's included takes back its parent's exclusion of the same folder",
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nincluded:\n  - Sources\n",
-                "../../.swiftlint.yml": "excluded:\n  - Packages/Foo/Sources\n  - Pods\n"
+                "../../.swiftlint.yml": "excluded:\n  - Packages/Foo/Sources\n  - Pods\n",
             ],
             excluded: ["../../Pods"],
             included: ["Sources"]
@@ -190,7 +190,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             name: "A child_config's exclusion drops the root's inclusion of the same folder",
             files: [
                 ".swiftlint.yml": "child_config: ../Shared/strict.yml\nincluded:\n  - Sources\n  - Tests\n",
-                "../Shared/strict.yml": "excluded:\n  - ../Foo/Tests\n"
+                "../Shared/strict.yml": "excluded:\n  - ../Foo/Tests\n",
             ],
             excluded: ["Tests"],
             included: ["Sources"]
@@ -210,7 +210,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             name: "The root config's reporter gives way to its parent_config's default",
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nreporter: json\n",
-                "../../.swiftlint.yml": "excluded:\n  - Pods\n"
+                "../../.swiftlint.yml": "excluded:\n  - Pods\n",
             ],
             excluded: ["../../Pods"]
         ),
@@ -218,11 +218,11 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
             name: "The reporter is the furthest parent_config's",
             files: [
                 ".swiftlint.yml": "parent_config: ../../.swiftlint.yml\nreporter: json\n",
-                "../../.swiftlint.yml": "reporter: emoji\n"
+                "../../.swiftlint.yml": "reporter: emoji\n",
             ],
             excluded: [],
             reporter: "emoji"
-        )
+        ),
     ]
 
     @Test("The resolved excluded, included and reporter are SwiftLint's", arguments: rootSettingsCases)
@@ -286,7 +286,7 @@ struct ResolvedConfigurationReferencedConfigAgreementTests {
         let workspace = repository.appending(path: "Packages/Foo", directoryHint: .isDirectory)
         var files = [
             workspace.appending(path: testCase.folder, directoryHint: .isDirectory).appending(path: "Probe.swift"):
-                "let probe = 1\n"
+                "let probe = 1\n",
         ]
         for (path, yaml) in testCase.files {
             files[workspace.appending(path: path).standardizedFileURL] = yaml

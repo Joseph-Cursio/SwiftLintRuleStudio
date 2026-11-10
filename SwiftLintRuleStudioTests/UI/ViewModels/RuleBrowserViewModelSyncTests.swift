@@ -181,7 +181,7 @@ struct RuleBrowserViewModelSyncTests {
                 category: .lint,
                 isOptIn: true,
                 isEnabled: false
-            )
+            ),
         ]
 
         let registry = Self.makeRegistry(with: rules)

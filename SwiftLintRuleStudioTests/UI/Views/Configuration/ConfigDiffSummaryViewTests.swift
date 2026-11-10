@@ -52,7 +52,7 @@ struct ConfigDiffSummaryViewTests {
             "Rules turned off", "todo",
             "Settings changed", "line_length", "warning: 160 → 120",
             "Paths", "Now excluded: Pods",
-            "Other changes", "reporter: xcode → json"
+            "Other changes", "reporter: xcode → json",
         ] {
             #expect(rendered.contains(expected), "missing \(expected)")
         }

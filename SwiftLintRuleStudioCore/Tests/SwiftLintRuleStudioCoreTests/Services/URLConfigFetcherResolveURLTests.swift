@@ -61,7 +61,7 @@ struct URLConfigFetcherResolveURLTests {
             "https://gist.github.com/alice/abc123/raw",                               // already-raw gist
             "https://github.com/realm/SwiftLint",                                     // github, no /blob/
             "https://raw.githubusercontent.com/realm/SwiftLint/main/.swiftlint.yml",  // already raw
-            "https://example.com/path/.swiftlint.yml"                                 // unrelated host
+            "https://example.com/path/.swiftlint.yml",                                 // unrelated host
         ]
     )
     func resolveToRawURLIsIdempotent(input: String) throws {

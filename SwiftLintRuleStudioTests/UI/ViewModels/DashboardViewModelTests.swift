@@ -78,7 +78,7 @@ struct DashboardViewModelTests {
             rule("default_on", optIn: false),
             rule("default_off", optIn: false),
             rule("opt_in_on", optIn: true),
-            rule("opt_in_off", optIn: true)
+            rule("opt_in_off", optIn: true),
         ]
     }
 
@@ -148,7 +148,7 @@ struct DashboardViewModelTests {
             violation(.error),
             violation(.warning),
             violation(.error, suppressed: true),
-            violation(.warning, resolved: true)
+            violation(.warning, resolved: true),
         ]
         let viewModel = makeViewModel(storage: storage)
         await viewModel.load(rules: rules, workspace: try makeWorkspace(config: nil))

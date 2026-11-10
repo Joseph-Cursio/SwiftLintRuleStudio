@@ -62,7 +62,7 @@ struct WorkspaceManagerConfigTests {
             for content in [
                 "only_rules:\n  - force_cast\nopt_in_rules:\n  - empty_count\n",
                 "only_rules:\n  - force_cast\n  - unused_import\nanalyzer_rules:\n  - unused_import\n",
-                "only_rules:\n  - force_cast\n"
+                "only_rules:\n  - force_cast\n",
             ] {
                 try content.write(to: configPath, atomically: true, encoding: .utf8)
                 manager.checkConfigRuleLists()

@@ -60,7 +60,7 @@ struct ImpactSimulatorOverridesTests {
                 baseConfigPath: workspaceConfigPath,
                 options: RuleSimulationOptions(parameterOverrides: [
                     "warning": AnyCodable(1),
-                    "error": AnyCodable(2)
+                    "error": AnyCodable(2),
                 ])
             )
         }

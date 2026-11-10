@@ -222,7 +222,7 @@ struct ConfigurationTemplateManagerTests {
         let packageTemplates = [
             BuiltInTemplates.packageStrict,
             BuiltInTemplates.packageBalanced,
-            BuiltInTemplates.packageLenient
+            BuiltInTemplates.packageLenient,
         ]
 
         for template in packageTemplates {

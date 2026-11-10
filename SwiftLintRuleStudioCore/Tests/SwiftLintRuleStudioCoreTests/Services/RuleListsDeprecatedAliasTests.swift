@@ -73,7 +73,7 @@ struct RuleListsDeprecatedAliasTests {
         registry.setRulesForTesting([
             rule("shorthand_optional_binding", kind: .optIn),
             rule("identifier_name"),
-            rule("line_length")
+            rule("line_length"),
         ])
 
         registry.syncEnabledStates(with: Config.ruleLists(optIn: ["if_let_shadowing"], disabled: ["variable_name"]))

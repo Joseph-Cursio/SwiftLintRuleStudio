@@ -28,19 +28,19 @@ enum StorageFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
         case .byRuleID: [
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
             Violation(ruleID: "rule2", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-            Violation(ruleID: "rule3", filePath: "Test.swift", line: 1, severity: .warning, message: "Test")
+            Violation(ruleID: "rule3", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
         ]
 
         case .bySeverity: [
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .error, message: "Error"),
             Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Warning"),
-            Violation(ruleID: "rule3", filePath: "Test.swift", line: 3, severity: .error, message: "Error")
+            Violation(ruleID: "rule3", filePath: "Test.swift", line: 3, severity: .error, message: "Error"),
         ]
 
         case .byFilePath: [
             Violation(ruleID: "rule1", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
             Violation(ruleID: "rule2", filePath: "File2.swift", line: 1, severity: .warning, message: "Test"),
-            Violation(ruleID: "rule3", filePath: "File1.swift", line: 1, severity: .warning, message: "Test")
+            Violation(ruleID: "rule3", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
         ]
         }
     }
@@ -75,7 +75,7 @@ enum ViolationStorageBasicTests {
             let workspaceId = UUID()
             let violations = [
                 Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test")
+                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test"),
             ]
 
             try await storage.storeViolations(violations, for: workspaceId)
@@ -99,12 +99,12 @@ enum ViolationStorageBasicTests {
             let violations1 = [
                 Violation(
                     ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"
-                )
+                ),
             ]
             let violations2 = [
                 Violation(
                     ruleID: "rule2", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"
-                )
+                ),
             ]
 
             try await storage.storeViolations(violations1, for: workspace1)
@@ -144,7 +144,7 @@ enum ViolationStorageBasicTests {
 
             let violations = [
                 Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test")
+                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test"),
             ]
 
             try await storage.storeViolations(violations, for: workspaceId)

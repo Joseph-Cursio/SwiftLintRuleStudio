@@ -18,7 +18,7 @@ struct ViolationInspectorViewModelStatisticsSelectionTests {
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .error),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .error),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .warning),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule4", severity: .warning)
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule4", severity: .warning),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -44,7 +44,7 @@ struct ViolationInspectorViewModelStatisticsSelectionTests {
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -70,7 +70,7 @@ struct ViolationInspectorViewModelStatisticsSelectionTests {
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", filePath: "File1.swift"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", filePath: "File2.swift"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", filePath: "File1.swift")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", filePath: "File1.swift"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -95,7 +95,7 @@ struct ViolationInspectorViewModelStatisticsSelectionTests {
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule3")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule3"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -124,7 +124,7 @@ struct ViolationInspectorViewModelStatisticsSelectionTests {
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule3")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule3"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)
@@ -152,7 +152,7 @@ struct ViolationInspectorViewModelStatisticsSelectionTests {
         let workspaceId = UUID()
         let violations = [
             ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule1"),
-            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2")
+            ViolationInspectorViewModelTestHelpers.createTestViolation(id: UUID(), ruleID: "rule2"),
         ]
 
         try await mockStorage.storeViolations(violations, for: workspaceId)

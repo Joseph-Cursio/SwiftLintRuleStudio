@@ -14,7 +14,7 @@ extension ViolationStorageActor {
             "SELECT id, workspace_id, rule_id, file_path, line, column, severity, message,",
             "detected_at, resolved_at, suppressed, suppression_reason",
             "FROM violations \(query.whereClause)",
-            "ORDER BY detected_at DESC;"
+            "ORDER BY detected_at DESC;",
         ].joined(separator: " ")
 
         let statement = try database.prepare(sql)

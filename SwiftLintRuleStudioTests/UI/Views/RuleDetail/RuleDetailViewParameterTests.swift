@@ -32,7 +32,7 @@ struct RuleDetailViewParameterTests {
             parameters: [
                 RuleParameter(name: "warning", type: .integer, defaultValue: AnyCodable(120)),
                 RuleParameter(name: "error", type: .integer, defaultValue: AnyCodable(200)),
-                RuleParameter(name: "ignores_urls", type: .boolean, defaultValue: AnyCodable(true))
+                RuleParameter(name: "ignores_urls", type: .boolean, defaultValue: AnyCodable(true)),
             ],
             triggeringExamples: [],
             nonTriggeringExamples: [],

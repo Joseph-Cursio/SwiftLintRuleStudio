@@ -77,7 +77,7 @@ struct ResolvedConfigurationAliasAgreementTests {
             child: "only_rules:\n  - operator_whitespace\n  - force_cast\n",
             rule: "function_name_whitespace",
             runsInSub: true
-        )
+        ),
     ]
 
     /// One probe per rule SwiftLint has registered, for the harness to ask about.
@@ -119,7 +119,7 @@ struct ResolvedConfigurationAliasAgreementTests {
         let files: [URL: String] = [
             workspace.appending(path: ".swiftlint.yml"): testCase.parent,
             sub.appending(path: ".swiftlint.yml"): testCase.child,
-            sub.appending(path: "Probe.swift"): "let probe = 1\n"
+            sub.appending(path: "Probe.swift"): "let probe = 1\n",
         ]
         for (url, content) in files {
             try content.write(to: url, atomically: true, encoding: .utf8)

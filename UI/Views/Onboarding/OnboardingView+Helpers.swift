@@ -127,7 +127,7 @@ extension OnboardingView {
             let possiblePaths = [
                 "/opt/homebrew/bin/swiftlint",  // Apple Silicon Homebrew (most common)
                 "/usr/local/bin/swiftlint",     // Intel Homebrew
-                "/usr/bin/swiftlint"            // System installation
+                "/usr/bin/swiftlint",            // System installation
             ]
 
             // Synchronous file checks - should be instant for local paths

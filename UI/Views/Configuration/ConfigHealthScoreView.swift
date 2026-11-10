@@ -361,7 +361,7 @@ struct ConfigHealthScoreView: View {
                     description: "Consider enabling: first_where, sorted_first_last, empty_count",
                     presetId: "performance",
                     actionType: .enablePreset("performance")
-                )
+                ),
             ]
         )
     ) { _ in
@@ -388,7 +388,7 @@ struct ConfigHealthScoreView: View {
                     description: "Consider enabling performance rules",
                     presetId: "performance",
                     actionType: .enablePreset("performance")
-                )
+                ),
             ]
         ),
         onApplyPreset: nil

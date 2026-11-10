@@ -208,7 +208,7 @@ struct ConfigBackupStoreTests {
         try fixture.store.backUp(fixture.config, at: at(1_700_000_200))
         for (name, content) in [
             (".swiftlint.yml.1700000100.backup", "legacy\n"),
-            (".swiftlint.yml.1700000200.backup", "duplicate name\n")
+            (".swiftlint.yml.1700000200.backup", "duplicate name\n"),
         ] {
             try content.write(to: fixture.project.appendingPathComponent(name), atomically: true, encoding: .utf8)
         }

@@ -42,7 +42,7 @@ struct ImpactSimulatorWorkflowTests {
                 "character": violation.column ?? 0,
                 "severity": violation.severity.rawValue,
                 "rule_id": violation.ruleID,
-                "reason": violation.message
+                "reason": violation.message,
             ]
         }
         let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)
@@ -187,7 +187,7 @@ struct ImpactSimulatorWorkflowTests {
                     "character": 1,
                     "severity": "warning",
                     "rule_id": "unsafe_rule",
-                    "reason": "Test violation"
+                    "reason": "Test violation",
                 ]
                 return try JSONSerialization.data(withJSONObject: [violation])
             }

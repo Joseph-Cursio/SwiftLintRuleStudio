@@ -273,7 +273,7 @@ struct RuleDetailViewNewFeaturesTests {
             #"https?://github\.com/apple/swift-evolution/blob/.*SE-\d+"#,
             #"https?://github\.com/apple/swift-evolution/.*SE-\d+"#,
             #"SE-\d+"#,
-            #"swift-evolution.*SE-\d+"#
+            #"swift-evolution.*SE-\d+"#,
         ]
 
         for pattern in patterns {

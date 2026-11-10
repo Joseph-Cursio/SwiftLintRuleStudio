@@ -117,7 +117,7 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
             root.otherElements,
             root.cells,
             root.outlines,
-            root.outlines.cells
+            root.outlines.cells,
         ]
         for query in typeQueries {
             let match = query.matching(identifier: identifier).firstMatch
@@ -204,12 +204,12 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
         static let rules = [
             "RuleBrowserClearFiltersButton",
             "RuleBrowserStatusFilter",
-            "RuleBrowserMultiSelectButton"
+            "RuleBrowserMultiSelectButton",
         ]
         static let violations = [
             "ViolationInspectorRefreshButton",
             "ViolationInspectorGroupingMenu",
-            "ViolationInspectorSearchField"
+            "ViolationInspectorSearchField",
         ]
         static let audit = ["RunAuditButton"]
     }

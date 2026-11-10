@@ -47,14 +47,14 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
     nonisolated private static let threeLevels: [String: String] = [
         "": "opt_in_rules:\n  - empty_count\n",
         "Sub": "disabled_rules:\n  - empty_count\n",
-        "Sub/Deeper": "disabled_rules:\n  - force_cast\n"
+        "Sub/Deeper": "disabled_rules:\n  - force_cast\n",
     ]
 
     /// A root that pulls `Sub`'s config in as its `child_config`, with a nested config beneath it.
     nonisolated private static let pulledInChild: [String: String] = [
         "": "opt_in_rules:\n  - empty_count\nchild_config: Sub/.swiftlint.yml\n",
         "Sub": "disabled_rules:\n  - force_cast\n",
-        "Sub/Deeper": "disabled_rules:\n  - todo\n"
+        "Sub/Deeper": "disabled_rules:\n  - todo\n",
     ]
 
     nonisolated static let cases: [Case] = threeLevelCases + rootGraphCases
@@ -89,7 +89,7 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
             configs: [
                 "": "disabled_rules:\n  - todo\n",
                 "Sub": "opt_in_rules:\n  - empty_count\n",
-                "Sub/Deeper": "disabled_rules:\n  - force_cast\n"
+                "Sub/Deeper": "disabled_rules:\n  - force_cast\n",
             ],
             folder: "Sub/Deeper",
             skipped: ["Sub/.swiftlint.yml"],
@@ -101,7 +101,7 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
             configs: [
                 "": "opt_in_rules:\n  - empty_count\n",
                 "Sub": "only_rules:\n  - force_cast\n",
-                "Sub/Deeper": "disabled_rules:\n  - todo\n"
+                "Sub/Deeper": "disabled_rules:\n  - todo\n",
             ],
             folder: "Sub/Deeper",
             skipped: ["Sub/.swiftlint.yml"],
@@ -112,7 +112,7 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
             name: "With no root config, the nearest nested config applies alone",
             configs: [
                 "Sub": "opt_in_rules:\n  - empty_count\n",
-                "Sub/Deeper": "disabled_rules:\n  - force_cast\n"
+                "Sub/Deeper": "disabled_rules:\n  - force_cast\n",
             ],
             folder: "Sub/Deeper",
             skipped: ["Sub/.swiftlint.yml"],
@@ -125,13 +125,13 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
                 "": "opt_in_rules:\n  - empty_count\n",
                 "A": "disabled_rules:\n  - empty_count\n",
                 "A/B": "opt_in_rules:\n  - force_unwrapping\n",
-                "A/B/C": "disabled_rules:\n  - force_cast\n"
+                "A/B/C": "disabled_rules:\n  - force_cast\n",
             ],
             folder: "A/B/C",
             skipped: ["A/.swiftlint.yml", "A/B/.swiftlint.yml"],
             rule: "force_unwrapping",
             runs: false
-        )
+        ),
     ]
 
     nonisolated private static let rootGraphCases: [Case] = [
@@ -156,13 +156,13 @@ struct ResolvedConfigurationNearestConfigAgreementTests {
             configs: [
                 "": "parent_config: Shared/.swiftlint.yml\nopt_in_rules:\n  - empty_count\n",
                 "Shared": "disabled_rules:\n  - empty_count\n  - todo\n",
-                "Sub": "disabled_rules:\n  - force_cast\n"
+                "Sub": "disabled_rules:\n  - force_cast\n",
             ],
             folder: "Sub",
             skipped: [],
             rule: "empty_count",
             runs: true
-        )
+        ),
     ]
 
     /// One probe per rule SwiftLint has registered, for the harness to ask about.

@@ -47,7 +47,7 @@ public enum ImpactSimulatorTestHelpers {
                 "character": violation.column ?? 0,
                 "severity": violation.severity.rawValue,
                 "rule_id": violation.ruleID,
-                "reason": violation.message
+                "reason": violation.message,
             ]
         }
         let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)

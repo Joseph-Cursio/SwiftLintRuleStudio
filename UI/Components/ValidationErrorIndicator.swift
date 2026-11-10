@@ -199,14 +199,14 @@ struct ValidationErrorIndicator: View {
                 field: .rule("force_cast"),
                 message: "Invalid severity value",
                 suggestion: "Use 'warning' or 'error'"
-            )
+            ),
         ],
         warnings: [
             ValidationResult.ValidationWarning(
                 field: .rule("unknown_rule"),
                 message: "Unknown rule identifier",
                 suggestion: "Did you mean 'force_cast'?"
-            )
+            ),
         ]
     )
     .padding()
@@ -225,13 +225,13 @@ struct ValidationErrorIndicator: View {
                 ValidationResult.ValidationError(
                     field: .general,
                     message: "Error"
-                )
+                ),
             ],
             warnings: [
                 ValidationResult.ValidationWarning(
                     field: .general,
                     message: "Warning"
-                )
+                ),
             ]
         )
     )
