@@ -1,5 +1,5 @@
 //
-//  ViolationInspectorViewModelSuppressionRefreshTests.swift
+//  ViolationInspectorMutationRefreshTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  Regression tests for P0.1 (Part B): suppress/resolve are DB mutations, so the
@@ -15,7 +15,7 @@ import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
-struct ViolationInspectorViewModelSuppressionRefreshTests {
+struct ViolationInspectorMutationRefreshTests {
     private static func makeWorkspace() -> Workspace {
         let tempPath = TestTempDirectory.make("suppression-workspace")
         return Workspace(path: tempPath)

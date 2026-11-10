@@ -1,5 +1,5 @@
 //
-//  ResolvedConfigurationOnlyRulesAgreementTests.swift
+//  ResolvedConfigOnlyRulesAgreementTests.swift
 //  SwiftLintInProcessBackendTests
 //
 //  A child config beneath a parent's `only_rules`, checked against the linked SwiftLint. A
@@ -32,7 +32,7 @@ struct NestedOnlyRulesCase: Sendable, CustomTestStringConvertible {
 /// Core is built with `.defaultIsolation(MainActor.self)`, so the suite runs on the main actor.
 @MainActor
 @Suite("only_rules beneath nested configs agrees with the linked SwiftLint")
-struct ResolvedConfigurationOnlyRulesAgreementTests {
+struct ResolvedConfigOnlyRulesAgreementTests {
     private typealias Probe = SwiftLintConfigurationProbe
 
     typealias Case = NestedOnlyRulesCase

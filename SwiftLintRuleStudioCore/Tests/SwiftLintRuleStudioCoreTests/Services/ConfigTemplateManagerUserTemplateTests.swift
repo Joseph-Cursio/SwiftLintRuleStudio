@@ -1,5 +1,5 @@
 //
-//  ConfigurationTemplateManagerUserTemplateTests.swift
+//  ConfigTemplateManagerUserTemplateTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  The user-template half of ConfigurationTemplateManager: saving, reloading and deleting.
@@ -16,7 +16,7 @@ import Testing
 /// `deleteTemplate` or the reload path would have written into the user's own data — which is why
 /// the 38 tests above only ever touch `builtInTemplates`.
 @MainActor
-struct ConfigurationTemplateManagerUserTemplateTests {
+struct ConfigTemplateManagerUserTemplateTests {
     private func makeTemporaryDirectory() -> URL {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("template-store-\(UUID().uuidString)")

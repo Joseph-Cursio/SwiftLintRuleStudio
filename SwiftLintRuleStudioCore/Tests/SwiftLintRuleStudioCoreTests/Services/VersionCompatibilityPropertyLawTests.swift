@@ -1,5 +1,5 @@
 //
-//  VersionCompatibilityCheckerPropertyLawTests.swift
+//  VersionCompatibilityPropertyLawTests.swift
 //  SwiftLintRuleStudioCoreTests
 //
 //  Property laws for `VersionCompatibilityChecker.checkCompatibility`: what a
@@ -56,7 +56,7 @@ private struct CompatibilitySpec: Sendable {
 
 @MainActor
 @Suite("Version compatibility checker property laws")
-struct VersionCompatibilityCheckerPropertyLawTests {
+struct VersionCompatibilityPropertyLawTests {
 
     private static let checker = VersionCompatibilityChecker()
 

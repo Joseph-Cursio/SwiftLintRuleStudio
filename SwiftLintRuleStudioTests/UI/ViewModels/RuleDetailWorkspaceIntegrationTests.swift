@@ -1,5 +1,5 @@
 //
-//  RuleDetailViewModelWorkspaceIntegrationTests.swift
+//  RuleDetailWorkspaceIntegrationTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  WorkspaceManager integration tests
@@ -21,23 +21,23 @@ private struct TestError: Error, CustomStringConvertible {
 }
 
 @MainActor
-struct RuleDetailViewModelWorkspaceIntegrationTests {
+struct RuleDetailWorkspaceIntegrationTests {
     @Test("RuleDetailViewModel works with WorkspaceManager")
     func testRuleDetailViewModelWithWorkspaceManager() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
         defer { WorkspaceTestHelpers.cleanupWorkspace(tempDir) }
 
-        let workspaceManager = await RuleDetailViewModelIntegrationTestHelpers.createWorkspaceManager()
+        let workspaceManager = await RuleDetailIntegrationTestHelpers.createWorkspaceManager()
         let (_, configPath) = try await openWorkspaceAndConfig(
             workspaceManager: workspaceManager,
             at: tempDir
         )
 
-        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -82,7 +82,7 @@ struct RuleDetailViewModelWorkspaceIntegrationTests {
             WorkspaceTestHelpers.cleanupWorkspace(tempDir2)
         }
 
-        let workspaceManager = await RuleDetailViewModelIntegrationTestHelpers.createWorkspaceManager()
+        let workspaceManager = await RuleDetailIntegrationTestHelpers.createWorkspaceManager()
 
         let workspace1 = try await openWorkspace(
             workspaceManager: workspaceManager,
@@ -145,11 +145,11 @@ struct RuleDetailViewModelWorkspaceIntegrationTests {
         configPath: URL,
         workspaceManager _: WorkspaceManager
     ) async -> RuleDetailViewModel {
-        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: configPath
         )
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: ruleId, isOptIn: false)
-        return await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
+        return await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )
@@ -190,7 +190,7 @@ struct RuleDetailViewModelWorkspaceIntegrationTests {
 
     private func createWorkspaceWithConfig(_ content: String) throws -> (URL, URL) {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()
-        let configPath = try RuleDetailViewModelIntegrationTestHelpers.createConfigFile(
+        let configPath = try RuleDetailIntegrationTestHelpers.createConfigFile(
             in: tempDir,
             content: content
         )

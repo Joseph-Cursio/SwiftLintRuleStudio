@@ -1,5 +1,5 @@
 //
-//  ConfigVersionHistoryViewModelCurrentTests.swift
+//  ConfigVersionHistoryCurrentTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  Comparing a backup with the current configuration, and swapping a comparison.
@@ -11,7 +11,7 @@ import Foundation
 import Testing
 
 @MainActor
-struct ConfigVersionHistoryViewModelCurrentTests {
+struct ConfigVersionHistoryCurrentTests {
     private static let configPath = URL(fileURLWithPath: "/tmp/.swiftlint.yml")
 
     private func makeBackup(timestamp: Date) -> ConfigBackup {

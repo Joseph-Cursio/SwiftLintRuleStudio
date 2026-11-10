@@ -1,5 +1,5 @@
 //
-//  VersionCompatibilityViewModelRenamingTests.swift
+//  VersionCompatibilityRenamingTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  What "Fix" writes to the config file: VersionCompatibilityViewModel.applyRenaming
@@ -25,7 +25,7 @@ private struct VersionOnlyCLI: SwiftLintCLIProtocol {
 }
 
 @MainActor
-struct VersionCompatibilityViewModelRenamingTests {
+struct VersionCompatibilityRenamingTests {
 
     private static let rename = RenamedRuleInfo(
         id: "redundant_self_in_closure", oldRuleId: "redundant_self_in_closure", newRuleId: "redundant_self"

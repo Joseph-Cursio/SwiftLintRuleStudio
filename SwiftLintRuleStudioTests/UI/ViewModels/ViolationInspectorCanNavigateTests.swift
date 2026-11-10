@@ -8,7 +8,7 @@ import Testing
 /// toolbar's Previous and Next buttons are enabled, so they must agree with what
 /// `selectPreviousViolation()` / `selectNextViolation()` actually do.
 @MainActor
-struct ViolationInspectorViewModelNavigationAvailabilityTests {
+struct ViolationInspectorCanNavigateTests {
     private func makeViewModel(violationCount: Int) async throws -> ViolationInspectorViewModel {
         let storage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()
         let viewModel = await ViolationInspectorViewModelTestHelpers.createViolationInspectorViewModel(

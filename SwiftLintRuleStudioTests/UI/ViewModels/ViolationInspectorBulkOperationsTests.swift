@@ -5,7 +5,7 @@ import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
-struct ViolationInspectorViewModelBulkOperationsTests {
+struct ViolationInspectorBulkOperationsTests {
     @Test("ViolationInspectorViewModel suppresses selected violations")
     func testSuppressSelectedViolations() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

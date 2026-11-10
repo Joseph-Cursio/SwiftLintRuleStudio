@@ -7,7 +7,7 @@ import Testing
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
 @MainActor
-struct WorkspaceManagerIntegrationDependencyTests {
+struct WorkspaceManagerDependencyTests {
     @Test("DependencyContainer includes WorkspaceManager")
     func testDependencyContainerIncludesWorkspaceManager() async throws {
         let (hasManager, hasWorkspace) = try await WorkspaceManagerIntegrationTestHelpers.withContainer { container in

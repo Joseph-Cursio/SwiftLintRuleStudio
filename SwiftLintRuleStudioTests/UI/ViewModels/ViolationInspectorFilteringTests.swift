@@ -58,7 +58,7 @@ enum ViewModelFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
 
 @Suite("ViolationInspectorViewModel Filtering", .tags(.viewModel))
 @MainActor
-struct ViolationInspectorViewModelFilteringTests {
+struct ViolationInspectorFilteringTests {
     @Test("ViolationInspectorViewModel filters by search text")
     func testFilterBySearchText() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

@@ -1,5 +1,5 @@
 //
-//  ViolationInspectorViewModelSelectionClearingTests.swift
+//  ViolationInspectorSelectionClearingTests.swift
 //  SwiftLintRuleStudioTests
 //
 //  Regression for P3: suppress/resolve cleared the *live* selection at completion
@@ -14,7 +14,7 @@ import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
-struct ViolationInspectorViewModelSelectionClearingTests {
+struct ViolationInspectorSelectionClearingTests {
     @Test("Suppress clears only processed ids, preserving a mid-flight selection")
     func suppressPreservesMidFlightSelection() async throws {
         let storage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

@@ -7,7 +7,7 @@ import Testing
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
 @MainActor
-struct WorkspaceManagerIntegrationViolationStorageTests {
+struct WorkspaceManagerViolationStorageTests {
     @Test("WorkspaceManager works with ViolationStorageActor")
     func testWorkspaceManagerWithViolationStorageActor() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()

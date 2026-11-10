@@ -1,5 +1,5 @@
 //
-//  ResolvedConfigurationReferencedConfigAgreementTests.swift
+//  ResolvedConfigReferencedAgreementTests.swift
 //  SwiftLintInProcessBackendTests
 //
 //  The configs the root config pulls in from beyond the workspace's own `.swiftlint.yml` files,
@@ -59,7 +59,7 @@ struct ReferencedConfigCase: Sendable, CustomTestStringConvertible {
 /// Core is built with `.defaultIsolation(MainActor.self)`, so the suite runs on the main actor.
 @MainActor
 @Suite("The configs the root pulls in from beyond the workspace agree with the linked SwiftLint")
-struct ResolvedConfigurationReferencedConfigAgreementTests {
+struct ResolvedConfigReferencedAgreementTests {
     private typealias Probe = SwiftLintConfigurationProbe
 
     typealias Case = ReferencedConfigCase

@@ -1,5 +1,5 @@
 //
-//  ConfigurationHealthAnalyzerEnablementTests.swift
+//  ConfigHealthAnalyzerEnablementTests.swift
 //  SwiftLintRuleStudioCoreTests
 //
 //  Which rules the health score counts as enabled. It used to add up its own lists, so a
@@ -12,7 +12,7 @@ import Foundation
 import Testing
 
 @MainActor
-struct ConfigurationHealthAnalyzerEnablementTests {
+struct ConfigHealthAnalyzerEnablementTests {
     private func createRule(
         id: String,
         category: RuleCategory = .style,

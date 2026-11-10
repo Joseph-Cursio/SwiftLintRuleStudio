@@ -1,5 +1,5 @@
 //
-//  ResolvedConfigurationNearestConfigAgreementTests.swift
+//  ResolvedConfigNearestAgreementTests.swift
 //  SwiftLintInProcessBackendTests
 //
 //  Which of a workspace's nested configs apply to a file, checked against the linked SwiftLint:
@@ -37,7 +37,7 @@ struct NearestConfigCase: Sendable, CustomTestStringConvertible {
 /// Core is built with `.defaultIsolation(MainActor.self)`, so the suite runs on the main actor.
 @MainActor
 @Suite("The nested configs that apply to a file agree with the linked SwiftLint")
-struct ResolvedConfigurationNearestConfigAgreementTests {
+struct ResolvedConfigNearestAgreementTests {
     private typealias Probe = SwiftLintConfigurationProbe
 
     typealias Case = NearestConfigCase

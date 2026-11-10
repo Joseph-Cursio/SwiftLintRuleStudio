@@ -7,7 +7,7 @@ import Testing
 // DependencyContainer, WorkspaceManager, WorkspaceAnalyzer, and ViolationInspectorViewModel are @MainActor
 // but we'll use await MainActor.run { } inside tests to allow parallel test execution
 @MainActor
-struct WorkspaceManagerIntegrationErrorHandlingTests {
+struct WorkspaceManagerErrorHandlingTests {
     @Test("Handles workspace deletion gracefully")
     func testHandlesWorkspaceDeletion() async throws {
         let tempDir = try WorkspaceTestHelpers.createMinimalSwiftWorkspace()

@@ -5,7 +5,7 @@ import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
-struct ViolationInspectorViewModelStatisticsSelectionTests {
+struct ViolationInspectorStatsSelectionTests {
     @Test("ViolationInspectorViewModel calculates statistics")
     func testStatistics() async throws {
         let mockStorage = ViolationInspectorViewModelTestHelpers.createMockViolationStorage()

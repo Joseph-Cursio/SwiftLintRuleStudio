@@ -1,5 +1,5 @@
 //
-//  RuleDetailViewModelIntegrationTestHelpers.swift
+//  RuleDetailIntegrationTestHelpers.swift
 //  SwiftLintRuleStudioTests
 //
 //  Helper utilities for RuleDetailViewModel integration tests
@@ -10,7 +10,7 @@ import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 
-enum RuleDetailViewModelIntegrationTestHelpers {
+enum RuleDetailIntegrationTestHelpers {
     static func createRuleDetailViewModel(
         rule: Rule,
         yamlEngine: YAMLConfigurationEngine? = nil
