@@ -67,10 +67,10 @@ enum InProcessConfiguration {
         workspacePath: URL,
         onlyRule: String? = nil
     ) throws -> (configuration: Configuration, fileGraph: Set<String>) {
-        let onlyRule = onlyRule.map { [$0] } ?? []
+        let onlyRules = onlyRule.map { [$0] } ?? []
         let file = configPath ?? workspacePath.appendingPathComponent(Configuration.defaultFileName)
         guard FileManager.default.fileExists(atPath: file.path) else {
-            return (try Configuration(dict: [:], location: workspacePath, onlyRule: onlyRule), [])
+            return (try Configuration(dict: [:], location: workspacePath, onlyRule: onlyRules), [])
         }
 
         // Checked as written first, so a config SwiftLint rejects fails whichever rules run.
@@ -93,7 +93,7 @@ enum InProcessConfiguration {
         return (
             Configuration(
                 configurationFiles: configPath.map { [$0] } ?? [],
-                onlyRule: onlyRule,
+                onlyRule: onlyRules,
                 useDefaultConfigOnFailure: true
             ),
             fileGraph

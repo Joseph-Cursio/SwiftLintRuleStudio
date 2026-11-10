@@ -62,8 +62,8 @@ struct RuleListsPropertyLawTests {
     private static func config(for spec: RuleListSpec) -> YAMLConfigurationEngine.YAMLConfig {
         func ids(_ indices: [Int]) -> [String]? {
             var seen: Set<String> = []
-            let ids = indices.map { listNames[$0] }.filter { seen.insert($0).inserted }
-            return ids.isEmpty ? nil : ids
+            let unique = indices.map { listNames[$0] }.filter { seen.insert($0).inserted }
+            return unique.isEmpty ? nil : unique
         }
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.onlyRules = ids(spec.only)

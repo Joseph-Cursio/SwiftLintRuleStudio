@@ -258,7 +258,7 @@ struct RuleDetailView: View {
         isSimulating = true
 
         let simulator = dependencies.impactSimulator
-        let ruleId = rule.id
+        let simulatedRuleId = rule.id
         let options = Self.simulationOptions(
             for: rule,
             capabilities: capabilities,
@@ -266,14 +266,14 @@ struct RuleDetailView: View {
         )
         let simulate = {
             try await simulator.simulateRule(
-                ruleId: ruleId,
+                ruleId: simulatedRuleId,
                 workspace: workspace,
                 baseConfigPath: workspace.configPath,
                 options: options
             )
         }
         Task {
-            impactResult = await Self.simulationResult(ruleId: ruleId, simulate: simulate)
+            impactResult = await Self.simulationResult(ruleId: simulatedRuleId, simulate: simulate)
             isSimulating = false
         }
     }

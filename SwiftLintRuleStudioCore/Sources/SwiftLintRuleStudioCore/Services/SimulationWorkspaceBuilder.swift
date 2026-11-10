@@ -183,10 +183,10 @@ final class SimulationWorkspace {
         guard !isRemoved else { return }
         isRemoved = true
         let folder = movingFolder
-        let lock = lock
+        let heldLock = lock
         Task.detached(priority: .utility) {
             try? FileManager.default.removeItem(at: folder)
-            lock?.release()
+            heldLock?.release()
         }
     }
 }

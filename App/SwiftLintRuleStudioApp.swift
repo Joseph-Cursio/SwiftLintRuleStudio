@@ -73,17 +73,17 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
             .environment(\.ruleRegistry, dependencies.0)
             .environment(\.dependencies, dependencies.1)
         let hostingView = NSHostingView(rootView: rootView)
-        let window = NSWindow(
+        let testWindow = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 980, height: 700),
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
-        window.title = "SwiftLintRuleStudio"
-        window.contentView = hostingView
-        window.makeKeyAndOrderFront(nil)
+        testWindow.title = "SwiftLintRuleStudio"
+        testWindow.contentView = hostingView
+        testWindow.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
-        self.window = window
+        self.window = testWindow
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool { false }
@@ -150,15 +150,15 @@ struct SwiftLintRuleStudioApp: App {
     init() {
         let cacheManager = CacheManager()
         let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
-        let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
+        let registry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let container = DependencyContainer(
-            swiftLintCLI: swiftLintCLI, ruleRegistry: ruleRegistry, cacheManager: cacheManager
+            swiftLintCLI: swiftLintCLI, ruleRegistry: registry, cacheManager: cacheManager
         )
 
-        _ruleRegistry = State(initialValue: ruleRegistry)
+        _ruleRegistry = State(initialValue: registry)
         _dependencyContainer = State(initialValue: container)
 #if os(macOS)
-        UITestWindowBootstrapper.dependencies = (ruleRegistry, container)
+        UITestWindowBootstrapper.dependencies = (registry, container)
 #endif
     }
 

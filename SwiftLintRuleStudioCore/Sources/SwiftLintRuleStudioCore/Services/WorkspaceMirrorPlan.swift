@@ -167,9 +167,9 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             let workspaceParent = URL(fileURLWithPath: scope.workspaceRoot).deletingLastPathComponent()
             placeConfigsBetween(workspaceParent, scope: scope, fileManager: fileManager)
         }
-        let anchor = URL(fileURLWithPath: scope.anchor)
+        let anchorURL = URL(fileURLWithPath: scope.anchor)
         guard !regions.beside.isEmpty || !besideFiles.isEmpty || scope.isUnderPrivate,
-              let above = Self.nearestConfig(from: anchor, fileManager: fileManager, skipping: graph)
+              let above = Self.nearestConfig(from: anchorURL, fileManager: fileManager, skipping: graph)
         else { return }
         if let referenced = configs.first(where: { $0.path == ConfigTreeDiscovery.configFileName }) {
             throw MirrorUnsupportedSetupError(

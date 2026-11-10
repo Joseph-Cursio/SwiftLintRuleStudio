@@ -46,30 +46,30 @@ public enum RuleEnablementResolver {
         _ rule: Rule,
         config: YAMLConfigurationEngine.YAMLConfig
     ) -> Bool {
-        let config = config.normalizedRuleLists()
+        let normalized = config.normalizedRuleLists()
         let ruleName = SwiftLintDeprecations.currentName(of: rule.id)
         func listed(in list: [String]?) -> Bool {
             list?.contains { SwiftLintDeprecations.currentName(of: $0) == ruleName } == true
         }
-        if config.usesOnlyRules {
-            return listed(in: config.onlyRules) || listed(in: config.analyzerRules)
+        if normalized.usesOnlyRules {
+            return listed(in: normalized.onlyRules) || listed(in: normalized.analyzerRules)
         }
         if rule.isAnalyzer {
-            if config.rules[rule.id]?.enabled == false {
+            if normalized.rules[rule.id]?.enabled == false {
                 return false
             }
-            return listed(in: config.analyzerRules)
+            return listed(in: normalized.analyzerRules)
         }
         if rule.isOptIn {
-            if config.rules[rule.id]?.enabled == false {
+            if normalized.rules[rule.id]?.enabled == false {
                 return false
             }
-            return listed(in: config.optInRules)
+            return listed(in: normalized.optInRules)
         }
-        if listed(in: config.disabledRules) {
+        if listed(in: normalized.disabledRules) {
             return false
         }
-        if let ruleConfig = config.rules[rule.id] {
+        if let ruleConfig = normalized.rules[rule.id] {
             return ruleConfig.enabled
         }
         return true

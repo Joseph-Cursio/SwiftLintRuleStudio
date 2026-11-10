@@ -282,9 +282,9 @@ struct RuleDetailViewNewFeaturesTests {
 
             regex?.enumerateMatches(in: markdown, options: [], range: range) { match, _, _ in
                 guard let match,
-                      let range = Range(match.range, in: markdown) else { return }
+                      let matchRange = Range(match.range, in: markdown) else { return }
 
-                let matchedString = String(markdown[range])
+                let matchedString = String(markdown[matchRange])
 
                 if matchedString.hasPrefix("http") {
                     if let url = URL(string: matchedString) {

@@ -20,10 +20,10 @@ extension ViolationInspectorViewModel {
             self.currentWorkspace = workspace
         }
 
-        if let workspace = workspace ?? currentWorkspace,
+        if let target = workspace ?? currentWorkspace,
            let analyzer = workspaceAnalyzer {
             subscribeToAnalyzer(analyzer)
-            _ = try? await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
+            _ = try? await analyzer.analyze(workspace: target, configPath: target.configPath)
         }
 
         try await showStoredViolations(for: workspaceId)

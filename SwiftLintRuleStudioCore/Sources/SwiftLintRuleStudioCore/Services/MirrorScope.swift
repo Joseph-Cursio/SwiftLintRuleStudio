@@ -332,8 +332,8 @@ nonisolated struct MirrorScope: Sendable {
             )
         }
         let root = workspaceRoot.resolvingSymlinksInPath().standardizedFileURL
-        let isUnderPrivate = isUnderPrivate(workspaceRoot)
-        if isUnderPrivate, workspaceRoot.standardizedFileURL.path != root.path {
+        let underPrivate = isUnderPrivate(workspaceRoot)
+        if underPrivate, workspaceRoot.standardizedFileURL.path != root.path {
             throw MirrorUnsupportedSetupError(
                 reason: "The workspace is open at \(workspaceRoot.path), through a symlink, under /private as /tmp "
                     + "and /var are. SwiftLint reads paths there two ways, and through the link which configurations "
@@ -343,11 +343,11 @@ nonisolated struct MirrorScope: Sendable {
         var builder = MirrorScopeBuilder(root: root)
         // Its folder resolved like the root's, so what it pulls in compares with the root; the
         // file itself not, as a config that is a link still reads paths from where it is.
-        if let rootConfig = rootConfig.map({
+        if let resolvedConfig = rootConfig.map({
             $0.deletingLastPathComponent().resolvingSymlinksInPath().appendingPathComponent($0.lastPathComponent)
         }) {
-            builder.configGraph.insert(rootConfig.resolvingSymlinksInPath().path)
-            try builder.visit(rootConfig, base: root)
+            builder.configGraph.insert(resolvedConfig.resolvingSymlinksInPath().path)
+            try builder.visit(resolvedConfig, base: root)
         }
         builder.merge()
         let placed = try builder.place()
@@ -365,7 +365,7 @@ nonisolated struct MirrorScope: Sendable {
             referencedConfigs: placed.referencedConfigs,
             configGraph: builder.configGraph,
             exclusions: MirrorExclusions(patterns: builder.excludedPatterns),
-            isUnderPrivate: isUnderPrivate
+            isUnderPrivate: underPrivate
         )
     }
 
