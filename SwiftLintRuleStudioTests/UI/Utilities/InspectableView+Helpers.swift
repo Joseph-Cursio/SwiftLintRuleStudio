@@ -123,7 +123,7 @@ extension InspectableView {
     /// - Returns: The picker view
     /// - Throws: If picker cannot be found
     func findPicker(label: String? = nil) throws -> InspectableView<ViewType.Picker> {
-        if let label = label {
+        if let label {
             // Try to find by label
             let labelText = try find(text: label)
             return try labelText.parent().find(ViewType.Picker.self)

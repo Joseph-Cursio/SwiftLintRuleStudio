@@ -369,7 +369,7 @@ extension YAMLConfigurationEngine {
     private static func parseRuleParameters(from ruleDict: [String: Any]) -> [String: AnyCodable]? {
         var params: [String: AnyCodable] = [:]
         for (paramKey, paramValue) in ruleDict {
-            if paramKey != "severity" && paramKey != "enabled" {
+            if paramKey != "severity", paramKey != "enabled" {
                 params[paramKey] = AnyCodable(paramValue)
             }
         }

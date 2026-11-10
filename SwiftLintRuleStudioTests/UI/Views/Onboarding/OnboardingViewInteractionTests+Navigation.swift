@@ -92,7 +92,7 @@ extension OnboardingViewInteractionTests {
         let hasCheckAgainButton = try? await MainActor.run {
             guard didFindCheckAgain else { return false }
             let checkAgainText = try? result.view.inspect().find(text: "Check Again")
-            if let checkAgainText = checkAgainText {
+            if let checkAgainText {
                 let checkAgainButton = try checkAgainText.parent().find(ViewType.Button.self)
                 try checkAgainButton.tap()
                 return true

@@ -282,7 +282,7 @@ public extension WorkspaceAnalyzer {
 
     /// Computes a SHA-256 hash of the config file for change detection
     func calculateConfigHash(configPath: URL?) throws -> String? {
-        guard let configPath = configPath,
+        guard let configPath,
               FileManager.default.fileExists(atPath: configPath.path) else {
             return nil
         }

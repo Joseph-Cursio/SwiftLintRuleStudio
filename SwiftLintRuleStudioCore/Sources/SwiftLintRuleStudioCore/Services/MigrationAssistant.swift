@@ -126,8 +126,8 @@ public final class MigrationAssistant: MigrationAssistantProtocol {
         // Check removed rules
         for ruleId in allRuleIds.sorted() {
             if let entry = SwiftLintDeprecations.removedRules[ruleId] {
-                if SwiftLintDeprecations.isVersion(fromVersion, lessThan: entry.removedInVersion)
-                    && !SwiftLintDeprecations.isVersion(toVersion, lessThan: entry.removedInVersion) {
+                if SwiftLintDeprecations.isVersion(fromVersion, lessThan: entry.removedInVersion),
+                   !SwiftLintDeprecations.isVersion(toVersion, lessThan: entry.removedInVersion) {
                     // Only add if not already handled by rename
                     if !steps.contains(where: {
                         if case .renameRule(let from, _) = $0, from == ruleId { return true }

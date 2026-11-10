@@ -245,7 +245,7 @@ enum UIAsyncTestHelpers {
     static func waitForCondition(
         timeout: TimeInterval = 1.0,
         interval: TimeInterval = 0.05,
-        condition: @escaping () -> Bool
+        condition: () -> Bool
     ) async -> Bool {
         let startTime = Date.now
         while Date.now.timeIntervalSince(startTime) < timeout {
@@ -261,7 +261,7 @@ enum UIAsyncTestHelpers {
     static func waitForConditionAsync(
         timeout: TimeInterval = 1.0,
         interval: TimeInterval = 0.05,
-        condition: @escaping () async -> Bool
+        condition: () async -> Bool
     ) async -> Bool {
         let startTime = Date.now
         while Date.now.timeIntervalSince(startTime) < timeout {
@@ -278,7 +278,7 @@ enum UIAsyncTestHelpers {
     static func waitForConditionOnMainActor(
         timeout: TimeInterval = 1.0,
         interval: TimeInterval = 0.05,
-        condition: @escaping () -> Bool
+        condition: () -> Bool
     ) async -> Bool {
         let startTime = Date.now
         while Date.now.timeIntervalSince(startTime) < timeout {

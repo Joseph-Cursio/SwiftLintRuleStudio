@@ -91,7 +91,7 @@ extension RuleDetailView {
             let range = NSRange(markdown.startIndex..<markdown.endIndex, in: markdown)
 
             regex?.enumerateMatches(in: markdown, options: [], range: range) { match, _, _ in
-                guard let match = match,
+                guard let match,
                       let range = Range(match.range, in: markdown) else { return }
 
                 let matchedString = String(markdown[range])

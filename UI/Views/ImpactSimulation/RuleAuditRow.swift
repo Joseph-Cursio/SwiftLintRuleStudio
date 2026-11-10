@@ -158,7 +158,7 @@ struct RuleAuditRow: View {
                         Button("Enable rule", action: onEnable)
                     }
                 }
-            if isExpanded && isExpandable {
+            if isExpanded, isExpandable {
                 expandedDetail
             }
         }

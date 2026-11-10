@@ -98,7 +98,7 @@ class RuleDetailViewModel {
 
     /// Load current configuration from workspace
     func loadConfiguration() throws {
-        guard let yamlEngine = yamlEngine else { return }
+        guard let yamlEngine else { return }
 
         // Suppress the parameterValues didSet during load so its intermediate
         // assignment doesn't compute pendingChanges against a stale baseline.
@@ -189,7 +189,7 @@ class RuleDetailViewModel {
 
     /// Generate diff for pending changes
     func generateDiff() -> YAMLConfigurationEngine.ConfigDiff? {
-        guard let yamlEngine = yamlEngine else { return nil }
+        guard let yamlEngine else { return nil }
 
         do {
             try yamlEngine.load()
@@ -211,7 +211,7 @@ class RuleDetailViewModel {
 
     /// Save configuration changes
     func saveConfiguration() throws {
-        guard let yamlEngine = yamlEngine else {
+        guard let yamlEngine else {
             throw RuleConfigurationError.noWorkspace
         }
 
@@ -257,7 +257,7 @@ class RuleDetailViewModel {
 
     private func parametersHaveChanged() -> Bool {
         let currentParams = parameterValues.isEmpty ? nil : parameterValues
-        if currentParams == nil && originalParameters == nil { return false }
+        if currentParams == nil, originalParameters == nil { return false }
         guard let current = currentParams, let original = originalParameters else { return true }
         if current.count != original.count { return true }
         for (key, value) in current {

@@ -87,7 +87,7 @@ struct OnboardingView: View {
     }
 
     private func resetStepIfNeeded() {
-        if !onboardingManager.hasCompletedOnboarding && onboardingManager.currentStep != .welcome {
+        if !onboardingManager.hasCompletedOnboarding, onboardingManager.currentStep != .welcome {
             onboardingManager.currentStep = .welcome
         }
     }
@@ -101,7 +101,7 @@ struct OnboardingView: View {
     }
 
     private func handleWorkspaceChange(_ newValue: Workspace?) {
-        if newValue != nil && onboardingManager.currentStep == .workspaceSelection {
+        if newValue != nil, onboardingManager.currentStep == .workspaceSelection {
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 onboardingManager.nextStep()

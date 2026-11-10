@@ -308,7 +308,7 @@ public class YAMLConfigurationEngine {
         // Validate severity values
         for (ruleId, ruleConfig) in config.rules {
             if let severity = ruleConfig.severity {
-                if severity != .warning && severity != .error {
+                if severity != .warning, severity != .error {
                     throw YAMLConfigError.invalidSeverity(ruleId: ruleId, severity: severity.rawValue)
                 }
             }

@@ -16,7 +16,7 @@ import UserNotifications
 extension ViolationInspectorViewModel {
     func loadViolations(for workspaceId: UUID, workspace: Workspace? = nil) async throws {
         self.workspaceId = workspaceId
-        if let workspace = workspace {
+        if let workspace {
             self.currentWorkspace = workspace
         }
 
@@ -30,7 +30,7 @@ extension ViolationInspectorViewModel {
     }
 
     func refreshViolations() async throws {
-        guard let workspaceId = workspaceId,
+        guard let workspaceId,
               let workspace = currentWorkspace,
               let analyzer = workspaceAnalyzer else {
             try await reloadViolationsFromStorage()
@@ -76,7 +76,7 @@ extension ViolationInspectorViewModel {
     /// workspace just to reflect them would be wasteful (and, before the storage
     /// upsert, actively discarded the change).
     func reloadViolationsFromStorage() async throws {
-        guard let workspaceId = workspaceId else { return }
+        guard let workspaceId else { return }
         let fetched = try await violationStorage.fetchViolations(
             filter: ViolationFilter(),
             workspaceId: workspaceId

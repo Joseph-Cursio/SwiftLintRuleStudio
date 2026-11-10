@@ -96,7 +96,7 @@ struct ViolationListItem: View {
 
     @ViewBuilder
     private var openInXcodeButton: some View {
-        if capabilities.contains(.openInXcode), let onOpenInXcode = onOpenInXcode {
+        if capabilities.contains(.openInXcode), let onOpenInXcode {
             Button {
                 onOpenInXcode()
             } label: {

@@ -6,7 +6,7 @@ import SwiftUI
 extension RuleDetailView {
     /// Determines if the short description should be shown (only if it's unique and not in markdown)
     var shouldShowShortDescription: Bool {
-        guard !rule.description.isEmpty && rule.description != "No description available" else {
+        guard !rule.description.isEmpty, rule.description != "No description available" else {
             return false
         }
         // If we have markdown, check if the short description is already contained in it

@@ -162,7 +162,7 @@ extension RuleDetailView {
                 }
             }
 
-            if rule.triggeringExamples.isEmpty && rule.nonTriggeringExamples.isEmpty {
+            if rule.triggeringExamples.isEmpty, rule.nonTriggeringExamples.isEmpty {
                 Text("No examples available")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

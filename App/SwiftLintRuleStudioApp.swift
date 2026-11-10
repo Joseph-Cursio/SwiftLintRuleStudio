@@ -117,6 +117,7 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
     nonisolated func userNotificationCenter(
         _: UNUserNotificationCenter,
         willPresent _: UNNotification,
+        // swiftlint:disable:next unneeded_escaping - must match the UNUserNotificationCenterDelegate requirement
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         completionHandler([.banner, .sound])
@@ -125,6 +126,7 @@ final class UITestWindowBootstrapper: NSObject, NSApplicationDelegate, UNUserNot
     nonisolated func userNotificationCenter(
         _: UNUserNotificationCenter,
         didReceive _: UNNotificationResponse,
+        // swiftlint:disable:next unneeded_escaping - must match the UNUserNotificationCenterDelegate requirement
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         Task { @MainActor in

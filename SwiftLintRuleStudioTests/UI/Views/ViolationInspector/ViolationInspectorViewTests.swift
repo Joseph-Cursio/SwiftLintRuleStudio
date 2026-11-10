@@ -59,7 +59,7 @@ struct ViolationInspectorViewTests {
         let container = DependencyContainer.createForTesting()
 
         // Set up workspace if provided
-        if let workspace = workspace {
+        if let workspace {
             try? container.workspaceManager.openWorkspace(at: workspace.path)
         }
 

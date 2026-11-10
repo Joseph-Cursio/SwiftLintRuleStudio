@@ -46,7 +46,7 @@ struct ConfigVersionHistoryBackupListView: View {
             }
             .listStyle(.sidebar)
 
-            if viewModel.selectedBackup != nil && viewModel.comparisonBackup == nil {
+            if viewModel.selectedBackup != nil, viewModel.comparisonBackup == nil {
                 Text("Select another version to compare")
                     .font(.caption)
                     .foregroundStyle(.secondary)

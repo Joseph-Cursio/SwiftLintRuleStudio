@@ -42,7 +42,7 @@ public enum DefaultExclusions {
     /// - Returns: `existing` verbatim, followed by the defaults it does not
     ///   already contain. Empty or `nil` input yields ``directories``.
     public static func mergedWith(existing: [String]?) -> [String] {
-        guard let existing = existing, !existing.isEmpty else {
+        guard let existing, !existing.isEmpty else {
             return directories
         }
 

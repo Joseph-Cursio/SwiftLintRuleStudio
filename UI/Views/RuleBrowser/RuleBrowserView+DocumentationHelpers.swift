@@ -105,7 +105,7 @@ extension RuleBrowserView {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
 
             // Skip the main title
-            if index == 0 && (trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")) {
+            if index == 0, trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ") {
                 continue
             }
 

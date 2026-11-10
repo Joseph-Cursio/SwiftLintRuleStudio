@@ -97,7 +97,7 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         }
 
         // Basic validation (only if no errors already added)
-        if validationErrors.isEmpty && parsedConfig.ruleIds.isEmpty {
+        if validationErrors.isEmpty, parsedConfig.ruleIds.isEmpty {
             validationErrors.append("Configuration appears empty - no rules defined.")
         }
         if parsedConfig.hasOnlyRulesConflict {

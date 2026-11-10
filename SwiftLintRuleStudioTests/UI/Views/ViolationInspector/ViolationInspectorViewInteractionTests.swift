@@ -62,7 +62,7 @@ struct ViolationInspectorViewInteractionTests {
         let container = DependencyContainer.createForTesting()
 
         // Set up workspace if provided
-        if let workspace = workspace {
+        if let workspace {
             try? container.workspaceManager.openWorkspace(at: workspace.path)
         }
 
@@ -246,7 +246,7 @@ struct ViolationInspectorViewInteractionTests {
                 let text = try? button.labelView().find(ViewType.Text.self).string()
                 return text == "Clear"
             }
-            if let clearButton = clearButton {
+            if let clearButton {
                 try clearButton.tap()
             }
 
@@ -332,7 +332,7 @@ struct ViolationInspectorViewInteractionTests {
             // Find clear filters button in empty state
             let clearText = try? result.view.inspect().find(text: "Clear Filters")
             let clearButton = try? clearText?.parent().find(ViewType.Button.self)
-            if let clearButton = clearButton {
+            if let clearButton {
                 try clearButton.tap()
                 return true
             }

@@ -264,7 +264,7 @@ struct ImpactSimulationView: View {
                     }
                 }
 
-                if let onEnable = onEnable, Self.offersEnable(for: result) {
+                if let onEnable, Self.offersEnable(for: result) {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Enable Rule") {
                             onEnable()

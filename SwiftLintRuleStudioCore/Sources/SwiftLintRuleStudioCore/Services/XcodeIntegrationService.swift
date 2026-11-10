@@ -187,7 +187,7 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
         }
 
         // Cache the result
-        if let selected = selected {
+        if let selected {
             projectCache[workspace.path] = selected
         }
 
@@ -256,7 +256,7 @@ public class XcodeIntegrationService: XcodeIntegrationServiceProtocol {
             URLQueryItem(name: "path", value: pathString),
             URLQueryItem(name: "line", value: "\(line)"),
         ]
-        if let column = column {
+        if let column {
             queryItems.append(URLQueryItem(name: "column", value: "\(column)"))
         }
         components.queryItems = queryItems

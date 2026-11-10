@@ -14,7 +14,7 @@ public enum ImpactSimulatorTestHelpers {
     /// Create a temporary impact simulator and run an operation against it
     public static func withImpactSimulator<T: Sendable>(
         swiftLintCLI: SwiftLintCLIProtocol,
-        operation: @escaping (ImpactSimulator) async throws -> T
+        operation: (ImpactSimulator) async throws -> T
     ) async throws -> T {
         let simulator = ImpactSimulator(swiftLintCLI: swiftLintCLI)
         return try await operation(simulator)

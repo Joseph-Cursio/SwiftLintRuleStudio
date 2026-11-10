@@ -369,7 +369,7 @@ public enum SwiftLintDeprecations {
     public static func rulesAdded(from fromVersion: String, to toVersion: String) -> [String] {
         var result: [String] = []
         for (version, rules) in versionRuleAdditions {
-            if isVersion(fromVersion, lessThan: version) && !isVersion(toVersion, lessThan: version) {
+            if isVersion(fromVersion, lessThan: version), !isVersion(toVersion, lessThan: version) {
                 result.append(contentsOf: rules)
             }
         }

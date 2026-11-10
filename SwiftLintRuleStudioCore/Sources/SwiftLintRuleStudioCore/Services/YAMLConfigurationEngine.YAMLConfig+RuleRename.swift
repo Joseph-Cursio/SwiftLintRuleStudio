@@ -47,7 +47,7 @@ public extension YAMLConfigurationEngine.YAMLConfig {
         let oldComment = comments.removeValue(forKey: oldId)
         if oldConfiguration != nil || oldNode != nil {
             var keepsOldComment = true
-            if rules[newId] == nil && passthroughNodes[newId] == nil {
+            if rules[newId] == nil, passthroughNodes[newId] == nil {
                 rules[newId] = oldConfiguration
                 passthroughNodes[newId] = oldNode
                 if scalarShorthandRules.contains(oldId) { scalarShorthandRules.insert(newId) }

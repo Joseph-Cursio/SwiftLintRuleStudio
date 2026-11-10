@@ -63,7 +63,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         let provider = Self.stubProvider
         Self.lock.unlock()
 
-        guard let provider = provider else {
+        guard let provider else {
             client?.urlProtocol(self, didFailWithError: URLError(.unknown))
             return
         }

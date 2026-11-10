@@ -32,12 +32,12 @@ public extension SwiftLintCLIActor {
     nonisolated static func buildLintArguments(
         configPath: URL?,
         workspacePath: URL,
-        mode: LintExecutionMode = .effective,
-        fileExists: @escaping SwiftLintFileExists
+        fileExists: SwiftLintFileExists,
+        mode: LintExecutionMode = .effective
     ) async -> [String] {
         var arguments = ["lint", "--reporter", "json"]
         if case .rootConfigOnly = mode,
-           let configPath = configPath,
+           let configPath,
            await fileExists(configPath.path) {
             arguments.append(contentsOf: ["--config", configPath.path])
         }

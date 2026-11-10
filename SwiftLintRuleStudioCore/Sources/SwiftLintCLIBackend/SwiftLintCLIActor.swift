@@ -100,8 +100,8 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         let arguments = await Self.buildLintArguments(
             configPath: configPath,
             workspacePath: workspacePath,
-            mode: .effective,
-            fileExists: fileExists
+            fileExists: fileExists,
+            mode: .effective
         )
         // Launch in the workspace directory so SwiftLint discovers its
         // `.swiftlint.yml` (and the `excluded:` paths within it) from the cwd, as

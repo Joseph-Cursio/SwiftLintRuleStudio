@@ -61,7 +61,7 @@ public final class URLConfigFetcher: URLConfigFetcherProtocol, Sendable {
     private let session: URLSession
 
     public init(session: URLSession? = nil) {
-        if let session = session {
+        if let session {
             self.session = session
         } else {
             let config = URLSessionConfiguration.default
@@ -139,7 +139,7 @@ public final class URLConfigFetcher: URLConfigFetcherProtocol, Sendable {
 
         // GitHub blob URL: github.com/owner/repo/blob/branch/path
         // -> raw.githubusercontent.com/owner/repo/branch/path
-        if host == "github.com" && path.contains("/blob/") {
+        if host == "github.com", path.contains("/blob/") {
             let rawPath = path.replacingOccurrences(of: "/blob/", with: "/")
             var components = URLComponents()
             components.scheme = "https"
@@ -152,7 +152,7 @@ public final class URLConfigFetcher: URLConfigFetcherProtocol, Sendable {
 
         // Gist URL: gist.github.com/user/gistId
         // -> gist.githubusercontent.com/user/gistId/raw
-        if host == "gist.github.com" && !path.contains("/raw") {
+        if host == "gist.github.com", !path.contains("/raw") {
             var components = URLComponents()
             components.scheme = "https"
             components.host = "gist.githubusercontent.com"

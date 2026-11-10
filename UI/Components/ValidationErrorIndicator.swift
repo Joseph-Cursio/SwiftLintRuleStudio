@@ -51,7 +51,7 @@ private struct ValidationErrorRow: View {
                 }
             }
 
-            if isExpanded, let suggestion = suggestion {
+            if isExpanded, let suggestion {
                 HStack(spacing: 4) {
                     Image(systemName: "lightbulb")
                         .font(.caption)

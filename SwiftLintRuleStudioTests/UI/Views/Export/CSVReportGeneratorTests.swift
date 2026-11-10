@@ -208,7 +208,7 @@ struct CSVReportGeneratorTests {
         for char in row {
             if char == "\"" {
                 inQuotes.toggle()
-            } else if char == "," && !inQuotes {
+            } else if char == ",", !inQuotes {
                 fields.append(current)
                 current = ""
             } else {

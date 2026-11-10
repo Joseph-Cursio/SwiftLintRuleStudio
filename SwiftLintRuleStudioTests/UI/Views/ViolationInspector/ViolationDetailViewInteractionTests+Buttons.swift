@@ -57,7 +57,7 @@ extension ViolationDetailViewInteractionTests {
                 }
             }
 
-            guard let openButton = openButton else {
+            guard let openButton else {
                 return false
             }
 

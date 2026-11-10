@@ -192,7 +192,7 @@ final class SwiftLintRuleStudioUITests: XCTestCase {
     ) -> Int {
         let deadline = Date().addingTimeInterval(timeout)
         var current = outline.cells.count
-        while current == original && Date() < deadline {
+        while current == original, Date() < deadline {
             Thread.sleep(forTimeInterval: 0.25)
             current = outline.cells.count
         }

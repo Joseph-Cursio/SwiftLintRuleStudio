@@ -29,8 +29,8 @@ struct SwiftLintCLIEnvironmentTests {
         let arguments = await SwiftLintCLIActor.buildLintArguments(
             configPath: configURL,
             workspacePath: tempDir,
-            mode: .rootConfigOnly,
-            fileExists: fileExists
+            fileExists: fileExists,
+            mode: .rootConfigOnly
         )
 
         #expect(arguments.contains("--config"))
@@ -76,8 +76,8 @@ struct SwiftLintCLIEnvironmentTests {
         let arguments = await SwiftLintCLIActor.buildLintArguments(
             configPath: configURL,
             workspacePath: tempDir,
-            mode: .rootConfigOnly,
-            fileExists: fileExists
+            fileExists: fileExists,
+            mode: .rootConfigOnly
         )
 
         #expect(arguments.contains("--config") == false)

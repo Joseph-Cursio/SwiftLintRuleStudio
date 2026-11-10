@@ -83,7 +83,7 @@ extension ViolationStorageActor {
         var conditions: [String] = []
         var parameters: [Any] = []
 
-        if let workspaceId = workspaceId {
+        if let workspaceId {
             conditions.append("workspace_id = ?")
             parameters.append(workspaceId.uuidString)
         }

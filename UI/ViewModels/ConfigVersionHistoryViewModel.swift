@@ -54,7 +54,7 @@ class ConfigVersionHistoryViewModel {
     }
 
     func loadBackups() {
-        guard let configPath = configPath else {
+        guard let configPath else {
             backups = []
             current = nil
             return
@@ -131,7 +131,7 @@ class ConfigVersionHistoryViewModel {
     /// Moves the backups an earlier version left in the project folder into the app's store.
     /// The originals go to the Trash, so the project folder holds only the configuration.
     func moveLegacyBackups() {
-        guard let configPath = configPath else { return }
+        guard let configPath else { return }
         do {
             _ = try service.moveLegacyBackups(for: configPath)
             error = nil
@@ -176,7 +176,7 @@ class ConfigVersionHistoryViewModel {
     }
 
     func restoreVersion() {
-        guard let backup = backupToRestore, let configPath = configPath else { return }
+        guard let backup = backupToRestore, let configPath else { return }
         do {
             try service.restoreBackup(backup, to: configPath)
             error = nil
@@ -195,7 +195,7 @@ class ConfigVersionHistoryViewModel {
     }
 
     func pruneOld(keepCount: Int = 10) {
-        guard let configPath = configPath else { return }
+        guard let configPath else { return }
         do {
             try service.pruneOldBackups(for: configPath, keepCount: keepCount)
             loadBackups()

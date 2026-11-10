@@ -25,7 +25,7 @@ struct ConfigVersionHistoryView: View {
                 LegacyBackupsNotice(count: viewModel.legacyBackupCount, onMove: viewModel.moveLegacyBackups)
                 Divider()
             }
-            if viewModel.backups.isEmpty && !viewModel.isLoading {
+            if viewModel.backups.isEmpty, !viewModel.isLoading {
                 ConfigVersionHistoryEmptyStateView()
             } else {
                 HSplitView {

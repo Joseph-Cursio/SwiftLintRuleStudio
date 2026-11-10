@@ -57,14 +57,14 @@ struct GitBranchDiffView: View {
     private var mainContent: some View {
         if viewModel.isNotGitRepo {
             NotGitRepoNotice()
-        } else if viewModel.isLoading && viewModel.availableRefs == nil {
+        } else if viewModel.isLoading, viewModel.availableRefs == nil {
             ProgressView("Loading git refs...")
                 .frame(maxWidth: .infinity)
                 .padding()
         } else {
             branchPickerSection
 
-            if viewModel.isLoading && viewModel.availableRefs != nil {
+            if viewModel.isLoading, viewModel.availableRefs != nil {
                 ProgressView("Comparing configurations...")
                     .frame(maxWidth: .infinity)
                     .padding()

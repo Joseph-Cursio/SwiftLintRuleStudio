@@ -186,7 +186,7 @@ private struct RecommendationCard: View {
                     .foregroundStyle(.secondary)
 
                 if let presetId = recommendation.presetId,
-                   let onApplyPreset = onApplyPreset {
+                   let onApplyPreset {
                     Button {
                         onApplyPreset(presetId)
                     } label: {

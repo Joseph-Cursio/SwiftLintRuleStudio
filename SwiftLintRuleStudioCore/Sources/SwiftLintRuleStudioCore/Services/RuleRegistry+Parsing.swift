@@ -63,7 +63,7 @@ extension RuleRegistry {
         }
 
         let identifier = columns[0]
-        guard !identifier.isEmpty && !identifier.contains("─") else { return nil }
+        guard !identifier.isEmpty, !identifier.contains("─") else { return nil }
 
         let optInStr = columns.count > 1 ? columns[1].lowercased() : "no"
         let isOptIn = optInStr == "yes"

@@ -136,6 +136,7 @@ public extension SwiftLintCLIProtocol {
     func executeLintCommand(
         configPath: URL?,
         workspacePath: URL,
+        // swiftlint:disable:next unneeded_escaping - must match the requirement it implements
         progress _: @escaping LintProgressHandler
     ) async throws -> Data {
         try await executeLintCommand(configPath: configPath, workspacePath: workspacePath)
