@@ -3,9 +3,6 @@
 //  SwiftLintRuleStudioTests
 //
 
-import Foundation
-@testable import SwiftLintRuleStudioCore
-
 /// Actor that records CLI command invocations for test assertions
 public actor CommandRecorderActor {
     /// List of recorded command and argument pairs

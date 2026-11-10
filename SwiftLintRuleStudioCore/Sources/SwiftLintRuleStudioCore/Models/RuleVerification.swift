@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// The reconciliation of one rule: what the engine claims vs. what SwiftLint did.
 public struct RuleVerification: Sendable {
     nonisolated public let ruleIdentifier: String

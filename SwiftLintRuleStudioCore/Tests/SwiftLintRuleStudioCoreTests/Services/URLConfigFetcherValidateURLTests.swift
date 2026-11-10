@@ -5,7 +5,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // The URLProtocol stub and shared fetcher helpers live in

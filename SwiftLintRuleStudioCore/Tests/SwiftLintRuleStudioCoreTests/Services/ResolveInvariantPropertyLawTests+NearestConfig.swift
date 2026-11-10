@@ -7,7 +7,6 @@
 //  (`configuration(forDirectory:)`), so at /ws/a/b the layer at /ws/a decides nothing.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing

@@ -6,7 +6,6 @@
 //  0.65.1 makes of it.
 //
 
-import Foundation
 import Testing
 
 /// The layouts ``SimulationWorkspacePrivateLoopTests`` checks.

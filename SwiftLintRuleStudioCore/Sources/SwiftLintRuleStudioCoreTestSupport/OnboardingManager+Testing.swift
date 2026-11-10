@@ -3,11 +3,7 @@
 //  SwiftLintRuleStudioTests
 //
 
-import Foundation
-import LintStudioCore
-import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
-import Testing
 
 // Extension to OnboardingManager for test isolation
 public extension OnboardingManager {

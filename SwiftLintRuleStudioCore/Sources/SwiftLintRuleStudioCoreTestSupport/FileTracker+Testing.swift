@@ -5,9 +5,6 @@
 
 import Foundation
 import LintStudioCore
-import SwiftLintCLISeam
-@testable import SwiftLintRuleStudioCore
-import Testing
 
 // Extension to FileTracker for test isolation
 public extension FileTracker {

@@ -7,7 +7,6 @@
 //  resolver and its enable/disable writes must too.
 //
 
-import Foundation
 import SwiftLintRuleStudioCore
 import Testing
 

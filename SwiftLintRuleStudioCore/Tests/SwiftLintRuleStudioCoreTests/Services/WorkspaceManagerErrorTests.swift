@@ -6,7 +6,6 @@
 //
 
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 struct WorkspaceManagerErrorTests {

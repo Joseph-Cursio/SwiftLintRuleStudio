@@ -4,10 +4,6 @@
 //
 
 import Foundation
-import LintStudioCore
-import SwiftLintCLISeam
-@testable import SwiftLintRuleStudioCore
-import Testing
 
 /// A self-cleaning root for test scratch directories under the system temp dir.
 ///

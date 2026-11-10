@@ -9,7 +9,6 @@
 //  checked against the linked SwiftLint in SwiftLintInProcessBackendTests.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

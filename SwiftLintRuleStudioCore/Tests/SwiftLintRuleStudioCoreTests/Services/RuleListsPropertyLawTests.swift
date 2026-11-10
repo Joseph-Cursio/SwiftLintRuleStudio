@@ -16,7 +16,6 @@
 //  The lists may name a rule by a deprecated alias, which SwiftLint reads as the rule.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing

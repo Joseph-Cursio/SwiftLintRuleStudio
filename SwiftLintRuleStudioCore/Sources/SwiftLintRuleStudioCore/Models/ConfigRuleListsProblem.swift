@@ -5,8 +5,6 @@
 //  What is wrong with a configuration's rule lists, as SwiftLint would see it.
 //
 
-import Foundation
-
 /// A rule-list combination SwiftLint mishandles, worth a warning in the app.
 public enum ConfigRuleListsProblem: Equatable, Sendable {
     /// `only_rules` beside `opt_in_rules` or `disabled_rules`. SwiftLint ignores the whole

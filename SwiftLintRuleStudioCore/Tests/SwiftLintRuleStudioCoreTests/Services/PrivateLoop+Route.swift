@@ -5,8 +5,6 @@
 //  Outside /private, the exclusions on the way to a loop that keep SwiftLint out of it.
 //
 
-import Foundation
-
 nonisolated extension PrivateLoop {
     /// Outside /private SwiftLint matches every entry it lists by its real path: a folder, a link,
     /// and where a link leads. So an excluded folder or link on the way keeps it out of a loop

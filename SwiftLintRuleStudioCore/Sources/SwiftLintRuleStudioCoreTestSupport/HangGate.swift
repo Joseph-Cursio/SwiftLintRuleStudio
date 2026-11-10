@@ -4,8 +4,6 @@
 //
 
 import Foundation
-import SwiftLintCLISeam
-@testable import SwiftLintRuleStudioCore
 
 public final class HangGate: @unchecked Sendable {
     nonisolated(unsafe) private var continuation: CheckedContinuation<Void, Never>?

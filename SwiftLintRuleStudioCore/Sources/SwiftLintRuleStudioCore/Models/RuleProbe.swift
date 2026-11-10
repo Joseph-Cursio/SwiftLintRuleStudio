@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// A small Swift snippet engineered to trigger exactly one rule, used to ask
 /// SwiftLint "is this rule active here?" by linting it in a folder's context.
 public struct RuleProbe: Sendable {

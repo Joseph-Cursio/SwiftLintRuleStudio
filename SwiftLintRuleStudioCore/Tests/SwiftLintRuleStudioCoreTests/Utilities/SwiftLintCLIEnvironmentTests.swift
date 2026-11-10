@@ -8,8 +8,6 @@
 import Foundation
 import SwiftLintCLIBackend
 import SwiftLintCLISeam
-@testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 struct SwiftLintCLIEnvironmentTests {

@@ -6,7 +6,6 @@
 //  changes, and SwiftLint's own top-level options are not taken for rules.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

@@ -5,7 +5,6 @@
 //  What changes between two configurations, in terms of what SwiftLint does.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

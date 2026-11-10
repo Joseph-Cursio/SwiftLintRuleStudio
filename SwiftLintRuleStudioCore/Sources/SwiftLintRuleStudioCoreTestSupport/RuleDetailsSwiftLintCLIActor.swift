@@ -5,7 +5,6 @@
 
 import Foundation
 import SwiftLintCLISeam
-@testable import SwiftLintRuleStudioCore
 
 public actor RuleDetailsSwiftLintCLIActor: SwiftLintCLIProtocol {
     public let docs: String

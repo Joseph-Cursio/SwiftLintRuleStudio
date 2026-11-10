@@ -5,8 +5,6 @@
 //  The layouts where what decides a loop is what the mirror reproduces.
 //
 
-import Foundation
-
 nonisolated extension PrivateLoop {
     /// What the mirror reproduces: it writes each `excluded` entry to name its place in the
     /// container, so one written absolute, or climbing past the folder the container stands for,

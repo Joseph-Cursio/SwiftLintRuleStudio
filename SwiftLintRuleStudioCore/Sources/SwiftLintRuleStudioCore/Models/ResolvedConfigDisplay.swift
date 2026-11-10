@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// The resolved-config inspector content for one folder.
 public struct ResolvedConfigDisplay: Sendable {
     /// The folder being inspected, relative to the workspace root (or `root`).

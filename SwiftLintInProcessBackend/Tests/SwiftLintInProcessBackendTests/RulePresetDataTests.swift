@@ -1,4 +1,3 @@
-import Foundation
 @testable import SwiftLintInProcessBackend
 import SwiftLintRuleStudioCore
 import Testing

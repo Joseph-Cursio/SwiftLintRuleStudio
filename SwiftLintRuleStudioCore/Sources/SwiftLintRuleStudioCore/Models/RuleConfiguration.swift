@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// Configuration for a single rule
 public struct RuleConfiguration: Codable, Equatable, Sendable {
     public var enabled: Bool

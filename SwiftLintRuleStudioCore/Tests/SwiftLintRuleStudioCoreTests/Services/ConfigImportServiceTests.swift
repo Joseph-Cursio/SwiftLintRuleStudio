@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 private final class MockURLConfigFetcher: URLConfigFetcherProtocol, @unchecked Sendable {

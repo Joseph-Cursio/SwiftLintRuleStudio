@@ -7,7 +7,6 @@
 //  alias, and pre-release versions.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

@@ -5,7 +5,6 @@
 //  `excluded` patterns match as SwiftLint's filename matchers match them.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

@@ -4,8 +4,6 @@
 //
 
 import Foundation
-import SwiftLintCLISeam
-@testable import SwiftLintRuleStudioCore
 
 public enum RulesTable: Sendable {
     nonisolated public static let border =

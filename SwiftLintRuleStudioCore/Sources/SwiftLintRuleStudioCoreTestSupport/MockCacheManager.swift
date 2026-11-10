@@ -4,7 +4,6 @@
 //
 
 import Foundation
-import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
 
 // `nonisolated` on the class, not on each method: the package's

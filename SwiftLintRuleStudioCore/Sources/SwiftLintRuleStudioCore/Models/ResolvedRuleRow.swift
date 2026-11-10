@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// One rule's row in the resolved-config inspector.
 public struct ResolvedRuleRow: Identifiable, Sendable {
     /// The rule identifier (also the row id).

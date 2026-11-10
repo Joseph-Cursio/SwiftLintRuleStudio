@@ -8,7 +8,6 @@
 //  and the rule off.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing

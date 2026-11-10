@@ -4,10 +4,8 @@
 //
 
 import Foundation
-import LintStudioCore
 import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
-import Testing
 
 // Helper to create DependencyContainer with isolated UserDefaults
 public extension DependencyContainer {

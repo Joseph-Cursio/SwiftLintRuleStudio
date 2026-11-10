@@ -3,9 +3,6 @@
 //  SwiftLintRuleStudioTests
 //
 
-import Foundation
-@testable import SwiftLintRuleStudioCore
-
 /// Thread-safe key-value store for test data
 public actor AsyncMapActor<Value> {
     private var values: [String: Value]
