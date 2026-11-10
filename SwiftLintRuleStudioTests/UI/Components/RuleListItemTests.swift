@@ -67,6 +67,33 @@ struct RuleListItemTests {
         #expect((try? view.inspect().find(text: "Opt-In")) == nil)
     }
 
+    @Test("An analyzer rule is tagged 'Not checked in this app', even with every capability")
+    func testAnalyzerRuleIsTaggedNotChecked() throws {
+        let rule = Rule(
+            id: "unused_import", name: "Unused Import", description: "A rule.",
+            category: .lint, isOptIn: false, isAnalyzer: true
+        )
+        // The default environment is Studio's full capability set, where SourceKit rules
+        // are checked; analyzer rules still aren't, since the app only ever lints.
+        let tag = try RuleListItem(rule: rule).inspect()
+            .find(viewWithAccessibilityIdentifier: "RuleNotCheckedTag")
+        #expect(throws: Never.self) {
+            try tag.find(text: "Not checked in this app")
+        }
+    }
+
+    @Test("A rule the app lints has no 'Not checked' tag")
+    func testLintedRuleHasNoNotCheckedTag() {
+        let view = RuleListItem(rule: makeRule(isEnabled: true, isOptIn: true))
+        #expect((try? view.inspect().find(viewWithAccessibilityIdentifier: "RuleNotCheckedTag")) == nil)
+    }
+
+    @Test("The tag's tooltip names the reason the rule isn't checked")
+    func testNotCheckedHelpNamesReason() {
+        #expect(UnmeasurableReason.analyzerRule.notCheckedHelp.contains("swiftlint analyze"))
+        #expect(UnmeasurableReason.sourceKitUnavailable.notCheckedHelp.contains("SourceKit"))
+    }
+
     @Test("State isn't repeated as Enabled/Disabled text under the rule")
     func testNoDuplicateStateText() {
         for isEnabled in [true, false] {

@@ -27,23 +27,20 @@ extension RuleDetailView {
                 }
                 .frame(maxWidth: .infinity)
 
-                // Honest disclosure: in the sandboxed edition, SourceKit rules can
-                // still be written to .swiftlint.yml (the toggle stays live so the
-                // config remains portable) but won't be evaluated by the in-app
-                // linter here.
-                if rule.isUnavailableForLinting(capabilities: capabilities) {
+                // Honest disclosure: analyzer rules (every edition) and SourceKit
+                // rules (sandboxed edition) can still be written to .swiftlint.yml
+                // (the toggle stays live so the config remains portable) but won't
+                // be evaluated by the in-app linter here.
+                if let notLintedReason = rule.notLintedReason(capabilities: capabilities) {
                     HStack(alignment: .top, spacing: 6) {
                         Image(systemName: "nosign")
                             .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
-                        Text("This rule depends on SourceKit, so it isn't checked in this "
-                            + "app. You can still add it to your configuration. SwiftLint "
-                            + "Rule Studio, the non-sandboxed edition, checks it using the "
-                            + "SwiftLint on your Mac.")
+                        Text(notLintedReason.notCheckedNotice)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                    .accessibilityIdentifier("RuleDetailSourceKitUnavailableNotice")
+                    .accessibilityIdentifier("RuleDetailNotCheckedNotice")
                 }
 
                 if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
