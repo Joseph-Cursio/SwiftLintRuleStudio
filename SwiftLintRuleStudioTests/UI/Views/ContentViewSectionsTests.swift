@@ -103,7 +103,15 @@ struct ContentViewSectionsTests {
     @Test(".branchDiff case routes to GitBranchDiffView")
     func testBranchDiffCase() async throws {
         let result = await MainActor.run { makeView(selection: .branchDiff) }
-        #expect(try await assertContainsText("Not a Git Repository", in: result))
+        // Its "Not a Git Repository" notice appears only once onAppear has run loadRefs, which
+        // an inspection one view below the hosted root doesn't see; the view itself is the route.
+        let found = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: result.view)
+            defer { ViewHosting.expel() }
+            return (try? result.view.inspect().find(GitBranchDiffView.self)) != nil
+        }
+        #expect(found)
     }
 
     @Test(".migration case routes to MigrationAssistantView")

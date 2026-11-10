@@ -3,7 +3,7 @@ import SwiftLintRuleStudioCore
 import SwiftUI
 
 extension RuleDetailView {
-    var configurationView: some View {
+    func configurationView(model: RuleDetailViewModel, isSimulating: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Configuration")
                 .font(.headline)
@@ -15,15 +15,15 @@ extension RuleDetailView {
                 // can see at a glance what actions exist.
                 HStack {
                     Toggle("Enable this rule", isOn: Binding(
-                        get: { viewModel.isEnabled },
-                        set: { viewModel.updateEnabled($0) }
+                        get: { model.isEnabled },
+                        set: { model.updateEnabled($0) }
                     ))
                     .toggleStyle(.switch)
                     .accessibilityIdentifier("RuleDetailEnableToggle")
 
                     Spacer()
 
-                    saveFlowButtons
+                    saveFlowButtons(model: model)
                 }
                 .frame(maxWidth: .infinity)
 
@@ -33,12 +33,12 @@ extension RuleDetailView {
                 // linter here.
                 sourceKitNotice
 
-                parametersSection
+                parametersSection(model: model)
 
-                unsavedChangesNotice
+                unsavedChangesNotice(model: model)
 
                 // Simulate button
-                simulateSection
+                simulateSection(isSimulating: isSimulating)
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -48,23 +48,23 @@ extension RuleDetailView {
     }
 
     @ViewBuilder
-    private var saveFlowButtons: some View {
-        let hasPendingChanges = viewModel.pendingChanges != nil
+    private func saveFlowButtons(model: RuleDetailViewModel) -> some View {
+        let hasPendingChanges = model.pendingChanges != nil
 
         Button {
-            viewModel.cancelChanges()
+            model.cancelChanges()
         } label: {
             Label("Discard", systemImage: "arrow.uturn.backward")
         }
         .buttonStyle(.bordered)
         .help("Revert unsaved changes back to the workspace YAML values")
-        .disabled(!hasPendingChanges || viewModel.isSaving)
+        .disabled(!hasPendingChanges || model.isSaving)
         .accessibilityIdentifier("RuleDetailDiscardChangesButton")
 
         Button {
             saveConfigurationAction()
         } label: {
-            if viewModel.isSaving {
+            if model.isSaving {
                 ProgressView()
                     .scaleEffect(0.7)
             } else {
@@ -73,7 +73,7 @@ extension RuleDetailView {
         }
         .buttonStyle(.borderedProminent)
         .help("Write unsaved changes to .swiftlint.yml")
-        .disabled(!hasPendingChanges || viewModel.isSaving)
+        .disabled(!hasPendingChanges || model.isSaving)
     }
 
     var examplesView: some View {
@@ -114,7 +114,7 @@ extension RuleDetailView {
         }
     }
 
-    var violationsCountView: some View {
+    func violationsCountView(count violationCount: Int, isLoading isLoadingViolationCount: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Current Violations")
                 .font(.headline)
@@ -226,7 +226,7 @@ extension RuleDetailView {
     }
 
     @ViewBuilder
-    private var simulateSection: some View {
+    private func simulateSection(isSimulating: Bool) -> some View {
         if dependencies.workspaceManager.currentWorkspace != nil {
             Divider()
 
@@ -252,8 +252,8 @@ extension RuleDetailView {
     }
 
     @ViewBuilder
-    private var unsavedChangesNotice: some View {
-        if viewModel.pendingChanges != nil {
+    private func unsavedChangesNotice(model: RuleDetailViewModel) -> some View {
+        if model.pendingChanges != nil {
             Divider()
 
             HStack {
@@ -268,8 +268,8 @@ extension RuleDetailView {
     }
 
     @ViewBuilder
-    private var parametersSection: some View {
-        if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
+    private func parametersSection(model: RuleDetailViewModel) -> some View {
+        if model.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
             Divider()
 
             VStack(alignment: .leading, spacing: 12) {
@@ -278,7 +278,7 @@ extension RuleDetailView {
 
                 RuleParameterEditor(
                     parameters: parameters,
-                    values: $viewModel.parameterValues
+                    values: Bindable(model).parameterValues
                 )
             }
         }

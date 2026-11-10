@@ -82,20 +82,19 @@ private struct RuleDetailSheetsAndAlerts: ViewModifier {
 }
 
 struct RuleDetailView: View {
-    @State var viewModel: RuleDetailViewModel
+    @State private var viewModel: RuleDetailViewModel
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
     @State private var showSaveConfirmation = false
     @State private var showError = false
     @State private var impactResult: RuleImpactResult?
-    // These four properties are read by RuleDetailView+Sections.swift (a separate file),
-    // so they cannot be private. internal is the minimum viable access level here.
-    @State var isSimulating = false
-    @State var violationCount: Int = 0
-    @State var isLoadingViolationCount = false
-    @State var cachedDocSegments: [RuleDocSegment.Rendered]?
-    // currentRule is only used within this file — private is correct
+    // The sections in RuleDetailView+Header and +Sections are handed these values; they don't
+    // read the state themselves.
+    @State private var isSimulating = false
+    @State private var violationCount: Int = 0
+    @State private var isLoadingViolationCount = false
+    @State private var cachedDocSegments: [RuleDocSegment.Rendered]?
     @State private var currentRule: Rule
 
     private let ruleId: String
@@ -150,15 +149,15 @@ struct RuleDetailView: View {
     private var scrollContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                headerView
+                headerView(isEnabled: viewModel.isEnabled)
                 Divider()
-                configurationView
+                configurationView(model: viewModel, isSimulating: isSimulating)
                 Divider()
-                descriptionView
+                descriptionView(segments: cachedDocSegments)
                 Divider()
                 whyThisMattersView
                 Divider()
-                violationsCountView
+                violationsCountView(count: violationCount, isLoading: isLoadingViolationCount)
                 Divider()
                 relatedRulesView
                 Divider()

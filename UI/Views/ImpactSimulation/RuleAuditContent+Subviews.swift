@@ -16,12 +16,12 @@ import SwiftUI
 // .frame; the shared card is otherwise flexible (maxWidth: .infinity,
 // minHeight: 60).
 
-extension RuleAuditView {
+extension RuleAuditContent {
     var summaryCardsView: some View {
         let summary = AuditSummary(
-            entries: auditEntries,
-            totalSwiftFiles: totalSwiftFiles,
-            auditDuration: auditDuration
+            entries: model.auditEntries,
+            totalSwiftFiles: model.totalSwiftFiles,
+            auditDuration: model.auditDuration
         )
 
         return ScrollView(.horizontal, showsIndicators: false) {
@@ -89,7 +89,7 @@ extension RuleAuditView {
             .frame(width: 160, height: 70)
         }
         .buttonStyle(.borderedProminent)
-        .disabled(safeCount == 0 || isEnabling)
+        .disabled(safeCount == 0 || model.isEnabling)
         .accessibilityIdentifier("EnableAllSafeRulesButton")
     }
 
@@ -120,20 +120,18 @@ extension RuleAuditView {
         )
         .frame(width: 180, height: 70)
     }
-}
 
-extension RuleAuditView {
     var ruleListView: some View {
         VStack(spacing: 0) {
             columnHeader
             Divider()
             List {
-                ForEach(auditEntries) { entry in
+                ForEach(model.auditEntries) { entry in
                     RuleAuditRow(
                         entry: entry,
-                        isExpanded: expandedRuleId == entry.id,
-                        isSelected: selectedRules.contains(entry.id),
-                        totalSwiftFiles: totalSwiftFiles,
+                        isExpanded: model.expandedRuleId == entry.id,
+                        isSelected: model.selectedRules.contains(entry.id),
+                        totalSwiftFiles: model.totalSwiftFiles,
                         maxViolationCount: maxViolationCount,
                         onToggleExpand: { toggleExpanded(entry.id) },
                         onToggleSelect: { toggleSelection(for: entry.id) },
@@ -176,33 +174,31 @@ extension RuleAuditView {
     }
 
     private var maxViolationCount: Int {
-        auditEntries.compactMap(\.violationCount).max() ?? 1
+        model.auditEntries.compactMap(\.violationCount).max() ?? 1
     }
 
     func toggleExpanded(_ ruleId: String) {
-        if expandedRuleId == ruleId {
-            expandedRuleId = nil
+        if model.expandedRuleId == ruleId {
+            model.expandedRuleId = nil
         } else {
-            expandedRuleId = ruleId
+            model.expandedRuleId = ruleId
         }
     }
 
     func toggleSelection(for ruleId: String) {
-        if selectedRules.contains(ruleId) {
-            selectedRules.remove(ruleId)
+        if model.selectedRules.contains(ruleId) {
+            model.selectedRules.remove(ruleId)
         } else {
-            selectedRules.insert(ruleId)
+            model.selectedRules.insert(ruleId)
         }
     }
-}
 
-extension RuleAuditView {
     var statusBar: some View {
         HStack(spacing: 16) {
             let summary = AuditSummary(
-                entries: auditEntries,
-                totalSwiftFiles: totalSwiftFiles,
-                auditDuration: auditDuration
+                entries: model.auditEntries,
+                totalSwiftFiles: model.totalSwiftFiles,
+                auditDuration: model.auditDuration
             )
 
             Text("Audit completed in \(String(format: "%.1fs", summary.auditDuration))")
@@ -210,8 +206,8 @@ extension RuleAuditView {
 
             Divider().frame(height: 12)
 
-            if totalSwiftFiles > 0 {
-                Text("\(summary.totalRulesTested) rules tested against \(totalSwiftFiles) Swift files")
+            if model.totalSwiftFiles > 0 {
+                Text("\(summary.totalRulesTested) rules tested against \(model.totalSwiftFiles) Swift files")
                     .foregroundStyle(.secondary)
             } else {
                 Text("\(summary.totalRulesTested) rules tested")
@@ -225,8 +221,8 @@ extension RuleAuditView {
 
             Spacer()
 
-            if !selectedRules.isEmpty {
-                Text("\(selectedRules.count) rules selected")
+            if !model.selectedRules.isEmpty {
+                Text("\(model.selectedRules.count) rules selected")
                     .foregroundStyle(.secondary)
             }
         }

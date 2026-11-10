@@ -1,5 +1,5 @@
 //
-//  ExportReportView+Sections.swift
+//  ExportReportContent+Sections.swift
 //  SwiftLintRuleStudio
 //
 //  Section views for the Export Report screen
@@ -45,7 +45,7 @@ private struct ExportFormatCard: View {
     }
 }
 
-extension ExportReportView {
+extension ExportReportContent {
     var formatSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Export Format")
@@ -55,27 +55,27 @@ extension ExportReportView {
                 ForEach(ExportFormat.allCases) { format in
                     ExportFormatCard(
                         format: format,
-                        isSelected: selectedFormat == format
-                    ) { selectedFormat = format }
+                        isSelected: model.selectedFormat == format
+                    ) { model.selectedFormat = format }
                 }
             }
         }
     }
 }
 
-extension ExportReportView {
+extension ExportReportContent {
     var contentSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Include in Report")
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
-                Toggle("Issue summary with counts by severity", isOn: $includeSummary)
-                Toggle("Detailed issue list grouped by file", isOn: $includeDetailedList)
-                Toggle("Code snippets for each violation", isOn: $includeCodeSnippets)
-                    .disabled(selectedFormat != .html)
-                Toggle("Rule configuration details", isOn: $includeRuleConfig)
-                Toggle(isOn: $includeHistoricalTrends) {
+                Toggle("Issue summary with counts by severity", isOn: $model.includeSummary)
+                Toggle("Detailed issue list grouped by file", isOn: $model.includeDetailedList)
+                Toggle("Code snippets for each violation", isOn: $model.includeCodeSnippets)
+                    .disabled(model.selectedFormat != .html)
+                Toggle("Rule configuration details", isOn: $model.includeRuleConfig)
+                Toggle(isOn: $model.includeHistoricalTrends) {
                     HStack(spacing: 4) {
                         Text("Historical trend comparison")
                         Text("(future feature)")
@@ -90,7 +90,7 @@ extension ExportReportView {
     }
 }
 
-extension ExportReportView {
+extension ExportReportContent {
     var outputSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Output")
@@ -100,7 +100,7 @@ extension ExportReportView {
                 Text("Save to")
                     .foregroundStyle(.secondary)
 
-                TextField("Output path...", text: $outputPath)
+                TextField("Output path...", text: $model.outputPath)
                     .textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("ExportReportOutputPath")
 
@@ -113,7 +113,7 @@ extension ExportReportView {
 
     func browseForOutputPath() {
         let panel = NSSavePanel()
-        panel.allowedContentTypes = contentTypesForFormat(selectedFormat)
+        panel.allowedContentTypes = contentTypesForFormat(model.selectedFormat)
         panel.nameFieldStringValue = defaultFileName()
         panel.canCreateDirectories = true
 
@@ -123,7 +123,7 @@ extension ExportReportView {
 
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                outputPath = url.path
+                model.outputPath = url.path
             }
         }
     }
@@ -131,7 +131,7 @@ extension ExportReportView {
     func defaultFileName() -> String {
         let workspaceName = dependencies.workspaceManager.currentWorkspace?.name ?? "workspace"
         let timestamp = ExportFilename.timestamp()
-        return "\(workspaceName)-lint-report-\(timestamp).\(selectedFormat.fileExtension)"
+        return "\(workspaceName)-lint-report-\(timestamp).\(model.selectedFormat.fileExtension)"
     }
 
     private func contentTypesForFormat(_ format: ExportFormat) -> [UTType] {
@@ -143,24 +143,24 @@ extension ExportReportView {
     }
 }
 
-extension ExportReportView {
+extension ExportReportContent {
     var actionSection: some View {
         HStack {
-            if isLoading {
+            if model.isLoading {
                 ProgressView()
                     .scaleEffect(0.8)
                 Text("Loading violations...")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                Text("\(violations.count) violations available for export")
+                Text("\(model.violations.count) violations available for export")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            if exportComplete {
+            if model.exportComplete {
                 Label("Exported!", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.caption)
@@ -170,7 +170,7 @@ extension ExportReportView {
                 performExport()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(outputPath.isEmpty || violations.isEmpty || isExporting)
+            .disabled(model.outputPath.isEmpty || model.violations.isEmpty || model.isExporting)
             .accessibilityIdentifier("ExportReportButton")
         }
     }
@@ -179,61 +179,61 @@ extension ExportReportView {
         guard let workspace = dependencies.workspaceManager.currentWorkspace else { return }
 
         // Set default output path
-        if outputPath.isEmpty {
+        if model.outputPath.isEmpty {
             if let desktop = FileManager.default.urls(
                 for: .desktopDirectory, in: .userDomainMask
             ).first {
-                outputPath = desktop
+                model.outputPath = desktop
                     .appendingPathComponent(defaultFileName())
                     .path
             }
         }
 
-        isLoading = true
+        model.isLoading = true
         Task {
             let loaded = try? await dependencies.violationStorage.fetchViolations(
                 filter: ViolationFilter(),
                 workspaceId: workspace.id
             )
-            violations = loaded ?? []
-            isLoading = false
+            model.violations = loaded ?? []
+            model.isLoading = false
         }
     }
 
     func performExport() {
-        guard !outputPath.isEmpty, !violations.isEmpty else { return }
+        guard !model.outputPath.isEmpty, !model.violations.isEmpty else { return }
 
-        isExporting = true
-        exportComplete = false
+        model.isExporting = true
+        model.exportComplete = false
 
-        let url = URL(fileURLWithPath: outputPath)
+        let url = URL(fileURLWithPath: model.outputPath)
         let workspaceName = dependencies.workspaceManager.currentWorkspace?.name ?? "Unknown"
 
         Task {
             do {
                 try writeReport(to: url, workspaceName: workspaceName)
 
-                isExporting = false
-                exportComplete = true
+                model.isExporting = false
+                model.exportComplete = true
 
                 // Reset after a delay
                 try? await Task.sleep(for: .seconds(3))
-                exportComplete = false
+                model.exportComplete = false
             } catch {
-                isExporting = false
-                errorMessage = error.localizedDescription
-                showError = true
+                model.isExporting = false
+                model.errorMessage = error.localizedDescription
+                model.showError = true
             }
         }
     }
 
     /// Writes the violations to `url` in the selected format.
     private func writeReport(to url: URL, workspaceName: String) throws {
-        switch selectedFormat {
+        switch model.selectedFormat {
         case .html:
             let html = HTMLReportGenerator.generate(
                 options: HTMLReportOptions(
-                    violations: violations,
+                    violations: model.violations,
                     workspaceName: workspaceName,
                     // The composition root is where the clock belongs: everything below
                     // this line is a function of what it is handed. Spelled `Date.now`
@@ -243,10 +243,10 @@ extension ExportReportView {
                     // way would move this read somewhere no tool can see it, and a read
                     // reported where it belongs is better than one nothing can find.
                     generatedAt: Date.now,
-                    includeSummary: includeSummary,
-                    includeDetailedList: includeDetailedList,
-                    includeCodeSnippets: includeCodeSnippets,
-                    includeRuleConfig: includeRuleConfig,
+                    includeSummary: model.includeSummary,
+                    includeDetailedList: model.includeDetailedList,
+                    includeCodeSnippets: model.includeCodeSnippets,
+                    includeRuleConfig: model.includeRuleConfig,
                     ruleRegistry: dependencies.ruleRegistry
                 )
             )
@@ -256,11 +256,11 @@ extension ExportReportView {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(violations)
+            let data = try encoder.encode(model.violations)
             try data.write(to: url)
 
         case .csv:
-            let csv = CSVReportGenerator.generate(violations: violations)
+            let csv = CSVReportGenerator.generate(violations: model.violations)
             try csv.write(to: url, atomically: true, encoding: .utf8)
         }
     }

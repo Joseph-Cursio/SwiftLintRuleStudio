@@ -12,64 +12,6 @@ import SwiftUI
 // MARK: - Running an Audit
 
 extension RuleAuditView {
-    func runAudit() {
-        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
-            return
-        }
-
-        isAuditing = true
-        auditEntries = []
-        selectedRules.removeAll()
-        expandedRuleId = nil
-
-        // One audit at a time: a second run supersedes the first rather than racing it, and
-        // only the current run reports back — see `RuleAuditRunner`.
-        auditRunner.start(
-            for: workspace,
-            currentWorkspace: { dependencies.workspaceManager.currentWorkspace },
-            audit: { onProgress in try await auditOutcome(for: workspace, onProgress: onProgress) },
-            onProgress: { auditProgress = $0 },
-            onFinish: { result in
-                switch result {
-                case .success(let outcome):
-                    applyAuditOutcome(outcome)
-
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                    showError = true
-                    isAuditing = false
-                    auditProgress = nil
-                }
-            }
-        )
-    }
-
-    /// Audits the registry's rules against `workspace` with this edition's simulator.
-    private func auditOutcome(
-        for workspace: Workspace,
-        onProgress: @escaping (AuditProgress) -> Void
-    ) async throws -> AuditOutcome {
-        var allRules = dependencies.ruleRegistry.rules
-        if allRules.isEmpty {
-            allRules = try await dependencies.ruleRegistry.loadRules()
-        }
-        return try await Self.performAudit(
-            workspace: workspace,
-            rules: allRules,
-            simulator: dependencies.impactSimulator,
-            capabilities: capabilities,
-            onProgress: onProgress
-        )
-    }
-
-    func applyAuditOutcome(_ outcome: AuditOutcome) {
-        auditEntries = outcome.entries
-        totalSwiftFiles = outcome.swiftFileCount
-        auditDuration = outcome.duration
-        isAuditing = false
-        auditProgress = nil
-    }
-
     /// Everything an audit run produces, before it is written back to view state.
     struct AuditOutcome {
         let entries: [RuleAuditEntry]
@@ -233,5 +175,65 @@ extension RuleAuditView {
 
     static func isRuleEnabled(_ rule: Rule, config: YAMLConfigurationEngine.YAMLConfig) -> Bool {
         RuleEnablementResolver.isRuleEnabled(rule, config: config)
+    }
+}
+
+extension RuleAuditContent {
+    func runAudit() {
+        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
+            return
+        }
+
+        model.isAuditing = true
+        model.auditEntries = []
+        model.selectedRules.removeAll()
+        model.expandedRuleId = nil
+
+        // One audit at a time: a second run supersedes the first rather than racing it, and
+        // only the current run reports back — see `RuleAuditRunner`.
+        model.auditRunner.start(
+            for: workspace,
+            currentWorkspace: { dependencies.workspaceManager.currentWorkspace },
+            audit: { onProgress in try await auditOutcome(for: workspace, onProgress: onProgress) },
+            onProgress: { model.auditProgress = $0 },
+            onFinish: { result in
+                switch result {
+                case .success(let outcome):
+                    applyAuditOutcome(outcome)
+
+                case .failure(let error):
+                    model.errorMessage = error.localizedDescription
+                    model.showError = true
+                    model.isAuditing = false
+                    model.auditProgress = nil
+                }
+            }
+        )
+    }
+
+    /// Audits the registry's rules against `workspace` with this edition's simulator.
+    private func auditOutcome(
+        for workspace: Workspace,
+        onProgress: @escaping (AuditProgress) -> Void
+    ) async throws -> RuleAuditView.AuditOutcome {
+        var allRules = dependencies.ruleRegistry.rules
+        if allRules.isEmpty {
+            allRules = try await dependencies.ruleRegistry.loadRules()
+        }
+        return try await RuleAuditView.performAudit(
+            workspace: workspace,
+            rules: allRules,
+            simulator: dependencies.impactSimulator,
+            capabilities: capabilities,
+            onProgress: onProgress
+        )
+    }
+
+    func applyAuditOutcome(_ outcome: RuleAuditView.AuditOutcome) {
+        model.auditEntries = outcome.entries
+        model.totalSwiftFiles = outcome.swiftFileCount
+        model.auditDuration = outcome.duration
+        model.isAuditing = false
+        model.auditProgress = nil
     }
 }

@@ -28,7 +28,7 @@ extension RuleDetailView {
         return true
     }
 
-    var headerView: some View {
+    func headerView(isEnabled: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -50,11 +50,11 @@ extension RuleDetailView {
                     .scaleEffect(1.2)
             }
 
-            ruleTags
+            ruleTags(isEnabled: isEnabled)
         }
     }
 
-    var descriptionView: some View {
+    func descriptionView(segments cachedDocSegments: [RuleDocSegment.Rendered]?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Description")
                 .font(.headline)
@@ -69,7 +69,7 @@ extension RuleDetailView {
 
             // Show markdown documentation if available - directly below description
             if let markdownDoc = rule.markdownDocumentation, !markdownDoc.isEmpty {
-                documentation(markdownDoc)
+                documentation(markdownDoc, segments: cachedDocSegments)
             } else if rule.description.isEmpty || rule.description == "No description available" {
                 // Show message if we have neither description nor markdown documentation
                 Text("No description available")
@@ -147,7 +147,10 @@ extension RuleDetailView {
 
     /// The rule's markdown documentation, from the cached segments once they are built.
     @ViewBuilder
-    private func documentation(_ markdownDoc: String) -> some View {
+    private func documentation(
+        _ markdownDoc: String,
+        segments cachedDocSegments: [RuleDocSegment.Rendered]?
+    ) -> some View {
         // Determine top padding: only add spacing if we showed the short description above
         let hasShortDescription = shouldShowShortDescription
 
@@ -181,7 +184,7 @@ extension RuleDetailView {
         }
     }
 
-    private var ruleTags: some View {
+    private func ruleTags(isEnabled: Bool) -> some View {
         HStack(spacing: 16) {
             // Neutral, like the rule list's Opt-In tag: orange means "warning"
             // elsewhere in the app, and opt-in is a rule's type, not a problem.
@@ -192,7 +195,7 @@ extension RuleDetailView {
                     .help("SwiftLint runs this rule only when a configuration enables it")
             }
 
-            if viewModel.isEnabled {
+            if isEnabled {
                 Label("Enabled", systemImage: "checkmark.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(.green)
