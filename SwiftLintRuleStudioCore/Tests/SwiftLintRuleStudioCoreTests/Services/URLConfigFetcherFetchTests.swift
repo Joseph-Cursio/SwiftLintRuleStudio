@@ -1,12 +1,6 @@
 //
-//  URLConfigFetcherTests.swift
+//  URLConfigFetcherFetchTests.swift
 //  SwiftLintRuleStudioTests
-//
-//  Tests for URLConfigFetcher fetch + validation logic.
-//
-//  Network calls are intercepted via a custom URLProtocol installed on a
-//  URLSession injected through URLConfigFetcher.init(session:). No real
-//  network traffic is performed.
 //
 
 import Foundation
@@ -14,62 +8,10 @@ import Foundation
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
-// The URLProtocol stub and shared fetcher helpers live in
-// URLConfigFetcherStubURLProtocol.swift to keep this file under file_length.
-
-private func httpsURL(_ string: String = "https://example.com/.swiftlint.yml") throws -> URL {
-    try #require(URL(string: string))
-}
-
-// MARK: - validateURL
-
-@Suite("URLConfigFetcher.validateURL")
-struct URLConfigFetcherValidateURLTests {
-
-    @Test("https URL with host is valid")
-    func httpsURLIsValid() throws {
-        let fetcher = URLConfigFetcher()
-        let url = try httpsURL()
-        #expect(fetcher.validateURL(url) == .valid)
-    }
-
-    @Test("http URL is reported as insecure scheme")
-    func httpURLIsInsecure() throws {
-        let fetcher = URLConfigFetcher()
-        let url = try #require(URL(string: "http://example.com/.swiftlint.yml"))
-        #expect(fetcher.validateURL(url) == .insecureScheme)
-    }
-
-    @Test("file URL is reported as unsupported scheme")
-    func fileURLIsUnsupported() throws {
-        let fetcher = URLConfigFetcher()
-        let url = try #require(URL(string: "file:///tmp/.swiftlint.yml"))
-        #expect(fetcher.validateURL(url) == .unsupportedScheme)
-    }
-
-    @Test("URL without scheme is invalid format")
-    func noSchemeIsInvalid() throws {
-        let fetcher = URLConfigFetcher()
-        // relative path produces no scheme
-        let url = try #require(URL(string: "/tmp/.swiftlint.yml"))
-        #expect(fetcher.validateURL(url) == .invalidFormat)
-    }
-
-    @Test("https URL without host is invalid format")
-    func httpsWithoutHostIsInvalid() throws {
-        let fetcher = URLConfigFetcher()
-        let url = try #require(URL(string: "https:///path/.swiftlint.yml"))
-        #expect(fetcher.validateURL(url) == .invalidFormat)
-    }
-}
-
-// MARK: - resolveToRawURL
 //
 // The resolveToRawURL suite (including the idempotence property) lives in
 // URLConfigFetcherResolveURLTests.swift — split out to keep this file under
 // the file_length limit.
-
-// MARK: - fetchConfig (stubbed network)
 
 @Suite("URLConfigFetcher.fetchConfig", .serialized)
 struct URLConfigFetcherFetchTests {
@@ -358,7 +300,3 @@ struct URLConfigFetcherFetchTests {
         }
     }
 }
-
-// MARK: - File marker (satisfies file_name lint rule)
-
-private enum URLConfigFetcherTests {}

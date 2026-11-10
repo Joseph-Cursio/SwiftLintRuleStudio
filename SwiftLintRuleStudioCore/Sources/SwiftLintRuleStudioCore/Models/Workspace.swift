@@ -1,47 +1,9 @@
 //
-//  Configuration.swift
+//  Workspace.swift
 //  SwiftLintRuleStudio
-//
-//  Created by joe cursio on 12/24/25.
 //
 
 import Foundation
-
-/// Represents a SwiftLint configuration
-public struct SwiftLintConfiguration: Codable, Sendable {
-    public var rules: [String: RuleConfiguration]
-    public var included: [String]?
-    public var excluded: [String]?
-    public var reporter: String?
-    public var disabledRules: [String]?
-    public var optInRules: [String]?
-    public var analyzerRules: [String]?
-    public var onlyRules: [String]?
-
-    nonisolated public init() {
-        self.rules = [:]
-        self.included = nil
-        self.excluded = nil
-        self.reporter = nil
-        self.disabledRules = nil
-        self.optInRules = nil
-        self.analyzerRules = nil
-        self.onlyRules = nil
-    }
-}
-
-/// Configuration for a single rule
-public struct RuleConfiguration: Codable, Equatable, Sendable {
-    public var enabled: Bool
-    public var severity: Severity?
-    public var parameters: [String: AnyCodable]?
-
-    nonisolated public init(enabled: Bool = true, severity: Severity? = nil, parameters: [String: AnyCodable]? = nil) {
-        self.enabled = enabled
-        self.severity = severity
-        self.parameters = parameters
-    }
-}
 
 /// Represents a workspace/project
 public struct Workspace: Identifiable, Equatable, Sendable {
@@ -73,7 +35,3 @@ public struct Workspace: Identifiable, Equatable, Sendable {
         lhs.id == rhs.id && lhs.path == rhs.path
     }
 }
-
-// MARK: - File marker (satisfies file_name lint rule)
-
-private enum Configuration {}

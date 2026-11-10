@@ -26,7 +26,7 @@
 # file via mktemp failed" -- was NOT caused by these. That error carries errno 2,
 # ENOENT ("parent directory is gone"), not an exhaustion code. The real cause was
 # TestTempDirectory purging the shared scratch root while parallel tests were still
-# using it; see the comment on `TestTempDirectory` in TestIsolationHelpers.swift.
+# using it; see the comment on `TestTempDirectory` in TestTempDirectory.swift.
 # That is fixed at the source. If you see mktemp failures again, they are a code
 # bug, not a housekeeping problem -- do not reach for this script.
 #

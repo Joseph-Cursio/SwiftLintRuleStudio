@@ -1,13 +1,9 @@
 //
-//  Notifications.swift
+//  Notification.Name+RuleStudio.swift
 //  SwiftLintRuleStudio
-//
-//  App-wide notification names
 //
 
 import Foundation
-
-extension Notification {}
 
 public extension Notification.Name {
     /// Posted when a rule configuration is saved

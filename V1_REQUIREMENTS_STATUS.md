@@ -389,7 +389,7 @@ XCTest's inherited launch tests. Latest run: **593 core** (all passing),
 Includes **47 property-law tests in 9 suites** (`swift test --filter PropertyLaw`),
 every one mutation-verified.
 
-**Test infrastructure:** `TestIsolationHelpers`, `WorkspaceTestHelpers`,
+**Test infrastructure:** `IsolatedUserDefaults`, `TestTempDirectory`, `WorkspaceTestHelpers`,
 `CacheManager.createForTesting()`, `FileTracker.createForTesting()`,
 `DependencyContainer.createForTesting()`, plus per-service helpers in
 `SwiftLintRuleStudioCoreTestSupport`.

@@ -1,50 +1,11 @@
 //
-//  RuleRegistryTestHelpers.swift
+//  MockSwiftLintCLIActor.swift
 //  SwiftLintRuleStudioTests
-//
-//  Helper utilities and mocks for RuleRegistry tests
 //
 
 import Foundation
 import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
-
-public enum RulesTable: Sendable {
-    nonisolated public static let border =
-        "+------------------------------------------+--------+-------------+" +
-        "------------------------+-------------+----------+" +
-        "----------------+---------------+"
-    nonisolated public static let header =
-        "| identifier | opt-in | correctable " +
-        "| enabled in your config | kind | analyzer | " +
-        "uses sourcekit | configuration |"
-}
-
-/// Build a mock rules table data blob from the given rows
-nonisolated public func makeRulesTableData(rows: [String]) -> Data {
-    let lines = [RulesTable.border, RulesTable.header, RulesTable.border] + rows + [RulesTable.border]
-    return Data(lines.joined(separator: "\n").utf8)
-}
-
-public final class HangGate: @unchecked Sendable {
-    nonisolated(unsafe) private var continuation: CheckedContinuation<Void, Never>?
-    private let lock = NSLock()
-
-    nonisolated public func wait() async {
-        await withCheckedContinuation { continuation in
-            lock.lock()
-            self.continuation = continuation
-            lock.unlock()
-        }
-    }
-
-    nonisolated public func open() {
-        lock.lock()
-        continuation?.resume()
-        continuation = nil
-        lock.unlock()
-    }
-}
 
 public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
     private let shouldFail: Bool
@@ -203,102 +164,3 @@ public actor MockSwiftLintCLIActor: SwiftLintCLIProtocol {
         return "0.50.0"
     }
 }
-
-public actor RuleDetailsSwiftLintCLIActor: SwiftLintCLIProtocol {
-    public let docs: String
-    public let detail: String
-
-    public init(docs: String, detail: String) {
-        self.docs = docs
-        self.detail = detail
-    }
-
-    public func detectSwiftLintPath() async throws -> URL {
-        await Task.yield()
-        throw SwiftLintError.notFound
-    }
-
-    public func executeRulesCommand() async throws -> Data {
-        await Task.yield()
-        return Data()
-    }
-
-    public func executeRuleDetailCommand(ruleId _: String) async throws -> Data {
-        await Task.yield()
-        return Data(detail.utf8)
-    }
-
-    public func generateDocsForRule(ruleId _: String) async throws -> String {
-        await Task.yield()
-        return docs
-    }
-
-    public func executeLintCommand(configPath _: URL?, workspacePath _: URL) async throws -> Data {
-        await Task.yield()
-        return Data()
-    }
-
-    public func getVersion() async throws -> String {
-        await Task.yield()
-        return "0.0.0"
-    }
-}
-
-// `nonisolated` on the class, not on each method: the package's
-// `defaultIsolation(MainActor.self)` otherwise pins the stored properties to the
-// main actor while the protocol's `nonisolated` requirements pull the methods off
-// it, which Swift 6.4 rejects. `CacheManager` itself dodges this only by being a
-// struct of `let`s.
-nonisolated public final class MockCacheManager: CacheManagerProtocol, @unchecked Sendable {
-    public var cachedRules: [Rule] = []
-    public var shouldFailLoad = false
-    public var shouldFailSave = false
-    public var cachedVersion: String?
-    public var cachedDocsDirectory: URL?
-
-    public init() {
-        // Declared only to make the initializer public.
-    }
-
-    nonisolated public func loadCachedRules() throws -> [Rule] {
-        if shouldFailLoad {
-            throw NSError(domain: "TestError", code: 1)
-        }
-        return cachedRules
-    }
-
-    nonisolated public func saveCachedRules(_ rules: [Rule]) throws {
-        if shouldFailSave {
-            throw NSError(domain: "TestError", code: 1)
-        }
-        cachedRules = rules
-    }
-
-    nonisolated public func clearCache() throws {
-        cachedRules = []
-    }
-
-    nonisolated public func getCachedSwiftLintVersion() throws -> String? {
-        cachedVersion
-    }
-
-    nonisolated public func saveSwiftLintVersion(_ version: String) throws {
-        cachedVersion = version
-    }
-
-    nonisolated public func getCachedDocsDirectory() -> URL? {
-        cachedDocsDirectory
-    }
-
-    nonisolated public func saveDocsDirectory(_ url: URL) throws {
-        cachedDocsDirectory = url
-    }
-
-    nonisolated public func clearDocsCache() throws {
-        cachedDocsDirectory = nil
-    }
-}
-
-// MARK: - File marker (satisfies file_name lint rule)
-
-private enum RuleRegistryTestHelpers {}

@@ -1,39 +1,9 @@
 //
-//  YAMLConfigurationEngine+RuleLists.swift
+//  YAMLConfigurationEngine.YAMLConfig+RuleLists.swift
 //  SwiftLintRuleStudio
-//
-//  The four rule lists read the way SwiftLint reads them together: turning a rule
-//  on or off in whichever mode the file is in, and repairing a file SwiftLint
-//  rejects.
 //
 
 import Foundation
-
-/// Which list turns a rule on when a configuration has no `only_rules`.
-nonisolated public enum RuleListKind: Sendable, Equatable {
-    /// On unless listed under `disabled_rules`.
-    case standard
-    /// Off unless listed under `opt_in_rules`.
-    case optIn
-    /// Off unless listed under `analyzer_rules`, and run only by `swiftlint analyze`.
-    case analyzer
-
-    /// SwiftLint reports every analyzer rule as opt-in too (`AnalyzerRule` refines
-    /// `OptInRule`), so the analyzer flag decides first.
-    nonisolated public init(isOptIn: Bool, isAnalyzer: Bool) {
-        if isAnalyzer {
-            self = .analyzer
-        } else if isOptIn {
-            self = .optIn
-        } else {
-            self = .standard
-        }
-    }
-
-    nonisolated public init(_ rule: Rule) {
-        self.init(isOptIn: rule.isOptIn, isAnalyzer: rule.isAnalyzer)
-    }
-}
 
 /// How the rule lists combine, mirroring `Configuration.RulesMode.init` in SwiftLint:
 ///
@@ -260,7 +230,3 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
         return ids.filter { seen.insert($0).inserted }
     }
 }
-
-// MARK: - File marker (satisfies file_name lint rule)
-
-extension YAMLConfigurationEngine {}

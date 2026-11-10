@@ -1,28 +1,10 @@
 //
-//  SwiftLintCLITestHelpers.swift
+//  AsyncMapActor.swift
 //  SwiftLintRuleStudioTests
-//
-//  Helper utilities for SwiftLintCLIActor tests
 //
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-
-/// Actor that records CLI command invocations for test assertions
-public actor CommandRecorderActor {
-    /// List of recorded command and argument pairs
-    public private(set) var calls: [(String, [String])] = []
-
-    /// Initialize an empty command recorder
-    public init() {
-        // Declared only to make the initializer public.
-    }
-
-    /// Record a command invocation with its arguments
-    public func record(_ command: String, _ arguments: [String]) {
-        calls.append((command, arguments))
-    }
-}
 
 /// Thread-safe key-value store for test data
 public actor AsyncMapActor<Value> {
@@ -46,7 +28,3 @@ public actor AsyncMapActor<Value> {
         values[key] = value
     }
 }
-
-// MARK: - File marker (satisfies file_name lint rule)
-
-private enum SwiftLintCLITestHelpers {}
