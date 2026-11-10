@@ -10,7 +10,6 @@ import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
-import ViewInspector
 
 enum RuleDetailViewTestHelpers {
     struct ViewResult: @unchecked Sendable {

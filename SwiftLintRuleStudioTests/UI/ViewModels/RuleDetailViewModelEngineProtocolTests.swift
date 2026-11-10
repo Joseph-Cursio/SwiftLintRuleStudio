@@ -7,7 +7,6 @@
 //  in-memory stub instead of a real engine writing to disk.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing

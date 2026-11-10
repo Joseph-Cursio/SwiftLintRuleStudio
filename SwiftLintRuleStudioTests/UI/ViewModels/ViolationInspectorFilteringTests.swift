@@ -1,7 +1,6 @@
 import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated static properties

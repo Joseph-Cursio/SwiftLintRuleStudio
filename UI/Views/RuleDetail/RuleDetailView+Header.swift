@@ -1,4 +1,3 @@
-import LintStudioCore
 import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI

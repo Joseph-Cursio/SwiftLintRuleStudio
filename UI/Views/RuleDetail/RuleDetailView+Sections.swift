@@ -1,4 +1,3 @@
-import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
 
@@ -74,44 +73,6 @@ extension RuleDetailView {
         .buttonStyle(.borderedProminent)
         .help("Write unsaved changes to .swiftlint.yml")
         .disabled(!hasPendingChanges || model.isSaving)
-    }
-
-    var examplesView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Examples")
-                .font(.headline)
-
-            if !rule.triggeringExamples.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Triggering Examples", systemImage: "xmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.red)
-
-                    ForEach(Array(rule.triggeringExamples.enumerated()), id: \.offset) { _, example in
-                        CodeBlock(code: example, isError: true)
-                    }
-                }
-            }
-
-            if !rule.nonTriggeringExamples.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Non-Triggering Examples", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
-
-                    ForEach(Array(rule.nonTriggeringExamples.enumerated()), id: \.offset) { _, example in
-                        CodeBlock(code: example, isError: false)
-                    }
-                }
-            }
-
-            if rule.triggeringExamples.isEmpty, rule.nonTriggeringExamples.isEmpty {
-                Text("No examples available")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .italic()
-            }
-        }
     }
 
     func violationsCountView(count violationCount: Int, isLoading isLoadingViolationCount: Bool) -> some View {

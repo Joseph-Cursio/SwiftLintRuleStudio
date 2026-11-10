@@ -8,7 +8,6 @@
 import Foundation
 import LintStudioCore
 import LintStudioUI
-@testable import SwiftLintRuleStudio
 import Testing
 
 @MainActor

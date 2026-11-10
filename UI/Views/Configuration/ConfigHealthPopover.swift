@@ -11,7 +11,6 @@ import SwiftUI
 /// Compact popover version of health score
 struct ConfigHealthPopover: View {
     let report: ConfigHealthReport
-    let onApplyPreset: ((String) -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -97,7 +96,6 @@ struct ConfigHealthPopover: View {
                     actionType: .enablePreset("performance")
                 ),
             ]
-        ),
-        onApplyPreset: nil
+        )
     )
 }

@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 enum ViolationGroupingOption: String, CaseIterable {
     case ungrouped = "None"
     case file = "File"

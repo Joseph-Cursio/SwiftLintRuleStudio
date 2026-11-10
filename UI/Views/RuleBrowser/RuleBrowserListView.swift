@@ -12,7 +12,6 @@ import SwiftLintRuleStudioCore
 #endif
 
 struct RuleBrowserListView: View {
-    @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Bindable var viewModel: RuleBrowserViewModel
     @Binding var selectedRuleId: String?
@@ -82,8 +81,7 @@ struct RuleBrowserListView: View {
                 selectedCategory: viewModel.selectedCategory,
                 selectedStatus: viewModel.selectedStatus,
                 selectedType: viewModel.selectedType,
-                hasActivePreset: viewModel.activePreset != nil,
-                rulesAreEmpty: ruleRegistry.rules.isEmpty
+                hasActivePreset: viewModel.activePreset != nil
             ) { viewModel.clearFilters() }
         } else if viewModel.isMultiSelectMode {
             List(selection: Bindable(viewModel).selectedRuleIds) {

@@ -3,9 +3,9 @@
 //  SwiftLintRuleStudio
 //
 
+import Foundation
 import LintStudioCore
 import SwiftLintRuleStudioCore
-import SwiftUI
 
 extension Violation: @retroactive LintViolation {
     public var identifier: UUID { id }

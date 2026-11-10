@@ -5,7 +5,6 @@
 
 import LintStudioCore
 import SwiftLintRuleStudioCore
-import SwiftUI
 
 extension Rule: @retroactive LintRule {
     public typealias CategoryType = RuleCategory

@@ -1,5 +1,5 @@
+import AppKit
 import SwiftLintRuleStudioCore
-import SwiftUI
 import UniformTypeIdentifiers
 
 extension ViolationInspectorView {

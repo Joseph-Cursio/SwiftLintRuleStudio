@@ -3,12 +3,7 @@
 //  SwiftLintRuleStudioTests
 //
 
-import SwiftLintCLIBackend
-@testable import SwiftLintRuleStudio
-@testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
-import Testing
 import ViewInspector
 
 // Helpers for async test operations

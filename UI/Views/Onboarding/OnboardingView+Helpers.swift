@@ -108,32 +108,6 @@ extension OnboardingView {
         return .notInstalled
     }
 
-    /// Helper to add timeout to async operations
-    private func withTimeout<T: Sendable>(
-        seconds: TimeInterval,
-        operation: @escaping @Sendable () async throws -> T
-    ) async throws -> T {
-        try await withThrowingTaskGroup(of: T.self) { group in
-            // Start the actual operation
-            group.addTask { @Sendable in
-                try await operation()
-            }
-
-            // Start timeout task
-            group.addTask { @Sendable in
-                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-                throw SwiftLintError.executionFailed(message: "Operation timed out after \(seconds) seconds")
-            }
-
-            // Return first completed result (either success or timeout)
-            guard let result = try await group.next() else {
-                throw SwiftLintError.executionFailed(message: "Operation timed out after \(seconds) seconds")
-            }
-            group.cancelAll()
-            return result
-        }
-    }
-
     /// The button that moves onboarding on: Complete, Get Started or Next, by step.
     @ViewBuilder
     private func forwardButton(isCheckingSwiftLint: Bool) -> some View {

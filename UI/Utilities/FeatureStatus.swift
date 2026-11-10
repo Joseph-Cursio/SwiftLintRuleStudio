@@ -6,8 +6,6 @@
 //  plainly instead of hiding or half-wiring it.
 //
 
-import Foundation
-
 /// How ready a feature is.
 ///
 /// This is a roadmap distinction and is deliberately **not** modelled as an

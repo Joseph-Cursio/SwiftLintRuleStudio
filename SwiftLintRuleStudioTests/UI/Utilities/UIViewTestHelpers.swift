@@ -8,8 +8,6 @@ import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
-import Testing
-import ViewInspector
 
 // Helpers for creating views with proper environment objects
 // Using async functions with MainActor.run to allow parallel test execution

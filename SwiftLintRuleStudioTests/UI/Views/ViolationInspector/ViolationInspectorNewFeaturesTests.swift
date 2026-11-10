@@ -5,11 +5,10 @@
 //  Tests for new ViolationInspectorView features: grouping and export functionality
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
-import ViewInspector
 
 @MainActor
 struct ViolationInspectorNewFeaturesTests {

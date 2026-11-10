@@ -6,7 +6,6 @@
 //  audit entry building and sorting, safe-rule selection, and enabled-flag updates.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing

@@ -131,42 +131,6 @@ private struct ValidationStatusBadge: View {
     }
 }
 
-/// Field-specific inline error indicator
-private struct FieldValidationIndicator: View {
-    let field: ValidationResult.ConfigField
-    let errors: [ValidationResult.ValidationError]
-    let warnings: [ValidationResult.ValidationWarning]
-
-    var body: some View {
-        let fieldErrors = errors.filter { $0.field == field }
-        let fieldWarnings = warnings.filter { $0.field == field }
-
-        if !fieldErrors.isEmpty || !fieldWarnings.isEmpty {
-            HStack(spacing: 4) {
-                if !fieldErrors.isEmpty {
-                    HStack(spacing: 2) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.red)
-                            .accessibilityHidden(true)
-                        Text(fieldErrors.first?.message ?? "")
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-                } else if !fieldWarnings.isEmpty {
-                    HStack(spacing: 2) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                            .accessibilityHidden(true)
-                        Text(fieldWarnings.first?.message ?? "")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                    }
-                }
-            }
-        }
-    }
-}
-
 /// Displays validation errors and warnings inline
 struct ValidationErrorIndicator: View {
     let errors: [ValidationResult.ValidationError]

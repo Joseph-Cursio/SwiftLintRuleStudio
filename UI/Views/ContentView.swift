@@ -54,8 +54,11 @@ struct ContentView: View {
     @State private var didApplyUITestOverrides = false
 
     @State private var selection: AppSection? = .rules
+    // swiftlint:disable:next unused_declaration - read only through its $binding
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    // swiftlint:disable:next unused_declaration - read only through its $binding
     @State private var searchText: String = ""
+    // swiftlint:disable:next unused_declaration - read only through its $binding
     @State private var selectedRuleId: String?
     @State private var ruleBrowserViewModel: RuleBrowserViewModel?
     @State private var showWorkspacePicker = false

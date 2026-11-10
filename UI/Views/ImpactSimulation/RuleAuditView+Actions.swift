@@ -6,8 +6,8 @@
 //  view state that goes with them. Running the audit lives in +Audit.
 //
 
+import Foundation
 import SwiftLintRuleStudioCore
-import SwiftUI
 
 // MARK: - Enabling Rules
 

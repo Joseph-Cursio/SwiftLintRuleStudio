@@ -5,7 +5,6 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import LintStudioCore
 import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI

@@ -3,13 +3,8 @@
 //  SwiftLintRuleStudioTests
 //
 
-import SwiftLintCLIBackend
-@testable import SwiftLintRuleStudio
+import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
-import Testing
-import ViewInspector
 
 // Factory methods for creating test data
 // Using async functions with MainActor.run to allow parallel test execution

@@ -24,8 +24,6 @@ struct OnboardingViewTests {
     @MainActor
     private struct OnboardingViewResult: @unchecked Sendable {
         let view: AnyView
-        let onboardingManager: OnboardingManager
-        let workspaceManager: WorkspaceManager
     }
 
     private func createOnboardingView(
@@ -49,11 +47,7 @@ struct OnboardingViewTests {
                 swiftLintStatus: swiftLintStatus
             )
 
-            return OnboardingViewResult(
-                view: AnyView(view),
-                onboardingManager: onboardingManager,
-                workspaceManager: workspaceManager
-            )
+            return OnboardingViewResult(view: AnyView(view))
         }
     }
 

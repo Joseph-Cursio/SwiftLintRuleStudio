@@ -7,7 +7,6 @@
 //  attribution) for the selected folder on the right.
 //
 
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 struct ConfigMapView: View {

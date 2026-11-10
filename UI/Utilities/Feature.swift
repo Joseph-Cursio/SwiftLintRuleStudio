@@ -5,8 +5,6 @@
 //  The features whose readiness the UI discloses.
 //
 
-import Foundation
-
 /// A feature whose readiness the UI discloses.
 ///
 /// Only features that are visibly incomplete need an entry here; anything not

@@ -6,7 +6,6 @@
 //  detail pane (layer chain, attributed rule rows, notices).
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftUI

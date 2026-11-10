@@ -6,15 +6,10 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
-    private static let responseDataKey = "MockURLProtocol.responseData"
-    private static let statusCodeKey = "MockURLProtocol.statusCode"
-
     static func createSession(responseData: Data, statusCode: Int) -> URLSession {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MockURLProtocol.self]

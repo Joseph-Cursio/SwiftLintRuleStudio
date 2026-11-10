@@ -5,7 +5,6 @@
 //  One metric of the configuration health breakdown
 //
 
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 /// Row displaying a single breakdown metric

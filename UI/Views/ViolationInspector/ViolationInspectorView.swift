@@ -8,7 +8,6 @@
 import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
-import UniformTypeIdentifiers
 
 // MARK: - Type Aliases for Shared UI Components
 

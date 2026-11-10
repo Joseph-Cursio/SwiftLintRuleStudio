@@ -72,23 +72,6 @@ struct ViolationInspectorViewInteractionTests {
         return ViewResult(view: view, container: container)
     }
 
-    private func waitForText(
-        in view: AnyView,
-        text: String,
-        timeoutSeconds: TimeInterval = 1.0
-    ) async -> Bool {
-        @MainActor
-        struct ViewWrapper: @unchecked Sendable {
-            let view: AnyView
-        }
-        let wrapper = ViewWrapper(view: view)
-        return await UIAsyncTestHelpers.waitForText(
-            in: wrapper.view,
-            text: text,
-            timeout: timeoutSeconds
-        )
-    }
-
     private func waitForSearchFieldInput(
         in view: AnyView,
         expected: String,

@@ -5,11 +5,10 @@
 //  Additional tests for RuleAuditView support types and actions
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
-import ViewInspector
 
 @MainActor
 struct RuleAuditViewAdditionalTests {

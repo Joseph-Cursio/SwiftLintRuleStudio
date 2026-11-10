@@ -6,10 +6,10 @@
 //  the top-five cut-off, and the example violation.
 //
 
-import Foundation
+// swiftlint:disable:next unused_import - CGFloat literals need it; the index misses the literal conversion
+import CoreFoundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 

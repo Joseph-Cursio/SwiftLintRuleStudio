@@ -224,23 +224,6 @@ class RuleBrowserViewModel {
         activePreset = nil
     }
 
-    /// Get rules matching a specific preset
-    /// - Parameter preset: The preset to get rules for
-    /// - Returns: Array of rules matching the preset's rule IDs
-    func rules(for preset: RulePreset) -> [Rule] {
-        let presetRuleIds = Set(preset.ruleIds)
-        return ruleRegistry.rules.filter { presetRuleIds.contains($0.id) }
-    }
-
-    /// Check if a rule belongs to a specific preset
-    /// - Parameters:
-    ///   - rule: The rule to check
-    ///   - preset: The preset to check against
-    /// - Returns: True if the rule is in the preset
-    private func ruleIsInPreset(_ rule: Rule, preset: RulePreset) -> Bool {
-        preset.ruleIds.contains(rule.id)
-    }
-
     // MARK: - Multi-Select Operations
 
     func toggleMultiSelect() {

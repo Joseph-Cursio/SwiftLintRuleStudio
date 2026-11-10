@@ -5,25 +5,10 @@
 //  ViewInspector extensions for common test patterns
 //
 
-@testable import SwiftLintRuleStudio
-@testable import SwiftLintRuleStudioCore
-import SwiftUI
+import Foundation
 import ViewInspector
 
 // MARK: - ViewInspector Extensions
-
-// Common view types for easier reference
-private enum CommonViewType {
-    case list
-    case button
-    case textField
-    case navigationLink
-    case picker
-    case vStack
-    case hStack
-    case navigationSplitView
-    case navigationStack
-}
 
 // Extension for InspectableView to add common interaction helpers
 // Note: This extension works with any InspectableView that can find text and buttons

@@ -5,8 +5,6 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-@testable import SwiftLintRuleStudio
-@testable import SwiftLintRuleStudioCore
 import Testing
 
 // Main test suite - individual test files are organized by module
@@ -27,12 +25,6 @@ extension Tag {
     @Tag static var filtering: Self
     /// Tests that exercise ViolationStorageActor (SQLite persistence)
     @Tag static var storage: Self
-    /// Tests that exercise ImpactSimulator rule simulation
-    @Tag static var simulation: Self
     /// Tests that exercise ViewModel state and behavior
     @Tag static var viewModel: Self
-    /// Tests that exercise SwiftUI view structure
-    @Tag static var userInterface: Self
-    /// Tests that wire real service implementations together
-    @Tag static var integration: Self
 }

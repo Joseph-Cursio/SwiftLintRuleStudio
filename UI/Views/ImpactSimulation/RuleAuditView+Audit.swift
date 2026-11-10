@@ -6,8 +6,8 @@
 //  turning the results into the view's rows.
 //
 
+import Foundation
 import SwiftLintRuleStudioCore
-import SwiftUI
 
 // MARK: - Running an Audit
 

@@ -5,9 +5,7 @@
 //  Coverage-focused tests for UI test helpers and extensions
 //
 
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import SwiftUI
 import Testing
 import ViewInspector

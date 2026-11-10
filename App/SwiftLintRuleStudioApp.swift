@@ -14,8 +14,6 @@ import UserNotifications
 #endif
 
 private struct AppSettingsView: View {
-    @Environment(\.dependencies) var dependencies: DependencyContainer
-
     var body: some View {
         TabView {
             GeneralSettingsView()
@@ -144,6 +142,7 @@ struct SwiftLintRuleStudioApp: App {
 
 #if os(macOS)
     @NSApplicationDelegateAdaptor(UITestWindowBootstrapper.self)
+    // swiftlint:disable:next unused_declaration - the property wrapper installs the app delegate; nothing reads it
     private var uiTestWindowBootstrapper
 #endif
 

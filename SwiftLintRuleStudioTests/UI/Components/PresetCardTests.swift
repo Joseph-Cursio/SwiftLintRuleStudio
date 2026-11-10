@@ -5,7 +5,6 @@
 //  Tests for the preset card used by the staged preset browser.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftUI

@@ -1,5 +1,4 @@
 import Foundation
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 enum TestGuard {

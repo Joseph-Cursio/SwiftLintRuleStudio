@@ -1,5 +1,4 @@
 import LintStudioCore
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 extension RuleDetailView {

@@ -6,7 +6,6 @@
 //
 
 import LintStudioUI
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 // MARK: - Summary Cards

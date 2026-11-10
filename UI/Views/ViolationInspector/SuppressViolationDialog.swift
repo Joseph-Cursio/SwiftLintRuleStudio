@@ -5,7 +5,6 @@
 //  Sheet for capturing a suppression reason before suppressing a violation
 //
 
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 struct SuppressViolationDialog: View {

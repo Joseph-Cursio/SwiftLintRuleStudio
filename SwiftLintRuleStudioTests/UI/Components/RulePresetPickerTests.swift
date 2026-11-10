@@ -6,10 +6,8 @@
 //  and choosing one hands that preset back to the caller.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 

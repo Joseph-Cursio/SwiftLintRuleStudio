@@ -3,7 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 struct ConfigVersionHistoryEmptyStateView: View {

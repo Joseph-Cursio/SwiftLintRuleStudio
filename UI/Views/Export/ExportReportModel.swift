@@ -3,7 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
 import LintStudioUI
 import Observation
 import SwiftLintRuleStudioCore

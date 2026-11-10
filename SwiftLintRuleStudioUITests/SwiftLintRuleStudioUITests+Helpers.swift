@@ -9,14 +9,6 @@ import XCTest
 
 // In an extension rather than the class body, so the test files beside this one can use them.
 extension SwiftLintRuleStudioUITests {
-    func terminateIfRunning(_ app: XCUIApplication) {
-        guard app.state != .notRunning else { return }
-        app.terminate()
-        let predicate = NSPredicate(format: "state == %d", XCUIApplication.State.notRunning.rawValue)
-        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: app)
-        _ = XCTWaiter.wait(for: [expectation], timeout: 5.0)
-    }
-
     /// `swiftLintYML`, when given, becomes the test workspace's `.swiftlint.yml`.
     func launchApp(
         skipOnboarding: Bool = false,

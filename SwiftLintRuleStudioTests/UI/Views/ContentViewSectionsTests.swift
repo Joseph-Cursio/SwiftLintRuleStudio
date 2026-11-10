@@ -8,7 +8,6 @@
 //  constant selection, and assert one signature label per branch renders.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport

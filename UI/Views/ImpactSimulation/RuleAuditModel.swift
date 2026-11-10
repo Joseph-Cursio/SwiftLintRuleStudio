@@ -5,7 +5,6 @@
 
 import Foundation
 import Observation
-import SwiftLintRuleStudioCore
 
 /// What the rule audit shows and is doing: its entries, the selection and the expanded row,
 /// a run's progress, and an error to report. `RuleAuditView` owns one and hands it to

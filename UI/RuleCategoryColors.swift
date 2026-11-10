@@ -3,7 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import LintStudioCore
 import SwiftLintRuleStudioCore
 import SwiftUI
 

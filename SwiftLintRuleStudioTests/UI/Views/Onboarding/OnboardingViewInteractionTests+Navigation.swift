@@ -5,11 +5,8 @@
 //  Step navigation and state tests for OnboardingView
 //
 
-import Foundation
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
 import ViewInspector
 

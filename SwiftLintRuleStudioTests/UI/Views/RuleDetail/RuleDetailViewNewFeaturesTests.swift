@@ -6,12 +6,11 @@
 //  violation count, and related rules
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
-import ViewInspector
 
 @MainActor
 struct RuleDetailViewNewFeaturesTests {
@@ -139,7 +138,7 @@ struct RuleDetailViewNewFeaturesTests {
         Also check SE-0456 for more details.
         """
 
-        let links = extractSwiftEvolutionLinks(from: markdown)
+        let links = RuleDetailView.extractSwiftEvolutionLinksForTesting(markdown)
         #expect(links.count >= 1)
         #expect(links.contains { $0.absoluteString.contains("0123") || $0.absoluteString.contains("0456") })
     }
@@ -152,7 +151,7 @@ struct RuleDetailViewNewFeaturesTests {
         This rule is based on SE-0123 and SE-0456.
         """
 
-        let links = extractSwiftEvolutionLinks(from: markdown)
+        let links = RuleDetailView.extractSwiftEvolutionLinksForTesting(markdown)
         #expect(links.count >= 1)
     }
 
@@ -164,7 +163,7 @@ struct RuleDetailViewNewFeaturesTests {
         This is just regular text with no links.
         """
 
-        let links = extractSwiftEvolutionLinks(from: markdown)
+        let links = RuleDetailView.extractSwiftEvolutionLinksForTesting(markdown)
         #expect(links.isEmpty)
     }
 
@@ -262,50 +261,6 @@ struct RuleDetailViewNewFeaturesTests {
     }
 
     // MARK: - Helper Methods
-
-    // Test Swift Evolution link extraction
-    private func extractSwiftEvolutionLinks(from markdown: String) -> [URL] {
-        guard !markdown.isEmpty else { return [] }
-
-        var links: [URL] = []
-
-        let patterns = [
-            #"https?://github\.com/apple/swift-evolution/blob/.*SE-\d+"#,
-            #"https?://github\.com/apple/swift-evolution/.*SE-\d+"#,
-            #"SE-\d+"#,
-            #"swift-evolution.*SE-\d+"#,
-        ]
-
-        for pattern in patterns {
-            let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
-            let range = NSRange(markdown.startIndex..<markdown.endIndex, in: markdown)
-
-            regex?.enumerateMatches(in: markdown, options: [], range: range) { match, _, _ in
-                guard let match,
-                      let matchRange = Range(match.range, in: markdown) else { return }
-
-                let matchedString = String(markdown[matchRange])
-
-                if matchedString.hasPrefix("http") {
-                    if let url = URL(string: matchedString) {
-                        links.append(url)
-                    }
-                } else if matchedString.contains("SE-") {
-                    // Extract SE number
-                    let components = matchedString.components(separatedBy: "SE-")
-                    if components.count > 1 {
-                        let seNumber = components[1].prefix(4)
-                        let urlString = "https://github.com/apple/swift-evolution/blob/main/proposals/\(seNumber).md"
-                        if let url = URL(string: urlString) {
-                            links.append(url)
-                        }
-                    }
-                }
-            }
-        }
-
-        return Array(Set(links)).sorted { $0.absoluteString < $1.absoluteString }
-    }
 
     private func getRelatedRules(for rule: Rule, in container: DependencyContainer) async -> [Rule] {
         await MainActor.run {
