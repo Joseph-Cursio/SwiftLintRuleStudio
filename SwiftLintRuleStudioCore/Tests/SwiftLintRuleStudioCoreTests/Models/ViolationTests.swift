@@ -21,9 +21,9 @@ struct ViolationTests {
             filePath: "/path/to/file.swift",
             line: 42,
             severity: .error,
-            message: "Force casts should be avoided"
-        ,
-            column: 10)
+            message: "Force casts should be avoided",
+            column: 10
+        )
 
         #expect(violation.ruleID == "force_cast")
         #expect(violation.filePath == "/path/to/file.swift")

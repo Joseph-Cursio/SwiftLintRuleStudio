@@ -29,9 +29,9 @@ struct ViolationInspectorNewFeaturesTests {
                 filePath: filePath,
                 line: line,
                 severity: severity,
-                message: "Test violation"
-            ,
-                id: id)
+                message: "Test violation",
+                id: id
+            )
         }
     }
 

@@ -34,10 +34,10 @@ struct ViolationInspectorViewTests {
             filePath: filePath,
             line: line,
             severity: severity,
-            message: message
-        ,
+            message: message,
             id: id,
-            column: column)
+            column: column
+        )
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views
@@ -126,10 +126,10 @@ struct ViolationInspectorViewTests {
                 filePath: "Test.swift",
                 line: 10,
                 severity: .error,
-                message: "Test violation message"
-            ,
+                message: "Test violation message",
                 id: UUID(),
-                column: 5)
+                column: 5
+            )
             let container = DependencyContainer.createForTesting()
             let storage = try ViolationStorageActor(useInMemory: true)
             let viewModel = ViolationInspectorViewModel(violationStorage: storage)

@@ -111,7 +111,8 @@ private extension ViolationInspectorViewModel {
             : "\(count) violation\(count == 1 ? "" : "s") found"
         content.sound = .default
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString, content: content, trigger: nil)
+            identifier: UUID().uuidString, content: content, trigger: nil
+        )
         try? await UNUserNotificationCenter.current().add(request)
     }
 #endif

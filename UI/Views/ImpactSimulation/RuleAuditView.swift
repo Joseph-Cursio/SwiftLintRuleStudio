@@ -213,5 +213,6 @@ struct RuleAuditView: View {
 #Preview {
     RuleAuditView()
         .environment(\.dependencies, DependencyContainer(
-            swiftLintCLI: UnconfiguredSwiftLintBackend()))
+            swiftLintCLI: UnconfiguredSwiftLintBackend()
+        ))
 }

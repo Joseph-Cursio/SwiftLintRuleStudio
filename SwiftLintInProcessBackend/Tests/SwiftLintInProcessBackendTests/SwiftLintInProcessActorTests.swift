@@ -40,7 +40,8 @@ struct SwiftLintInProcessActorTests {
         }
         """
         try badSource.write(
-            to: dir.appendingPathComponent("Bad.swift"), atomically: true, encoding: .utf8)
+            to: dir.appendingPathComponent("Bad.swift"), atomically: true, encoding: .utf8
+        )
 
         let backend = SwiftLintInProcessActor()
         let data = try await backend.executeLintCommand(configPath: nil, workspacePath: dir)

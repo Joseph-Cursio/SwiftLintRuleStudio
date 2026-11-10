@@ -35,10 +35,10 @@ struct ViolationInspectorViewInteractionTests {
             filePath: filePath,
             line: line,
             severity: severity,
-            message: message
-        ,
+            message: message,
             id: id,
-            column: column)
+            column: column
+        )
     }
 
     // Workaround type to bypass Sendable check for SwiftUI views

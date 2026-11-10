@@ -15,7 +15,8 @@ private struct DependencyContainerKey: EnvironmentKey {
     // app root (subprocess for Studio, in-process for Explorer). This no-op default
     // exists only so the shared UI compiles in either target without naming one.
     @MainActor static var defaultValue = DependencyContainer(
-        swiftLintCLI: UnconfiguredSwiftLintBackend())
+        swiftLintCLI: UnconfiguredSwiftLintBackend()
+    )
 }
 
 // MARK: - RuleRegistry

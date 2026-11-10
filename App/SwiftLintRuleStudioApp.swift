@@ -152,7 +152,8 @@ struct SwiftLintRuleStudioApp: App {
         let swiftLintCLI = SwiftLintCLIActor(cacheManager: cacheManager)
         let ruleRegistry = RuleRegistry(swiftLintCLI: swiftLintCLI, cacheManager: cacheManager)
         let container = DependencyContainer(
-            swiftLintCLI: swiftLintCLI, ruleRegistry: ruleRegistry, cacheManager: cacheManager)
+            swiftLintCLI: swiftLintCLI, ruleRegistry: ruleRegistry, cacheManager: cacheManager
+        )
 
         _ruleRegistry = State(initialValue: ruleRegistry)
         _dependencyContainer = State(initialValue: container)
@@ -238,7 +239,8 @@ struct SwiftLintRuleStudioApp: App {
 #if os(macOS)
     private func requestNotificationPermission() async {
         _ = try? await UNUserNotificationCenter.current().requestAuthorization(
-            options: [.alert, .sound])
+            options: [.alert, .sound]
+        )
     }
 #endif
 }

@@ -41,28 +41,42 @@ extension SwiftLintRuleStudioUITests {
         let sidebarCount = sidebar.cells.count
 
         let searchField = window.searchFields.firstMatch
-        XCTAssertTrue(searchField.waitForExistence(timeout: 8),
-                      "Native search field should appear in toolbar")
+        XCTAssertTrue(
+            searchField.waitForExistence(timeout: 8),
+            "Native search field should appear in toolbar"
+        )
         searchField.click()
         searchField.typeText("trailing")
 
-        XCTAssertEqual(searchField.value as? String, "trailing",
-                       "Search field should contain typed text")
+        XCTAssertEqual(
+            searchField.value as? String, "trailing",
+            "Search field should contain typed text"
+        )
 
         // The point of the test: the *list* has to narrow. Asserting only that the
         // text field echoes what was typed passes even when filtering is dead.
         let filteredCount = waitForCellCountChange(rulesOutline, from: unfilteredCount)
-        XCTAssertLessThan(filteredCount, unfilteredCount,
-                          "Searching should reduce the rule list from \(unfilteredCount) rows")
-        XCTAssertGreaterThan(filteredCount, 0,
-                             "'trailing' should still match some rules")
-        XCTAssertEqual(sidebar.cells.count, sidebarCount,
-                       "Filtering the rule list should not disturb the sidebar")
+        XCTAssertLessThan(
+            filteredCount, unfilteredCount,
+            "Searching should reduce the rule list from \(unfilteredCount) rows"
+        )
+        XCTAssertGreaterThan(
+            filteredCount, 0,
+            "'trailing' should still match some rules"
+        )
+        XCTAssertEqual(
+            sidebar.cells.count, sidebarCount,
+            "Filtering the rule list should not disturb the sidebar"
+        )
 
-        XCTAssertTrue(findElement(in: window, identifier: "RuleBrowserClearFiltersButton").exists,
-                      "RuleBrowserClearFiltersButton should be present")
-        XCTAssertTrue(findElement(in: window, identifier: "RuleBrowserStatusFilter").exists,
-                      "RuleBrowserStatusFilter should be present")
+        XCTAssertTrue(
+            findElement(in: window, identifier: "RuleBrowserClearFiltersButton").exists,
+            "RuleBrowserClearFiltersButton should be present"
+        )
+        XCTAssertTrue(
+            findElement(in: window, identifier: "RuleBrowserStatusFilter").exists,
+            "RuleBrowserStatusFilter should be present"
+        )
     }
 
     // MARK: - Workflow 3: Rule Detail Documentation
@@ -77,21 +91,29 @@ extension SwiftLintRuleStudioUITests {
         // These were `guard ... else { return }`, so the test reported success when
         // the rule list failed to load and nothing was ever inspected.
         let firstRuleRow = rulesOutline.cells.firstMatch
-        XCTAssertTrue(firstRuleRow.waitForExistence(timeout: 8),
-                      "Rule list should contain at least one rule to select")
+        XCTAssertTrue(
+            firstRuleRow.waitForExistence(timeout: 8),
+            "Rule list should contain at least one rule to select"
+        )
         firstRuleRow.click()
 
         let enableToggle = findElement(in: window, identifier: "RuleDetailEnableToggle")
-        XCTAssertTrue(enableToggle.waitForExistence(timeout: 8),
-                      "RuleDetailEnableToggle should appear in rule detail")
-        XCTAssertTrue(findElement(in: window, identifier: "RuleDetailSimulateButton").exists,
-                      "RuleDetailSimulateButton should be present")
+        XCTAssertTrue(
+            enableToggle.waitForExistence(timeout: 8),
+            "RuleDetailEnableToggle should appear in rule detail"
+        )
+        XCTAssertTrue(
+            findElement(in: window, identifier: "RuleDetailSimulateButton").exists,
+            "RuleDetailSimulateButton should be present"
+        )
 
         // The test is named for documentation, so assert the documentation is
         // actually rendered rather than only the controls beside it.
         for section in ["Description", "Why This Matters", "Configuration", "Current Violations"] {
-            XCTAssertTrue(text(in: window, section).waitForExistence(timeout: 5),
-                          "Rule detail should render its '\(section)' section")
+            XCTAssertTrue(
+                text(in: window, section).waitForExistence(timeout: 5),
+                "Rule detail should render its '\(section)' section"
+            )
         }
     }
 
@@ -105,15 +127,21 @@ extension SwiftLintRuleStudioUITests {
         let rulesOutline = showRules(window)
 
         let firstRuleRow = rulesOutline.cells.firstMatch
-        XCTAssertTrue(firstRuleRow.waitForExistence(timeout: 8),
-                      "Rule list should contain at least one rule to simulate")
+        XCTAssertTrue(
+            firstRuleRow.waitForExistence(timeout: 8),
+            "Rule list should contain at least one rule to simulate"
+        )
         firstRuleRow.click()
 
         let simulateButton = findElement(in: window, identifier: "RuleDetailSimulateButton")
-        XCTAssertTrue(simulateButton.waitForExistence(timeout: 8),
-                      "RuleDetailSimulateButton should appear after selecting a rule")
-        XCTAssertTrue(simulateButton.isEnabled,
-                      "Simulate button should be enabled when a workspace is open")
+        XCTAssertTrue(
+            simulateButton.waitForExistence(timeout: 8),
+            "RuleDetailSimulateButton should appear after selecting a rule"
+        )
+        XCTAssertTrue(
+            simulateButton.isEnabled,
+            "Simulate button should be enabled when a workspace is open"
+        )
 
         XCTAssertEqual(app.sheets.count, 0, "No sheet should be open before simulating")
         simulateButton.click()
@@ -121,11 +149,15 @@ extension SwiftLintRuleStudioUITests {
         // Simulating presents a sheet. The old version clicked and then discarded
         // `waitForExistence`, so the click's effect was never checked at all.
         let sheet = app.sheets.firstMatch
-        XCTAssertTrue(sheet.waitForExistence(timeout: 15),
-                      "Simulating should present the Impact Simulation sheet")
+        XCTAssertTrue(
+            sheet.waitForExistence(timeout: 15),
+            "Simulating should present the Impact Simulation sheet"
+        )
         for label in ["Impact Simulation", "Summary", "Simulation Time"] {
-            XCTAssertTrue(text(in: sheet, label).waitForExistence(timeout: 10),
-                          "Simulation sheet should report '\(label)'")
+            XCTAssertTrue(
+                text(in: sheet, label).waitForExistence(timeout: 10),
+                "Simulation sheet should report '\(label)'"
+            )
         }
 
         let close = sheet.buttons["Close"]
@@ -168,7 +200,9 @@ extension SwiftLintRuleStudioUITests {
 
         let filteredCount = waitForCellCountChange(rulesOutline, from: unfilteredCount)
         XCTAssertEqual(filteredCount, 12, "Code Style names 12 rules, and every one should be listed")
-        XCTAssertTrue(text(in: rulesOutline, "function_name_whitespace").waitForExistence(timeout: 5),
-                      "Code Style should show function_name_whitespace")
+        XCTAssertTrue(
+            text(in: rulesOutline, "function_name_whitespace").waitForExistence(timeout: 5),
+            "Code Style should show function_name_whitespace"
+        )
     }
 }
