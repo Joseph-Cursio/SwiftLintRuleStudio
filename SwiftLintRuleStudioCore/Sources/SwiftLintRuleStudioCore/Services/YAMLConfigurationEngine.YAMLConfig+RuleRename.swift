@@ -5,7 +5,6 @@
 //  Renaming a rule identifier everywhere a configuration names it
 //
 
-import Foundation
 import Yams
 
 public extension YAMLConfigurationEngine.YAMLConfig {

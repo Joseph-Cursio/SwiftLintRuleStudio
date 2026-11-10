@@ -6,7 +6,6 @@
 //  SwiftLint rule. SwiftLint emits no warning for this, so the app surfaces it.
 //
 
-import Foundation
 import Yams
 
 /// Finds custom rules that shadow a built-in rule of the same name.

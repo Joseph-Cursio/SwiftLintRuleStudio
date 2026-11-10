@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// Which list turns a rule on when a configuration has no `only_rules`.
 nonisolated public enum RuleListKind: Sendable, Equatable {
     /// On unless listed under `disabled_rules`.

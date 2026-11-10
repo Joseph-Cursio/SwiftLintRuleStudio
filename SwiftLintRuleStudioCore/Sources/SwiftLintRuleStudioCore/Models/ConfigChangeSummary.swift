@@ -5,7 +5,6 @@
 //  What changed between two configurations, in terms of what SwiftLint does.
 //
 
-import Foundation
 import Yams
 
 /// How a rule's default is decided: on unless disabled, or off unless listed.

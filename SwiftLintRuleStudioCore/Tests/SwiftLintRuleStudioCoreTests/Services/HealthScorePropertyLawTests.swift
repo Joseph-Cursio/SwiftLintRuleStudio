@@ -18,7 +18,6 @@
 //  component is 100 for every configuration and its arithmetic never runs.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing

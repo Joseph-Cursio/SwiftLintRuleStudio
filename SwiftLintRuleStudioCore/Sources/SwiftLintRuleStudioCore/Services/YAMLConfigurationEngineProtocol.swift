@@ -1,5 +1,3 @@
-import Foundation
-
 /// The behaviour `RuleDetailViewModel` and `RuleBrowserViewModel` need from the YAML
 /// configuration engine: load the current `.swiftlint.yml`, read and diff a proposed
 /// configuration, and validate/save it back to disk.

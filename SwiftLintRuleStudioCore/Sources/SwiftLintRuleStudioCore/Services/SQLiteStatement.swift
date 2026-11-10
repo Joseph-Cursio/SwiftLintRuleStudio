@@ -6,7 +6,6 @@
 //  this is the only place that touches `OpaquePointer` and the `sqlite3_*` C API.
 //
 
-import Foundation
 import SQLite3
 
 /// The outcome of advancing a statement with `step()`.

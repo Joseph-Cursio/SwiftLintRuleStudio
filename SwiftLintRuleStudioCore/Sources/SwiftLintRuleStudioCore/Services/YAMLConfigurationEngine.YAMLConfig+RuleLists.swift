@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// How the rule lists combine, mirroring `Configuration.RulesMode.init` in SwiftLint:
 ///
 /// - A non-empty `only_rules` puts the file in only mode. SwiftLint then runs

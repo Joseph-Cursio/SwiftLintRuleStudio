@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 /// Represents a SwiftLint configuration
 public struct SwiftLintConfiguration: Codable, Sendable {
     public var rules: [String: RuleConfiguration]

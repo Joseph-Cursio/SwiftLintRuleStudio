@@ -3,7 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import CryptoKit
 import Foundation
 
 /// Result of a workspace analysis

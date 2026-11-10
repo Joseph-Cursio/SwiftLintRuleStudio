@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import SwiftLintCLISeam
 import Yams
 
 /// A non-destructive mirror of a workspace. Hand ``root`` to

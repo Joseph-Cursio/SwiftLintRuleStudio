@@ -3,9 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import CryptoKit
-import Foundation
-
 /// Analysis progress information
 ///
 /// `nonisolated` so a generator can build one off the main actor; every field is a value.

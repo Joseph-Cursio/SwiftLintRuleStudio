@@ -6,7 +6,6 @@
 //  or why it can't.
 //
 
-import Darwin
 import Foundation
 
 /// Accumulates a ``MirrorScope`` while walking the root config and the configs it pulls in,

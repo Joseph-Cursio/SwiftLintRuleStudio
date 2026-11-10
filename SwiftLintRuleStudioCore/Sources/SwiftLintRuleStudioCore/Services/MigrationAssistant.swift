@@ -5,8 +5,6 @@
 //  Service for migrating SwiftLint configs between versions
 //
 
-import Foundation
-
 // MARK: - Types
 
 public enum MigrationStep: Sendable, Identifiable, Equatable {

@@ -5,8 +5,6 @@
 //  Static preset definitions for commonly used rule groups
 //
 
-import Foundation
-
 /// A preset collection of SwiftLint rules for common use cases
 public struct RulePreset: Identifiable, Codable, Sendable, Equatable {
     public let id: String

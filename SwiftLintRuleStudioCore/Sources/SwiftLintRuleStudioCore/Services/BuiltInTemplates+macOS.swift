@@ -5,8 +5,6 @@
 //  Built-in macOS configuration templates
 //
 
-import Foundation
-
 public extension BuiltInTemplates {
 
     // MARK: - macOS App Templates

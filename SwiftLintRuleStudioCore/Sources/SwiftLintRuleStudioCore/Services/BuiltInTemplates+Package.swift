@@ -5,8 +5,6 @@
 //  Built-in Swift Package configuration templates
 //
 
-import Foundation
-
 public extension BuiltInTemplates {
 
     // MARK: - Swift Package Templates

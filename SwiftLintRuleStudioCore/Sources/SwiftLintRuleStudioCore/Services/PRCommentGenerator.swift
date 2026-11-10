@@ -6,7 +6,6 @@
 //
 
 import AppKit
-import Foundation
 
 /// Protocol for generating PR comments from configuration diffs
 public protocol PRCommentGeneratorProtocol {

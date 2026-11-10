@@ -5,8 +5,6 @@
 //  The single answer to "would SwiftLint run this rule under this config?".
 //
 
-import Foundation
-
 /// Resolves whether a rule is active under a given `.swiftlint.yml`.
 ///
 /// This logic previously existed in three places — `RuleRegistry`,
