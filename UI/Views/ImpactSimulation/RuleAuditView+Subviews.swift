@@ -38,29 +38,7 @@ extension RuleAuditView {
                 // right edge of the scroller at the default window width.
                 enableAllSafeButton(safeCount: summary.safeCount)
 
-                SummaryCard(
-                    title: "LOW EFFORT",
-                    count: summary.lowCount,
-                    subtitle: "1-5 violations",
-                    color: .yellow
-                )
-                .frame(width: 180, height: 70)
-
-                SummaryCard(
-                    title: "MODERATE EFFORT",
-                    count: summary.moderateCount,
-                    subtitle: "6-25 violations",
-                    color: .orange
-                )
-                .frame(width: 180, height: 70)
-
-                SummaryCard(
-                    title: "HIGH EFFORT",
-                    count: summary.highCount,
-                    subtitle: "26+ violations",
-                    color: .red
-                )
-                .frame(width: 180, height: 70)
+                effortCards(summary: summary)
 
                 unmeasuredCards(summary: summary)
             }
@@ -113,6 +91,34 @@ extension RuleAuditView {
         .buttonStyle(.borderedProminent)
         .disabled(safeCount == 0 || isEnabling)
         .accessibilityIdentifier("EnableAllSafeRulesButton")
+    }
+
+    /// The low, moderate and high effort cards.
+    @ViewBuilder
+    private func effortCards(summary: AuditSummary) -> some View {
+        SummaryCard(
+            title: "LOW EFFORT",
+            count: summary.lowCount,
+            subtitle: "1-5 violations",
+            color: .yellow
+        )
+        .frame(width: 180, height: 70)
+
+        SummaryCard(
+            title: "MODERATE EFFORT",
+            count: summary.moderateCount,
+            subtitle: "6-25 violations",
+            color: .orange
+        )
+        .frame(width: 180, height: 70)
+
+        SummaryCard(
+            title: "HIGH EFFORT",
+            count: summary.highCount,
+            subtitle: "26+ violations",
+            color: .red
+        )
+        .frame(width: 180, height: 70)
     }
 }
 

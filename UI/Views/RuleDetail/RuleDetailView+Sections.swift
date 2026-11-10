@@ -31,71 +31,14 @@ extension RuleDetailView {
                 // still be written to .swiftlint.yml (the toggle stays live so the
                 // config remains portable) but won't be evaluated by the in-app
                 // linter here.
-                if rule.isUnavailableForLinting(capabilities: capabilities) {
-                    HStack(alignment: .top, spacing: 6) {
-                        Image(systemName: "nosign")
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
-                        Text("This rule depends on SourceKit, so it isn't checked in this "
-                            + "app. You can still add it to your configuration. SwiftLint "
-                            + "Rule Studio, the non-sandboxed edition, checks it using the "
-                            + "SwiftLint on your Mac.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .accessibilityIdentifier("RuleDetailSourceKitUnavailableNotice")
-                }
+                sourceKitNotice
 
-                if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
-                    Divider()
+                parametersSection
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Parameters")
-                            .font(.headline)
-
-                        RuleParameterEditor(
-                            parameters: parameters,
-                            values: $viewModel.parameterValues
-                        )
-                    }
-                }
-
-                if viewModel.pendingChanges != nil {
-                    Divider()
-
-                    HStack {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .foregroundStyle(.orange)
-                            .accessibilityHidden(true)
-                        Text("You have unsaved changes")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                unsavedChangesNotice
 
                 // Simulate button
-                if dependencies.workspaceManager.currentWorkspace != nil {
-                    Divider()
-
-                    Button {
-                        simulateRule()
-                    } label: {
-                        HStack {
-                            if isSimulating {
-                                ProgressView()
-                                    .scaleEffect(0.7)
-                            } else {
-                                Image(systemName: "chart.bar.fill")
-                                    .accessibilityHidden(true)
-                            }
-                            Text("Simulate Impact")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isSimulating)
-                    .accessibilityIdentifier("RuleDetailSimulateButton")
-                }
+                simulateSection
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -214,24 +157,7 @@ extension RuleDetailView {
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(related.prefix(5), id: \.id) { relatedRule in
-                        Button {
-                            // Navigate to related rule - would need navigation handling
-                        } label: {
-                            HStack(alignment: .center, spacing: 8) {
-                                Text(relatedRule.name)
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .lineLimit(2)
-                                Spacer(minLength: 8)
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityHidden(true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .buttonStyle(.plain)
+                        relatedRuleRow(relatedRule)
                     }
 
                     if related.count > 5 {
@@ -275,6 +201,104 @@ extension RuleDetailView {
                     }
                 }
             }
+        }
+    }
+
+    private func relatedRuleRow(_ relatedRule: Rule) -> some View {
+        Button {
+            // Navigate to related rule - would need navigation handling
+        } label: {
+            HStack(alignment: .center, spacing: 8) {
+                Text(relatedRule.name)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(2)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var simulateSection: some View {
+        if dependencies.workspaceManager.currentWorkspace != nil {
+            Divider()
+
+            Button {
+                simulateRule()
+            } label: {
+                HStack {
+                    if isSimulating {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    } else {
+                        Image(systemName: "chart.bar.fill")
+                            .accessibilityHidden(true)
+                    }
+                    Text("Simulate Impact")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isSimulating)
+            .accessibilityIdentifier("RuleDetailSimulateButton")
+        }
+    }
+
+    @ViewBuilder
+    private var unsavedChangesNotice: some View {
+        if viewModel.pendingChanges != nil {
+            Divider()
+
+            HStack {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundStyle(.orange)
+                    .accessibilityHidden(true)
+                Text("You have unsaved changes")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var parametersSection: some View {
+        if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
+            Divider()
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Parameters")
+                    .font(.headline)
+
+                RuleParameterEditor(
+                    parameters: parameters,
+                    values: $viewModel.parameterValues
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var sourceKitNotice: some View {
+        if rule.isUnavailableForLinting(capabilities: capabilities) {
+            HStack(alignment: .top, spacing: 6) {
+                Image(systemName: "nosign")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Text("This rule depends on SourceKit, so it isn't checked in this "
+                    + "app. You can still add it to your configuration. SwiftLint "
+                    + "Rule Studio, the non-sandboxed edition, checks it using the "
+                    + "SwiftLint on your Mac.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("RuleDetailSourceKitUnavailableNotice")
         }
     }
 }

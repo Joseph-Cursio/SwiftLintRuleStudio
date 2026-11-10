@@ -53,27 +53,7 @@ struct RuleListItem: View {
                 // Category badge and opt-in tag. On/off is the status symbol's job;
                 // this row says what kind of rule it is. The tag stays neutral so
                 // orange keeps meaning "warning" across the app.
-                HStack(spacing: 8) {
-                    CategoryBadge(
-                        category: rule.category,
-                        color: RuleCategoryColors.color(for: rule.category)
-                    )
-
-                    if rule.isOptIn {
-                        Label("Opt-In", systemImage: "star.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .help("SwiftLint runs this rule only when a configuration enables it")
-                    }
-
-                    if isUnavailable {
-                        Label("Not checked in this app", systemImage: "nosign")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .help("This rule depends on SourceKit, so it isn't checked in this "
-                                + "app. You can still add it to your configuration.")
-                    }
-                }
+                tagsRow
             }
 
             Spacer()
@@ -81,46 +61,76 @@ struct RuleListItem: View {
         .padding(.vertical, 4)
         .contentShape(Rectangle())
     }
+
+    private var tagsRow: some View {
+        HStack(spacing: 8) {
+            CategoryBadge(
+                category: rule.category,
+                color: RuleCategoryColors.color(for: rule.category)
+            )
+
+            if rule.isOptIn {
+                Label("Opt-In", systemImage: "star.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .help("SwiftLint runs this rule only when a configuration enables it")
+            }
+
+            if isUnavailable {
+                Label("Not checked in this app", systemImage: "nosign")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .help("This rule depends on SourceKit, so it isn't checked in this "
+                        + "app. You can still add it to your configuration.")
+            }
+        }
+    }
 }
 
 #Preview {
-    let rule = Rule(
-        id: "force_cast",
-        name: "Force Cast",
-        description: "Force casts should be avoided.",
-        category: .lint,
-        isOptIn: false,
+    List {
+        RuleListItem(rule: previewRule(
+            id: "force_cast",
+            name: "Force Cast",
+            description: "Force casts should be avoided.",
+            category: .lint,
+            isOptIn: false
+        ))
+        RuleListItem(rule: previewRule(
+            id: "opt_in_rule",
+            name: "Opt-In Rule",
+            description: "This is an opt-in rule that must be explicitly enabled.",
+            category: .style,
+            isOptIn: true
+        ))
+    }
+    .frame(width: 400, height: 200)
+}
+
+/// A rule for the preview, with everything but what the row shows left empty. A default rule
+/// is shown on and an opt-in rule off, so the preview has one of each.
+private func previewRule(
+    id: String,
+    name: String,
+    description: String,
+    category: RuleCategory,
+    isOptIn: Bool
+) -> Rule {
+    Rule(
+        id: id,
+        name: name,
+        description: description,
+        category: category,
+        isOptIn: isOptIn,
         severity: nil,
         parameters: nil,
         triggeringExamples: [],
         nonTriggeringExamples: [],
         documentation: nil,
-        isEnabled: true,
+        isEnabled: !isOptIn,
         supportsAutocorrection: false,
         minimumSwiftVersion: nil,
         defaultSeverity: nil,
         markdownDocumentation: nil
     )
-
-    return List {
-        RuleListItem(rule: rule)
-        RuleListItem(rule: Rule(
-            id: "opt_in_rule",
-            name: "Opt-In Rule",
-            description: "This is an opt-in rule that must be explicitly enabled.",
-            category: .style,
-            isOptIn: true,
-            severity: nil,
-            parameters: nil,
-            triggeringExamples: [],
-            nonTriggeringExamples: [],
-            documentation: nil,
-            isEnabled: false,
-            supportsAutocorrection: false,
-            minimumSwiftVersion: nil,
-            defaultSeverity: nil,
-            markdownDocumentation: nil
-        ))
-    }
-    .frame(width: 400, height: 200)
 }

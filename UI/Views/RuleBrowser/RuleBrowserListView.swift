@@ -37,21 +37,9 @@ struct RuleBrowserListView: View {
             if viewModel.isMultiSelectMode {
                 BulkOperationToolbar(
                     selectedCount: viewModel.selectedRuleIds.count,
-                    onEnableAll: {
-                        if let engine = currentYAMLEngine {
-                            viewModel.enableSelectedRules(yamlEngine: engine)
-                        }
-                    },
-                    onDisableAll: {
-                        if let engine = currentYAMLEngine {
-                            viewModel.disableSelectedRules(yamlEngine: engine)
-                        }
-                    },
-                    onSetSeverity: { severity in
-                        if let engine = currentYAMLEngine {
-                            viewModel.setSeverityForSelected(severity, yamlEngine: engine)
-                        }
-                    },
+                    onEnableAll: enableSelectedRules,
+                    onDisableAll: disableSelectedRules,
+                    onSetSeverity: setSeverityForSelected,
                     onPreview: {},
                     onClearSelection: {
                         viewModel.clearSelection()
@@ -194,5 +182,26 @@ struct RuleBrowserListView: View {
         guard let workspace = dependencies.workspaceManager.currentWorkspace,
               let configPath = workspace.configPath else { return nil }
         return YAMLConfigurationEngine(configPath: configPath)
+    }
+
+    /// Enables the selected rules in the open configuration, if there is one.
+    private func enableSelectedRules() {
+        if let engine = currentYAMLEngine {
+            viewModel.enableSelectedRules(yamlEngine: engine)
+        }
+    }
+
+    /// Disables the selected rules in the open configuration, if there is one.
+    private func disableSelectedRules() {
+        if let engine = currentYAMLEngine {
+            viewModel.disableSelectedRules(yamlEngine: engine)
+        }
+    }
+
+    /// Sets `severity` on the selected rules in the open configuration, if there is one.
+    private func setSeverityForSelected(_ severity: Severity) {
+        if let engine = currentYAMLEngine {
+            viewModel.setSeverityForSelected(severity, yamlEngine: engine)
+        }
     }
 }

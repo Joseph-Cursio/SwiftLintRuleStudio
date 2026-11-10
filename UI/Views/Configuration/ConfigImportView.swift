@@ -107,49 +107,12 @@ struct ConfigImportView: View {
         .clipShape(.rect(cornerRadius: 8))
     }
 
-    // swiftlint:disable:next function_body_length
     private func previewSection(_ preview: ConfigImportPreview) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Preview")
-                    .font(.headline)
-                Spacer()
-                if preview.validationErrors.isEmpty {
-                    Label("Valid", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                } else {
-                    Label("\(preview.validationErrors.count) warning(s)", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                }
-            }
-
-            if !preview.validationErrors.isEmpty {
-                ForEach(preview.validationErrors, id: \.self) { warning in
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
-                            .accessibilityHidden(true)
-                        Text(warning)
-                            .font(.caption)
-                    }
-                }
-            }
+            previewHeader(preview)
 
             // Show fetched YAML
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Fetched Configuration")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-
-                ScrollView(.horizontal) {
-                    Text(preview.fetchedYAML)
-                        .font(.system(.body, design: .monospaced))
-                        .padding()
-                }
-                .frame(maxHeight: 200)
-                .background(Color(NSColor.textBackgroundColor))
-                .clipShape(.rect(cornerRadius: 8))
-            }
+            fetchedYAMLSection(preview)
 
             // Show diff if available
             if let diff = preview.diff, diff.hasChanges {
@@ -172,5 +135,50 @@ struct ConfigImportView: View {
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
         .clipShape(.rect(cornerRadius: 8))
+    }
+
+    private func fetchedYAMLSection(_ preview: ConfigImportPreview) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Fetched Configuration")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            ScrollView(.horizontal) {
+                Text(preview.fetchedYAML)
+                    .font(.system(.body, design: .monospaced))
+                    .padding()
+            }
+            .frame(maxHeight: 200)
+            .background(Color(NSColor.textBackgroundColor))
+            .clipShape(.rect(cornerRadius: 8))
+        }
+    }
+
+    @ViewBuilder
+    private func previewHeader(_ preview: ConfigImportPreview) -> some View {
+        HStack {
+            Text("Preview")
+                .font(.headline)
+            Spacer()
+            if preview.validationErrors.isEmpty {
+                Label("Valid", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Label("\(preview.validationErrors.count) warning(s)", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+            }
+        }
+
+        if !preview.validationErrors.isEmpty {
+            ForEach(preview.validationErrors, id: \.self) { warning in
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
+                    Text(warning)
+                        .font(.caption)
+                }
+            }
+        }
     }
 }

@@ -67,90 +67,6 @@ private struct ConfigHealthHeader: View {
     }
 }
 
-/// Row displaying a single breakdown metric
-struct BreakdownRow: View {
-    private let excellentThreshold = 80
-    private let goodThreshold = 60
-    private let fairThreshold = 40
-    private let needsWorkThreshold = 20
-    private let maxScore = 100
-
-    let name: String
-    let score: Int
-    let weight: Int
-    let description: String
-
-    @State private var isExpanded = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Button {
-                withAnimation { isExpanded.toggle() }
-            } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text(name)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        Text("(\(weight)%)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if isExpanded {
-                        Text(description)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                Text("\(score)")
-                    .font(.system(.body, design: .rounded, weight: .semibold))
-                    .foregroundStyle(scoreColor)
-            }
-            .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityHint(isExpanded ? "Collapse details" : "Expand details")
-
-            // Progress bar
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 6)
-                        .clipShape(.rect(cornerRadius: 3))
-
-                    Rectangle()
-                        .fill(scoreColor)
-                        .frame(width: geometry.size.width * CGFloat(score) / CGFloat(maxScore), height: 6)
-                        .clipShape(.rect(cornerRadius: 3))
-                }
-            }
-            .frame(height: 6)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(NSColor.controlBackgroundColor))
-        )
-    }
-
-    private var scoreColor: Color {
-        switch score {
-        case excellentThreshold...maxScore: return .green
-        case goodThreshold..<excellentThreshold: return .blue
-        case fairThreshold..<goodThreshold: return .yellow
-        case needsWorkThreshold..<fairThreshold: return .orange
-        default: return .red
-        }
-    }
-}
-
 /// Card displaying a single recommendation
 private struct RecommendationCard: View {
     let recommendation: HealthRecommendation
@@ -185,21 +101,7 @@ private struct RecommendationCard: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                if let presetId = recommendation.presetId,
-                   let onApplyPreset {
-                    Button {
-                        onApplyPreset(presetId)
-                    } label: {
-                        // Shows the preset's rules in the rule browser; it doesn't change
-                        // the configuration, so it isn't labelled "Apply".
-                        Label("Review Preset Rules", systemImage: "arrow.right.circle")
-                            .font(.caption)
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Show this preset's rules in the rule list, where you can enable them")
-                    .controlSize(.small)
-                    .padding(.top, 4)
-                }
+                reviewPresetButton
             }
         }
         .padding(12)
@@ -220,68 +122,23 @@ private struct RecommendationCard: View {
         case .low: return .blue
         }
     }
-}
 
-/// Compact popover version of health score
-private struct ConfigHealthPopover: View {
-    let report: ConfigHealthReport
-    let onApplyPreset: ((String) -> Void)?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                HealthScoreRing(report: report)
-                    .scaleEffect(0.7)
-                    .frame(width: 70, height: 70)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Health Score")
-                        .font(.headline)
-
-                    Text(report.grade.displayName)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
+    @ViewBuilder
+    private var reviewPresetButton: some View {
+        if let presetId = recommendation.presetId,
+           let onApplyPreset {
+            Button {
+                onApplyPreset(presetId)
+            } label: {
+                // Shows the preset's rules in the rule browser; it doesn't change
+                // the configuration, so it isn't labelled "Apply".
+                Label("Review Preset Rules", systemImage: "arrow.right.circle")
+                    .font(.caption)
             }
-
-            if !report.recommendations.isEmpty {
-                Divider()
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Top Recommendations")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    ForEach(report.recommendations.prefix(2)) { recommendation in
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(priorityColor(for: recommendation))
-                                .frame(width: 6, height: 6)
-                                .accessibilityHidden(true)
-
-                            Text(recommendation.priority.displayName)
-                                .font(.caption2)
-                                .foregroundStyle(priorityColor(for: recommendation))
-
-                            Text(recommendation.title)
-                                .font(.caption)
-                                .lineLimit(1)
-                        }
-                    }
-                }
-            }
-        }
-        .padding()
-        .frame(width: 280)
-    }
-
-    private func priorityColor(for recommendation: HealthRecommendation) -> Color {
-        switch recommendation.priority {
-        case .high: return .red
-        case .medium: return .orange
-        case .low: return .blue
+            .buttonStyle(.bordered)
+            .help("Show this preset's rules in the rule list, where you can enable them")
+            .controlSize(.small)
+            .padding(.top, 4)
         }
     }
 }
@@ -347,50 +204,29 @@ struct ConfigHealthScoreView: View {
                 noDeprecatedRules: 100,
                 pathConfiguration: 70
             ),
-            recommendations: [
-                HealthRecommendation(
-                    priority: .high,
-                    title: "Configure Excluded Paths",
-                    description: "Add common paths like Pods, Carthage, or vendor to excluded",
-                    presetId: nil,
-                    actionType: .configureExcludes
-                ),
-                HealthRecommendation(
-                    priority: .medium,
-                    title: "Enable Recommended Opt-In Rules",
-                    description: "Consider enabling: first_where, sorted_first_last, empty_count",
-                    presetId: "performance",
-                    actionType: .enablePreset("performance")
-                ),
-            ]
+            recommendations: previewRecommendations()
         )
     ) { _ in
     }
     .frame(width: 500, height: 600)
 }
 
-#Preview("Config Health Popover") {
-    ConfigHealthPopover(
-        report: ConfigHealthReport(
-            score: 85,
-            grade: .good,
-            breakdown: ConfigHealthReport.ScoreBreakdown(
-                rulesCoverage: 80,
-                categoryBalance: 90,
-                optInAdoption: 75,
-                noDeprecatedRules: 100,
-                pathConfiguration: 85
-            ),
-            recommendations: [
-                HealthRecommendation(
-                    priority: .medium,
-                    title: "Enable More Opt-In Rules",
-                    description: "Consider enabling performance rules",
-                    presetId: "performance",
-                    actionType: .enablePreset("performance")
-                ),
-            ]
+/// A high- and a medium-priority recommendation for the score view's preview.
+private func previewRecommendations() -> [HealthRecommendation] {
+    [
+        HealthRecommendation(
+            priority: .high,
+            title: "Configure Excluded Paths",
+            description: "Add common paths like Pods, Carthage, or vendor to excluded",
+            presetId: nil,
+            actionType: .configureExcludes
         ),
-        onApplyPreset: nil
-    )
+        HealthRecommendation(
+            priority: .medium,
+            title: "Enable Recommended Opt-In Rules",
+            description: "Consider enabling: first_where, sorted_first_last, empty_count",
+            presetId: "performance",
+            actionType: .enablePreset("performance")
+        ),
+    ]
 }

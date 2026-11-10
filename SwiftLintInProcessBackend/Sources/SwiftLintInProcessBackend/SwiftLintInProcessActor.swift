@@ -139,61 +139,76 @@ public final class SwiftLintInProcessActor: SwiftLintCLIProtocol {
         // SwiftLint looks for `.swiftlint.yml`, and stops its nested-config search, at the
         // working directory. The app's isn't the workspace, so override it for this lint.
         return try CurrentWorkingDirectory.$url.withValue(workspacePath) {
-            let (root, fileGraph) = try withConfigurationCaches {
-                try InProcessConfiguration.root(
-                    configPath: configPath,
-                    workspacePath: workspacePath,
-                    onlyRule: onlyRule
-                )
-            }
-            // `swiftlint lint` reads the baseline before it walks the files.
-            let report = try ReportFilter(root: root)
-            // A link SwiftLint's file walk follows round for ever overflows the stack, and
-            // in-process that ends the app; the `swiftlint` process just dies.
-            try SymlinkLoopCheck.check(root, workspacePath: workspacePath)
-            let files = root.lintableFiles(
-                inPath: workspacePath,
-                forceExclude: false,
-                excludeByPrefix: false
-            )
-            // `swiftlint lint` fails when there is nothing to lint, unless the config sets
-            // `allow_zero_lintable_files` (Configuration+CommandLine's `groupFiles`). This
-            // returned no violations instead, so a folder nobody linted read as clean — and in
-            // a rule simulation, every rule read as safe to enable. Done for every lint, not
-            // just simulations, so both editions say the same thing about the same folder.
-            if files.isEmpty, !root.allowZeroLintableFiles {
-                throw SwiftLintError.executionFailed(
-                    message: "No lintable files found at paths: '\(workspacePath.path)'"
-                )
-            }
-            let configurations: [Configuration]
-            if configPath == nil {
-                try InProcessConfiguration.checkNestedConfigs(for: files, root: root, fileGraph: fileGraph)
-                configurations = withConfigurationCaches { files.map { root.configuration(for: $0) } }
-            } else {
-                configurations = files.map { _ in root }
-            }
-            for configuration in configurations {
-                try InProcessConfiguration.checkCustomRules(of: configuration)
-            }
-            progress(LintProgress(filesLinted: 0, totalFiles: files.count))
-            let storage = RuleStorage()
-            // Every file is collected before any is linted: collecting rules need what the
-            // whole workspace holds before they can judge one file.
-            let linters = zip(files, configurations)
-                .map { Linter(file: $0, configuration: $1) }
-                .map { $0.collect(into: storage) }
-            // Each file's violations go through the root config's settings on their own, once
-            // every file is linted: a baseline matches one file's at a time.
-            let violationsByFile = FileParallelLint.styleViolations(
-                of: linters,
-                using: storage,
+            try lintInWorkspace(
+                configPath: configPath,
                 workspacePath: workspacePath,
+                onlyRule: onlyRule,
                 progress: progress
             )
-            let violations = try violationsByFile.flatMap { try report($0) }
-            return Data(jsonReport(for: violations).utf8)
         }
+    }
+
+    /// The body of `lint`, run with the working directory set to the workspace.
+    private static func lintInWorkspace(
+        configPath: URL?,
+        workspacePath: URL,
+        onlyRule: String?,
+        progress: LintProgressHandler
+    ) throws -> Data {
+        let (root, fileGraph) = try withConfigurationCaches {
+            try InProcessConfiguration.root(
+                configPath: configPath,
+                workspacePath: workspacePath,
+                onlyRule: onlyRule
+            )
+        }
+        // `swiftlint lint` reads the baseline before it walks the files.
+        let report = try ReportFilter(root: root)
+        // A link SwiftLint's file walk follows round for ever overflows the stack, and
+        // in-process that ends the app; the `swiftlint` process just dies.
+        try SymlinkLoopCheck.check(root, workspacePath: workspacePath)
+        let files = root.lintableFiles(
+            inPath: workspacePath,
+            forceExclude: false,
+            excludeByPrefix: false
+        )
+        // `swiftlint lint` fails when there is nothing to lint, unless the config sets
+        // `allow_zero_lintable_files` (Configuration+CommandLine's `groupFiles`). This
+        // returned no violations instead, so a folder nobody linted read as clean — and in
+        // a rule simulation, every rule read as safe to enable. Done for every lint, not
+        // just simulations, so both editions say the same thing about the same folder.
+        if files.isEmpty, !root.allowZeroLintableFiles {
+            throw SwiftLintError.executionFailed(
+                message: "No lintable files found at paths: '\(workspacePath.path)'"
+            )
+        }
+        let configurations: [Configuration]
+        if configPath == nil {
+            try InProcessConfiguration.checkNestedConfigs(for: files, root: root, fileGraph: fileGraph)
+            configurations = withConfigurationCaches { files.map { root.configuration(for: $0) } }
+        } else {
+            configurations = files.map { _ in root }
+        }
+        for configuration in configurations {
+            try InProcessConfiguration.checkCustomRules(of: configuration)
+        }
+        progress(LintProgress(filesLinted: 0, totalFiles: files.count))
+        let storage = RuleStorage()
+        // Every file is collected before any is linted: collecting rules need what the
+        // whole workspace holds before they can judge one file.
+        let linters = zip(files, configurations)
+            .map { Linter(file: $0, configuration: $1) }
+            .map { $0.collect(into: storage) }
+        // Each file's violations go through the root config's settings on their own, once
+        // every file is linted: a baseline matches one file's at a time.
+        let violationsByFile = FileParallelLint.styleViolations(
+            of: linters,
+            using: storage,
+            workspacePath: workspacePath,
+            progress: progress
+        )
+        let violations = try violationsByFile.flatMap { try report($0) }
+        return Data(jsonReport(for: violations).utf8)
     }
 
     /// SwiftLint keeps every config it loads from a file, and its answer for every folder it

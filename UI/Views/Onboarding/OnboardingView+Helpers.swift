@@ -65,41 +65,7 @@ extension OnboardingView {
 
             Spacer()
 
-            if onboardingManager.currentStep == .workspaceSelection {
-                // Show "Complete" button if workspace is selected
-                if workspaceManager.currentWorkspace != nil {
-                    Button("Complete") {
-                        onboardingManager.nextStep() // Move to complete step
-                    }
-                    .buttonStyle(.borderedProminent)
-                } else {
-                    // Show disabled button with helpful text
-                    VStack(spacing: 4) {
-                        Button("Select a Workspace") {
-                            // This shouldn't be clickable, but just in case
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(true)
-                        Text("Choose a directory to continue")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            } else if onboardingManager.currentStep == .complete {
-                Button("Get Started") {
-                    // Complete onboarding and dismiss
-                    onboardingManager.completeOnboarding()
-                }
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("OnboardingGetStartedButton")
-            } else {
-                Button("Next") {
-                    onboardingManager.nextStep()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(onboardingManager.currentStep == .swiftLintCheck && swiftLintStatus == .checking)
-                .accessibilityIdentifier("OnboardingNextButton")
-            }
+            forwardButton
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
@@ -172,6 +138,46 @@ extension OnboardingView {
             }
             group.cancelAll()
             return result
+        }
+    }
+
+    /// The button that moves onboarding on: Complete, Get Started or Next, by step.
+    @ViewBuilder
+    private var forwardButton: some View {
+        if onboardingManager.currentStep == .workspaceSelection {
+            // Show "Complete" button if workspace is selected
+            if workspaceManager.currentWorkspace != nil {
+                Button("Complete") {
+                    onboardingManager.nextStep() // Move to complete step
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                // Show disabled button with helpful text
+                VStack(spacing: 4) {
+                    Button("Select a Workspace") {
+                        // This shouldn't be clickable, but just in case
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(true)
+                    Text("Choose a directory to continue")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } else if onboardingManager.currentStep == .complete {
+            Button("Get Started") {
+                // Complete onboarding and dismiss
+                onboardingManager.completeOnboarding()
+            }
+            .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("OnboardingGetStartedButton")
+        } else {
+            Button("Next") {
+                onboardingManager.nextStep()
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(onboardingManager.currentStep == .swiftLintCheck && swiftLintStatus == .checking)
+            .accessibilityIdentifier("OnboardingNextButton")
         }
     }
 }

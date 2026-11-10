@@ -211,40 +211,7 @@ extension ExportReportView {
 
         Task {
             do {
-                switch selectedFormat {
-                case .html:
-                    let html = HTMLReportGenerator.generate(
-                        options: HTMLReportOptions(
-                            violations: violations,
-                            workspaceName: workspaceName,
-                            // The composition root is where the clock belongs: everything below
-                            // this line is a function of what it is handed. Spelled `Date.now`
-                            // rather than `.now` on purpose: a leading-dot `.now` has no
-                            // syntactic base type, so a linter cannot tell a wall clock from a
-                            // monotonic one and deliberately classifies neither. Writing it that
-                            // way would move this read somewhere no tool can see it, and a read
-                            // reported where it belongs is better than one nothing can find.
-                            generatedAt: Date.now,
-                            includeSummary: includeSummary,
-                            includeDetailedList: includeDetailedList,
-                            includeCodeSnippets: includeCodeSnippets,
-                            includeRuleConfig: includeRuleConfig,
-                            ruleRegistry: dependencies.ruleRegistry
-                        )
-                    )
-                    try html.write(to: url, atomically: true, encoding: .utf8)
-
-                case .json:
-                    let encoder = JSONEncoder()
-                    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-                    encoder.dateEncodingStrategy = .iso8601
-                    let data = try encoder.encode(violations)
-                    try data.write(to: url)
-
-                case .csv:
-                    let csv = CSVReportGenerator.generate(violations: violations)
-                    try csv.write(to: url, atomically: true, encoding: .utf8)
-                }
+                try writeReport(to: url, workspaceName: workspaceName)
 
                 isExporting = false
                 exportComplete = true
@@ -257,6 +224,44 @@ extension ExportReportView {
                 errorMessage = error.localizedDescription
                 showError = true
             }
+        }
+    }
+
+    /// Writes the violations to `url` in the selected format.
+    private func writeReport(to url: URL, workspaceName: String) throws {
+        switch selectedFormat {
+        case .html:
+            let html = HTMLReportGenerator.generate(
+                options: HTMLReportOptions(
+                    violations: violations,
+                    workspaceName: workspaceName,
+                    // The composition root is where the clock belongs: everything below
+                    // this line is a function of what it is handed. Spelled `Date.now`
+                    // rather than `.now` on purpose: a leading-dot `.now` has no
+                    // syntactic base type, so a linter cannot tell a wall clock from a
+                    // monotonic one and deliberately classifies neither. Writing it that
+                    // way would move this read somewhere no tool can see it, and a read
+                    // reported where it belongs is better than one nothing can find.
+                    generatedAt: Date.now,
+                    includeSummary: includeSummary,
+                    includeDetailedList: includeDetailedList,
+                    includeCodeSnippets: includeCodeSnippets,
+                    includeRuleConfig: includeRuleConfig,
+                    ruleRegistry: dependencies.ruleRegistry
+                )
+            )
+            try html.write(to: url, atomically: true, encoding: .utf8)
+
+        case .json:
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            encoder.dateEncodingStrategy = .iso8601
+            let data = try encoder.encode(violations)
+            try data.write(to: url)
+
+        case .csv:
+            let csv = CSVReportGenerator.generate(violations: violations)
+            try csv.write(to: url, atomically: true, encoding: .utf8)
         }
     }
 }

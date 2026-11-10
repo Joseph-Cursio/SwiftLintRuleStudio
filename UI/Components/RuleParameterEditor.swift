@@ -28,35 +28,7 @@ private struct IntegerParameterRow: View {
                 Spacer()
             }
 
-            HStack(spacing: 12) {
-                Slider(
-                    value: Binding(
-                        get: { Double(value) },
-                        set: { value = Int($0) }
-                    ),
-                    in: 1...500
-                )
-                .frame(maxWidth: 200)
-                .accessibilityLabel(param.name)
-                .accessibilityValue("\(value)")
-
-                TextField(
-                    "Value",
-                    value: $value,
-                    format: .number
-                )
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 70)
-
-                Stepper("", value: $value, in: 1...10_000)
-                    .labelsHidden()
-                    .accessibilityLabel(param.name)
-                    .accessibilityValue("\(value)")
-
-                Spacer()
-
-                defaultIndicator
-            }
+            controls
         }
     }
 
@@ -68,6 +40,38 @@ private struct IntegerParameterRow: View {
                 isOverridden: hasOverride && value != defaultInt,
                 reset: reset
             )
+        }
+    }
+
+    private var controls: some View {
+        HStack(spacing: 12) {
+            Slider(
+                value: Binding(
+                    get: { Double(value) },
+                    set: { value = Int($0) }
+                ),
+                in: 1...500
+            )
+            .frame(maxWidth: 200)
+            .accessibilityLabel(param.name)
+            .accessibilityValue("\(value)")
+
+            TextField(
+                "Value",
+                value: $value,
+                format: .number
+            )
+            .textFieldStyle(.roundedBorder)
+            .frame(width: 70)
+
+            Stepper("", value: $value, in: 1...10_000)
+                .labelsHidden()
+                .accessibilityLabel(param.name)
+                .accessibilityValue("\(value)")
+
+            Spacer()
+
+            defaultIndicator
         }
     }
 }
@@ -160,31 +164,7 @@ private struct ArrayParameterRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(param.name)
-                    .font(.body)
-                    .fontWeight(.medium)
-
-                if let desc = param.description {
-                    HelpPopover(text: desc)
-                }
-
-                Spacer()
-
-                if hasOverride {
-                    let defaultCount = (param.defaultValue.value as? [Any])?.count ?? 0
-                    Button("Reset", action: reset)
-                        .buttonStyle(.bordered)
-                        .tint(.orange)
-                        .controlSize(.small)
-                        .font(.caption)
-                        .help("Reset to default (\(defaultCount) items)")
-                }
-
-                Text("\(values.count) items")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            header
 
             ForEach(Array(values.enumerated()), id: \.offset) { index, item in
                 HStack {
@@ -204,23 +184,7 @@ private struct ArrayParameterRow: View {
                 .padding(.vertical, 2)
             }
 
-            HStack {
-                TextField("Add item...", text: $newItem)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit {
-                        addItem()
-                    }
-
-                Button {
-                    addItem()
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(.green)
-                        .accessibilityLabel("Add item")
-                }
-                .buttonStyle(.plain)
-                .disabled(RuleParameterValues.sanitizedArrayItem(newItem) == nil)
-            }
+            addItemRow
         }
     }
 
@@ -228,6 +192,54 @@ private struct ArrayParameterRow: View {
         guard let trimmed = RuleParameterValues.sanitizedArrayItem(newItem) else { return }
         values.append(trimmed)
         newItem = ""
+    }
+
+    private var addItemRow: some View {
+        HStack {
+            TextField("Add item...", text: $newItem)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    addItem()
+                }
+
+            Button {
+                addItem()
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundStyle(.green)
+                    .accessibilityLabel("Add item")
+            }
+            .buttonStyle(.plain)
+            .disabled(RuleParameterValues.sanitizedArrayItem(newItem) == nil)
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Text(param.name)
+                .font(.body)
+                .fontWeight(.medium)
+
+            if let desc = param.description {
+                HelpPopover(text: desc)
+            }
+
+            Spacer()
+
+            if hasOverride {
+                let defaultCount = (param.defaultValue.value as? [Any])?.count ?? 0
+                Button("Reset", action: reset)
+                    .buttonStyle(.bordered)
+                    .tint(.orange)
+                    .controlSize(.small)
+                    .font(.caption)
+                    .help("Reset to default (\(defaultCount) items)")
+            }
+
+            Text("\(values.count) items")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }
 

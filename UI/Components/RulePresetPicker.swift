@@ -23,40 +23,12 @@ struct RulePresetBrowserView: View {
         NavigationStack {
             HStack(spacing: 0) {
                 // Category sidebar
-                List(selection: $selectedCategory) {
-                    SwiftUI.Section("Categories") {
-                        ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
-                            Label(category.displayName, systemImage: category.icon)
-                                .tag(category as RulePreset.PresetCategory?)
-                        }
-                    }
-                }
-                .listStyle(.sidebar)
-                .frame(width: 200)
+                categorySidebar
 
                 Divider()
 
                 // Presets grid
-                ScrollView {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 250, maximum: 350))],
-                        spacing: 16
-                    ) {
-                        ForEach(filteredPresets) { preset in
-                            Button {
-                                onPresetSelected(preset)
-                                dismiss()
-                            } label: {
-                                PresetCard(preset: preset, isHovered: hoveredPreset?.id == preset.id)
-                            }
-                            .buttonStyle(.plain)
-                            .onHover { isHovered in
-                                hoveredPreset = isHovered ? preset : nil
-                            }
-                        }
-                    }
-                    .padding()
-                }
+                presetsGrid
             }
             .frame(minWidth: 600, minHeight: 400)
             .navigationTitle("Rule Presets")
@@ -80,6 +52,42 @@ struct RulePresetBrowserView: View {
         guard let category else { return RulePresets.allPresets }
         return RulePresets.presets(in: category)
     }
+
+    private var presetsGrid: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 250, maximum: 350))],
+                spacing: 16
+            ) {
+                ForEach(filteredPresets) { preset in
+                    Button {
+                        onPresetSelected(preset)
+                        dismiss()
+                    } label: {
+                        PresetCard(preset: preset, isHovered: hoveredPreset?.id == preset.id)
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { isHovered in
+                        hoveredPreset = isHovered ? preset : nil
+                    }
+                }
+            }
+            .padding()
+        }
+    }
+
+    private var categorySidebar: some View {
+        List(selection: $selectedCategory) {
+            SwiftUI.Section("Categories") {
+                ForEach(RulePreset.PresetCategory.allCases, id: \.self) { category in
+                    Label(category.displayName, systemImage: category.icon)
+                        .tag(category as RulePreset.PresetCategory?)
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .frame(width: 200)
+    }
 }
 
 /// Card view for displaying a single preset
@@ -90,23 +98,7 @@ struct PresetCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
-            HStack {
-                Image(systemName: preset.icon)
-                    .font(.title2)
-                    .foregroundStyle(categoryColor)
-                    .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(preset.name)
-                        .font(.headline)
-
-                    Text(preset.category.displayName)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-            }
+            header
 
             // Description
             Text(preset.description)
@@ -115,22 +107,7 @@ struct PresetCard: View {
                 .lineLimit(2)
 
             // Rule count
-            HStack {
-                Image(systemName: "checklist")
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                Text("\(preset.ruleIds.count) rules")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Text("Apply")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(categoryColor)
-                    .opacity(isHovered ? 1 : 0)
-            }
+            ruleCountRow
         }
         .padding()
         .background(
@@ -166,6 +143,45 @@ struct PresetCard: View {
 
         case .documentation:
             return .cyan
+        }
+    }
+
+    private var ruleCountRow: some View {
+        HStack {
+            Image(systemName: "checklist")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text("\(preset.ruleIds.count) rules")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Text("Apply")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(categoryColor)
+                .opacity(isHovered ? 1 : 0)
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Image(systemName: preset.icon)
+                .font(.title2)
+                .foregroundStyle(categoryColor)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(preset.name)
+                    .font(.headline)
+
+                Text(preset.category.displayName)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
         }
     }
 }

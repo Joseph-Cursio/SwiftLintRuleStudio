@@ -101,31 +101,7 @@ struct VersionCompatibilityView: View {
     private func reportSection(_ report: CompatibilityReport) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Summary badge
-            if report.hasIssues {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                        .accessibilityHidden(true)
-                    Text("\(report.totalIssueCount) issue\(report.totalIssueCount == 1 ? "" : "s") found")
-                        .fontWeight(.semibold)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.orange.opacity(0.1))
-                .clipShape(.rect(cornerRadius: 8))
-            } else {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                        .accessibilityHidden(true)
-                    Text("No compatibility issues found")
-                        .fontWeight(.semibold)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.green.opacity(0.1))
-                .clipShape(.rect(cornerRadius: 8))
-            }
+            summaryBadge(report)
 
             if !report.removedRules.isEmpty {
                 removedRulesSection(report.removedRules)
@@ -142,6 +118,35 @@ struct VersionCompatibilityView: View {
             if !report.availableNewRules.isEmpty {
                 newRulesAvailableSection(report.availableNewRules)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func summaryBadge(_ report: CompatibilityReport) -> some View {
+        if report.hasIssues {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .accessibilityHidden(true)
+                Text("\(report.totalIssueCount) issue\(report.totalIssueCount == 1 ? "" : "s") found")
+                    .fontWeight(.semibold)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.orange.opacity(0.1))
+            .clipShape(.rect(cornerRadius: 8))
+        } else {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .accessibilityHidden(true)
+                Text("No compatibility issues found")
+                    .fontWeight(.semibold)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.green.opacity(0.1))
+            .clipShape(.rect(cornerRadius: 8))
         }
     }
 }

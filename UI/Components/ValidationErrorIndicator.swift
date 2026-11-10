@@ -37,18 +37,7 @@ private struct ValidationErrorRow: View {
 
                 Spacer()
 
-                if suggestion != nil {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isExpanded.toggle()
-                        }
-                    } label: {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel(isExpanded ? "Collapse suggestion" : "Expand suggestion")
-                    }
-                    .buttonStyle(.plain)
-                }
+                expandButton
             }
 
             if isExpanded, let suggestion {
@@ -70,6 +59,22 @@ private struct ValidationErrorRow: View {
             RoundedRectangle(cornerRadius: 6)
                 .fill(iconColor.opacity(0.1))
         )
+    }
+
+    @ViewBuilder
+    private var expandButton: some View {
+        if suggestion != nil {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(isExpanded ? "Collapse suggestion" : "Expand suggestion")
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 
