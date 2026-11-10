@@ -225,18 +225,22 @@ struct HealthRecommendationPropertyLawTests {
                     #expect(recommendation.priority == .high)
                     #expect(recommendation.presetId == nil)
                     guard case .configureExcludes = action else { Issue.record("\(action)"); continue }
+
                 case Title.balance, Title.fewerRules:
                     #expect(recommendation.priority == .low)
                     #expect(recommendation.presetId == nil)
                     guard case .general = action else { Issue.record("\(action)"); continue }
+
                 case Title.moreRules:
                     #expect(recommendation.priority == .high)
                     #expect(recommendation.presetId == "code_style")
                     guard case .enablePreset("code_style") = action else { Issue.record("\(action)"); continue }
+
                 case Title.optIn:
                     #expect(recommendation.priority == .medium)
                     #expect(recommendation.presetId == "performance")
                     guard case .enablePreset("performance") = action else { Issue.record("\(action)"); continue }
+
                 default:
                     Issue.record("Unexpected recommendation: \(recommendation.title)")
                 }

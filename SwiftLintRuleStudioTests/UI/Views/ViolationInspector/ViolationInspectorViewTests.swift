@@ -219,7 +219,6 @@ struct ViolationInspectorViewTests {
         }
         #expect(found, "View should count the files linted so far")
     }
-
 }
 
 // MARK: - ViewInspector Extensions

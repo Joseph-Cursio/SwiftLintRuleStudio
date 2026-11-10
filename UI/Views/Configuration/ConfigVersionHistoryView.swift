@@ -100,5 +100,4 @@ struct ConfigVersionHistoryView: View {
             )
         }
     }
-
 }

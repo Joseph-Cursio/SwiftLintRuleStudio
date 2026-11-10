@@ -74,10 +74,13 @@ struct OnboardingView: View {
         switch onboardingManager.currentStep {
         case .welcome:
             welcomeStep
+
         case .swiftLintCheck:
             swiftLintCheckStep
+
         case .workspaceSelection:
             workspaceSelectionStep
+
         case .complete:
             completeStep
         }

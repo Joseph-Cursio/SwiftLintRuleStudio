@@ -214,6 +214,7 @@ struct RuleDetailView: View {
                 // If HTML parsing fails, show this piece as plain text rather than dropping it.
                 let text = renderProse(markdown) ?? AttributedString(markdown)
                 return RuleDocSegment.Rendered(id: index, isCode: false, text: text)
+
             case .code(let code):
                 return RuleDocSegment.Rendered(id: index, isCode: true, text: SwiftCodeHighlighter.highlight(code))
             }

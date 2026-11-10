@@ -191,5 +191,4 @@ struct UITestHelpersCoverageTests {
         }.value
         #expect(viewTypeFound == false)
     }
-
 }

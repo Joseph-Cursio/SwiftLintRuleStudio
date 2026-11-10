@@ -197,10 +197,13 @@ struct RuleAuditView: View {
         switch order {
         case .violationsAscending:
             auditEntries.sort { RuleAuditEntry.isOrderedByViolations($0, $1, ascending: true) }
+
         case .violationsDescending:
             auditEntries.sort { RuleAuditEntry.isOrderedByViolations($0, $1, ascending: false) }
+
         case .name:
             auditEntries.sort { $0.rule.id < $1.rule.id }
+
         case .category:
             auditEntries.sort { $0.rule.category.rawValue < $1.rule.category.rawValue }
         }

@@ -388,5 +388,4 @@ struct HTMLReportGeneratorTests {
 
         #expect(html.contains(HTMLEscaping.escape(expected)) || html.contains(expected))
     }
-
 }

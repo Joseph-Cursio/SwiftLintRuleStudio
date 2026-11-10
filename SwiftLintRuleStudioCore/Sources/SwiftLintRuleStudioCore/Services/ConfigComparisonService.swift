@@ -172,10 +172,13 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
             switch (parameters1[key], parameters2[key]) {
             case let (value1?, value2?) where value1 != value2:
                 differences.append("\(key): \(label1) \(value1.displayText), \(label2) \(value2.displayText)")
+
             case let (value1?, nil):
                 differences.append("\(key): only \(label1) sets it (\(value1.displayText))")
+
             case let (nil, value2?):
                 differences.append("\(key): only \(label2) sets it (\(value2.displayText))")
+
             default:
                 break
             }
@@ -217,10 +220,13 @@ public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
         switch (first.isEmpty, second.isEmpty) {
         case (true, true):
             return []
+
         case (false, true):
             return ["\(label1) lints only \(first.joined(separator: ", ")); \(label2) lints every path"]
+
         case (true, false):
             return ["\(label2) lints only \(second.joined(separator: ", ")); \(label1) lints every path"]
+
         case (false, false):
             return listDifferences(first, second, noun: "Included", label1, label2)
         }

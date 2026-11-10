@@ -89,12 +89,16 @@ nonisolated public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
         switch value {
         case let int as Int:
             try container.encode(int)
+
         case let string as String:
             try container.encode(string)
+
         case let bool as Bool:
             try container.encode(bool)
+
         case let array as [Any]:
             try container.encode(array.map { Self($0) })
+
         default:
             let context = EncodingError.Context(
                 codingPath: [],
@@ -128,8 +132,10 @@ nonisolated public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
             let entries = dictionary.sorted { $0.key < $1.key }
                 .map { "\(String(reflecting: $0.key)): \(canonical($0.value, nested: true))" }
             return "[" + (entries.isEmpty ? ":" : entries.joined(separator: ", ")) + "]"
+
         case let array as [Any]:
             return "[" + array.map { canonical($0, nested: true) }.joined(separator: ", ") + "]"
+
         default:
             // Inside a collection, as in the collection's own description, a string keeps its quotes.
             return nested ? String(reflecting: value) : String(describing: value)
@@ -141,8 +147,10 @@ nonisolated public struct AnyCodable: Codable, Hashable, @unchecked Sendable {
         case let dictionary as [String: Any]:
             let entries = dictionary.sorted { $0.key < $1.key }.map { "\($0.key): \(display($0.value))" }
             return "{" + entries.joined(separator: ", ") + "}"
+
         case let array as [Any]:
             return "[" + array.map(display).joined(separator: ", ") + "]"
+
         default:
             return String(describing: value)
         }

@@ -145,8 +145,10 @@ public enum RuleDocumentationParser {
                     switch key {
                     case "supports autocorrection":
                         supportsAutocorrection = value.lowercased() == "yes"
+
                     case "minimum swift compiler version":
                         minimumSwiftVersion = value
+
                     default:
                         break
                     }
@@ -246,8 +248,10 @@ public enum RuleDocumentationParser {
             switch currentSection {
             case .triggering:
                 triggeringExamples.append(example)
+
             case .nonTriggering:
                 nonTriggeringExamples.append(example)
+
             default:
                 break
             }

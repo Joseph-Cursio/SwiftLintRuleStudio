@@ -145,16 +145,22 @@ struct YAMLConfigEngineLayoutTests {
         return switch value {
         case let map as [String: Any]:
             "{" + map.keys.sorted().map { "\($0):\(canonical(map[$0]))" }.joined(separator: ",") + "}"
+
         case let list as [Any]:
             "[" + list.map(canonical).joined(separator: ",") + "]"
+
         case let bool as Bool:
             "bool:\(bool)"
+
         case let int as Int:
             "int:\(int)"
+
         case let double as Double:
             "double:\(double)"
+
         case let string as String:
             "str:\(string)"
+
         default:
             "\(type(of: value)):\(value)"
         }

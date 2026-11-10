@@ -77,8 +77,10 @@ public enum SwiftLintError: LocalizedError, Sendable {
 
             After installing, restart SwiftLint Rule Studio.
             """
+
         case .invalidVersion:
             return "Could not determine SwiftLint version."
+
         case .executionFailed(let message):
             return "SwiftLint execution failed: \(message)"
         }
@@ -88,6 +90,7 @@ public enum SwiftLintError: LocalizedError, Sendable {
         switch self {
         case .notFound:
             return "Install SwiftLint using Homebrew: brew install swiftlint"
+
         default:
             return nil
         }

@@ -265,7 +265,6 @@ struct ViolationDetailViewInteractionTests {
         }
         #expect(resolveCalled == true, "Resolve button should trigger onResolve callback")
     }
-
 }
 
 // MARK: - ViewInspector Extensions

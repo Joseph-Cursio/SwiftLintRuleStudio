@@ -37,6 +37,7 @@ struct InProcessNestedConfigSearchTests {
             switch self {
             case .aboveChildConfig, .besideLink, .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig,
                  .abovePrivateWorkspaceWithConfig: true
+
             case .besideLinkTarget, .aboveWorkspace, .abovePrivateWorkspaceWithExcluded: false
             }
         }
@@ -49,6 +50,7 @@ struct InProcessNestedConfigSearchTests {
             case .aboveChildConfig: "ws/Mod/.swiftlint.yml"
             case .besideLink: "ws/Libs/.swiftlint.yml"
             case .besideLinkTarget: "ws/Shared/.swiftlint.yml"
+
             case .aboveWorkspace, .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig,
                  .abovePrivateWorkspaceWithConfig, .abovePrivateWorkspaceWithExcluded: ".swiftlint.yml"
             }
@@ -58,6 +60,7 @@ struct InProcessNestedConfigSearchTests {
             switch self {
             case .abovePrivateWorkspace, .abovePrivateWorkspaceWithChildConfig, .abovePrivateWorkspaceWithConfig,
                  .abovePrivateWorkspaceWithExcluded: true
+
             case .aboveChildConfig, .besideLink, .besideLinkTarget, .aboveWorkspace: false
             }
         }
@@ -85,17 +88,22 @@ struct InProcessNestedConfigSearchTests {
             "ws/Mod/Core/.swiftlint.yml": Self.plainConfig,
             "ws/Mod/Core/A.swift": Self.source
         ]
+
         case .besideLink, .besideLinkTarget: [
             "ws/.swiftlint.yml": "included:\n  - Libs/Vendor\n",
             "ws/Shared/Vendor/X.swift": Self.source
         ]
+
         case .aboveWorkspace, .abovePrivateWorkspace: ["ws/Sub/A.swift": Self.source]
+
         case .abovePrivateWorkspaceWithChildConfig: [
             "ws/.swiftlint.yml": "child_config: .swiftlint.local.yml\n",
             "ws/.swiftlint.local.yml": Self.plainConfig,
             "ws/Sub/A.swift": Self.source
         ]
+
         case .abovePrivateWorkspaceWithConfig: ["ws/.swiftlint.yml": Self.plainConfig, "ws/Sub/A.swift": Self.source]
+
         case .abovePrivateWorkspaceWithExcluded: [
             "ws/.swiftlint.yml": Self.plainConfig + "excluded:\n  - Build\n",
             "ws/Sub/A.swift": Self.source

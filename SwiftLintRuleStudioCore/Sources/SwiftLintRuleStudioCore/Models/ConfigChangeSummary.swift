@@ -65,8 +65,10 @@ private struct RuleSwitches {
         switch kind {
         case .standard:
             return true
+
         case .optIn:
             return allOptIn || optIn.contains(ruleId)
+
         case .analyzer:
             return allAnalyzer || analyzer.contains(ruleId)
         }
@@ -202,10 +204,13 @@ public struct ConfigChangeSummary: Equatable, Sendable {
             switch (oldParameters[key], newParameters[key]) {
             case let (old?, new?) where old != new:
                 details.append("\(key): \(describe(old)) → \(describe(new))")
+
             case let (nil, new?):
                 details.append("\(key): set to \(describe(new))")
+
             case let (old?, nil):
                 details.append("\(key): removed (was \(describe(old)))")
+
             default:
                 break
             }
@@ -236,10 +241,13 @@ public struct ConfigChangeSummary: Equatable, Sendable {
         switch (old.isEmpty, new.isEmpty) {
         case (true, true):
             return []
+
         case (true, false):
             return ["Only these paths are linted now: \(new.joined(separator: ", "))"]
+
         case (false, true):
             return ["included removed: every path is linted again"]
+
         case (false, false):
             let added = new.filter { !old.contains($0) }
             let removed = old.filter { !new.contains($0) }
@@ -256,8 +264,10 @@ public struct ConfigChangeSummary: Equatable, Sendable {
         case let (nil, only?):
             let count = only.count
             lines.append("only_rules added: only the \(count) rule\(count == 1 ? "" : "s") it lists run now")
+
         case (_?, nil):
             lines.append("only_rules removed: SwiftLint's default rules run again, plus any opt-in rules listed")
+
         default:
             break
         }
@@ -296,10 +306,13 @@ public struct ConfigChangeSummary: Equatable, Sendable {
                 } else {
                     lines.append("\(key) changed")
                 }
+
             case (nil, _?):
                 lines.append("\(key) added")
+
             case (_?, nil):
                 lines.append("\(key) removed")
+
             default:
                 break
             }

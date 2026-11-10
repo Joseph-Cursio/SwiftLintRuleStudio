@@ -28,8 +28,10 @@ enum RuleConfigurationError: LocalizedError {
         switch self {
         case .noWorkspace:
             return "No workspace is open. Please open a workspace to configure rules."
+
         case .configLoadFailed:
             return "Failed to load configuration file."
+
         case .saveFailed:
             return "Failed to save configuration changes."
         }

@@ -23,11 +23,13 @@ enum ViewModelFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3")
         ]
+
         case .bySeverity: [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", severity: .error),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", severity: .warning),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule3", severity: .error)
         ]
+
         case .byFilePath: [
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule1", filePath: "File1.swift"),
             ViolationInspectorViewModelTestHelpers.createTestViolation(ruleID: "rule2", filePath: "File2.swift"),

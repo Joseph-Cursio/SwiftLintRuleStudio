@@ -28,10 +28,13 @@ public enum MigrationStep: Sendable, Identifiable, Equatable {
         switch self {
         case .renameRule(let from, let newName):
             return "Rename '\(from)' to '\(newName)'"
+
         case .removeDeprecatedRule(let ruleId, let reason):
             return "Remove '\(ruleId)': \(reason)"
+
         case .updateParameter(let ruleId, let oldParam, let newParam):
             return "Update parameter on '\(ruleId)': '\(oldParam)' -> '\(newParam)'"
+
         case .manualAction(let desc):
             return desc
         }

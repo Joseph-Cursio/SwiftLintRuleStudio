@@ -29,12 +29,16 @@ private struct ConfigHealthHeader: View {
         switch report.grade {
         case .excellent:
             return "Your configuration is well optimized!"
+
         case .good:
             return "Good configuration with room for improvement."
+
         case .fair:
             return "Consider implementing the recommendations below."
+
         case .needsWork:
             return "Several areas need attention."
+
         case .poor:
             return "Significant improvements recommended."
         }

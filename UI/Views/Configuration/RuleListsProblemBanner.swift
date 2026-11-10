@@ -94,6 +94,7 @@ struct RuleListsProblemBanner: View {
                 + "configuration, ignoring every setting here, included and excluded too. Rule changes "
                 + "can't be saved until it's fixed. The fix moves those rules into only_rules, and the "
                 + "rules shown as on are the ones it keeps."
+
         case .analyzerRulesInOnlyRules(let ruleIds):
             return "\(ruleIds.joined(separator: ", ")) \(ruleIds.count == 1 ? "is" : "are") listed "
                 + "under both only_rules and analyzer_rules. Each runs once, but SwiftLint warns about "

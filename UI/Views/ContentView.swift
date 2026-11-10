@@ -262,7 +262,6 @@ struct ContentView: View {
         }
         return true
     }
-
 }
 
 #Preview {

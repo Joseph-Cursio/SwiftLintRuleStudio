@@ -114,7 +114,6 @@ struct ConfigVersionHistoryDiffDetailView: View {
             )
         }
     }
-
 }
 
 // MARK: - File marker (satisfies file_name lint rule)

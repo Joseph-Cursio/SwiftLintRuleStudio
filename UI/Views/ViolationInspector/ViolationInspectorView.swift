@@ -224,5 +224,4 @@ struct ViolationInspectorView: View {
             .accessibilityIdentifier("ViolationInspectorActionsMenu")
         }
     }
-
 }

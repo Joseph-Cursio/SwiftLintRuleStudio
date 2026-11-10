@@ -32,6 +32,7 @@ enum RuleStatusFilter: String, CaseIterable, Identifiable {
         switch self {
         case .all: true
         case .enabled: rule.isEnabled
+
         // Not enabled, whether disabled explicitly or never configured.
         case .disabled: !rule.isEnabled
         }
@@ -145,8 +146,10 @@ class RuleBrowserViewModel {
         switch selectedSortOption {
         case .name:
             rules.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
         case .identifier:
             rules.sort { $0.id.localizedCaseInsensitiveCompare($1.id) == .orderedAscending }
+
         case .category:
             rules.sort { first, second in
                 // Sort by category first, then by name within category

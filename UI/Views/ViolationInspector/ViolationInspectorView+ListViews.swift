@@ -365,12 +365,14 @@ extension ViolationInspectorView {
         switch option {
         case .ungrouped:
             return grouped.keys.sorted()
+
         case .severity:
             let preferredOrder = ["Error", "Warning"]
             let ordered = preferredOrder.filter { grouped[$0] != nil }
             let remaining = grouped.keys.filter { !preferredOrder.contains($0) }
                 .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
             return ordered + remaining
+
         case .file, .rule:
             return grouped.keys.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
         }
@@ -380,10 +382,13 @@ extension ViolationInspectorView {
         switch option {
         case .ungrouped:
             return ["All": violations]
+
         case .file:
             return Dictionary(grouping: violations) { $0.filePath }
+
         case .rule:
             return Dictionary(grouping: violations) { $0.ruleID }
+
         case .severity:
             return Dictionary(grouping: violations) { $0.severity.rawValue.capitalized }
         }

@@ -19,10 +19,13 @@ public enum XcodeIntegrationError: LocalizedError, Sendable {
         switch self {
         case .fileNotFound(let path):
             return "File not found: \(path)"
+
         case .invalidPath(let path):
             return "Invalid file path: \(path)"
+
         case .xcodeNotInstalled:
             return "Xcode is not installed"
+
         case .failedToOpen:
             return "Failed to open file in Xcode"
         }

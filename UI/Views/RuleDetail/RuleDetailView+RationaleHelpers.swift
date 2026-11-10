@@ -26,6 +26,7 @@ extension RuleDetailView {
                 case .start:
                     inRationaleSection = true
                     continue
+
                 case .stop:
                     inRationaleSection = false
                     continue

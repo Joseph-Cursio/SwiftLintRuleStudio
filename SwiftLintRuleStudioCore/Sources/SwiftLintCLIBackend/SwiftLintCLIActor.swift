@@ -174,10 +174,12 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
             switch error {
             case .notFound:
                 throw SwiftLintError.notFound
+
             case .timedOut(_, let seconds):
                 throw SwiftLintError.executionFailed(
                     message: "SwiftLint command timed out after \(seconds) seconds."
                 )
+
             case .executionFailed(let message):
                 throw SwiftLintError.executionFailed(message: message)
             }

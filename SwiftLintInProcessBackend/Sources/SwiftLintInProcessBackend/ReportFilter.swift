@@ -45,10 +45,13 @@ struct ReportFilter {
         switch (strict, lenient) {
         case (false, false):
             adjusted = violations
+
         case (false, true):
             adjusted = violations.map { $0.severity == .error ? $0.with(severity: .warning) : $0 }
+
         case (true, false):
             adjusted = violations.map { $0.severity == .warning ? $0.with(severity: .error) : $0 }
+
         case (true, true):
             // `swiftlint lint` ends the process here, at the first file it lints.
             throw SwiftLintError.executionFailed(

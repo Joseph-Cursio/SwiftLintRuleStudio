@@ -20,6 +20,7 @@ enum ConfigWriter: String, CaseIterable, Sendable {
         case .save:
             try YAMLConfigurationEngine.save(config, to: file, createBackup: false)
             return try String(contentsOf: file, encoding: .utf8)
+
         case .serialize:
             return try YAMLConfigurationEngine.serialize(config)
         }

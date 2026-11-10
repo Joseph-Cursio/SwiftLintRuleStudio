@@ -34,6 +34,7 @@ enum FeatureStatus: Equatable {
         switch self {
         case .available:
             return nil
+
         case .comingSoon:
             return "Coming in a later release"
         }
@@ -44,6 +45,7 @@ enum FeatureStatus: Equatable {
         switch self {
         case .available:
             return nil
+
         case let .comingSoon(note):
             return note
         }

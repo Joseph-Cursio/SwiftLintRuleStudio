@@ -45,5 +45,4 @@ enum CSVReportGenerator {
 
         return csv
     }
-
 }

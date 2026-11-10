@@ -20,10 +20,13 @@ extension ContentView {
                     selectedRuleId: $selectedRuleId
                 )
             }
+
         case .violations:
             ViolationInspectorView()
+
         case .exportReport:
             ExportReportView()
+
         case .dashboard:
             DashboardView { preset in
                 // The rule browser restores this search when it appears, over the preset.
@@ -31,45 +34,54 @@ extension ContentView {
                 ruleBrowserViewModel?.applyPreset(preset)
                 selection = .rules
             }
+
         case .ruleAudit:
             RuleAuditView()
+
         case .versionHistory:
             ConfigVersionHistoryView(
                 service: dependencies.configVersionHistoryService,
                 configPath: dependencies.workspaceManager.currentWorkspace?.configPath
             )
+
         case .compareConfigs:
             ConfigComparisonView(
                 service: dependencies.configComparisonService,
                 currentWorkspace: dependencies.workspaceManager.currentWorkspace
             )
+
         case .versionCheck:
             VersionCompatibilityView(
                 checker: dependencies.versionCompatibilityChecker,
                 swiftLintCLI: dependencies.swiftLintCLI,
                 configPath: dependencies.workspaceManager.currentWorkspace?.configPath
             )
+
         case .importConfig:
             ConfigImportView(
                 importService: dependencies.configImportService,
                 configPath: dependencies.workspaceManager.currentWorkspace?.configPath
             )
+
         case .branchDiff:
             GitBranchDiffView(
                 service: dependencies.gitBranchDiffService,
                 workspacePath: dependencies.workspaceManager.currentWorkspace?.path
             )
+
         case .migration:
             MigrationAssistantView(
                 assistant: dependencies.migrationAssistant,
                 swiftLintCLI: dependencies.swiftLintCLI,
                 configPath: dependencies.workspaceManager.currentWorkspace?.configPath
             )
+
         case .configMap:
             ConfigMapView(
                 workspacePath: dependencies.workspaceManager.currentWorkspace?.path,
                 builtInRuleIdentifiers: Set(ruleRegistry.rules.map(\.id))
             )
+
         case .none:
             Text("Select a section")
                 .foregroundStyle(.secondary)

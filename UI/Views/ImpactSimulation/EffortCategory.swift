@@ -40,6 +40,7 @@ enum EffortCategory: String, CaseIterable, Sendable {
         case .moderate: "Moderate effort"
         case .high: "High effort"
         case .failed: "Simulation failed"
+
         // Reason-neutral: an analyzer rule and a SourceKit rule can't be measured for
         // different reasons, and the row's explanation says which.
         case .unmeasurable: "Can't be measured here"

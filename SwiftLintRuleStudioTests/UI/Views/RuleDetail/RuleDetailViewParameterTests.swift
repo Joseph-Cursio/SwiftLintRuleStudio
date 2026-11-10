@@ -202,5 +202,4 @@ struct RuleDetailViewParameterTests {
         )
         _ = baseline // silence unused warning if baseline pinning isn't asserted
     }
-
 }

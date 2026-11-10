@@ -85,10 +85,13 @@ extension YAMLConfigurationEngine {
         switch node {
         case .scalar(let scalar):
             return parseScalarValue(scalar)
+
         case .mapping:
             return try nodeToDictionary(node)
+
         case .sequence(let sequence):
             return try parseSequence(sequence)
+
         case .alias:
             return try nodeToDictionary(node)
         }

@@ -37,6 +37,7 @@ extension ViolationInspectorView {
         switch scope {
         case .filtered:
             return filtered
+
         case .selected:
             return filtered.filter { selectedIds.contains($0.id) }
         }
@@ -60,6 +61,7 @@ extension ViolationInspectorView {
         switch format {
         case .json:
             try exportToJSON(violations: violations, url: url)
+
         case .csv:
             try exportToCSV(violations: violations, url: url)
         }

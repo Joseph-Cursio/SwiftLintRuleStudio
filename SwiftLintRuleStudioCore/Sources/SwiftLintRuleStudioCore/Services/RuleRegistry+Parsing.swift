@@ -108,14 +108,19 @@ extension RuleRegistry {
         switch kind {
         case "style":
             return .style
+
         case "lint":
             return .lint
+
         case "metrics":
             return .metrics
+
         case "performance":
             return .performance
+
         case "idiomatic":
             return .idiomatic
+
         default:
             return .style
         }

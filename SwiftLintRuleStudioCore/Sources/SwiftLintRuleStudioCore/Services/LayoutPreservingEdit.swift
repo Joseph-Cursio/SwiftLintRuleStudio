@@ -316,20 +316,27 @@ enum LayoutPreservingEdit {
         switch (lhs, rhs) {
         case (nil, nil):
             return true
+
         case let (lhs as Bool, rhs as Bool):
             return lhs == rhs
+
         case let (lhs as Int, rhs as Int):
             return lhs == rhs
+
         case let (lhs as Double, rhs as Double):
             return lhs == rhs
+
         case let (lhs as String, rhs as String):
             return lhs == rhs
+
         case let (lhs as [Any], rhs as [Any]):
             return lhs.count == rhs.count && zip(lhs, rhs).allSatisfy { sameValue($0, $1) }
+
         case let (lhs as [String: Any], rhs as [String: Any]):
             return lhs.count == rhs.count && lhs.allSatisfy { key, value in
                 rhs[key].map { sameValue(value, $0) } ?? false
             }
+
         default:
             return false
         }

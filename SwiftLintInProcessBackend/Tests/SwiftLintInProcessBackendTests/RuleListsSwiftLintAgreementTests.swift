@@ -351,6 +351,7 @@ struct RuleListsSwiftLintAgreementTests {
         switch testCase.expected {
         case let .exactly(ids):
             #expect(repaired == ids)
+
         case let .defaultMode(enabled, disabled):
             #expect(enabled.subtracting(repaired).isEmpty, "expected on: \(enabled.subtracting(repaired).sorted())")
             #expect(disabled.isDisjoint(with: repaired), "expected off: \(disabled.intersection(repaired).sorted())")

@@ -64,22 +64,31 @@ public struct ValidationResult: Sendable {
             switch self {
             case .rule(let ruleId):
                 return "Rule: \(ruleId)"
+
             case .ruleSeverity(let ruleId):
                 return "Severity for: \(ruleId)"
+
             case .ruleParameter(let ruleId, let param):
                 return "Parameter '\(param)' for: \(ruleId)"
+
             case .includedPath(let index):
                 return "Included path #\(index + 1)"
+
             case .excludedPath(let index):
                 return "Excluded path #\(index + 1)"
+
             case .disabledRules:
                 return "disabled_rules"
+
             case .optInRules:
                 return "opt_in_rules"
+
             case .onlyRules:
                 return "only_rules"
+
             case .analyzerRules:
                 return "analyzer_rules"
+
             case .general:
                 return "Configuration"
             }

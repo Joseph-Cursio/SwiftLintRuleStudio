@@ -302,6 +302,7 @@ struct RuleParameterEditor: View {
                 hasOverride: hasOverride,
                 reset: reset
             )
+
         case .boolean:
             BooleanParameterRow(
                 param: param,
@@ -309,6 +310,7 @@ struct RuleParameterEditor: View {
                 hasOverride: hasOverride,
                 reset: reset
             )
+
         case .string:
             StringParameterRow(
                 param: param,
@@ -316,6 +318,7 @@ struct RuleParameterEditor: View {
                 hasOverride: hasOverride,
                 reset: reset
             )
+
         case .array:
             ArrayParameterRow(
                 param: param,

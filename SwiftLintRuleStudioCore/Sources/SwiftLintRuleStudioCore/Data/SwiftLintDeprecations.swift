@@ -298,8 +298,10 @@ public enum SwiftLintDeprecations {
         switch (preRelease1, preRelease2) {
         case let (.some(identifiers1), .some(identifiers2)):
             return isPreRelease(identifiers1, lessThan: identifiers2)
+
         case (.some, .none):
             return true
+
         default:
             return false
         }
@@ -326,10 +328,13 @@ public enum SwiftLintDeprecations {
             switch (Int(left), Int(right)) {
             case let (.some(leftNumber), .some(rightNumber)):
                 if leftNumber != rightNumber { return leftNumber < rightNumber }
+
             case (.some, .none):
                 return true
+
             case (.none, .some):
                 return false
+
             case (.none, .none):
                 return left < right
             }

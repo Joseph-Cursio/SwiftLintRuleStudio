@@ -277,6 +277,7 @@ struct WorkspaceSelectionView: View {
                 errorMessage = error.localizedDescription
                 showError = true
             }
+
         case .failure(let error):
             errorMessage = error.localizedDescription
             showError = true

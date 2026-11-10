@@ -44,8 +44,10 @@ extension ViolationStorageActor {
                 if let violation = parse() {
                     violations.append(violation)
                 }
+
             case .done:
                 return violations
+
             case .error:
                 throw ViolationStorageError.sqlError(lastError())
             }

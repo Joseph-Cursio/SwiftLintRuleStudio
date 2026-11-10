@@ -98,6 +98,7 @@ nonisolated public extension YAMLConfigurationEngine.YAMLConfig {
         case .analyzer:
             if usesOnlyRules, Self.list(onlyRules, names: ruleId) { return }
             Self.append(ruleId, to: &analyzerRules)
+
         case .optIn, .standard:
             if usesOnlyRules {
                 // SwiftLint runs analyzer_rules alongside only_rules, so an id already there

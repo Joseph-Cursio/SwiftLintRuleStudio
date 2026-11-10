@@ -54,10 +54,13 @@ public enum WorkspaceAnalyzerError: LocalizedError, Sendable {
         switch self {
         case .analysisFailed(let message):
             return "Analysis failed: \(message)"
+
         case .invalidOutput(let message):
             return "Invalid SwiftLint output: \(message)"
+
         case .workspaceNotFound:
             return "Workspace not found"
+
         case .swiftLintNotFound:
             return "SwiftLint binary not found"
         }

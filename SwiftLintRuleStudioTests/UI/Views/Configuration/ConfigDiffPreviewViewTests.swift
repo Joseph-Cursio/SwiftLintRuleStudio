@@ -293,5 +293,4 @@ struct ConfigDiffPreviewViewTests {
 
         #expect(tracker.saveCalled == true, "Save callback should be invoked")
     }
-
 }

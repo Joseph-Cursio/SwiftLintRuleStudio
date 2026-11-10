@@ -45,8 +45,10 @@ extension Node {
             switch shape {
             case 0:
                 return Node(values.first ?? "alpha")
+
             case 1:
                 return Node(values.map { Node($0) })
+
             default:
                 return Node(values.map { (Node($0), Node($0)) })
             }

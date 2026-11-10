@@ -21,10 +21,13 @@ public enum WorkspaceError: LocalizedError, Sendable {
         switch self {
         case .notADirectory:
             return "The selected path is not a directory. Please select a folder containing your Swift project."
+
         case .invalidPath:
             return "The selected path is invalid or no longer exists."
+
         case .accessDenied:
             return "Access to the selected directory was denied. Please check file permissions."
+
         case .notASwiftProject(let directory):
             return """
             The selected folder "\(directory)" does not appear to be a valid Swift project workspace.
@@ -43,10 +46,13 @@ public enum WorkspaceError: LocalizedError, Sendable {
         switch self {
         case .notASwiftProject:
             return "Select a directory containing Swift source files, an Xcode project, or a Package.swift file."
+
         case .notADirectory:
             return "Make sure you're selecting a folder, not a file."
+
         case .accessDenied:
             return "Check that you have read permissions for the selected directory."
+
         case .invalidPath:
             return "The path may have been moved or deleted. Please select a different directory."
         }

@@ -154,12 +154,16 @@ struct PresetCard: View {
         switch category {
         case .performance:
             return .orange
+
         case .swiftUI:
             return .blue
+
         case .concurrency:
             return .purple
+
         case .codeStyle:
             return .green
+
         case .documentation:
             return .cyan
         }

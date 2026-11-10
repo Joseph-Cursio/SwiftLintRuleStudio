@@ -33,6 +33,7 @@ extension RuleAuditView {
                 switch result {
                 case .success(let outcome):
                     applyAuditOutcome(outcome)
+
                 case .failure(let error):
                     errorMessage = error.localizedDescription
                     showError = true

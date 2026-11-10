@@ -15,11 +15,14 @@ enum InProcessConfigurationError: LocalizedError {
                 + "\(Version.current.value) still asks SourceKit about each file when it runs them, and the "
                 + "built-in SwiftLint can't load SourceKit. Custom rules set to `execution_mode: sourcekit` "
                 + "are skipped instead."
+
         case let .usesWorkingDirectory(file):
             "\(file.path) uses ${PWD}, which SwiftLint fills in with the folder it runs in. The built-in "
                 + "SwiftLint runs inside the app, whose working directory is one for every lint, so it can't."
+
         case let .unreadable(file, reason):
             "Couldn't read \(file.path): \(reason)"
+
         case let .versionMismatch(file, pinned):
             "\(file.path) requires SwiftLint \(pinned), but SwiftLint \(Version.current.value) is built in."
         }
@@ -216,8 +219,10 @@ enum InProcessConfiguration {
             switch value {
             case let string as String: string.contains(marker)
             case let array as [Any]: array.contains(where: names)
+
             case let dict as [String: Any]:
                 dict.keys.contains { $0.contains(marker) } || dict.values.contains(where: names)
+
             default: false
             }
         }

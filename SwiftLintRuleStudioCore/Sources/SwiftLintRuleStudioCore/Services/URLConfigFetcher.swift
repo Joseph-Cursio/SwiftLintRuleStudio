@@ -36,14 +36,19 @@ public enum URLConfigFetcherError: LocalizedError, Sendable {
         switch self {
         case .invalidURL:
             return "The URL is not valid."
+
         case .insecureURL:
             return "Only HTTPS URLs are supported for security."
+
         case .networkError(let message):
             return "Network error: \(message)"
+
         case .invalidYAML(let message):
             return "The fetched content is not valid YAML: \(message)"
+
         case .httpError(let statusCode):
             return "HTTP error \(statusCode)."
+
         case .timeout:
             return "Request timed out after 30 seconds."
         }
@@ -71,8 +76,10 @@ public final class URLConfigFetcher: URLConfigFetcherProtocol, Sendable {
         switch validation {
         case .valid:
             break
+
         case .insecureScheme:
             throw URLConfigFetcherError.insecureURL
+
         case .invalidFormat, .unsupportedScheme:
             throw URLConfigFetcherError.invalidURL
         }

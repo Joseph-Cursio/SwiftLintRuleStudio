@@ -320,7 +320,6 @@ struct OnboardingViewTests {
         }
         #expect(true, "Workspace selection step should embed WorkspaceSelectionView")
     }
-
 }
 
 // MARK: - ViewInspector Extensions

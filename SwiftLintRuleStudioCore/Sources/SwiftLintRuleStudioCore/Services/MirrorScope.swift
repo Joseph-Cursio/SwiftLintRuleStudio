@@ -257,7 +257,6 @@ nonisolated private struct MirrorScopeBuilder {
     private func commonPrefixCount(_ components: [String]) -> Int {
         zip(components, rootComponents).prefix { $0.caseInsensitiveCompare($1) == .orderedSame }.count
     }
-
 }
 
 /// What the mirror must hold beyond the workspace, worked out from the root config and the

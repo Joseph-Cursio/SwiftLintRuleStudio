@@ -137,6 +137,7 @@ struct ViolationListItem: View {
         switch violation.severity {
         case .error:
             return .red
+
         case .warning:
             return .orange
         }
