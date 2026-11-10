@@ -25,6 +25,7 @@ public final class HeldSecurityScopes: @unchecked Sendable {
 
     /// A scope this registry holds, to release with ``release(_:)``.
     public struct Hold: Hashable, Sendable {
+        // swiftlint:disable:next unused_declaration - read by the synthesized Hashable: it makes each Hold distinct
         private let id = UUID()
     }
 

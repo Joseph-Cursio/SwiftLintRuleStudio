@@ -37,8 +37,9 @@ extension Node {
     ///
     /// The alphabet is intentionally tiny so distinct nodes compare equal often
     /// — the collisions are where a passthrough that confuses identity with
-    /// equality gives itself away.
-    static func gen() -> Generator<Node, some SendableSequenceType> {
+    /// equality gives itself away. Nothing here calls it: swift-infer splices `Node.gen()` into the
+    /// tests it writes, which is what the unused_declaration waiver is for.
+    static func gen() -> Generator<Node, some SendableSequenceType> { // swiftlint:disable:this unused_declaration
         let symbols = Gen<String?>.element(of: ["alpha", "beta", "gamma"]).map { $0 ?? "alpha" }
 
         return zip(Gen<Int>.int(in: 0...2), symbols.array(of: 0...2)).map { shape, values in

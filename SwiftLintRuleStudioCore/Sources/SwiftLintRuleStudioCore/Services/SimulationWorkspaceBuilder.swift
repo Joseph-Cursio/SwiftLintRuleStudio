@@ -333,20 +333,4 @@ struct SimulationWorkspaceBuilder: SimulationWorkspaceBuilding {
             workspaceRoot: mirrored.workspaceRoot
         )
     }
-
-    // MARK: - Helpers
-
-    /// Path of `url` relative to `root`, computed by path-component prefix so it
-    /// is stable regardless of `/var` vs `/private/var` symlink spelling (both
-    /// URLs are derived from the same root, so their normalized components share a
-    /// prefix). Falls back to the last component if `url` is not under `root`.
-    static func relativePath(of url: URL, underRoot root: URL) -> String {
-        let rootComponents = root.standardizedFileURL.pathComponents
-        let urlComponents = url.standardizedFileURL.pathComponents
-        guard urlComponents.count > rootComponents.count,
-              Array(urlComponents.prefix(rootComponents.count)) == rootComponents else {
-            return url.lastPathComponent
-        }
-        return urlComponents.dropFirst(rootComponents.count).joined(separator: "/")
-    }
 }

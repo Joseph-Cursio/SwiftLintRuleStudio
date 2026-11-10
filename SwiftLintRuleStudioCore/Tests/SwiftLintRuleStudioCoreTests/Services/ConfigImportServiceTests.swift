@@ -41,14 +41,6 @@ struct ConfigImportServiceTests {
         return configPath
     }
 
-    private func createTempDir() throws -> URL {
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("ConfigImportTests", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        return tempDir.appendingPathComponent(".swiftlint.yml")
-    }
-
     private func cleanup(_ path: URL) {
         try? FileManager.default.removeItem(at: path.deletingLastPathComponent())
     }
