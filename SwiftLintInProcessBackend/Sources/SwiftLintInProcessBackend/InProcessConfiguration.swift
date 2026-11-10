@@ -250,7 +250,7 @@ enum InProcessConfiguration {
             guard let reference = dict[key] as? String,
                   !reference.hasPrefix("http://"), !reference.hasPrefix("https://") else { continue }
             // The folder as SwiftLint's `Vertex.rootDirectory` takes it.
-            // swiftlint:disable:next legacy_objc_type
+            // swiftlint:disable:next legacy_objc_type - matches SwiftLint's own NSString path handling
             let folder = (path as NSString).deletingLastPathComponent
             let referencedPath = graphPath(of: reference, relativeTo: folder)
             guard fileGraph.insert(referencedPath).inserted,

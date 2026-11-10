@@ -66,8 +66,7 @@ enum SwiftCodeHighlighter {
             #"\b(\d[\d_]*(?:\.\d[\d_]*)?)\b"#,    // 4: number
             #"\b([A-Za-z_][A-Za-z0-9_]*)\b"#,      // 5: identifier
         ].joined(separator: "|")
-        // The pattern is a compile-time constant, so failing to build it is a programmer error.
-        // swiftlint:disable:next force_try
+        // swiftlint:disable:next force_try - a constant pattern; failing to build it is a programmer error
         return try! NSRegularExpression(pattern: pattern)
     }()
 
