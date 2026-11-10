@@ -17,7 +17,11 @@ import ViewInspector
 struct RuleParameterEditorTests {
     private struct HostView: View {
         let parameters: [RuleParameter]
-        @State var values: [String: AnyCodable] = [:]
+        @State private var values: [String: AnyCodable] = [:]
+
+        init(parameters: [RuleParameter]) {
+            self.parameters = parameters
+        }
 
         var body: some View {
             RuleParameterEditor(parameters: parameters, values: $values)
