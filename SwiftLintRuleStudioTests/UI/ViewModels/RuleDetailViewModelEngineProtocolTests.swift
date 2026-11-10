@@ -42,7 +42,9 @@ private final class StubYAMLConfigurationEngine: YAMLConfigurationEngineProtocol
         )
     }
 
-    func validate(_: YAMLConfigurationEngine.YAMLConfig) throws {}
+    func validate(_: YAMLConfigurationEngine.YAMLConfig) throws {
+        // The stub ignores this call.
+    }
 
     func save(config: YAMLConfigurationEngine.YAMLConfig, createBackup: Bool) throws {
         saveCallCount += 1

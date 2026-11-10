@@ -63,7 +63,9 @@ public struct PRCommentOptions: Sendable {
 public class PRCommentGenerator: PRCommentGeneratorProtocol {
     private let swiftLintDocsBaseURL = "https://realm.github.io/SwiftLint"
 
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     public func generateMarkdown(from diff: YAMLConfigurationEngine.ConfigDiff) -> String {
         generateMarkdown(from: diff, options: .default)

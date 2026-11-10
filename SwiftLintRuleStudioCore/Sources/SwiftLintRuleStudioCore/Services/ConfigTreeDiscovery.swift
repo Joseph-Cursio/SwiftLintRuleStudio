@@ -18,7 +18,9 @@ public struct ConfigTreeDiscovery {
     nonisolated public static let configFileName = ".swiftlint.yml"
 
     /// Creates a discovery service.
-    nonisolated public init() {}
+    nonisolated public init() {
+        // Declared only to make the initializer public.
+    }
 
     // MARK: - File discovery
 

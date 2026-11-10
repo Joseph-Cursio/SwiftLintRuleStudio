@@ -149,5 +149,7 @@ public extension SwiftLintCLIProtocol {
     }
 
     /// A backend that always sees its lints through has none to wait for.
-    func waitForAbandonedLints(at _: URL) {}
+    func waitForAbandonedLints(at _: URL) {
+        // Nothing to wait for.
+    }
 }

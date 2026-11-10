@@ -256,7 +256,9 @@ nonisolated public final class MockCacheManager: CacheManagerProtocol, @unchecke
     public var cachedVersion: String?
     public var cachedDocsDirectory: URL?
 
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     nonisolated public func loadCachedRules() throws -> [Rule] {
         if shouldFailLoad {

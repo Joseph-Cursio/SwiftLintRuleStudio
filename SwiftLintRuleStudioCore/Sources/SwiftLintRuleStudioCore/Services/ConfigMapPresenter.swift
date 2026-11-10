@@ -12,7 +12,9 @@ import Foundation
 /// Builds Config Map display models from the discovery and resolution engines.
 public struct ConfigMapPresenter {
     /// Creates a presenter.
-    nonisolated public init() {}
+    nonisolated public init() {
+        // Declared only to make the initializer public.
+    }
 
     // MARK: - Sparse config tree
 

@@ -14,7 +14,9 @@ public actor CommandRecorderActor {
     public private(set) var calls: [(String, [String])] = []
 
     /// Initialize an empty command recorder
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     /// Record a command invocation with its arguments
     public func record(_ command: String, _ arguments: [String]) {

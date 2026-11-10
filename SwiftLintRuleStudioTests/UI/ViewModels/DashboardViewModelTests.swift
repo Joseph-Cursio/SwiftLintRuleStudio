@@ -18,11 +18,19 @@ import Testing
 private final class StubViolationStorage: ViolationStorageProtocol, @unchecked Sendable {
     var violations: [Violation] = []
 
-    func storeViolations(_: [Violation], for _: UUID) async throws {}
+    func storeViolations(_: [Violation], for _: UUID) async throws {
+        // The stub ignores this call.
+    }
     func fetchViolations(filter _: ViolationFilter, workspaceId _: UUID?) async throws -> [Violation] { violations }
-    func suppressViolations(_: [UUID], reason _: String) async throws {}
-    func resolveViolations(_: [UUID]) async throws {}
-    func deleteViolations(for _: UUID) async throws {}
+    func suppressViolations(_: [UUID], reason _: String) async throws {
+        // The stub ignores this call.
+    }
+    func resolveViolations(_: [UUID]) async throws {
+        // The stub ignores this call.
+    }
+    func deleteViolations(for _: UUID) async throws {
+        // The stub ignores this call.
+    }
     func getViolationCount(filter _: ViolationFilter, workspaceId _: UUID?) async throws -> Int { violations.count }
 }
 
@@ -60,9 +68,13 @@ private final class FailingConfigEngine: YAMLConfigurationEngineProtocol {
         )
     }
 
-    func validate(_: YAMLConfigurationEngine.YAMLConfig) throws {}
+    func validate(_: YAMLConfigurationEngine.YAMLConfig) throws {
+        // The stub ignores this call.
+    }
 
-    func save(config _: YAMLConfigurationEngine.YAMLConfig, createBackup _: Bool) throws {}
+    func save(config _: YAMLConfigurationEngine.YAMLConfig, createBackup _: Bool) throws {
+        // The stub ignores this call.
+    }
 }
 
 @MainActor

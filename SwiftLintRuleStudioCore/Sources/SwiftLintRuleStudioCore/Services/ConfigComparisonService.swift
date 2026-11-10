@@ -95,7 +95,9 @@ public protocol ConfigComparisonServiceProtocol: Sendable {
 /// `opt_in_rules`, `disabled_rules`, `analyzer_rules`, `only_rules` — not just per-rule settings.
 public final class ConfigComparisonService: ConfigComparisonServiceProtocol {
 
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     public func compare(
         config1: URL,

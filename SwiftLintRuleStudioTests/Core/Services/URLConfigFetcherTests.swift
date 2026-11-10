@@ -69,7 +69,9 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocolDidFinishLoading(self)
     }
 
-    override func stopLoading() {}
+    override func stopLoading() {
+        // startLoading delivers the whole stubbed response at once, so there is nothing to stop.
+    }
 }
 
 @MainActor

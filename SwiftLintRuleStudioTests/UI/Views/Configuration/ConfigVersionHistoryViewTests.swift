@@ -17,14 +17,18 @@ import ViewInspector
 private struct StubConfigVersionHistoryService: ConfigVersionHistoryServiceProtocol {
     func listBackups(for _: URL) -> [ConfigBackup] { [] }
     func loadBackup(_: ConfigBackup) throws -> String { "" }
-    func restoreBackup(_: ConfigBackup, to _: URL) throws {}
+    func restoreBackup(_: ConfigBackup, to _: URL) throws {
+        // The stub ignores this call.
+    }
     func diffBetween(_: ConfigBackup, _: ConfigBackup) throws -> YAMLConfigurationEngine.ConfigDiff {
         YAMLConfigurationEngine.ConfigDiff(
             addedRules: [], removedRules: [], modifiedRules: [],
             before: "", after: ""
         )
     }
-    func pruneOldBackups(for _: URL, keepCount _: Int) throws {}
+    func pruneOldBackups(for _: URL, keepCount _: Int) throws {
+        // The stub ignores this call.
+    }
 }
 
 @MainActor

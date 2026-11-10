@@ -37,7 +37,9 @@ public final class HeldSecurityScopes: @unchecked Sendable {
     private let lock = NSLock()
     private var scopes: [Hold: Scope] = [:]
 
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     /// Holds a scope the caller has started, which `stop` ends.
     public func hold(stoppingWith stop: @escaping @Sendable () -> Void) -> Hold {

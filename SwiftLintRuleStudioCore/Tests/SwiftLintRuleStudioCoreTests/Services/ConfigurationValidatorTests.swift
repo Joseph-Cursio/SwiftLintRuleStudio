@@ -35,7 +35,9 @@ private final class StubRuleRegistry: RuleRegistryProtocol {
     func loadRules() async throws -> [Rule] { rules }
     func getRule(id: String) -> Rule? { rules.first { $0.id == id } }
     // swiftlint:disable:next async_without_await
-    func refreshRules() async throws {}
+    func refreshRules() async throws {
+        // The stub ignores this call.
+    }
 }
 
 @MainActor

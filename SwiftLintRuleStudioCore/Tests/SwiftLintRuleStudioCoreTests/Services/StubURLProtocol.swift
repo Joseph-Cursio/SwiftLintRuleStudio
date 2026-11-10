@@ -91,7 +91,9 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocolDidFinishLoading(self)
     }
 
-    override nonisolated func stopLoading() {}
+    override nonisolated func stopLoading() {
+        // startLoading delivers the whole stubbed response at once, so there is nothing to stop.
+    }
 }
 
 func makeStubbedSession() -> URLSession {

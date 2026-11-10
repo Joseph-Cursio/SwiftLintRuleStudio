@@ -56,7 +56,9 @@ struct RuleAuditView: View {
     /// Runs the audit, so a new run, a workspace change or leaving the view can cancel it.
     @State var auditRunner = RuleAuditRunner()
 
-    init() {}
+    init() {
+        // Every property has its default; declared because the init below hides the implicit one.
+    }
 
     init(
         auditEntries: [RuleAuditEntry],

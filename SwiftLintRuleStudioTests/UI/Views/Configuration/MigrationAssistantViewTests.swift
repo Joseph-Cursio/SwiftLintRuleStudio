@@ -27,7 +27,9 @@ private struct StubMigrationAssistant: MigrationAssistantProtocol {
     func applyMigration(
         _: MigrationPlan,
         to _: inout YAMLConfigurationEngine.YAMLConfig
-    ) {}
+    ) {
+        // The stub ignores this call.
+    }
 }
 
 private struct MigrationAssistantViewStubCLI: SwiftLintCLIProtocol {

@@ -25,7 +25,9 @@ private struct StubConfigImportService: ConfigImportServiceProtocol {
         )
     }
 
-    func applyImport(preview _: ConfigImportPreview, mode _: ImportMode, to _: URL) throws {}
+    func applyImport(preview _: ConfigImportPreview, mode _: ImportMode, to _: URL) throws {
+        // The stub ignores this call.
+    }
 }
 
 @MainActor
