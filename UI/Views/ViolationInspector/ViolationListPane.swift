@@ -44,8 +44,17 @@ private struct AnalyzingWorkspaceView: View {
     }
 }
 
-extension ViolationInspectorView {
-    var violationListView: some View {
+/// The inspector's left pane: search and filters, summary cards, and the violations as a table
+/// or grouped list. Reads and drives the view model its parent owns.
+struct ViolationListPane: View {
+    let viewModel: ViolationInspectorViewModel
+    @ScaledMetric(relativeTo: .title) private var iconSizeMedium: CGFloat = 48
+
+    var body: some View {
+        violationListView
+    }
+
+    private var violationListView: some View {
         VStack(spacing: 0) {
             // Search and Filters
             searchAndFiltersView
@@ -162,24 +171,6 @@ extension ViolationInspectorView {
                 }
                 .buttonStyle(.borderedProminent)
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    var emptyDetailView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "doc.text.magnifyingglass")
-                .font(.system(size: iconSizeMedium))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text("Select a Violation")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Select a violation from the list to view details")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

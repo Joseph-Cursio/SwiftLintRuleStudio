@@ -1,5 +1,5 @@
 //
-//  ContentView+Sections.swift
+//  SectionDetailView.swift
 //  SwiftLintRuleStudio
 //
 //  Section detail routing for the main content area
@@ -8,9 +8,20 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
-extension ContentView {
+/// The detail column for the sidebar's selected section. `ContentView` owns the selection, the
+/// search text, the selected rule and the rule browser's view model; this reads and writes
+/// them through what it is handed.
+struct SectionDetailView: View {
+    @Binding var selection: AppSection?
+    @Binding var searchText: String
+    @Binding var selectedRuleId: String?
+    let ruleBrowserViewModel: RuleBrowserViewModel?
+
+    @Environment(\.ruleRegistry) private var ruleRegistry: RuleRegistry
+    @Environment(\.dependencies) private var dependencies: DependencyContainer
+
     @ViewBuilder
-    var sectionDetailView: some View {
+    var body: some View {
         switch selection {
         case .rules:
             if let ruleBrowserViewModel {

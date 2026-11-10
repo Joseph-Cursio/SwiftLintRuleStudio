@@ -56,7 +56,12 @@ extension VersionCompatibilityView {
         }
     }
 
-    func renamedRulesSection(_ rules: [RenamedRuleInfo]) -> some View {
+    /// The renamed rules, each with a Fix button, and a Fix All button.
+    func renamedRulesSection(
+        _ rules: [RenamedRuleInfo],
+        onFix: @escaping (RenamedRuleInfo) -> Void,
+        onFixAll: @escaping () -> Void
+    ) -> some View {
         issueSection(
             title: "Renamed Rules",
             subtitle: "These rules have been renamed",
@@ -80,15 +85,13 @@ extension VersionCompatibilityView {
                     }
                     Spacer()
                     Button("Fix") {
-                        viewModel.applyRenaming(rule)
+                        onFix(rule)
                     }
                     .buttonStyle(.bordered)
                 }
             }
 
-            Button("Fix All Renames") {
-                viewModel.applyAllFixes()
-            }
+            Button("Fix All Renames", action: onFixAll)
             .buttonStyle(.borderedProminent)
             .padding(.top, 4)
         }

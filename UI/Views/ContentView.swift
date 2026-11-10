@@ -53,17 +53,16 @@ struct ContentView: View {
     @State private var showError: Bool = false
     @State private var didApplyUITestOverrides = false
 
-    @State var selection: AppSection? = .rules
+    @State private var selection: AppSection? = .rules
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State var searchText: String = ""
-    @State var selectedRuleId: String?
-    @State var ruleBrowserViewModel: RuleBrowserViewModel?
+    @State private var searchText: String = ""
+    @State private var selectedRuleId: String?
+    @State private var ruleBrowserViewModel: RuleBrowserViewModel?
     @State private var showWorkspacePicker = false
 
     /// Designated initializer. The default `initialSelection: .rules`
     /// preserves the behaviour of `ContentView()` for production call
-    /// sites while letting tests seed the `selection` @State to exercise
-    /// each branch of `sectionDetailView`.
+    /// sites while letting a caller open on another section.
     init(initialSelection: AppSection? = .rules) {
         self._selection = State(initialValue: initialSelection)
     }
@@ -160,7 +159,12 @@ struct ContentView: View {
                     .padding()
                     .id(configPath)
             }
-            sectionDetailView
+            SectionDetailView(
+                selection: $selection,
+                searchText: $searchText,
+                selectedRuleId: $selectedRuleId,
+                ruleBrowserViewModel: ruleBrowserViewModel
+            )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }

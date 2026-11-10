@@ -54,7 +54,8 @@ extension OnboardingView {
     }
 
     // MARK: - Navigation Buttons
-    var navigationButtons: some View {
+    /// Back and the forward button; Next waits while the SwiftLint check runs.
+    func navigationButtons(isCheckingSwiftLint: Bool) -> some View {
         HStack {
             if onboardingManager.currentStep != .welcome {
                 Button("Back") {
@@ -65,7 +66,7 @@ extension OnboardingView {
 
             Spacer()
 
-            forwardButton
+            forwardButton(isCheckingSwiftLint: isCheckingSwiftLint)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
@@ -73,18 +74,15 @@ extension OnboardingView {
     }
 
     // MARK: - SwiftLint Check
+    /// Where SwiftLint is: built in, installed at a common path, or not found.
     @MainActor
-    func checkSwiftLintInstallation() async {
-        swiftLintStatus = .checking
-
+    func detectSwiftLint() async -> SwiftLintStatus {
         // Sandboxed / in-process edition: SwiftLint is linked in, not detected on
         // disk. There is no external binary or path to report, so show the bundled
         // version and skip the path probing (which the sandbox would block anyway).
         if !capabilities.contains(.detectInstalledSwiftLint) {
             let version = try? await swiftLintCLI.getVersion()
-            swiftLintVersion = version
-            swiftLintStatus = .builtIn(version)
-            return
+            return .builtIn(version)
         }
 
         // Run file checks in background to avoid blocking UI
@@ -104,15 +102,10 @@ extension OnboardingView {
             return nil
         }.value
 
-        // Update UI (already on main actor)
         if let path = result {
-            swiftLintPath = path
-            swiftLintVersion = "Installed"
-            swiftLintStatus = .installed(path, "Installed")
-        } else {
-            swiftLintStatus = .notInstalled
-            errorMessage = "SwiftLint not found in common installation locations"
+            return .installed(path, "Installed")
         }
+        return .notInstalled
     }
 
     /// Helper to add timeout to async operations
@@ -143,7 +136,7 @@ extension OnboardingView {
 
     /// The button that moves onboarding on: Complete, Get Started or Next, by step.
     @ViewBuilder
-    private var forwardButton: some View {
+    private func forwardButton(isCheckingSwiftLint: Bool) -> some View {
         if onboardingManager.currentStep == .workspaceSelection {
             // Show "Complete" button if workspace is selected
             if workspaceManager.currentWorkspace != nil {
@@ -176,7 +169,7 @@ extension OnboardingView {
                 onboardingManager.nextStep()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(onboardingManager.currentStep == .swiftLintCheck && swiftLintStatus == .checking)
+            .disabled(onboardingManager.currentStep == .swiftLintCheck && isCheckingSwiftLint)
             .accessibilityIdentifier("OnboardingNextButton")
         }
     }

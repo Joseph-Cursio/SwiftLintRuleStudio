@@ -28,7 +28,7 @@ private struct CompatibilityEmptyState: View {
 }
 
 struct VersionCompatibilityView: View {
-    @State var viewModel: VersionCompatibilityViewModel
+    @State private var viewModel: VersionCompatibilityViewModel
 
     init(
         checker: VersionCompatibilityCheckerProtocol,
@@ -112,7 +112,11 @@ struct VersionCompatibilityView: View {
             }
 
             if !report.renamedRules.isEmpty {
-                renamedRulesSection(report.renamedRules)
+                renamedRulesSection(
+                    report.renamedRules,
+                    onFix: { viewModel.applyRenaming($0) },
+                    onFixAll: { viewModel.applyAllFixes() }
+                )
             }
 
             if !report.availableNewRules.isEmpty {

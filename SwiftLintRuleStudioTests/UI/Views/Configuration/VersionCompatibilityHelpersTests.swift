@@ -183,9 +183,11 @@ struct VersionCompatibilityHelpersTests {
 
     @Test("The renamed section shows both the old and new names")
     func renamedSectionShowsBothNames() {
-        let section = Self.makeView().renamedRulesSection([
-            Self.makeRenamed("old_name", "new_name")
-        ])
+        let section = Self.makeView().renamedRulesSection(
+            [Self.makeRenamed("old_name", "new_name")],
+            onFix: { _ in },
+            onFixAll: {}
+        )
 
         #expect(Self.contains(section, text: "Renamed Rules"))
         #expect(Self.contains(section, text: "old_name"))
@@ -198,7 +200,7 @@ struct VersionCompatibilityHelpersTests {
             Self.makeRenamed("one_old", "one_new"),
             Self.makeRenamed("two_old", "two_new"),
         ]
-        let section = Self.makeView().renamedRulesSection(renames)
+        let section = Self.makeView().renamedRulesSection(renames, onFix: { _ in }, onFixAll: {})
 
         let buttons = try section.inspect().findAll(ViewType.Button.self)
 
@@ -208,7 +210,11 @@ struct VersionCompatibilityHelpersTests {
 
     @Test("Fix All is offered even for a single rename")
     func renamedSectionOffersFixAllForOneRule() {
-        let section = Self.makeView().renamedRulesSection([Self.makeRenamed("solo_old", "solo_new")])
+        let section = Self.makeView().renamedRulesSection(
+            [Self.makeRenamed("solo_old", "solo_new")],
+            onFix: { _ in },
+            onFixAll: {}
+        )
 
         #expect(Self.contains(section, text: "Fix All Renames"))
     }

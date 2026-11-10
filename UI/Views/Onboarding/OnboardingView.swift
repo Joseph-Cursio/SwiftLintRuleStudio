@@ -22,10 +22,19 @@ struct OnboardingView: View {
     @ScaledMetric(relativeTo: .title) var headingFontSize: CGFloat = 32
     @ScaledMetric(relativeTo: .title2) var subheadingFontSize: CGFloat = 28
 
-    @State var swiftLintStatus: SwiftLintStatus = .checking
-    @State var swiftLintPath: URL?
-    @State var swiftLintVersion: String?
-    @State var errorMessage: String?
+    @State private var swiftLintStatus: SwiftLintStatus
+
+    init(
+        onboardingManager: OnboardingManager,
+        workspaceManager: WorkspaceManager,
+        swiftLintCLI: SwiftLintCLIProtocol,
+        swiftLintStatus: SwiftLintStatus = .checking
+    ) {
+        self.onboardingManager = onboardingManager
+        self.workspaceManager = workspaceManager
+        self.swiftLintCLI = swiftLintCLI
+        _swiftLintStatus = State(initialValue: swiftLintStatus)
+    }
 
     enum SwiftLintStatus: Equatable {
         case checking
@@ -56,7 +65,7 @@ struct OnboardingView: View {
                 }
                 .scrollBounceBehavior(.basedOnSize)
             }
-            navigationButtons
+            navigationButtons(isCheckingSwiftLint: swiftLintStatus == .checking)
         }
         // Fill the window instead of floating a fixed-size box inside it.
         .frame(minWidth: 700, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
@@ -76,7 +85,9 @@ struct OnboardingView: View {
             welcomeStep
 
         case .swiftLintCheck:
-            swiftLintCheckStep
+            swiftLintCheckStep(status: swiftLintStatus) {
+                Task { await checkSwiftLintInstallation() }
+            }
 
         case .workspaceSelection:
             workspaceSelectionStep
@@ -98,6 +109,11 @@ struct OnboardingView: View {
                 await checkSwiftLintInstallation()
             }
         }
+    }
+
+    private func checkSwiftLintInstallation() async {
+        swiftLintStatus = .checking
+        swiftLintStatus = await detectSwiftLint()
     }
 
     private func handleWorkspaceChange(_ newValue: Workspace?) {

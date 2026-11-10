@@ -1,7 +1,7 @@
 import SwiftLintRuleStudioCore
 import SwiftUI
 
-extension ViolationInspectorView {
+extension ViolationListPane {
     var searchAndFiltersView: some View {
         VStack(spacing: 12) {
             // Search

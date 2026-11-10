@@ -2,11 +2,10 @@
 //  ContentViewSectionsTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  ViewInspector tests for the sectionDetailView routing in
-//  ContentView+Sections.swift. Each case in the AppSection switch needs
-//  to be exercised at least once; we host ContentView with the test
-//  dependency container, mutate its `selection` @State property, and
-//  assert one signature label per branch renders.
+//  ViewInspector tests for the section routing in SectionDetailView.swift.
+//  Each case in the AppSection switch needs to be exercised at least once;
+//  we host SectionDetailView with the test dependency container and a
+//  constant selection, and assert one signature label per branch renders.
 //
 
 import Foundation
@@ -27,8 +26,12 @@ struct ContentViewSectionsTests {
 
     private func makeView(selection: AppSection?) -> ViewResult {
         let container = DependencyContainer.createForTesting()
-        let content = ContentView(initialSelection: selection)
-        let wrapped = content.sectionDetailView
+        let wrapped = SectionDetailView(
+            selection: .constant(selection),
+            searchText: .constant(""),
+            selectedRuleId: .constant(nil),
+            ruleBrowserViewModel: nil
+        )
             .environment(\.dependencies, container)
             .environment(\.ruleRegistry, container.ruleRegistry)
         return ViewResult(view: AnyView(wrapped))

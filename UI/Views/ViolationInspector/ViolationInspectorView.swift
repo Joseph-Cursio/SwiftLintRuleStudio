@@ -26,10 +26,8 @@ enum ViolationExportFormat {
 }
 
 struct ViolationInspectorView: View {
-    @ScaledMetric(relativeTo: .title) var iconSizeMedium: CGFloat = 48
-
     @Environment(\.dependencies) var dependencies: DependencyContainer
-    @State var viewModel: ViolationInspectorViewModel
+    @State private var viewModel: ViolationInspectorViewModel
 
     init() {
         // Create temporary storage for initialization
@@ -64,7 +62,7 @@ struct ViolationInspectorView: View {
 
     var body: some View {
         HSplitView {
-            violationListView
+            ViolationListPane(viewModel: viewModel)
                 .frame(minWidth: 450, idealWidth: 500, maxWidth: 800)
             detailPanel
         }
@@ -92,7 +90,7 @@ struct ViolationInspectorView: View {
                     }
                 )
             } else {
-                emptyDetailView
+                ViolationEmptyDetailView()
             }
         }
         .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
@@ -137,6 +135,15 @@ struct ViolationInspectorView: View {
         }
     }
 
+    private func exportViolations(_ scope: ViolationExportScope, format: ViolationExportFormat) {
+        Self.exportViolations(
+            scope: scope,
+            format: format,
+            filtered: viewModel.filteredViolations,
+            selectedIds: viewModel.selectedViolationIds
+        )
+    }
+
     private var refreshButton: some View {
         Button {
             Task { try? await viewModel.refreshViolations() }
@@ -150,13 +157,13 @@ struct ViolationInspectorView: View {
     private var exportMenu: some View {
         Menu {
             SwiftUI.Section("Filtered") {
-                Button("Export Filtered as JSON") { exportViolations(scope: .filtered, format: .json) }
-                Button("Export Filtered as CSV") { exportViolations(scope: .filtered, format: .csv) }
+                Button("Export Filtered as JSON") { exportViolations(.filtered, format: .json) }
+                Button("Export Filtered as CSV") { exportViolations(.filtered, format: .csv) }
             }
             SwiftUI.Section("Selected") {
-                Button("Export Selected as JSON") { exportViolations(scope: .selected, format: .json) }
+                Button("Export Selected as JSON") { exportViolations(.selected, format: .json) }
                     .disabled(viewModel.selectedViolationIds.isEmpty)
-                Button("Export Selected as CSV") { exportViolations(scope: .selected, format: .csv) }
+                Button("Export Selected as CSV") { exportViolations(.selected, format: .csv) }
                     .disabled(viewModel.selectedViolationIds.isEmpty)
             }
         } label: {

@@ -49,18 +49,19 @@ extension OnboardingView {
         .padding(.vertical, 40)
     }
 
-    var swiftLintCheckStep: some View {
+    /// The SwiftLint step, showing `status`; Check Again runs `onCheckAgain`.
+    func swiftLintCheckStep(status: SwiftLintStatus, onCheckAgain: @escaping () -> Void) -> some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: iconSizeStandard))
-                .foregroundStyle(swiftLintStatus.isReady ? .green : .orange)
+                .foregroundStyle(status.isReady ? .green : .orange)
                 .accessibilityHidden(true)
 
-            Text(swiftLintStepTitle)
+            Text(Self.stepTitle(for: status))
                 .font(.system(size: subheadingFontSize, weight: .bold))
 
             Group {
-                switch swiftLintStatus {
+                switch status {
                 case .builtIn(let version):
                     builtInStatus(version: version)
 
@@ -71,7 +72,7 @@ extension OnboardingView {
                     installedStatus(path: path, version: version)
 
                 case .notInstalled:
-                    notInstalledStatus
+                    notInstalledStatus(onCheckAgain: onCheckAgain)
                 }
             }
             .frame(maxHeight: .infinity)
@@ -79,8 +80,8 @@ extension OnboardingView {
         .padding(.vertical, 40)
     }
 
-    private var swiftLintStepTitle: String {
-        if case .builtIn = swiftLintStatus {
+    private static func stepTitle(for status: SwiftLintStatus) -> String {
+        if case .builtIn = status {
             return "SwiftLint Is Built into Rule Explorer"
         }
         return "SwiftLint Installation"
@@ -195,7 +196,7 @@ extension OnboardingView {
         }
     }
 
-    private var notInstalledStatus: some View {
+    private func notInstalledStatus(onCheckAgain: @escaping () -> Void) -> some View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: iconSizeMedium))
@@ -214,11 +215,7 @@ extension OnboardingView {
 
             installationOptions
 
-            Button {
-                Task {
-                    await checkSwiftLintInstallation()
-                }
-            } label: {
+            Button(action: onCheckAgain) {
                 Label("Check Again", systemImage: "arrow.clockwise")
             }
             .buttonStyle(.bordered)
