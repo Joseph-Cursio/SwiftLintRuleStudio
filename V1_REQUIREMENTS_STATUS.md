@@ -195,8 +195,9 @@ The four gaps the previous revision listed are **all now built**:
 - ✅ **"Why this matters"** — `RuleDetailView+Header.swift:202`
 - ✅ **Swift Evolution links** — `RuleDetailView+RationaleHelpers.swift:75`
   (`extractSwiftEvolutionLinks`), rendered at `RuleDetailView+Sections.swift:247`
-- ✅ **Current violation count in workspace** — `RuleDetailView.swift:85`
-  (`violationCount`, `isLoadingViolationCount`, `loadViolationCount()`)
+- ✅ **Current violation count in workspace** — loaded by `.task(id:)` at
+  `RuleDetailView.swift:149` (on appear, and again when the workspace changes or an analysis
+  finishes) into `RuleViolationCount.swift`
 - ✅ **Related rules** — `RuleDetailView+Sections.swift:202`
 - ✅ **"Open in Xcode"** — see §5
 

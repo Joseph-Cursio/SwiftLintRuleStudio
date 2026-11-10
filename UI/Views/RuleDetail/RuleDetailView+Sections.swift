@@ -75,31 +75,42 @@ extension RuleDetailView {
         .disabled(!hasPendingChanges || model.isSaving)
     }
 
-    func violationsCountView(count violationCount: Int, isLoading isLoadingViolationCount: Bool) -> some View {
+    func violationsCountView(state: RuleViolationCount.State) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Current Violations")
                 .font(.headline)
 
-            if isLoadingViolationCount {
+            switch state {
+            case .loading:
                 ProgressView()
                     .scaleEffect(0.8)
-            } else {
-                HStack(spacing: 8) {
-                    Text("\(violationCount)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(violationCount > 0 ? .orange : .green)
 
-                    Text(violationCount == 1 ? "violation" : "violations")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+            case .loaded(let violationCount):
+                violationCountRow(violationCount)
 
-                    if violationCount > 0 {
-                        Text("in current workspace")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+            case .failed(let message):
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func violationCountRow(_ violationCount: Int) -> some View {
+        HStack(spacing: 8) {
+            Text("\(violationCount)")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundStyle(violationCount > 0 ? .orange : .green)
+
+            Text(violationCount == 1 ? "violation" : "violations")
+                .font(.body)
+                .foregroundStyle(.secondary)
+
+            if violationCount > 0 {
+                Text("in current workspace")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
