@@ -112,63 +112,73 @@ struct OrderingStabilityPropertyLawTests {
     @Test("emitted order does not depend on dictionary insertion order")
     func insertionOrderDoesNotLeak() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let engine = makeEngine()
-            let forward = try YAMLConfigurationEngine.serialize(makeConfig(from: spec))
-            let backward = try YAMLConfigurationEngine.serialize(makeConfig(from: spec, reversed: true))
+            await recordingThrows {
+                let engine = makeEngine()
+                let forward = try YAMLConfigurationEngine.serialize(makeConfig(from: spec))
+                let backward = try YAMLConfigurationEngine.serialize(makeConfig(from: spec, reversed: true))
 
-            // Byte-identical, not merely same-set: a user who changes nothing
-            // must get a file that differs by nothing.
-            #expect(forward == backward)
+                // Byte-identical, not merely same-set: a user who changes nothing
+                // must get a file that differs by nothing.
+                #expect(forward == backward)
+            }
         }
     }
 
     @Test("keyOrder is honored as a relative order, for the keys that are emitted")
     func keyOrderIsHonored() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let config = makeConfig(from: spec)
-            let emitted = try emittedOrder(config)
+            await recordingThrows {
+                let config = makeConfig(from: spec)
+                let emitted = try emittedOrder(config)
 
-            // Only keys that survive emission can be ordered; `keyOrder` may name
-            // keys the config no longer carries (a list emptied since load).
-            let named = config.keyOrder.filter { emitted.contains($0) }
-            #expect(Array(emitted.prefix(named.count)) == named)
+                // Only keys that survive emission can be ordered; `keyOrder` may name
+                // keys the config no longer carries (a list emptied since load).
+                let named = config.keyOrder.filter { emitted.contains($0) }
+                #expect(Array(emitted.prefix(named.count)) == named)
+            }
         }
     }
 
     @Test("no key is emitted twice")
     func noDuplicateKeys() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let emitted = try emittedOrder(makeConfig(from: spec))
-            #expect(emitted.count == Set(emitted).count)
+            await recordingThrows {
+                let emitted = try emittedOrder(makeConfig(from: spec))
+                #expect(emitted.count == Set(emitted).count)
+            }
         }
     }
 
     @Test("rule keys not named in keyOrder are emitted alphabetically")
     func unnamedRuleKeysSortAlphabetically() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let config = makeConfig(from: spec)
-            let emitted = try emittedOrder(config)
+            await recordingThrows {
+                let config = makeConfig(from: spec)
+                let emitted = try emittedOrder(config)
 
-            // The tail branch: whatever `keyOrder` and the reserved order did not
-            // place is sorted, so output is stable rather than hash-dependent.
-            let unnamedRules = emitted.filter {
-                Self.ruleNames.contains($0) && !config.keyOrder.contains($0)
+                // The tail branch: whatever `keyOrder` and the reserved order did not
+                // place is sorted, so output is stable rather than hash-dependent.
+                let unnamedRules = emitted.filter {
+                    Self.ruleNames.contains($0) && !config.keyOrder.contains($0)
+                }
+                #expect(unnamedRules == unnamedRules.sorted())
             }
-            #expect(unnamedRules == unnamedRules.sorted())
         }
     }
 
     @Test("re-serializing a parsed config reproduces the same key order")
     func orderIsStableUnderReSerialization() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let engine = makeEngine()
-            let config = makeConfig(from: spec)
-            let once = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config))
-            let twice = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(once))
+            await recordingThrows {
+                let engine = makeEngine()
+                let config = makeConfig(from: spec)
+                let once = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config))
+                let twice = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(once))
 
-            // The order recovered from a file is the order that file is written
-            // back in — the fixed point that keeps an untouched save a no-op.
-            #expect(twice.keyOrder == once.keyOrder)
+                // The order recovered from a file is the order that file is written
+                // back in — the fixed point that keeps an untouched save a no-op.
+                #expect(twice.keyOrder == once.keyOrder)
+            }
         }
     }
 }

@@ -113,21 +113,25 @@ struct ConfigImportServicePropertyLawTests {
     )
     func emptyWarningFollowsTheRules() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let config = Self.config(for: spec)
-            let preview = try await Self.preview(of: config)
-            // A placed rule can also land the import in only_rules beside opt_in_rules or
-            // disabled_rules, which SwiftLint rejects; that gets its own warning (issue #83).
-            let expected = (Self.placedRules(spec).isEmpty ? [Self.emptyWarning] : [])
-                + (config.hasOnlyRulesConflict ? [ConfigImportService.onlyRulesConflictWarning] : [])
-            #expect(preview.validationErrors == expected)
+            await recordingThrows {
+                let config = Self.config(for: spec)
+                let preview = try await Self.preview(of: config)
+                // A placed rule can also land the import in only_rules beside opt_in_rules or
+                // disabled_rules, which SwiftLint rejects; that gets its own warning (issue #83).
+                let expected = (Self.placedRules(spec).isEmpty ? [Self.emptyWarning] : [])
+                    + (config.hasOnlyRulesConflict ? [ConfigImportService.onlyRulesConflictWarning] : [])
+                #expect(preview.validationErrors == expected)
+            }
         }
     }
 
     @Test("the parsed config names exactly the rules the import placed, in any field")
     func ruleIdsAreThePlacedRules() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let preview = try await Self.preview(of: Self.config(for: spec))
-            #expect(preview.parsedConfig.ruleIds == Self.placedRules(spec))
+            await recordingThrows {
+                let preview = try await Self.preview(of: Self.config(for: spec))
+                #expect(preview.parsedConfig.ruleIds == Self.placedRules(spec))
+            }
         }
     }
 
