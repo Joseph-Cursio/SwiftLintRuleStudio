@@ -21,7 +21,7 @@ struct InProcessSecurityScopeTests {
         for (path, text) in [
             ("Root.swift", source),
             ("Nested/.swiftlint.yml", "disabled_rules:\n  - empty_count\n"),
-            ("Nested/Inner.swift", source)
+            ("Nested/Inner.swift", source),
         ] {
             let file = workspace.appendingPathComponent(path)
             try FileManager.default.createDirectory(

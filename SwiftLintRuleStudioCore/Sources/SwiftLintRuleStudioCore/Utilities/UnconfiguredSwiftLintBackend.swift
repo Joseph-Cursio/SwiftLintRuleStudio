@@ -18,7 +18,9 @@ import Foundation
 import SwiftLintCLISeam
 
 nonisolated public struct UnconfiguredSwiftLintBackend: SwiftLintCLIProtocol {
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     public func detectSwiftLintPath() throws -> URL {
         throw SwiftLintError.notFound

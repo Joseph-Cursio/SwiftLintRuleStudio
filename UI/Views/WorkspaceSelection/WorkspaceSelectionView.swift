@@ -39,8 +39,6 @@ private struct WorkspaceSelectionHeader: View {
 }
 
 struct WorkspaceSelectionView: View {
-    @ScaledMetric(relativeTo: .largeTitle) private var iconSizeLarge: CGFloat = 64
-
     var workspaceManager: WorkspaceManager
     @State private var isShowingFilePicker = false
     @State private var errorMessage: String?
@@ -277,6 +275,7 @@ struct WorkspaceSelectionView: View {
                 errorMessage = error.localizedDescription
                 showError = true
             }
+
         case .failure(let error):
             errorMessage = error.localizedDescription
             showError = true

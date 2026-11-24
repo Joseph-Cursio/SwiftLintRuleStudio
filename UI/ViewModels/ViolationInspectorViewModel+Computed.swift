@@ -5,15 +5,9 @@
 //  Created by joe cursio on 12/24/25.
 //
 
-import Foundation
 import SwiftLintRuleStudioCore
 
 extension ViolationInspectorViewModel {
-    var selectedViolation: Violation? {
-        guard let selectedId = selectedViolationId else { return nil }
-        return violations.first { $0.id == selectedId }
-    }
-
     var violationCount: Int {
         filteredViolations.count
     }

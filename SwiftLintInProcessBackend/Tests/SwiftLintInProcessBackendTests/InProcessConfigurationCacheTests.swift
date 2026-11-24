@@ -24,7 +24,7 @@ struct InProcessConfigurationCacheTests {
             ("Root.swift", Self.source),
             ("Sources/Module/Deep/File.swift", Self.source),
             ("Nested/.swiftlint.yml", "disabled_rules:\n  - empty_count\n"),
-            ("Nested/Beneath/Inner.swift", Self.source)
+            ("Nested/Beneath/Inner.swift", Self.source),
         ] {
             let file = workspace.appendingPathComponent(path)
             try FileManager.default.createDirectory(

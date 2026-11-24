@@ -5,7 +5,6 @@
 //  What changes between two configurations, in terms of what SwiftLint does.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 
@@ -100,8 +99,8 @@ struct ConfigChangeSummaryTests {
                 "severity: default → error",
                 "error: set to 200",
                 "ignores_urls: removed (was true)",
-                "warning: 160 → 120"
-            ])
+                "warning: 160 → 120",
+            ]),
         ])
         #expect(changes.turnedOn.isEmpty && changes.turnedOff.isEmpty)
     }
@@ -117,7 +116,7 @@ struct ConfigChangeSummaryTests {
             "Now excluded: Carthage",
             "No longer excluded: Tests",
             "Now included: Tools",
-            "No longer included: App"
+            "No longer included: App",
         ])
     }
 
@@ -157,7 +156,7 @@ struct ConfigChangeSummaryTests {
         #expect(changes.otherChanges == [
             "reporter: xcode → json",
             "custom_rules added",
-            "warning_threshold: 10 → 5"
+            "warning_threshold: 10 → 5",
         ])
     }
 
@@ -195,7 +194,7 @@ struct ConfigChangeSummaryTests {
     @Test("Renamed rules, their settings and the old enabled_rules key count as the same thing", arguments: [
         ("disabled_rules:\n  - variable_name\n", "disabled_rules:\n  - identifier_name\n"),
         ("variable_name:\n  min_length: 2\n", "identifier_name:\n  min_length: 2\n"),
-        ("enabled_rules:\n  - empty_count\n", "opt_in_rules:\n  - empty_count\n")
+        ("enabled_rules:\n  - empty_count\n", "opt_in_rules:\n  - empty_count\n"),
     ])
     func deprecatedNames(before: String, after: String) throws {
         #expect(try summary(before, after).isEmpty)

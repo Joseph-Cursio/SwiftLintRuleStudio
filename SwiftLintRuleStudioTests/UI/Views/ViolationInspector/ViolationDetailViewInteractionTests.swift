@@ -110,8 +110,12 @@ struct ViolationDetailViewInteractionTests {
         try await MainActor.run {
             @MainActor
             struct DialogHost: View {
-                @State var reason: String = ""
+                @State private var reason: String = ""
                 let onSuppress: (String) -> Void
+
+                init(onSuppress: @escaping (String) -> Void) {
+                    self.onSuppress = onSuppress
+                }
 
                 var body: some View {
                     ViolationDetailView.makeSuppressDialogForTesting(reason: $reason, onSuppress: onSuppress)
@@ -209,8 +213,12 @@ struct ViolationDetailViewInteractionTests {
         try await MainActor.run {
             @MainActor
             struct DialogHost: View {
-                @State var reason: String = "Custom suppression reason"
+                @State private var reason: String = "Custom suppression reason"
                 let onSuppress: (String) -> Void
+
+                init(onSuppress: @escaping (String) -> Void) {
+                    self.onSuppress = onSuppress
+                }
 
                 var body: some View {
                     ViolationDetailView.makeSuppressDialogForTesting(reason: $reason, onSuppress: onSuppress)
@@ -265,7 +273,6 @@ struct ViolationDetailViewInteractionTests {
         }
         #expect(resolveCalled == true, "Resolve button should trigger onResolve callback")
     }
-
 }
 
 // MARK: - ViewInspector Extensions

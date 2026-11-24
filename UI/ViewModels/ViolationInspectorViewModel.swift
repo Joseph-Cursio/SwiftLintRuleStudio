@@ -78,5 +78,4 @@ class ViolationInspectorViewModel {
         // This prevents didSet observers from running during initialization
         self.isInitialized = true
     }
-
 }

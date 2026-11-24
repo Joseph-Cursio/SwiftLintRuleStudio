@@ -124,10 +124,13 @@ struct ViolationDetailView: View {
             switch error {
             case .fileNotFound(let path):
                 errorMessage = "File not found: \(path)\n\nThe file may have been moved or deleted."
+
             case .invalidPath(let path):
                 errorMessage = "Invalid file path: \(path)\n\nPlease verify the violation file path."
+
             case .xcodeNotInstalled:
                 errorMessage = "Xcode is not installed.\n\nPlease install Xcode from the App Store to use this feature."
+
             case .failedToOpen:
                 errorMessage = "Failed to open file in Xcode.\n\nPlease ensure Xcode is installed and try again."
             }

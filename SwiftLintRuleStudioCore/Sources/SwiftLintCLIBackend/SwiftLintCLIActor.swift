@@ -100,8 +100,8 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
         let arguments = await Self.buildLintArguments(
             configPath: configPath,
             workspacePath: workspacePath,
-            mode: .effective,
-            fileExists: fileExists
+            fileExists: fileExists,
+            mode: .effective
         )
         // Launch in the workspace directory so SwiftLint discovers its
         // `.swiftlint.yml` (and the `excluded:` paths within it) from the cwd, as
@@ -174,10 +174,12 @@ public actor SwiftLintCLIActor: SwiftLintCLIProtocol {
             switch error {
             case .notFound:
                 throw SwiftLintError.notFound
+
             case .timedOut(_, let seconds):
                 throw SwiftLintError.executionFailed(
                     message: "SwiftLint command timed out after \(seconds) seconds."
                 )
+
             case .executionFailed(let message):
                 throw SwiftLintError.executionFailed(message: message)
             }

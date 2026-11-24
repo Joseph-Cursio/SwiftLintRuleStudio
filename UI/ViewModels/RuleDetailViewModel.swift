@@ -12,9 +12,8 @@ import SwiftLintRuleStudioCore
 // MARK: - Supporting Types
 
 struct PendingRuleChanges {
-    // nil = no change, true = enable, false = disable
-    // swiftlint:disable:next discouraged_optional_boolean
-    let enabled: Bool?
+    /// Whether the rule will be enabled once the changes are saved.
+    let enabled: Bool
     let severity: Severity?
     var parameters: [String: AnyCodable]?
 }
@@ -28,8 +27,10 @@ enum RuleConfigurationError: LocalizedError {
         switch self {
         case .noWorkspace:
             return "No workspace is open. Please open a workspace to configure rules."
+
         case .configLoadFailed:
             return "Failed to load configuration file."
+
         case .saveFailed:
             return "Failed to save configuration changes."
         }
@@ -96,7 +97,7 @@ class RuleDetailViewModel {
 
     /// Load current configuration from workspace
     func loadConfiguration() throws {
-        guard let yamlEngine = yamlEngine else { return }
+        guard let yamlEngine else { return }
 
         // Suppress the parameterValues didSet during load so its intermediate
         // assignment doesn't compute pendingChanges against a stale baseline.
@@ -187,7 +188,7 @@ class RuleDetailViewModel {
 
     /// Generate diff for pending changes
     func generateDiff() -> YAMLConfigurationEngine.ConfigDiff? {
-        guard let yamlEngine = yamlEngine else { return nil }
+        guard let yamlEngine else { return nil }
 
         do {
             try yamlEngine.load()
@@ -209,7 +210,7 @@ class RuleDetailViewModel {
 
     /// Save configuration changes
     func saveConfiguration() throws {
-        guard let yamlEngine = yamlEngine else {
+        guard let yamlEngine else {
             throw RuleConfigurationError.noWorkspace
         }
 
@@ -255,7 +256,7 @@ class RuleDetailViewModel {
 
     private func parametersHaveChanged() -> Bool {
         let currentParams = parameterValues.isEmpty ? nil : parameterValues
-        if currentParams == nil && originalParameters == nil { return false }
+        if currentParams == nil, originalParameters == nil { return false }
         guard let current = currentParams, let original = originalParameters else { return true }
         if current.count != original.count { return true }
         for (key, value) in current {

@@ -80,8 +80,10 @@ nonisolated struct MirrorExclusions: Sendable {
                 } else {
                     parts.append(.stars(1))
                 }
+
             case "?":
                 parts.append(.fixed("."))
+
             case "[":
                 guard let (set, next) = characterSet(in: characters, from: index) else {
                     parts.append(.fixed("\\["))
@@ -89,8 +91,10 @@ nonisolated struct MirrorExclusions: Sendable {
                 }
                 parts.append(.fixed(set))
                 index = next
+
             case "/" where parts.last == .stars(2):
                 parts[parts.count - 1] = .fixed("(?:.*/)?")
+
             default:
                 parts.append(.fixed(NSRegularExpression.escapedPattern(for: String(character))))
             }
@@ -108,6 +112,7 @@ nonisolated struct MirrorExclusions: Sendable {
             switch part {
             case .stars:
                 runs.append("")
+
             case .fixed(let text):
                 runs[runs.count - 1] += text
             }

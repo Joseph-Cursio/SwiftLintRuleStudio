@@ -72,7 +72,7 @@ public enum RuleParameterParser {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             // Stop at the next section header (a non-indented line with text)
             // once we have started capturing content.
-            if sawContent && !line.hasPrefix(" ") && !line.hasPrefix("\t") && !trimmed.isEmpty {
+            if sawContent, !line.hasPrefix(" "), !line.hasPrefix("\t"), !trimmed.isEmpty {
                 break
             }
             if !trimmed.isEmpty {

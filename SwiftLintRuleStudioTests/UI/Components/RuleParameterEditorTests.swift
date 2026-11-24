@@ -17,7 +17,12 @@ import ViewInspector
 struct RuleParameterEditorTests {
     private struct HostView: View {
         let parameters: [RuleParameter]
-        @State var values: [String: AnyCodable] = [:]
+        // swiftlint:disable:next unused_declaration - read only through its $binding
+        @State private var values: [String: AnyCodable] = [:]
+
+        init(parameters: [RuleParameter]) {
+            self.parameters = parameters
+        }
 
         var body: some View {
             RuleParameterEditor(parameters: parameters, values: $values)

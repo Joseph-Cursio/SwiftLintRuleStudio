@@ -83,7 +83,6 @@ extension RuleRegistry {
             )
             try? await Task.sleep(nanoseconds: 100_000_000)
         }
-
     }
 
     static func loadBatch(

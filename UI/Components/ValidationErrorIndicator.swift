@@ -37,21 +37,10 @@ private struct ValidationErrorRow: View {
 
                 Spacer()
 
-                if suggestion != nil {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isExpanded.toggle()
-                        }
-                    } label: {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel(isExpanded ? "Collapse suggestion" : "Expand suggestion")
-                    }
-                    .buttonStyle(.plain)
-                }
+                expandButton
             }
 
-            if isExpanded, let suggestion = suggestion {
+            if isExpanded, let suggestion {
                 HStack(spacing: 4) {
                     Image(systemName: "lightbulb")
                         .font(.caption)
@@ -70,6 +59,22 @@ private struct ValidationErrorRow: View {
             RoundedRectangle(cornerRadius: 6)
                 .fill(iconColor.opacity(0.1))
         )
+    }
+
+    @ViewBuilder
+    private var expandButton: some View {
+        if suggestion != nil {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(isExpanded ? "Collapse suggestion" : "Expand suggestion")
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 
@@ -126,42 +131,6 @@ private struct ValidationStatusBadge: View {
     }
 }
 
-/// Field-specific inline error indicator
-private struct FieldValidationIndicator: View {
-    let field: ValidationResult.ConfigField
-    let errors: [ValidationResult.ValidationError]
-    let warnings: [ValidationResult.ValidationWarning]
-
-    var body: some View {
-        let fieldErrors = errors.filter { $0.field == field }
-        let fieldWarnings = warnings.filter { $0.field == field }
-
-        if !fieldErrors.isEmpty || !fieldWarnings.isEmpty {
-            HStack(spacing: 4) {
-                if !fieldErrors.isEmpty {
-                    HStack(spacing: 2) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.red)
-                            .accessibilityHidden(true)
-                        Text(fieldErrors.first?.message ?? "")
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-                } else if !fieldWarnings.isEmpty {
-                    HStack(spacing: 2) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                            .accessibilityHidden(true)
-                        Text(fieldWarnings.first?.message ?? "")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                    }
-                }
-            }
-        }
-    }
-}
-
 /// Displays validation errors and warnings inline
 struct ValidationErrorIndicator: View {
     let errors: [ValidationResult.ValidationError]
@@ -199,14 +168,14 @@ struct ValidationErrorIndicator: View {
                 field: .rule("force_cast"),
                 message: "Invalid severity value",
                 suggestion: "Use 'warning' or 'error'"
-            )
+            ),
         ],
         warnings: [
             ValidationResult.ValidationWarning(
                 field: .rule("unknown_rule"),
                 message: "Unknown rule identifier",
                 suggestion: "Did you mean 'force_cast'?"
-            )
+            ),
         ]
     )
     .padding()
@@ -225,13 +194,13 @@ struct ValidationErrorIndicator: View {
                 ValidationResult.ValidationError(
                     field: .general,
                     message: "Error"
-                )
+                ),
             ],
             warnings: [
                 ValidationResult.ValidationWarning(
                     field: .general,
                     message: "Warning"
-                )
+                ),
             ]
         )
     )

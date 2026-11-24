@@ -355,7 +355,7 @@ struct ResolveInvariantPropertyLawTests {
             workspaceRoot: Self.root,
             configs: [
                 makeDiscovered(directory: Self.root, depth: 0, config: rootConfig),
-                makeDiscovered(directory: child, depth: 1, config: childConfig)
+                makeDiscovered(directory: child, depth: 1, config: childConfig),
             ]
         )
         let resolved = ResolvedConfigurationEngine().resolve(at: child, in: tree)

@@ -5,7 +5,6 @@
 //  Single rule simulation tests
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
@@ -57,9 +56,9 @@ struct ImpactSimulatorSingleRuleTests {
                 filePath: "Test.swift",
                 line: 1,
                 severity: .warning,
-                message: "Test violation"
-            ,
-                column: 1)
+                message: "Test violation",
+                column: 1
+            ),
         ]
 
         let workspace = Workspace(path: tempDir)
@@ -102,7 +101,7 @@ struct ImpactSimulatorSingleRuleTests {
                 severity: .warning,
                 message: "col test",
                 column: 42
-            )
+            ),
         ]
 
         let workspace = Workspace(path: tempDir)
@@ -134,7 +133,7 @@ struct ImpactSimulatorSingleRuleTests {
 
         let violations = [
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "one"),
-            Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .error, message: "two")
+            Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .error, message: "two"),
         ]
 
         let workspace = Workspace(path: tempDir)

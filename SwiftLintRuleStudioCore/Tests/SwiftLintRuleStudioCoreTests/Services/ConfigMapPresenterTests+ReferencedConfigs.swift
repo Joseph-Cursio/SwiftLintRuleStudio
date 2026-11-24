@@ -55,7 +55,7 @@ extension ConfigMapPresenterTests {
             "../../.swiftlint.yml",
             "root",
             "https://example.com/strict.yml",
-            "Sub"
+            "Sub",
         ])
         let todo = try #require(display.ruleRows.first { $0.id == "todo" })
         #expect(todo.setBy == "../../.swiftlint.yml")

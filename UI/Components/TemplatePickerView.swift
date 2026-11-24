@@ -57,18 +57,7 @@ private struct TemplatePickerCard: View {
     var body: some View {
         Button(action: onSelect) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: template.projectType.icon)
-                        .foregroundStyle(.tint)
-                        .accessibilityHidden(true)
-
-                    Text(template.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-
-                    Spacer()
-                }
+                header
 
                 Text(template.description)
                     .font(.caption)
@@ -76,17 +65,7 @@ private struct TemplatePickerCard: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
-                HStack {
-                    CodingStyleBadge(style: template.codingStyle)
-
-                    Spacer()
-
-                    if isHovered {
-                        Text("Select")
-                            .font(.caption)
-                            .foregroundStyle(.tint)
-                    }
-                }
+                footer
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -104,6 +83,35 @@ private struct TemplatePickerCard: View {
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isHovered)
+    }
+
+    private var footer: some View {
+        HStack {
+            CodingStyleBadge(style: template.codingStyle)
+
+            Spacer()
+
+            if isHovered {
+                Text("Select")
+                    .font(.caption)
+                    .foregroundStyle(.tint)
+            }
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Image(systemName: template.projectType.icon)
+                .foregroundStyle(.tint)
+                .accessibilityHidden(true)
+
+            Text(template.name)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .lineLimit(1)
+
+            Spacer()
+        }
     }
 }
 

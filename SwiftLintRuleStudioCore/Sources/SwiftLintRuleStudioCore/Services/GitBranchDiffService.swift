@@ -55,8 +55,10 @@ public enum GitBranchDiffError: LocalizedError, Sendable {
         switch self {
         case .notGitRepo:
             return "The workspace is not a git repository."
+
         case .configNotFoundOnBranch(let branch):
             return "No .swiftlint.yml found on branch '\(branch)'."
+
         case .comparisonFailed(let msg):
             return "Comparison failed: \(msg)"
         }

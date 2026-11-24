@@ -1,6 +1,4 @@
 import Foundation
-import LintStudioCore
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 
@@ -22,37 +20,6 @@ enum WorkspaceManagerIntegrationTestHelpers {
         try await MainActor.run {
             let manager = WorkspaceManager.createForTesting(testName: testName)
             return try operation(manager)
-        }
-    }
-
-    static func withWorkspaceManagerAsync<T: Sendable>(
-        testName: String = #function,
-        operation: @MainActor @escaping (WorkspaceManager) async throws -> T
-    ) async throws -> T {
-        try await Task { @MainActor in
-            let manager = WorkspaceManager.createForTesting(testName: testName)
-            return try await operation(manager)
-        }.value
-    }
-
-    @MainActor
-    static func createWorkspaceAnalyzer(
-        swiftLintCLI: MockSwiftLintCLIActor,
-        violationStorage: ViolationStorageProtocol,
-        fileTracker: sending FileTracker? = nil
-    ) -> WorkspaceAnalyzer {
-        WorkspaceAnalyzer(swiftLintCLI: swiftLintCLI, violationStorage: violationStorage, fileTracker: fileTracker)
-    }
-
-    static func createViolationInspectorViewModel(
-        violationStorage: ViolationStorageProtocol,
-        workspaceAnalyzer: WorkspaceAnalyzer? = nil
-    ) async -> ViolationInspectorViewModel {
-        await MainActor.run {
-            if let analyzer = workspaceAnalyzer {
-                return ViolationInspectorViewModel(violationStorage: violationStorage, workspaceAnalyzer: analyzer)
-            }
-            return ViolationInspectorViewModel(violationStorage: violationStorage)
         }
     }
 

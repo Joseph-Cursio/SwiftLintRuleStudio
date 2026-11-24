@@ -44,7 +44,7 @@ struct SimulationWorkspaceOnlyRuleTests {
     func plainRuleRunsAlone() throws {
         let (shadow, workspace) = try makeShadow([
             ".swiftlint.yml": "only_rules:\n  - line_length\n",
-            "Sub/.swiftlint.yml": "disabled_rules:\n  - force_cast\n"
+            "Sub/.swiftlint.yml": "disabled_rules:\n  - force_cast\n",
         ])
         defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
 
@@ -66,7 +66,7 @@ struct SimulationWorkspaceOnlyRuleTests {
     func customRulesNeedEveryRule() throws {
         let (shadow, workspace) = try makeShadow([
             ".swiftlint.yml": "custom_rules:\n  no_number:\n    regex: NSNumber\n",
-            "Sub/.swiftlint.yml": "custom_rules:\n  no_print:\n    regex: print\n"
+            "Sub/.swiftlint.yml": "custom_rules:\n  no_print:\n    regex: print\n",
         ])
         defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
 
@@ -80,7 +80,7 @@ struct SimulationWorkspaceOnlyRuleTests {
     func nestedOnlyRulesWithoutTheRule() throws {
         let (shadow, workspace) = try makeShadow([
             ".swiftlint.yml": "disabled_rules:\n  - force_cast\n",
-            "Sub/.swiftlint.yml": "only_rules:\n  - line_length\nexcluded:\n  - Generated\n"
+            "Sub/.swiftlint.yml": "only_rules:\n  - line_length\nexcluded:\n  - Generated\n",
         ])
         defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
         let nested = {
@@ -119,7 +119,7 @@ struct SimulationWorkspaceOnlyRuleTests {
     func nestedOnlyRulesListingTheRule() throws {
         let (shadow, workspace) = try makeShadow([
             "Sub/.swiftlint.yml": "only_rules:\n  - variable_name\n",
-            "Other/.swiftlint.yml": "only_rules: []\n"
+            "Other/.swiftlint.yml": "only_rules: []\n",
         ])
         defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
 
@@ -130,7 +130,7 @@ struct SimulationWorkspaceOnlyRuleTests {
     func referencedOnlyRules() throws {
         let (shadow, workspace) = try makeShadow([
             ".swiftlint.yml": "parent_config: base.yml\n",
-            "base.yml": "only_rules:\n  - line_length\n"
+            "base.yml": "only_rules:\n  - line_length\n",
         ])
         defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
 
@@ -141,7 +141,7 @@ struct SimulationWorkspaceOnlyRuleTests {
     func keepsOffReadsAliases() throws {
         let (shadow, workspace) = try makeShadow([
             "Sub/.swiftlint.yml": "only_rules:\n  - variable_name\n",
-            "Other/.swiftlint.yml": "only_rules:\n  - line_length\n"
+            "Other/.swiftlint.yml": "only_rules:\n  - line_length\n",
         ])
         defer { shadow.cleanup(); try? FileManager.default.removeItem(at: workspace) }
         let byAlias = try #require(shadow.configs.first { $0.relativePath.hasPrefix("Sub/") })

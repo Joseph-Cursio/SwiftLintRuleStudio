@@ -41,7 +41,7 @@ final class RuleAuditRunner {
         let isCurrent = { [weak self] in
             self?.generation == run && !Task.isCancelled && currentWorkspace()?.id == workspace.id
         }
-        let task = Task {
+        let runTask = Task {
             let result: Result<RuleAuditView.AuditOutcome, Error>
             do {
                 result = .success(try await audit { progress in
@@ -56,8 +56,8 @@ final class RuleAuditRunner {
             if case .failure(let error) = result, error is CancellationError { return }
             onFinish(result)
         }
-        self.task = task
-        return task
+        self.task = runTask
+        return runTask
     }
 
     /// Stops the running audit, if any; it reports nothing more.

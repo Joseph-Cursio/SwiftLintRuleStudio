@@ -154,6 +154,7 @@ struct SimulationWorkspacePrivateLoopTests {
         case .leftOut:
             let plan = try plan(layout, underPrivate: loopCase.underPrivate)
             #expect(!plan.links.contains { $0.path.hasSuffix("/loop") }, "\(plan.links.map(\.path))")
+
         case .refused(let advice):
             let error = #expect(throws: MirrorUnsupportedSetupError.self) {
                 _ = try plan(layout, underPrivate: loopCase.underPrivate)
@@ -162,6 +163,7 @@ struct SimulationWorkspacePrivateLoopTests {
                 #expect(error?.reason.contains(advice) == true, "\(error?.reason ?? "")")
                 #expect(error?.reason.contains("Add it to `excluded`") == false)
             }
+
         case .keeps(let path):
             let plan = try plan(layout, underPrivate: loopCase.underPrivate)
             #expect(plan.links.contains { $0.path == path }, "\(plan.links.map(\.path))")

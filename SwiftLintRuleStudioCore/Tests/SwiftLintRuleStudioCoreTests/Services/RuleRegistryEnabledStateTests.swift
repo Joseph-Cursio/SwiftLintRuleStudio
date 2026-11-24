@@ -52,7 +52,7 @@ struct RuleRegistryEnabledStateTests {
     func testOnlyRulesGatesEnabledState() {
         let registry = makeRegistry(rules: [
             makeRule(id: "rule_in"),
-            makeRule(id: "rule_out", isOptIn: true)
+            makeRule(id: "rule_out", isOptIn: true),
         ])
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.onlyRules = ["rule_in"]
@@ -212,7 +212,7 @@ struct RuleRegistryEnabledStateTests {
         let registry = makeRegistry(rules: [
             makeRule(id: "explicit_self", isOptIn: true, isAnalyzer: true),
             makeRule(id: "unused_import", isOptIn: true, isAnalyzer: true),
-            makeRule(id: "force_cast")
+            makeRule(id: "force_cast"),
         ])
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.onlyRules = ["force_cast"]
@@ -253,12 +253,12 @@ struct RuleRegistryEnabledStateTests {
     func testDefaultRuleHonorsExplicitRuleConfig() {
         let registry = makeRegistry(rules: [
             makeRule(id: "on_rule"),
-            makeRule(id: "off_rule")
+            makeRule(id: "off_rule"),
         ])
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules = [
             "on_rule": RuleConfiguration(enabled: true),
-            "off_rule": RuleConfiguration(enabled: false)
+            "off_rule": RuleConfiguration(enabled: false),
         ]
 
         registry.syncEnabledStates(with: config)

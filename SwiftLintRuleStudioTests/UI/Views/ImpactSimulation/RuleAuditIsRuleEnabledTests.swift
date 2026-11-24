@@ -5,7 +5,6 @@
 //  Tests for RuleAuditView.isRuleEnabled — analyzer/opt-in/disabled routing.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing

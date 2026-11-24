@@ -12,11 +12,11 @@ import SwiftUI
         parameters: nil,
         triggeringExamples: [
             "let string = value as! String",
-            "let number = data as! Int"
+            "let number = data as! Int",
         ],
         nonTriggeringExamples: [
             "if let string = value as? String { }",
-            "guard let number = data as? Int else { return }"
+            "guard let number = data as? Int else { return }",
         ],
         documentation: nil,
         isEnabled: true,

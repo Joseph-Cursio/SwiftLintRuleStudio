@@ -10,7 +10,6 @@
 import Foundation
 import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // SwiftLintCLIActor is an actor; CacheManager trips a Swift 6 false positive, so (as in

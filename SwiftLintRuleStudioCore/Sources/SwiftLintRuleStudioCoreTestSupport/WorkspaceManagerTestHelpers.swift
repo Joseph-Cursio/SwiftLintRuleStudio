@@ -5,7 +5,6 @@
 //  Helper utilities for WorkspaceManager tests
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 
 /// Test helpers for workspace manager tests

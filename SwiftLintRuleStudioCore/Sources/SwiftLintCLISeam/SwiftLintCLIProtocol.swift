@@ -77,8 +77,10 @@ public enum SwiftLintError: LocalizedError, Sendable {
 
             After installing, restart SwiftLint Rule Studio.
             """
+
         case .invalidVersion:
             return "Could not determine SwiftLint version."
+
         case .executionFailed(let message):
             return "SwiftLint execution failed: \(message)"
         }
@@ -88,6 +90,7 @@ public enum SwiftLintError: LocalizedError, Sendable {
         switch self {
         case .notFound:
             return "Install SwiftLint using Homebrew: brew install swiftlint"
+
         default:
             return nil
         }
@@ -133,6 +136,7 @@ public extension SwiftLintCLIProtocol {
     func executeLintCommand(
         configPath: URL?,
         workspacePath: URL,
+        // swiftlint:disable:next unneeded_escaping - must match the requirement it implements
         progress _: @escaping LintProgressHandler
     ) async throws -> Data {
         try await executeLintCommand(configPath: configPath, workspacePath: workspacePath)
@@ -145,5 +149,7 @@ public extension SwiftLintCLIProtocol {
     }
 
     /// A backend that always sees its lints through has none to wait for.
-    func waitForAbandonedLints(at _: URL) {}
+    func waitForAbandonedLints(at _: URL) {
+        // Nothing to wait for.
+    }
 }

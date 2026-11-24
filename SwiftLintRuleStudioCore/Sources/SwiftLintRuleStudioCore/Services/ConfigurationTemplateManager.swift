@@ -45,8 +45,10 @@ public struct ConfigurationTemplate: Identifiable, Codable, Sendable, Equatable,
             switch self {
             case .strict:
                 return "Maximum code quality enforcement with all recommended rules"
+
             case .balanced:
                 return "Good balance between code quality and developer flexibility"
+
             case .lenient:
                 return "Minimal rules focused on critical issues only"
             }
@@ -138,8 +140,10 @@ public enum TemplateError: LocalizedError, Sendable {
         switch self {
         case .cannotDeleteBuiltIn:
             return "Cannot delete built-in templates"
+
         case .serializationFailed:
             return "Failed to serialize configuration"
+
         case .templateNotFound:
             return "Template not found"
         }

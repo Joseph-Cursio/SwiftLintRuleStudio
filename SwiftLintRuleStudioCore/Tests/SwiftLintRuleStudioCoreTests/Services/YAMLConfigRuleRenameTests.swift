@@ -18,7 +18,7 @@ struct YAMLConfigRuleRenameTests {
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules = [
             "old_rule": RuleConfiguration(enabled: true, severity: .error),
-            "other_rule": RuleConfiguration(enabled: true)
+            "other_rule": RuleConfiguration(enabled: true),
         ]
         config.disabledRules = ["old_rule", "a_rule"]
         config.optInRules = ["b_rule", "old_rule"]
@@ -29,7 +29,7 @@ struct YAMLConfigRuleRenameTests {
 
         #expect(config.rules == [
             "new_rule": RuleConfiguration(enabled: true, severity: .error),
-            "other_rule": RuleConfiguration(enabled: true)
+            "other_rule": RuleConfiguration(enabled: true),
         ])
         #expect(config.disabledRules == ["new_rule", "a_rule"])
         #expect(config.optInRules == ["b_rule", "new_rule"])
@@ -42,7 +42,7 @@ struct YAMLConfigRuleRenameTests {
         var config = YAMLConfigurationEngine.YAMLConfig()
         config.rules = [
             "old_rule": RuleConfiguration(enabled: true, severity: .error),
-            "new_rule": RuleConfiguration(enabled: true, severity: .warning)
+            "new_rule": RuleConfiguration(enabled: true, severity: .warning),
         ]
         config.optInRules = ["old_rule", "a_rule", "new_rule"]
         config.onlyRules = ["old_rule", "a_rule", "old_rule"]

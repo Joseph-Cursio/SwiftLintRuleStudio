@@ -149,7 +149,7 @@ struct SimulationWorkspaceSymlinkTests {
             "excluded:\n  - Nope\n",
             "included:\n  - Sources/**\nexcluded:\n  - Sources/Generated\n",
             "included:\n  - Sources\n  - Sources/Shared\nexcluded:\n  - Nope\n",
-            "included:\n  - Sources/**/*.swift\n"
+            "included:\n  - Sources/**/*.swift\n",
         ]
         for config in configs {
             let layout = try makeLayout(config: config)

@@ -44,7 +44,7 @@ class GitBranchDiffViewModel {
     }
 
     func loadRefs() {
-        guard let workspacePath = workspacePath else {
+        guard let workspacePath else {
             isNotGitRepo = true
             return
         }
@@ -74,8 +74,8 @@ class GitBranchDiffViewModel {
 
     /// `knownRules` is the rule catalog, which says for certain which rules are opt-in.
     func compareWithSelected(knownRules: [Rule] = []) {
-        guard let workspacePath = workspacePath,
-              let selectedRef = selectedRef else { return }
+        guard let workspacePath,
+              let selectedRef else { return }
 
         compareTask?.cancel()
         isLoading = true

@@ -14,7 +14,9 @@ public final class SystemXcodeLauncher: XcodeLaunching {
     // xed is typically in /usr/bin/xed, but can also be accessed via xcode-select
     private let xedPath = "/usr/bin/xed"
 
-    public init() {}
+    public init() {
+        // Declared only to make the initializer public.
+    }
 
     public func runXed(arguments: [String]) -> Bool {
         guard FileManager.default.fileExists(atPath: xedPath) else {

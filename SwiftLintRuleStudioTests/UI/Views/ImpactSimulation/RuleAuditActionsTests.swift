@@ -5,7 +5,6 @@
 //  Tests for RuleAuditView.applyEnableRules and support types
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing

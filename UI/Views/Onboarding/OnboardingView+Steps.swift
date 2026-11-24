@@ -44,146 +44,35 @@ extension OnboardingView {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
-            VStack(alignment: .leading, spacing: 16) {
-                featureRow(
-                    icon: "list.bullet.rectangle",
-                    title: "Browse Rules",
-                    description: "Explore all available SwiftLint rules with detailed documentation"
-                )
-                featureRow(
-                    icon: "exclamationmark.triangle",
-                    title: "Inspect Violations",
-                    description: "View and manage code violations in your workspace"
-                )
-                featureRow(
-                    icon: "gearshape",
-                    title: "Configure Rules",
-                    description: "Enable, disable, and customize rules with live preview"
-                )
-            }
-            .padding(.horizontal, 40)
-            .padding(.top, 8)
+            welcomeFeatures
         }
         .padding(.vertical, 40)
     }
 
-    var swiftLintCheckStep: some View {
+    /// The SwiftLint step, showing `status`; Check Again runs `onCheckAgain`.
+    func swiftLintCheckStep(status: SwiftLintStatus, onCheckAgain: @escaping () -> Void) -> some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: iconSizeStandard))
-                .foregroundStyle(swiftLintStatus.isReady ? .green : .orange)
+                .foregroundStyle(status.isReady ? .green : .orange)
                 .accessibilityHidden(true)
 
-            Text(swiftLintStepTitle)
+            Text(Self.stepTitle(for: status))
                 .font(.system(size: subheadingFontSize, weight: .bold))
 
             Group {
-                switch swiftLintStatus {
+                switch status {
                 case .builtIn(let version):
-                    VStack(alignment: .leading, spacing: 16) {
-                        featureRow(
-                            icon: "shippingbox",
-                            title: version.map { "SwiftLint \($0) included" } ?? "SwiftLint included",
-                            description: "Runs inside the app, so there's nothing else to install."
-                        )
-                        featureRow(
-                            icon: "doc.badge.gearshape",
-                            title: "Uses your configuration",
-                            description: "Your project's .swiftlint.yml is read and applied as usual."
-                        )
-                        featureRow(
-                            icon: "info.circle",
-                            title: "SourceKit rules",
-                            description: """
-                            Rules that depend on SourceKit aren't checked here, \
-                            but you can still add them to your configuration.
-                            """
-                        )
-                    }
-                    .padding(.horizontal, 40)
+                    builtInStatus(version: version)
 
                 case .checking:
-                    VStack(spacing: 12) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Checking for SwiftLint installation...")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
+                    checkingStatus
 
-                case .installed(let path, let version):
-                    VStack(spacing: 16) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: iconSizeMedium))
-                            .foregroundStyle(.green)
-                            .accessibilityHidden(true)
-
-                        Text("SwiftLint is installed")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            infoRow(label: "Version", value: version)
-                            infoRow(label: "Path", value: path.path)
-                        }
-                        .padding()
-                        .background(Color(NSColor.controlBackgroundColor))
-                        .clipShape(.rect(cornerRadius: 8))
-                    }
+                case let .installed(path, version):
+                    installedStatus(path: path, version: version)
 
                 case .notInstalled:
-                    VStack(spacing: 20) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: iconSizeMedium))
-                            .foregroundStyle(.orange)
-                            .accessibilityHidden(true)
-
-                        Text("SwiftLint Not Found")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-
-                        Text("SwiftLint Rule Studio requires SwiftLint to be installed on your system.")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Installation Options:")
-                                .font(.headline)
-
-                            installationOption(
-                                method: "Homebrew",
-                                command: "brew install swiftlint",
-                                description: "Recommended for most users"
-                            )
-
-                            installationOption(
-                                method: "Mint",
-                                command: "mint install realm/SwiftLint",
-                                description: "Swift package manager"
-                            )
-
-                            installationOption(
-                                method: "Direct Download",
-                                command: "https://github.com/realm/SwiftLint/releases",
-                                description: "Download from GitHub"
-                            )
-                        }
-                        .padding()
-                        .background(Color(NSColor.controlBackgroundColor))
-                        .clipShape(.rect(cornerRadius: 8))
-                        .padding(.horizontal, 40)
-
-                        Button {
-                            Task {
-                                await checkSwiftLintInstallation()
-                            }
-                        } label: {
-                            Label("Check Again", systemImage: "arrow.clockwise")
-                        }
-                        .buttonStyle(.bordered)
-                    }
+                    notInstalledStatus(onCheckAgain: onCheckAgain)
                 }
             }
             .frame(maxHeight: .infinity)
@@ -191,8 +80,8 @@ extension OnboardingView {
         .padding(.vertical, 40)
     }
 
-    private var swiftLintStepTitle: String {
-        if case .builtIn = swiftLintStatus {
+    private static func stepTitle(for status: SwiftLintStatus) -> String {
+        if case .builtIn = status {
             return "SwiftLint Is Built into Rule Explorer"
         }
         return "SwiftLint Installation"
@@ -226,5 +115,139 @@ extension OnboardingView {
                 .padding(.horizontal, 40)
         }
         .padding(.vertical, 40)
+    }
+
+    // MARK: - SwiftLint Status
+
+    private var welcomeFeatures: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            featureRow(
+                icon: "list.bullet.rectangle",
+                title: "Browse Rules",
+                description: "Explore all available SwiftLint rules with detailed documentation"
+            )
+            featureRow(
+                icon: "exclamationmark.triangle",
+                title: "Inspect Violations",
+                description: "View and manage code violations in your workspace"
+            )
+            featureRow(
+                icon: "gearshape",
+                title: "Configure Rules",
+                description: "Enable, disable, and customize rules with live preview"
+            )
+        }
+        .padding(.horizontal, 40)
+        .padding(.top, 8)
+    }
+
+    private func builtInStatus(version: String?) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            featureRow(
+                icon: "shippingbox",
+                title: version.map { "SwiftLint \($0) included" } ?? "SwiftLint included",
+                description: "Runs inside the app, so there's nothing else to install."
+            )
+            featureRow(
+                icon: "doc.badge.gearshape",
+                title: "Uses your configuration",
+                description: "Your project's .swiftlint.yml is read and applied as usual."
+            )
+            featureRow(
+                icon: "info.circle",
+                title: "SourceKit rules",
+                description: """
+                Rules that depend on SourceKit aren't checked here, \
+                but you can still add them to your configuration.
+                """
+            )
+        }
+        .padding(.horizontal, 40)
+    }
+
+    private var checkingStatus: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("Checking for SwiftLint installation...")
+                .font(.body)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func installedStatus(path: URL, version: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: iconSizeMedium))
+                .foregroundStyle(.green)
+                .accessibilityHidden(true)
+
+            Text("SwiftLint is installed")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            VStack(alignment: .leading, spacing: 8) {
+                infoRow(label: "Version", value: version)
+                infoRow(label: "Path", value: path.path)
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(.rect(cornerRadius: 8))
+        }
+    }
+
+    private func notInstalledStatus(onCheckAgain: @escaping () -> Void) -> some View {
+        VStack(spacing: 20) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: iconSizeMedium))
+                .foregroundStyle(.orange)
+                .accessibilityHidden(true)
+
+            Text("SwiftLint Not Found")
+                .font(.title2)
+                .fontWeight(.semibold)
+
+            Text("SwiftLint Rule Studio requires SwiftLint to be installed on your system.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+
+            installationOptions
+
+            Button(action: onCheckAgain) {
+                Label("Check Again", systemImage: "arrow.clockwise")
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    private var installationOptions: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Installation Options:")
+                .font(.headline)
+
+            installationOption(
+                method: "Homebrew",
+                command: "brew install swiftlint",
+                description: "Recommended for most users"
+            )
+
+            installationOption(
+                method: "Mint",
+                command: "mint install realm/SwiftLint",
+                description: "Swift package manager"
+            )
+
+            installationOption(
+                method: "Direct Download",
+                command: "https://github.com/realm/SwiftLint/releases",
+                description: "Download from GitHub"
+            )
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .clipShape(.rect(cornerRadius: 8))
+        .padding(.horizontal, 40)
     }
 }

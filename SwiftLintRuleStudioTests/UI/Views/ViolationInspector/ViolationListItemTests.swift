@@ -5,7 +5,6 @@
 //  UI tests for ViolationListItem component
 //
 
-import LintStudioUI
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport

@@ -52,7 +52,7 @@ struct SwiftLintCLICommandAndPathTests {
     func testDetectSwiftLintPathCaching() async throws {
         let map = AsyncMapActor(values: [
             "/opt/homebrew/bin/swiftlint": true,
-            "/usr/local/bin/swiftlint": false
+            "/usr/local/bin/swiftlint": false,
         ])
         let fileExists: SwiftLintFileExists = { path in
             await map.get(path)

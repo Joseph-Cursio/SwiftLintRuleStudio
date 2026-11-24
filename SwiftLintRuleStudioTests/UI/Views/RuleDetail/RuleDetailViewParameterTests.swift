@@ -10,8 +10,6 @@
 
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -32,7 +30,7 @@ struct RuleDetailViewParameterTests {
             parameters: [
                 RuleParameter(name: "warning", type: .integer, defaultValue: AnyCodable(120)),
                 RuleParameter(name: "error", type: .integer, defaultValue: AnyCodable(200)),
-                RuleParameter(name: "ignores_urls", type: .boolean, defaultValue: AnyCodable(true))
+                RuleParameter(name: "ignores_urls", type: .boolean, defaultValue: AnyCodable(true)),
             ],
             triggeringExamples: [],
             nonTriggeringExamples: [],
@@ -202,5 +200,4 @@ struct RuleDetailViewParameterTests {
         )
         _ = baseline // silence unused warning if baseline pinning isn't asserted
     }
-
 }

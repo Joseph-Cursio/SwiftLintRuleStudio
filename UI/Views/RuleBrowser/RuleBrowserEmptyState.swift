@@ -14,7 +14,6 @@ struct RuleBrowserEmptyState: View {
     let selectedStatus: RuleStatusFilter
     var selectedType: RuleTypeFilter = .all
     var hasActivePreset = false
-    let rulesAreEmpty: Bool
     let onClearFilters: () -> Void
 
     private var hasActiveFilters: Bool {
@@ -48,8 +47,7 @@ struct RuleBrowserEmptyState: View {
     RuleBrowserEmptyState(
         searchText: "force",
         selectedCategory: nil,
-        selectedStatus: .enabled,
-        rulesAreEmpty: false
+        selectedStatus: .enabled
     ) {}
 }
 
@@ -57,7 +55,6 @@ struct RuleBrowserEmptyState: View {
     RuleBrowserEmptyState(
         searchText: "",
         selectedCategory: nil,
-        selectedStatus: .all,
-        rulesAreEmpty: true
+        selectedStatus: .all
     ) {}
 }

@@ -21,7 +21,6 @@
 //  trials and ordering collisions actually occur.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing

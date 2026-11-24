@@ -5,11 +5,9 @@
 //  Export functionality tests for ViolationInspectorView
 //
 
-@testable import SwiftLintRuleStudio
+import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
-import ViewInspector
 
 // MARK: - Export Tests
 
@@ -24,7 +22,7 @@ extension ViolationInspectorNewFeaturesTests {
                 filePath: "Test.swift",
                 line: 10,
                 severity: .error
-            )
+            ),
         ]
 
         let tempURL = FileManager.default.temporaryDirectory
@@ -55,7 +53,7 @@ extension ViolationInspectorNewFeaturesTests {
                 filePath: "Test.swift",
                 line: 10,
                 severity: .error
-            )
+            ),
         ]
 
         let tempURL = FileManager.default.temporaryDirectory

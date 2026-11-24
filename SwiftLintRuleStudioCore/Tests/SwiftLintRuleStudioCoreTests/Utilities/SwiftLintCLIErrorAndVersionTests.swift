@@ -53,6 +53,7 @@ struct SwiftLintCLIErrorAndVersionTests {
             switch error {
             case .invalidVersion:
                 #expect(true)
+
             default:
                 Issue.record("Expected invalidVersion error")
             }

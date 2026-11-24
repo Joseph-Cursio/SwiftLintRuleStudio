@@ -5,11 +5,10 @@
 //  Additional tests for RuleAuditView support types and actions
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
-import ViewInspector
 
 @MainActor
 struct RuleAuditViewAdditionalTests {
@@ -63,7 +62,7 @@ struct RuleAuditViewAdditionalTests {
             makeEntry(ruleId: "low1", violationCount: 3, enabled: false),
             makeEntry(ruleId: "mod1", violationCount: 15, enabled: false),
             makeEntry(ruleId: "high1", violationCount: 50, enabled: false),
-            makeEntry(ruleId: "enabled1", violationCount: 0, enabled: true)
+            makeEntry(ruleId: "enabled1", violationCount: 0, enabled: true),
         ]
 
         let summary = AuditSummary(entries: entries, totalSwiftFiles: 42, auditDuration: 3.0)
@@ -82,7 +81,7 @@ struct RuleAuditViewAdditionalTests {
             Violation(ruleID: "test_rule", filePath: "FileA.swift", line: 1, severity: .warning, message: "msg"),
             Violation(ruleID: "test_rule", filePath: "FileA.swift", line: 5, severity: .warning, message: "msg"),
             Violation(ruleID: "test_rule", filePath: "FileA.swift", line: 10, severity: .warning, message: "msg"),
-            Violation(ruleID: "test_rule", filePath: "FileB.swift", line: 1, severity: .warning, message: "msg")
+            Violation(ruleID: "test_rule", filePath: "FileB.swift", line: 1, severity: .warning, message: "msg"),
         ]
         let result = RuleImpactResult(
             ruleId: "test_rule",
@@ -128,7 +127,7 @@ struct RuleAuditViewAdditionalTests {
                 violations: [],
                 affectedFiles: ["file.swift"],
                 simulationDuration: 1.0
-            )
+            ),
         ]
 
         let batchResult = BatchSimulationResult(

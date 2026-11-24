@@ -7,7 +7,6 @@
 
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -22,8 +21,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "xyz",
             selectedCategory: nil,
-            selectedStatus: .all,
-            rulesAreEmpty: false
+            selectedStatus: .all
         ) {}
         // ContentUnavailableView.search is a system view — verify the correct branch is
         // chosen by confirming our custom label text is NOT present.
@@ -41,8 +39,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "",
             selectedCategory: .style,
-            selectedStatus: .all,
-            rulesAreEmpty: false
+            selectedStatus: .all
         ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
@@ -55,8 +52,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "",
             selectedCategory: nil,
-            selectedStatus: .enabled,
-            rulesAreEmpty: false
+            selectedStatus: .enabled
         ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
@@ -69,8 +65,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "",
             selectedCategory: .lint,
-            selectedStatus: .all,
-            rulesAreEmpty: false
+            selectedStatus: .all
         ) { called = true }
         let inspector = try view.inspect()
         try inspector.find(button: "Clear Filters").tap()
@@ -84,8 +79,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "",
             selectedCategory: nil,
-            selectedStatus: .all,
-            rulesAreEmpty: true
+            selectedStatus: .all
         ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "No Rules Found")) != nil)
@@ -99,8 +93,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "",
             selectedCategory: nil,
-            selectedStatus: .all,
-            rulesAreEmpty: true
+            selectedStatus: .all
         ) {}
         let inspector = try view.inspect()
         // The label uses "magnifyingglass" — verify no crash on full traversal
@@ -115,8 +108,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "foo",
             selectedCategory: .style,
-            selectedStatus: .all,
-            rulesAreEmpty: false
+            selectedStatus: .all
         ) {}
         let inspector = try view.inspect()
         // Custom label not present → search branch rendered
@@ -130,8 +122,7 @@ struct RuleBrowserEmptyStateTests {
         let view = RuleBrowserEmptyState(
             searchText: "",
             selectedCategory: nil,
-            selectedStatus: .disabled,
-            rulesAreEmpty: true
+            selectedStatus: .disabled
         ) {}
         let inspector = try view.inspect()
         #expect((try? inspector.find(text: "Try adjusting your filters.")) != nil)
@@ -147,8 +138,7 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: nil,
             selectedStatus: .all,
-            selectedType: .optIn,
-            rulesAreEmpty: false
+            selectedType: .optIn
         ) {}
         #expect((try? view.inspect().find(button: "Clear Filters")) != nil)
     }
@@ -159,8 +149,7 @@ struct RuleBrowserEmptyStateTests {
             searchText: "",
             selectedCategory: nil,
             selectedStatus: .all,
-            hasActivePreset: true,
-            rulesAreEmpty: false
+            hasActivePreset: true
         ) {}
         #expect((try? view.inspect().find(button: "Clear Filters")) != nil)
     }

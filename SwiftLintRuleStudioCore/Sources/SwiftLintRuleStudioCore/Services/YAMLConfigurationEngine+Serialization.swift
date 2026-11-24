@@ -238,7 +238,7 @@ extension YAMLConfigurationEngine {
         "warning_threshold",
         "strict",
         "lenient",
-        "reporter"
+        "reporter",
     ]
 
     private static func topLevelRuleValue(for ruleConfig: RuleConfiguration) -> [String: Any]? {

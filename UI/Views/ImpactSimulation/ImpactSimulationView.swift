@@ -159,17 +159,7 @@ private struct ImpactSummary: View {
                 .font(.headline)
 
             HStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Violations")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    // No count is shown as none, not as the -1 that stands in for one; the
-                    // same goes for files and time below, where 0 would read as clean.
-                    Text(result.isMeasured ? "\(result.violationCount)" : "—")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(ImpactVerdict(result).color)
-                }
+                violationsColumn
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Affected Files")
@@ -193,6 +183,20 @@ private struct ImpactSummary: View {
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
             .clipShape(.rect(cornerRadius: 8))
+        }
+    }
+
+    private var violationsColumn: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Violations")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            // No count is shown as none, not as the -1 that stands in for one; the
+            // same goes for files and time below, where 0 would read as clean.
+            Text(result.isMeasured ? "\(result.violationCount)" : "—")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundStyle(ImpactVerdict(result).color)
         }
     }
 }
@@ -264,7 +268,7 @@ struct ImpactSimulationView: View {
                     }
                 }
 
-                if let onEnable = onEnable, Self.offersEnable(for: result) {
+                if let onEnable, Self.offersEnable(for: result) {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Enable Rule") {
                             onEnable()
@@ -308,7 +312,7 @@ struct ImpactSimulationView: View {
                 severity: .warning,
                 message: "Force casts should be avoided",
                 column: 12
-            )
+            ),
         ],
         affectedFiles: ["Test.swift", "Another.swift"],
         simulationDuration: 1.23

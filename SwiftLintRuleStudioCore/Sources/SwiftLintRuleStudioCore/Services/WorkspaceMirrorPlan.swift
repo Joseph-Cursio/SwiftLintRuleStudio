@@ -167,9 +167,9 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             let workspaceParent = URL(fileURLWithPath: scope.workspaceRoot).deletingLastPathComponent()
             placeConfigsBetween(workspaceParent, scope: scope, fileManager: fileManager)
         }
-        let anchor = URL(fileURLWithPath: scope.anchor)
+        let anchorURL = URL(fileURLWithPath: scope.anchor)
         guard !regions.beside.isEmpty || !besideFiles.isEmpty || scope.isUnderPrivate,
-              let above = Self.nearestConfig(from: anchor, fileManager: fileManager, skipping: graph)
+              let above = Self.nearestConfig(from: anchorURL, fileManager: fileManager, skipping: graph)
         else { return }
         if let referenced = configs.first(where: { $0.path == ConfigTreeDiscovery.configFileName }) {
             throw MirrorUnsupportedSetupError(
@@ -249,8 +249,10 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
             switch entry.kind {
             case .folder:
                 try place(entry.url, at: entryMirrorPath, regions: regions, discovery: discovery, counted: counted)
+
             case .file:
                 record(entry.url, at: entryMirrorPath)
+
             case .folderLink(let target):
                 // A link SwiftLint can't follow, into a folder outside every mirrored one, has
                 // nowhere to point; it isn't linted in the workspace either. A link back into a
@@ -263,6 +265,7 @@ nonisolated struct WorkspaceMirrorPlan: Sendable {
                 let destination = Self.linkDestination(from: mirrorPath, to: targetMirrorPath)
                 links.append(Link(path: entryMirrorPath, destination: destination))
                 linkedFolderPaths.append(targetMirrorPath)
+
             case .fileLink(let target):
                 placeFileLink(entry, target: target, at: entryMirrorPath, in: mirrorPath, regions: regions)
             }

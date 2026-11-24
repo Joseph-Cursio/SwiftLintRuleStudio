@@ -40,7 +40,7 @@ struct ConfigTreeDiscoveryRootGraphTests {
             "Shared": "disabled_rules: [todo]\n",
             "Overrides": "child_config: Strict/.swiftlint.yml\n",
             "Overrides/Strict": "opt_in_rules: [empty_count]\n",
-            "Elsewhere": "disabled_rules: [force_cast]\n"
+            "Elsewhere": "disabled_rules: [force_cast]\n",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
         let tree = ConfigTreeDiscovery().discover(in: root)
@@ -49,14 +49,14 @@ struct ConfigTreeDiscoveryRootGraphTests {
             "Shared/.swiftlint.yml": -2,
             "Base/.swiftlint.yml": -1,
             "Overrides/.swiftlint.yml": 1,
-            "Overrides/Strict/.swiftlint.yml": 2
+            "Overrides/Strict/.swiftlint.yml": 2,
         ])
         #expect(tree.rootGraph.map(\.relativePath) == [
             "Shared/.swiftlint.yml",
             "Base/.swiftlint.yml",
             ".swiftlint.yml",
             "Overrides/.swiftlint.yml",
-            "Overrides/Strict/.swiftlint.yml"
+            "Overrides/Strict/.swiftlint.yml",
         ])
     }
 
@@ -66,7 +66,7 @@ struct ConfigTreeDiscoveryRootGraphTests {
             "": "child_config: Shared/custom.yml\n",
             "Shared": "disabled_rules: [todo]\n",
             "Sub": "child_config: ../Other/.swiftlint.yml\n",
-            "Other": "disabled_rules: [force_cast]\n"
+            "Other": "disabled_rules: [force_cast]\n",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
         let tree = ConfigTreeDiscovery().discover(in: root)
@@ -80,7 +80,7 @@ struct ConfigTreeDiscoveryRootGraphTests {
     func noRootNoGraph() throws {
         let root = try Self.workspace([
             "Sub": "child_config: ../Other/.swiftlint.yml\n",
-            "Other": "disabled_rules: [force_cast]\n"
+            "Other": "disabled_rules: [force_cast]\n",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
         let tree = ConfigTreeDiscovery().discover(in: root)
@@ -94,7 +94,7 @@ struct ConfigTreeDiscoveryRootGraphTests {
         let root = try Self.workspace([
             "": "child_config: Shared/.swiftlint.yml\n",
             "Shared": "excluded:\n  - Generated\n",
-            "Sub": "excluded:\n  - Generated\n"
+            "Sub": "excluded:\n  - Generated\n",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
         let tree = ConfigTreeDiscovery().discover(in: root)

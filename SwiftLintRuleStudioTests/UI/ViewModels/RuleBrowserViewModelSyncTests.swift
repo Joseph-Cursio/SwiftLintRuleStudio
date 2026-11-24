@@ -5,7 +5,6 @@
 //  Tests that Rule.isEnabled syncs with YAML config after changes
 //
 
-import Foundation
 import SwiftLintCLIBackend
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
@@ -181,7 +180,7 @@ struct RuleBrowserViewModelSyncTests {
                 category: .lint,
                 isOptIn: true,
                 isEnabled: false
-            )
+            ),
         ]
 
         let registry = Self.makeRegistry(with: rules)

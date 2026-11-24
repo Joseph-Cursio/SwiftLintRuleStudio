@@ -17,28 +17,7 @@ struct ConfigTreeRowView: View {
             Image(systemName: row.hasParseError ? "exclamationmark.octagon.fill" : "doc.text")
                 .foregroundStyle(row.hasParseError ? Color.red : Color.secondary)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(row.displayName)
-                    .fontWeight(row.isRoot ? .semibold : .regular)
-                if let badge = row.badge {
-                    Text(badge)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                if let replaced = row.replaces {
-                    Text("replaces \(replaced)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .help("SwiftLint applies only the nearest nested config: files here get none of \(replaced)'s.")
-                }
-                if !row.pullsIn.isEmpty {
-                    Text(pullsInText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .help("The root config pulls these in with parent_config or child_config. "
-                            + "Their settings are part of the root's, in every folder.")
-                }
-            }
+            labels
             Spacer(minLength: 0)
             if row.hasIneffectiveExclusions {
                 Image(systemName: "exclamationmark.triangle.fill")
@@ -63,5 +42,30 @@ struct ConfigTreeRowView: View {
         if !row.pullsIn.isEmpty { parts.append(pullsInText) }
         if row.hasIneffectiveExclusions { parts.append("ineffective exclusions") }
         return parts.joined(separator: ", ")
+    }
+
+    private var labels: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(row.displayName)
+                .fontWeight(row.isRoot ? .semibold : .regular)
+            if let badge = row.badge {
+                Text(badge)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if let replaced = row.replaces {
+                Text("replaces \(replaced)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help("SwiftLint applies only the nearest nested config: files here get none of \(replaced)'s.")
+            }
+            if !row.pullsIn.isEmpty {
+                Text(pullsInText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help("The root config pulls these in with parent_config or child_config. "
+                        + "Their settings are part of the root's, in every folder.")
+            }
+        }
     }
 }

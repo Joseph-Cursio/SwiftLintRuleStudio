@@ -27,20 +27,27 @@ public enum YAMLConfigError: LocalizedError, Sendable {
         switch self {
         case .parseError(let message):
             return "Failed to parse YAML: \(message)"
+
         case .serializationError(let message):
             return "Failed to serialize YAML: \(message)"
-        case .invalidSeverity(let ruleId, let severity):
+
+        case let .invalidSeverity(ruleId, severity):
             return "Invalid severity '\(severity)' for rule '\(ruleId)'. Must be 'warning' or 'error'."
+
         case .invalidPath(let path):
             return "Invalid path: \(path)"
+
         case .fileNotFound:
             return "Configuration file not found"
+
         case .writeFailed(let message):
             return "Failed to write configuration: \(message)"
+
         case .onlyRulesConflict:
             return "SwiftLint can't use a configuration that lists rules under only_rules and also under "
                 + "opt_in_rules or disabled_rules. It ignores the whole file and falls back to its default "
                 + "configuration, so the change wasn't saved."
+
         case .wouldEmptyOnlyRules(let ruleIds):
             let names = ruleIds.joined(separator: ", ")
             return "Turning off \(names) would leave only_rules empty. SwiftLint treats an empty only_rules "
@@ -301,7 +308,7 @@ public class YAMLConfigurationEngine {
         // Validate severity values
         for (ruleId, ruleConfig) in config.rules {
             if let severity = ruleConfig.severity {
-                if severity != .warning && severity != .error {
+                if severity != .warning, severity != .error {
                     throw YAMLConfigError.invalidSeverity(ruleId: ruleId, severity: severity.rawValue)
                 }
             }
@@ -372,5 +379,4 @@ public class YAMLConfigurationEngine {
         }
         return yamlContent
     }
-
 }

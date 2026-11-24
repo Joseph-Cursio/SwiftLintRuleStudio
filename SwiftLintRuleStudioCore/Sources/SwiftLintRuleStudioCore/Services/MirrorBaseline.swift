@@ -5,7 +5,6 @@
 //  A config's `baseline`, copied into the mirror so it filters there as it does in the workspace.
 //
 
-import Darwin
 import Foundation
 
 /// Copies a `baseline:` file into the mirror, with its file keys pointing where the mirror's

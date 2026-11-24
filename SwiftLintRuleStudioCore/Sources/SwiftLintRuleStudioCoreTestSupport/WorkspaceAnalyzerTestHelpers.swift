@@ -55,7 +55,8 @@ public enum WorkspaceAnalyzerTestHelpers {
             let analyzer = WorkspaceAnalyzer(
                 swiftLintCLI: swiftLintCLI,
                 violationStorage: violationStorage,
-                fileTracker: isolatedTracker)
+                fileTracker: isolatedTracker
+            )
             return try await operation(analyzer)
         }.value
     }

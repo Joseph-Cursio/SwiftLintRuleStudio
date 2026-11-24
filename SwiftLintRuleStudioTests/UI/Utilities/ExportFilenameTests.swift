@@ -109,7 +109,7 @@ struct ExportFilenameTests {
             Date(timeIntervalSince1970: 1_600_000_000),
             Date(timeIntervalSince1970: 1_700_000_000),
             Self.referenceDate,
-            Date(timeIntervalSince1970: 1_900_000_000)
+            Date(timeIntervalSince1970: 1_900_000_000),
         ]
 
         let stamps = dates.map { ExportFilename.timestamp(from: $0) }

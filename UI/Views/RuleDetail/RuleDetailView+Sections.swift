@@ -1,9 +1,8 @@
-import LintStudioUI
 import SwiftLintRuleStudioCore
 import SwiftUI
 
 extension RuleDetailView {
-    var configurationView: some View {
+    func configurationView(model: RuleDetailViewModel, isSimulating: Bool) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Configuration")
                 .font(.headline)
@@ -15,15 +14,15 @@ extension RuleDetailView {
                 // can see at a glance what actions exist.
                 HStack {
                     Toggle("Enable this rule", isOn: Binding(
-                        get: { viewModel.isEnabled },
-                        set: { viewModel.updateEnabled($0) }
+                        get: { model.isEnabled },
+                        set: { model.updateEnabled($0) }
                     ))
                     .toggleStyle(.switch)
                     .accessibilityIdentifier("RuleDetailEnableToggle")
 
                     Spacer()
 
-                    saveFlowButtons
+                    saveFlowButtons(model: model)
                 }
                 .frame(maxWidth: .infinity)
 
@@ -31,68 +30,14 @@ extension RuleDetailView {
                 // rules (sandboxed edition) can still be written to .swiftlint.yml
                 // (the toggle stays live so the config remains portable) but won't
                 // be evaluated by the in-app linter here.
-                if let notLintedReason = rule.notLintedReason(capabilities: capabilities) {
-                    HStack(alignment: .top, spacing: 6) {
-                        Image(systemName: "nosign")
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
-                        Text(notLintedReason.notCheckedNotice)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .accessibilityIdentifier("RuleDetailNotCheckedNotice")
-                }
+                notLintedNotice
 
-                if viewModel.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
-                    Divider()
+                parametersSection(model: model)
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Parameters")
-                            .font(.headline)
-
-                        RuleParameterEditor(
-                            parameters: parameters,
-                            values: $viewModel.parameterValues
-                        )
-                    }
-                }
-
-                if viewModel.pendingChanges != nil {
-                    Divider()
-
-                    HStack {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .foregroundStyle(.orange)
-                            .accessibilityHidden(true)
-                        Text("You have unsaved changes")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                unsavedChangesNotice(model: model)
 
                 // Simulate button
-                if dependencies.workspaceManager.currentWorkspace != nil {
-                    Divider()
-
-                    Button {
-                        simulateRule()
-                    } label: {
-                        HStack {
-                            if isSimulating {
-                                ProgressView()
-                                    .scaleEffect(0.7)
-                            } else {
-                                Image(systemName: "chart.bar.fill")
-                                    .accessibilityHidden(true)
-                            }
-                            Text("Simulate Impact")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isSimulating)
-                    .accessibilityIdentifier("RuleDetailSimulateButton")
-                }
+                simulateSection(isSimulating: isSimulating)
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -102,23 +47,23 @@ extension RuleDetailView {
     }
 
     @ViewBuilder
-    private var saveFlowButtons: some View {
-        let hasPendingChanges = viewModel.pendingChanges != nil
+    private func saveFlowButtons(model: RuleDetailViewModel) -> some View {
+        let hasPendingChanges = model.pendingChanges != nil
 
         Button {
-            viewModel.cancelChanges()
+            model.cancelChanges()
         } label: {
             Label("Discard", systemImage: "arrow.uturn.backward")
         }
         .buttonStyle(.bordered)
         .help("Revert unsaved changes back to the workspace YAML values")
-        .disabled(!hasPendingChanges || viewModel.isSaving)
+        .disabled(!hasPendingChanges || model.isSaving)
         .accessibilityIdentifier("RuleDetailDiscardChangesButton")
 
         Button {
             saveConfigurationAction()
         } label: {
-            if viewModel.isSaving {
+            if model.isSaving {
                 ProgressView()
                     .scaleEffect(0.7)
             } else {
@@ -127,72 +72,45 @@ extension RuleDetailView {
         }
         .buttonStyle(.borderedProminent)
         .help("Write unsaved changes to .swiftlint.yml")
-        .disabled(!hasPendingChanges || viewModel.isSaving)
+        .disabled(!hasPendingChanges || model.isSaving)
     }
 
-    var examplesView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Examples")
-                .font(.headline)
-
-            if !rule.triggeringExamples.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Triggering Examples", systemImage: "xmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.red)
-
-                    ForEach(Array(rule.triggeringExamples.enumerated()), id: \.offset) { _, example in
-                        CodeBlock(code: example, isError: true)
-                    }
-                }
-            }
-
-            if !rule.nonTriggeringExamples.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Non-Triggering Examples", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
-
-                    ForEach(Array(rule.nonTriggeringExamples.enumerated()), id: \.offset) { _, example in
-                        CodeBlock(code: example, isError: false)
-                    }
-                }
-            }
-
-            if rule.triggeringExamples.isEmpty && rule.nonTriggeringExamples.isEmpty {
-                Text("No examples available")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .italic()
-            }
-        }
-    }
-
-    var violationsCountView: some View {
+    func violationsCountView(state: RuleViolationCount.State) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Current Violations")
                 .font(.headline)
 
-            if isLoadingViolationCount {
+            switch state {
+            case .loading:
                 ProgressView()
                     .scaleEffect(0.8)
-            } else {
-                HStack(spacing: 8) {
-                    Text("\(violationCount)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundStyle(violationCount > 0 ? .orange : .green)
 
-                    Text(violationCount == 1 ? "violation" : "violations")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+            case .loaded(let violationCount):
+                violationCountRow(violationCount)
 
-                    if violationCount > 0 {
-                        Text("in current workspace")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+            case .failed(let message):
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func violationCountRow(_ violationCount: Int) -> some View {
+        HStack(spacing: 8) {
+            Text("\(violationCount)")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundStyle(violationCount > 0 ? .orange : .green)
+
+            Text(violationCount == 1 ? "violation" : "violations")
+                .font(.body)
+                .foregroundStyle(.secondary)
+
+            if violationCount > 0 {
+                Text("in current workspace")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -211,24 +129,7 @@ extension RuleDetailView {
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(related.prefix(5), id: \.id) { relatedRule in
-                        Button {
-                            // Navigate to related rule - would need navigation handling
-                        } label: {
-                            HStack(alignment: .center, spacing: 8) {
-                                Text(relatedRule.name)
-                                    .font(.body)
-                                    .foregroundStyle(.primary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .lineLimit(2)
-                                Spacer(minLength: 8)
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityHidden(true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .buttonStyle(.plain)
+                        relatedRuleRow(relatedRule)
                     }
 
                     if related.count > 5 {
@@ -272,6 +173,101 @@ extension RuleDetailView {
                     }
                 }
             }
+        }
+    }
+
+    private func relatedRuleRow(_ relatedRule: Rule) -> some View {
+        Button {
+            // Navigate to related rule - would need navigation handling
+        } label: {
+            HStack(alignment: .center, spacing: 8) {
+                Text(relatedRule.name)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(2)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func simulateSection(isSimulating: Bool) -> some View {
+        if dependencies.workspaceManager.currentWorkspace != nil {
+            Divider()
+
+            Button {
+                simulateRule()
+            } label: {
+                HStack {
+                    if isSimulating {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    } else {
+                        Image(systemName: "chart.bar.fill")
+                            .accessibilityHidden(true)
+                    }
+                    Text("Simulate Impact")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isSimulating)
+            .accessibilityIdentifier("RuleDetailSimulateButton")
+        }
+    }
+
+    @ViewBuilder
+    private func unsavedChangesNotice(model: RuleDetailViewModel) -> some View {
+        if model.pendingChanges != nil {
+            Divider()
+
+            HStack {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundStyle(.orange)
+                    .accessibilityHidden(true)
+                Text("You have unsaved changes")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func parametersSection(model: RuleDetailViewModel) -> some View {
+        if model.isEnabled, let parameters = rule.parameters, !parameters.isEmpty {
+            Divider()
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Parameters")
+                    .font(.headline)
+
+                RuleParameterEditor(
+                    parameters: parameters,
+                    values: Bindable(model).parameterValues
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var notLintedNotice: some View {
+        if let notLintedReason = rule.notLintedReason(capabilities: capabilities) {
+            HStack(alignment: .top, spacing: 6) {
+                Image(systemName: "nosign")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Text(notLintedReason.notCheckedNotice)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("RuleDetailNotCheckedNotice")
         }
     }
 }

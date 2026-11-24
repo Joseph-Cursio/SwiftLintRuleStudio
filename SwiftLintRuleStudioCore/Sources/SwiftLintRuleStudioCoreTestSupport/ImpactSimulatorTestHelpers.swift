@@ -14,7 +14,7 @@ public enum ImpactSimulatorTestHelpers {
     /// Create a temporary impact simulator and run an operation against it
     public static func withImpactSimulator<T: Sendable>(
         swiftLintCLI: SwiftLintCLIProtocol,
-        operation: @escaping (ImpactSimulator) async throws -> T
+        operation: (ImpactSimulator) async throws -> T
     ) async throws -> T {
         let simulator = ImpactSimulator(swiftLintCLI: swiftLintCLI)
         return try await operation(simulator)
@@ -47,7 +47,7 @@ public enum ImpactSimulatorTestHelpers {
                 "character": violation.column ?? 0,
                 "severity": violation.severity.rawValue,
                 "rule_id": violation.ruleID,
-                "reason": violation.message
+                "reason": violation.message,
             ]
         }
         let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray)

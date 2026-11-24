@@ -18,7 +18,6 @@
 //  component is 100 for every configuration and its arithmetic never runs.
 //
 
-import Foundation
 import PropertyBased
 @testable import SwiftLintRuleStudioCore
 import Testing
@@ -45,7 +44,7 @@ struct HealthScorePropertyLawTests {
     /// kinds and the lists below name the same rules often.
     nonisolated private static let rulePool: [(id: String, isOptIn: Bool)] = [
         ("force_cast", false), ("line_length", false), ("todo", false),
-        ("first_where", true), ("empty_count", true), ("explicit_self", true)
+        ("first_where", true), ("empty_count", true), ("explicit_self", true),
     ]
 
     /// Opt-in names a config may list: the pool's opt-in rules, two of them

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import SwiftLintCLISeam
 import Yams
 
 /// A non-destructive mirror of a workspace. Hand ``root`` to
@@ -183,10 +182,10 @@ final class SimulationWorkspace {
         guard !isRemoved else { return }
         isRemoved = true
         let folder = movingFolder
-        let lock = lock
+        let heldLock = lock
         Task.detached(priority: .utility) {
             try? FileManager.default.removeItem(at: folder)
-            lock?.release()
+            heldLock?.release()
         }
     }
 }
@@ -332,21 +331,5 @@ struct SimulationWorkspaceBuilder: SimulationWorkspaceBuilding {
             customRuleIds: loaded.customRuleIds,
             workspaceRoot: mirrored.workspaceRoot
         )
-    }
-
-    // MARK: - Helpers
-
-    /// Path of `url` relative to `root`, computed by path-component prefix so it
-    /// is stable regardless of `/var` vs `/private/var` symlink spelling (both
-    /// URLs are derived from the same root, so their normalized components share a
-    /// prefix). Falls back to the last component if `url` is not under `root`.
-    static func relativePath(of url: URL, underRoot root: URL) -> String {
-        let rootComponents = root.standardizedFileURL.pathComponents
-        let urlComponents = url.standardizedFileURL.pathComponents
-        guard urlComponents.count > rootComponents.count,
-              Array(urlComponents.prefix(rootComponents.count)) == rootComponents else {
-            return url.lastPathComponent
-        }
-        return urlComponents.dropFirst(rootComponents.count).joined(separator: "/")
     }
 }

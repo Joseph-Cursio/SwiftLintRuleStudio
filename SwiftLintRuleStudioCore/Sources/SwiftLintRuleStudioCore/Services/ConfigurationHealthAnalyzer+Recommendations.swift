@@ -5,8 +5,6 @@
 //  Recommendation generation for configuration health analysis
 //
 
-import Foundation
-
 extension ConfigurationHealthAnalyzer {
     func generateRecommendations(
         config: YAMLConfigurationEngine.YAMLConfig,

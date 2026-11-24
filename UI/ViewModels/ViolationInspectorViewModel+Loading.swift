@@ -16,21 +16,21 @@ import UserNotifications
 extension ViolationInspectorViewModel {
     func loadViolations(for workspaceId: UUID, workspace: Workspace? = nil) async throws {
         self.workspaceId = workspaceId
-        if let workspace = workspace {
+        if let workspace {
             self.currentWorkspace = workspace
         }
 
-        if let workspace = workspace ?? currentWorkspace,
+        if let target = workspace ?? currentWorkspace,
            let analyzer = workspaceAnalyzer {
             subscribeToAnalyzer(analyzer)
-            _ = try? await analyzer.analyze(workspace: workspace, configPath: workspace.configPath)
+            _ = try? await analyzer.analyze(workspace: target, configPath: target.configPath)
         }
 
         try await showStoredViolations(for: workspaceId)
     }
 
     func refreshViolations() async throws {
-        guard let workspaceId = workspaceId,
+        guard let workspaceId,
               let workspace = currentWorkspace,
               let analyzer = workspaceAnalyzer else {
             try await reloadViolationsFromStorage()
@@ -76,7 +76,7 @@ extension ViolationInspectorViewModel {
     /// workspace just to reflect them would be wasteful (and, before the storage
     /// upsert, actively discarded the change).
     func reloadViolationsFromStorage() async throws {
-        guard let workspaceId = workspaceId else { return }
+        guard let workspaceId else { return }
         let fetched = try await violationStorage.fetchViolations(
             filter: ViolationFilter(),
             workspaceId: workspaceId
@@ -111,7 +111,8 @@ private extension ViolationInspectorViewModel {
             : "\(count) violation\(count == 1 ? "" : "s") found"
         content.sound = .default
         let request = UNNotificationRequest(
-            identifier: UUID().uuidString, content: content, trigger: nil)
+            identifier: UUID().uuidString, content: content, trigger: nil
+        )
         try? await UNUserNotificationCenter.current().add(request)
     }
 #endif

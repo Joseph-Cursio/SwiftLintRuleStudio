@@ -176,7 +176,7 @@ struct CSVReportGeneratorTests {
         let violations = [
             makeViolation(ruleID: "rule_one", line: 10),
             makeViolation(ruleID: "rule_two", line: 20),
-            makeViolation(ruleID: "rule_three", line: 30)
+            makeViolation(ruleID: "rule_three", line: 30),
         ]
         let csv = CSVReportGenerator.generate(violations: violations)
         let lines = csv.components(separatedBy: "\n").filter { !$0.isEmpty }
@@ -188,7 +188,7 @@ struct CSVReportGeneratorTests {
         let violations = [
             makeViolation(ruleID: "alpha_rule"),
             makeViolation(ruleID: "beta_rule"),
-            makeViolation(ruleID: "gamma_rule")
+            makeViolation(ruleID: "gamma_rule"),
         ]
         let csv = CSVReportGenerator.generate(violations: violations)
         let lines = csv.components(separatedBy: "\n").filter { !$0.isEmpty }
@@ -208,7 +208,7 @@ struct CSVReportGeneratorTests {
         for char in row {
             if char == "\"" {
                 inQuotes.toggle()
-            } else if char == "," && !inQuotes {
+            } else if char == ",", !inQuotes {
                 fields.append(current)
                 current = ""
             } else {

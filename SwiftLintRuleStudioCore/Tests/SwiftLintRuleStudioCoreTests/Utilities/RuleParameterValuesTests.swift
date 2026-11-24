@@ -7,7 +7,6 @@
 //  in the resolver produces a focused failure.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

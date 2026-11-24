@@ -36,23 +36,24 @@ nonisolated struct MirrorDirectoryEntry {
         ) else { return [] }
 
         return contents.compactMap { listed in
-            let name = listed.lastPathComponent
-            let url = folder.appendingPathComponent(name)
-            guard let values = try? url.resourceValues(forKeys: Set(keys)) else { return nil }
+            let entryName = listed.lastPathComponent
+            let entryURL = folder.appendingPathComponent(entryName)
+            guard let values = try? entryURL.resourceValues(forKeys: Set(keys)) else { return nil }
             // A link reports `isDirectory == false` whatever it points to, so ask about it first.
             if values.isSymbolicLink == true {
-                let target = url.resolvingSymlinksInPath()
+                let target = entryURL.resolvingSymlinksInPath()
                 guard let targetValues = try? target.resourceValues(forKeys: [.isDirectoryKey, .isRegularFileKey])
                 else { return nil }
                 if targetValues.isDirectory == true {
-                    return Self(url: url, name: name, kind: .folderLink(target))
+                    return Self(url: entryURL, name: entryName, kind: .folderLink(target))
                 }
-                return targetValues.isRegularFile == true ? Self(url: url, name: name, kind: .fileLink(target)) : nil
+                guard targetValues.isRegularFile == true else { return nil }
+                return Self(url: entryURL, name: entryName, kind: .fileLink(target))
             }
             if values.isDirectory == true {
-                return Self(url: url, name: name, kind: .folder)
+                return Self(url: entryURL, name: entryName, kind: .folder)
             }
-            return values.isRegularFile == true ? Self(url: url, name: name, kind: .file) : nil
+            return values.isRegularFile == true ? Self(url: entryURL, name: entryName, kind: .file) : nil
         }
     }
 }

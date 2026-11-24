@@ -7,8 +7,6 @@
 //  to ensure consistent behavior across all analysis paths.
 //
 
-import Foundation
-
 /// Canonical directory exclusions for SwiftLint analysis
 public enum DefaultExclusions {
     /// Canonical list of directory names to exclude from SwiftLint analysis.
@@ -22,7 +20,7 @@ public enum DefaultExclusions {
         "Carthage",
         ".swiftpm",
         "node_modules",
-        "Build"
+        "Build",
     ]
 
     /// Path-contains patterns for filtering file paths during enumeration.
@@ -42,7 +40,7 @@ public enum DefaultExclusions {
     /// - Returns: `existing` verbatim, followed by the defaults it does not
     ///   already contain. Empty or `nil` input yields ``directories``.
     public static func mergedWith(existing: [String]?) -> [String] {
-        guard let existing = existing, !existing.isEmpty else {
+        guard let existing, !existing.isEmpty else {
             return directories
         }
 

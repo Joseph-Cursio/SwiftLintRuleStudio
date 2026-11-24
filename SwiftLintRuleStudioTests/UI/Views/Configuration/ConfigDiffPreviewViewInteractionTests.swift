@@ -123,5 +123,4 @@ struct ConfigDiffPreviewViewInteractionTests {
         }
         #expect(saveCalled == true, "Save Changes button should call onSave")
     }
-
 }

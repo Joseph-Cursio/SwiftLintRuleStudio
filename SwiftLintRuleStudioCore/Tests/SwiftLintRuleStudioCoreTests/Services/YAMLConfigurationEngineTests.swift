@@ -1,5 +1,4 @@
 import Foundation
-import SwiftLintCLISeam
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing

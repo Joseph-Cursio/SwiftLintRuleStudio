@@ -32,7 +32,6 @@ private struct RuleBrowserDetailPanel: View {
 struct RuleBrowserView: View {
     @Environment(\.ruleRegistry) var ruleRegistry: RuleRegistry
     @Environment(\.dependencies) var dependencies: DependencyContainer
-    @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel: RuleBrowserViewModel
     @Binding var selectedRuleId: String?
     private var externalSearchText: Binding<String>?

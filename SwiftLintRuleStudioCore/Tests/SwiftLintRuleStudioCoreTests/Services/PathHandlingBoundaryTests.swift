@@ -33,7 +33,7 @@ struct PathHandlingBoundaryTests {
 
     @Test("each project marker is one on its own", arguments: [
         ("App.xcodeproj", true), ("App.xcworkspace", true), ("Package.swift", true), (".swiftpm", true),
-        ("App.swift", false), ("Package.resolved", false), ("xcodeproj", false)
+        ("App.swift", false), ("Package.resolved", false), ("xcodeproj", false),
     ])
     func projectMarkers(name: String, isMarker: Bool) throws {
         let defaults = try #require(UserDefaults(suiteName: "PathHandlingBoundaryTests-\(UUID().uuidString)"))
@@ -49,7 +49,7 @@ struct PathHandlingBoundaryTests {
         ("https://github.com/realm/SwiftLint/tree/main/Source",
          "https://github.com/realm/SwiftLint/tree/main/Source"),
         ("https://gitlab.com/group/project/-/blob/main/.swiftlint.yml",
-         "https://gitlab.com/group/project/-/blob/main/.swiftlint.yml")
+         "https://gitlab.com/group/project/-/blob/main/.swiftlint.yml"),
     ])
     func rawURL(input: String, expected: String) throws {
         let url = try #require(URL(string: input))
@@ -97,7 +97,7 @@ struct PathHandlingBoundaryTests {
             ".swiftlint.yml.1700000000.5.backup",
             ".swiftlint.yml.1e9.backup",
             ".swiftlint.yml.nan.backup",
-            "config-path.txt"
+            "config-path.txt",
         ]
         for folder in [directory, storeFolder] {
             for name in notBackups {
@@ -118,7 +118,7 @@ struct PathHandlingBoundaryTests {
         // Directory listings spell the temporary folder as /private/var, so compare resolved.
         #expect(backups.map { $0.path.resolvingSymlinksInPath() } == [
             storeFolder.appendingPathComponent(".swiftlint.yml.1700000003.backup"),
-            directory.appendingPathComponent(".swiftlint.yml.1700000000.backup")
+            directory.appendingPathComponent(".swiftlint.yml.1700000000.backup"),
         ].map { $0.resolvingSymlinksInPath() })
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
@@ -28,17 +27,19 @@ enum StorageFilterCase: CaseIterable, Sendable, CustomTestStringConvertible {
         case .byRuleID: [
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
             Violation(ruleID: "rule2", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-            Violation(ruleID: "rule3", filePath: "Test.swift", line: 1, severity: .warning, message: "Test")
+            Violation(ruleID: "rule3", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
         ]
+
         case .bySeverity: [
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .error, message: "Error"),
             Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Warning"),
-            Violation(ruleID: "rule3", filePath: "Test.swift", line: 3, severity: .error, message: "Error")
+            Violation(ruleID: "rule3", filePath: "Test.swift", line: 3, severity: .error, message: "Error"),
         ]
+
         case .byFilePath: [
             Violation(ruleID: "rule1", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
             Violation(ruleID: "rule2", filePath: "File2.swift", line: 1, severity: .warning, message: "Test"),
-            Violation(ruleID: "rule3", filePath: "File1.swift", line: 1, severity: .warning, message: "Test")
+            Violation(ruleID: "rule3", filePath: "File1.swift", line: 1, severity: .warning, message: "Test"),
         ]
         }
     }
@@ -73,7 +74,7 @@ enum ViolationStorageBasicTests {
             let workspaceId = UUID()
             let violations = [
                 Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test")
+                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test"),
             ]
 
             try await storage.storeViolations(violations, for: workspaceId)
@@ -97,12 +98,12 @@ enum ViolationStorageBasicTests {
             let violations1 = [
                 Violation(
                     ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"
-                )
+                ),
             ]
             let violations2 = [
                 Violation(
                     ruleID: "rule2", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"
-                )
+                ),
             ]
 
             try await storage.storeViolations(violations1, for: workspace1)
@@ -142,13 +143,13 @@ enum ViolationStorageBasicTests {
 
             let violations = [
                 Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "Test"),
-                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test")
+                Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .warning, message: "Test"),
             ]
 
             try await storage.storeViolations(violations, for: workspaceId)
             try await storage.suppressViolations([violations[0].id], reason: "Test reason")
 
-            let filter1 = ViolationFilter(suppressedOnly: true)
+            let filter1 = ViolationFilter(suppression: .suppressedOnly)
 
             let suppressed = try await storage.fetchViolations(filter: filter1, workspaceId: workspaceId)
             #expect(suppressed.count == 1)
@@ -156,7 +157,7 @@ enum ViolationStorageBasicTests {
             #expect(suppressedViolation.suppressed)
             #expect(suppressedViolation.suppressionReason == "Test reason")
 
-            let filter2 = ViolationFilter(suppressedOnly: false)
+            let filter2 = ViolationFilter(suppression: .unsuppressedOnly)
             let notSuppressed = try await storage.fetchViolations(filter: filter2, workspaceId: workspaceId)
             #expect(notSuppressed.count == 1)
             let notSuppressedViolation = try #require(notSuppressed.first)

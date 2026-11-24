@@ -64,40 +64,7 @@ extension RuleAuditRow {
 
             let topFiles = Array(entry.violationsByFile.prefix(5))
             ForEach(topFiles, id: \.file) { item in
-                HStack(spacing: 8) {
-                    Text(item.file)
-                        .font(.caption)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .frame(width: 160, alignment: .leading)
-
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color(NSColor.separatorColor))
-                                .frame(height: 4)
-
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(entry.effortCategory.color)
-                                .frame(
-                                    width: Self.fileBarWidth(
-                                        count: item.count,
-                                        maxCount: entry.violationsByFile.first?.count ?? 0,
-                                        in: geometry.size.width
-                                    ),
-                                    height: 4
-                                )
-                        }
-                        .frame(height: geometry.size.height)
-                    }
-                    .frame(width: 80, height: 10)
-                    .accessibilityHidden(true)
-
-                    Text("\(item.count)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 30, alignment: .trailing)
-                }
+                fileRow(item)
             }
 
             let remaining = entry.violationsByFile.count - topFiles.count
@@ -127,35 +94,7 @@ extension RuleAuditRow {
                 .foregroundStyle(.secondary)
 
             if let firstViolation = entry.violations.first {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        Image(systemName: firstViolation.severity == .error
-                              ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(firstViolation.severity == .error ? .red : .orange)
-                            .accessibilityLabel(
-                                firstViolation.severity == .error ? "Error" : "Warning"
-                            )
-
-                        Text(firstViolation.filePath)
-                            .font(.system(.caption, design: .monospaced))
-                            .fontWeight(.medium)
-                            .lineLimit(1)
-
-                        Text("Line \(firstViolation.line)")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Text(firstViolation.message)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-                .padding(8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(NSColor.textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                violationCard(firstViolation)
 
                 if entry.rule.supportsAutocorrection, let violationCount = entry.violationCount {
                     Label(
@@ -174,5 +113,74 @@ extension RuleAuditRow {
             }
         }
         .frame(minWidth: 250, alignment: .leading)
+    }
+
+    private func violationCard(_ firstViolation: Violation) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: firstViolation.severity == .error
+                      ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(firstViolation.severity == .error ? .red : .orange)
+                    .accessibilityLabel(
+                        firstViolation.severity == .error ? "Error" : "Warning"
+                    )
+
+                Text(firstViolation.filePath)
+                    .font(.system(.caption, design: .monospaced))
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+
+                Text("Line \(firstViolation.line)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(firstViolation.message)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+        }
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(NSColor.textBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
+    private func fileRow(_ item: (file: String, count: Int)) -> some View {
+        HStack(spacing: 8) {
+            Text(item.file)
+                .font(.caption)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(width: 160, alignment: .leading)
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color(NSColor.separatorColor))
+                        .frame(height: 4)
+
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(entry.effortCategory.color)
+                        .frame(
+                            width: Self.fileBarWidth(
+                                count: item.count,
+                                maxCount: entry.violationsByFile.first?.count ?? 0,
+                                in: geometry.size.width
+                            ),
+                            height: 4
+                        )
+                }
+                .frame(height: geometry.size.height)
+            }
+            .frame(width: 80, height: 10)
+            .accessibilityHidden(true)
+
+            Text("\(item.count)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(width: 30, alignment: .trailing)
+        }
     }
 }

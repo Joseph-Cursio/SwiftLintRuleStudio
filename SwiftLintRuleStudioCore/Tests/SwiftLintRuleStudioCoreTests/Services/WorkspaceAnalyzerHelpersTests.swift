@@ -64,7 +64,7 @@ struct WorkspaceAnalyzerHelpersTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let paths = [
             "Sources/A.swift", "Sources/Upper.SWIFT", "Sources/notes.txt", "README.md",
-            "Pods/Dep/P.swift", "Build/G.swift"
+            "Pods/Dep/P.swift", "Build/G.swift",
         ]
         for path in paths {
             try write("", to: folder.appendingPathComponent(path))

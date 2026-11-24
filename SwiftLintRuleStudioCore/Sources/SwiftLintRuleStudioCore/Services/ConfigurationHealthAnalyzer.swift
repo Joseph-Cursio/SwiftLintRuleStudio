@@ -100,19 +100,24 @@ public struct ConfigHealthReport: Identifiable, Sendable {
             [
                 HealthScoreDetail(
                     name: "Rules Coverage", score: rulesCoverage,
-                    weight: 40, description: "Percentage of rules enabled"),
+                    weight: 40, description: "Percentage of rules enabled"
+                ),
                 HealthScoreDetail(
                     name: "Category Balance", score: categoryBalance,
-                    weight: 20, description: "Coverage across rule categories"),
+                    weight: 20, description: "Coverage across rule categories"
+                ),
                 HealthScoreDetail(
                     name: "Opt-In Adoption", score: optInAdoption,
-                    weight: 15, description: "Recommended opt-in rules enabled"),
+                    weight: 15, description: "Recommended opt-in rules enabled"
+                ),
                 HealthScoreDetail(
                     name: "No Deprecated Rules", score: noDeprecatedRules,
-                    weight: 10, description: "Avoiding deprecated rules"),
+                    weight: 10, description: "Avoiding deprecated rules"
+                ),
                 HealthScoreDetail(
                     name: "Path Configuration", score: pathConfiguration,
-                    weight: 15, description: "Proper include/exclude paths")
+                    weight: 15, description: "Proper include/exclude paths"
+                ),
             ]
         }
     }
@@ -182,7 +187,7 @@ public class ConfigurationHealthAnalyzer: ConfigurationHealthAnalyzerProtocol {
         "flatmap_over_map_reduce",
         "last_where",
         "modifier_order",
-        "reduce_into"
+        "reduce_into",
     ]
 
     private let deprecatedRules: Set<String> = [

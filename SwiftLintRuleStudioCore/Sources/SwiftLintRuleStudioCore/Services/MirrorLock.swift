@@ -32,25 +32,25 @@ nonisolated final class MirrorLock: @unchecked Sendable {
     /// Creates the lock file in `container` and takes the lock.
     static func acquire(in container: URL) throws -> MirrorLock {
         let path = container.appendingPathComponent(MirrorScope.lockFileName).path
-        let descriptor = open(path, O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
-        guard descriptor >= 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
-        guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
+        let fileDescriptor = open(path, O_CREAT | O_RDWR | O_CLOEXEC, 0o600)
+        guard fileDescriptor >= 0 else { throw POSIXError(.init(rawValue: errno) ?? .EIO) }
+        guard flock(fileDescriptor, LOCK_EX | LOCK_NB) == 0 else {
             let code = errno
-            close(descriptor)
+            close(fileDescriptor)
             throw POSIXError(.init(rawValue: code) ?? .EIO)
         }
-        return MirrorLock(descriptor: descriptor)
+        return MirrorLock(descriptor: fileDescriptor)
     }
 
     /// Whether a live mirror holds the lock in `container`. A container without a lock file
     /// predates the lock, or never got one; its age alone decides.
     static func isHeld(in container: URL) -> Bool {
         let path = container.appendingPathComponent(MirrorScope.lockFileName).path
-        let descriptor = open(path, O_RDWR | O_CLOEXEC)
-        guard descriptor >= 0 else { return false }
-        defer { close(descriptor) }
-        guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else { return true }
-        flock(descriptor, LOCK_UN)
+        let fileDescriptor = open(path, O_RDWR | O_CLOEXEC)
+        guard fileDescriptor >= 0 else { return false }
+        defer { close(fileDescriptor) }
+        guard flock(fileDescriptor, LOCK_EX | LOCK_NB) == 0 else { return true }
+        flock(fileDescriptor, LOCK_UN)
         return false
     }
 

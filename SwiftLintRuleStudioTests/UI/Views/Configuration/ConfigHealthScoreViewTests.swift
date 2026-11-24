@@ -8,10 +8,8 @@
 //  render.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -40,7 +38,7 @@ struct ConfigHealthScoreViewTests {
                     description: "Opt-in rules catch additional issues.",
                     presetId: nil,
                     actionType: .enableRule("force_cast")
-                )
+                ),
             ]
         )
         let view = await MainActor.run {

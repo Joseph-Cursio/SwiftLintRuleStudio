@@ -7,8 +7,6 @@
 
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -65,17 +63,17 @@ struct ImpactSimulationViewTests {
                 filePath: "Test.swift",
                 line: 10,
                 severity: .error,
-                message: "Test violation"
-            ,
-                column: 5),
+                message: "Test violation",
+                column: 5
+            ),
             Violation(
                 ruleID: "test_rule",
                 filePath: "Another.swift",
                 line: 20,
                 severity: .warning,
-                message: "Another violation"
-            ,
-                column: 10)
+                message: "Another violation",
+                column: 10
+            ),
         ]
 
         let result = RuleImpactResult(

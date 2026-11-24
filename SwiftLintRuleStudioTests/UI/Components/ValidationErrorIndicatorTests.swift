@@ -7,10 +7,8 @@
 //  text both render through ValidationErrorRow.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -25,14 +23,14 @@ struct ValidationErrorIndicatorTests {
                         field: .rule("force_cast"),
                         message: "Invalid severity value",
                         suggestion: "Use 'warning' or 'error'"
-                    )
+                    ),
                 ],
                 warnings: [
                     ValidationResult.ValidationWarning(
                         field: .rule("unknown_rule"),
                         message: "Unknown rule identifier",
                         suggestion: "Did you mean 'force_cast'?"
-                    )
+                    ),
                 ]
             )
         }

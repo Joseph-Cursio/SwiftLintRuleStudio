@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -222,7 +221,7 @@ struct ConfigurationTemplateManagerTests {
         let packageTemplates = [
             BuiltInTemplates.packageStrict,
             BuiltInTemplates.packageBalanced,
-            BuiltInTemplates.packageLenient
+            BuiltInTemplates.packageLenient,
         ]
 
         for template in packageTemplates {

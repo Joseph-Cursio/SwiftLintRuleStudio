@@ -218,7 +218,7 @@ struct XcodeIntegrationServiceTests {
             .fileNotFound(path: "/tmp/missing.swift"),
             .invalidPath(path: ""),
             .xcodeNotInstalled,
-            .failedToOpen
+            .failedToOpen,
         ]
         for error in errors {
             #expect(error.errorDescription?.isEmpty == false)

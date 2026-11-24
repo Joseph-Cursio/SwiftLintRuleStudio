@@ -31,7 +31,7 @@ struct InProcessMirrorSafetyTests {
             (workspace.appendingPathComponent(".swiftlint.yml"), "excluded:\n  - Pods\n"),
             (workspace.appendingPathComponent("Sources/A.swift"), Self.source),
             (shared.appendingPathComponent("V.swift"), Self.source),
-            ((pinAbove ? base : shared).appendingPathComponent(".swiftlint.yml"), "swiftlint_version: 0.1.0\n")
+            ((pinAbove ? base : shared).appendingPathComponent(".swiftlint.yml"), "swiftlint_version: 0.1.0\n"),
         ]
         for (url, content) in files {
             try content.write(to: url, atomically: true, encoding: .utf8)

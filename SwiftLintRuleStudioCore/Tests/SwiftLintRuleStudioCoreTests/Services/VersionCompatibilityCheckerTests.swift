@@ -5,9 +5,7 @@
 //  Tests for VersionCompatibilityChecker
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -46,7 +44,7 @@ struct VersionCompatibilityCheckerTests {
     func testNoDeprecatedForCleanConfig() {
         let config = makeConfig(rules: [
             "line_length": RuleConfiguration(enabled: true),
-            "force_cast": RuleConfiguration(enabled: true)
+            "force_cast": RuleConfiguration(enabled: true),
         ])
         let report = checker.checkCompatibility(config: config, swiftLintVersion: "0.55.0")
         #expect(report.deprecatedRules.isEmpty)
@@ -204,7 +202,7 @@ struct VersionCompatibilityCheckerTests {
         ("file_name_no_space", "0.38.0", "0.38.1"),
         ("attribute_name_spacing", "0.56.0", "0.57.0"),
         ("prefer_type_checking", "0.56.0", "0.57.0"),
-        ("legacy_swiftui_aspect_ratio", "0.65.0", "0.65.1")
+        ("legacy_swiftui_aspect_ratio", "0.65.0", "0.65.1"),
     ])
     func testNewRuleArrivesWithItsRelease(rule: String, before: String, shippedIn: String) {
         let config = makeConfig()
@@ -219,7 +217,7 @@ struct VersionCompatibilityCheckerTests {
     @Test("Does not offer a retired rule as new", arguments: [
         ("anyobject_protocol", "0.49.0", true), ("anyobject_protocol", "0.50.0", false),
         ("anyobject_protocol", "0.57.0", false), ("anyobject_protocol", "0.65.0", false),
-        ("opaque_over_existential", "0.59.0", true), ("opaque_over_existential", "0.59.1", false)
+        ("opaque_over_existential", "0.59.0", true), ("opaque_over_existential", "0.59.1", false),
     ])
     func testRemovedRuleIsNotNew(rule: String, version: String, offered: Bool) {
         let report = checker.checkCompatibility(config: makeConfig(), swiftLintVersion: version)
@@ -232,7 +230,7 @@ struct VersionCompatibilityCheckerTests {
     func testCleanReportHasNoIssues() {
         let config = makeConfig(rules: [
             "identifier_name": RuleConfiguration(enabled: true),
-            "line_length": RuleConfiguration(enabled: true)
+            "line_length": RuleConfiguration(enabled: true),
         ])
         let report = checker.checkCompatibility(config: config, swiftLintVersion: "0.55.0")
         // identifier_name is not deprecated/removed/renamed

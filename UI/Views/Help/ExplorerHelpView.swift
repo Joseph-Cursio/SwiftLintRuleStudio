@@ -29,20 +29,7 @@ struct ExplorerHelpView: View {
                     """)
                 }
 
-                section("Built-In SwiftLint") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("""
-                        \(Bundle.main.appDisplayName) runs its own copy of \(swiftLintName) inside the app, \
-                        so there's nothing else to install. Your project's .swiftlint.yml is read and applied as usual.
-                        """)
-                        Text("""
-                        For your security, apps from the Mac App Store run in a sandbox, which limits them to \
-                        their own built-in tools instead of programs installed elsewhere on your Mac. That's why \
-                        this app uses its bundled SwiftLint rather than one you've installed, and why its \
-                        SwiftLint version updates along with the app.
-                        """)
-                    }
-                }
+                builtInSwiftLintSection
 
                 section("SourceKit Rules") {
                     Text("""
@@ -59,16 +46,7 @@ struct ExplorerHelpView: View {
                     """)
                 }
 
-                section("More Help") {
-                    VStack(alignment: .leading, spacing: 6) {
-                        if let reference = URL(string: "https://realm.github.io/SwiftLint/rule-directory.html") {
-                            Link("SwiftLint Rule Reference", destination: reference)
-                        }
-                        if let issues = URL(string: "https://github.com/Joseph-Cursio/SwiftLintRuleStudio/issues") {
-                            Link("Report an Issue", destination: issues)
-                        }
-                    }
-                }
+                moreHelpSection
             }
             .frame(maxWidth: 560, alignment: .leading)
             .padding(32)
@@ -91,6 +69,36 @@ struct ExplorerHelpView: View {
             content()
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var moreHelpSection: some View {
+        section("More Help") {
+            VStack(alignment: .leading, spacing: 6) {
+                if let reference = URL(string: "https://realm.github.io/SwiftLint/rule-directory.html") {
+                    Link("SwiftLint Rule Reference", destination: reference)
+                }
+                if let issues = URL(string: "https://github.com/Joseph-Cursio/SwiftLintRuleStudio/issues") {
+                    Link("Report an Issue", destination: issues)
+                }
+            }
+        }
+    }
+
+    private var builtInSwiftLintSection: some View {
+        section("Built-In SwiftLint") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("""
+                \(Bundle.main.appDisplayName) runs its own copy of \(swiftLintName) inside the app, \
+                so there's nothing else to install. Your project's .swiftlint.yml is read and applied as usual.
+                """)
+                Text("""
+                For your security, apps from the Mac App Store run in a sandbox, which limits them to \
+                their own built-in tools instead of programs installed elsewhere on your Mac. That's why \
+                this app uses its bundled SwiftLint rather than one you've installed, and why its \
+                SwiftLint version updates along with the app.
+                """)
+            }
         }
     }
 }

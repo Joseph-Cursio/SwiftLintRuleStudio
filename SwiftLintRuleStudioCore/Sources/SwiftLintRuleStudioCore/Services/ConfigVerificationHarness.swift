@@ -42,7 +42,7 @@ public enum RuleProbeLibrary {
             ruleIdentifier: "empty_count",
             isOptIn: true,
             triggeringSource: "let probeArray: [Int] = []\nlet probeIsEmpty = probeArray.count == 0\n"
-        )
+        ),
     ]
 
     /// The probe for a given rule, if one exists.
@@ -120,7 +120,7 @@ public struct ConfigVerificationHarness: Sendable {
     nonisolated public static let knownSwiftLintPaths: [String] = [
         "/opt/homebrew/bin/swiftlint",
         "/usr/local/bin/swiftlint",
-        "/usr/bin/swiftlint"
+        "/usr/bin/swiftlint",
     ]
 
     /// The first installed `swiftlint` executable, if any.

@@ -14,7 +14,7 @@ extension ViolationStorageActor {
             "SELECT id, workspace_id, rule_id, file_path, line, column, severity, message,",
             "detected_at, resolved_at, suppressed, suppression_reason",
             "FROM violations \(query.whereClause)",
-            "ORDER BY detected_at DESC;"
+            "ORDER BY detected_at DESC;",
         ].joined(separator: " ")
 
         let statement = try database.prepare(sql)
@@ -44,8 +44,10 @@ extension ViolationStorageActor {
                 if let violation = parse() {
                     violations.append(violation)
                 }
+
             case .done:
                 return violations
+
             case .error:
                 throw ViolationStorageError.sqlError(lastError())
             }
@@ -81,7 +83,7 @@ extension ViolationStorageActor {
         var conditions: [String] = []
         var parameters: [Any] = []
 
-        if let workspaceId = workspaceId {
+        if let workspaceId {
             conditions.append("workspace_id = ?")
             parameters.append(workspaceId.uuidString)
         }
@@ -104,9 +106,17 @@ extension ViolationStorageActor {
             parameters.append(contentsOf: severities.map(\.rawValue))
         }
 
-        if let suppressedOnly = filter.suppressedOnly {
+        switch filter.suppression {
+        case .any:
+            break
+
+        case .suppressedOnly:
             conditions.append("suppressed = ?")
-            parameters.append(suppressedOnly ? 1 : 0)
+            parameters.append(1)
+
+        case .unsuppressedOnly:
+            conditions.append("suppressed = ?")
+            parameters.append(0)
         }
 
         if let dateRange = filter.dateRange {

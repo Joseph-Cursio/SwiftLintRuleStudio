@@ -26,7 +26,7 @@ struct RuleAuditRunnerTests {
         private(set) var sawCancellation = false
         let outcome = RuleAuditView.AuditOutcome(entries: [], swiftFileCount: 7, duration: 1)
 
-        func run(onProgress: @escaping (AuditProgress) -> Void) async throws -> RuleAuditView.AuditOutcome {
+        func run(onProgress: (AuditProgress) -> Void) async throws -> RuleAuditView.AuditOutcome {
             hasStarted = true
             onProgress(AuditProgress(current: 1, total: 2, ruleId: "first"))
             await withCheckedContinuation { release = $0 }

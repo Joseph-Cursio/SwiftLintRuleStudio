@@ -64,10 +64,9 @@ enum SwiftCodeHighlighter {
             #"("(?:\\.|[^"\\\n])*")"#,           // 2: string literal
             #"(@[A-Za-z_][A-Za-z0-9_]*)"#,        // 3: attribute
             #"\b(\d[\d_]*(?:\.\d[\d_]*)?)\b"#,    // 4: number
-            #"\b([A-Za-z_][A-Za-z0-9_]*)\b"#      // 5: identifier
+            #"\b([A-Za-z_][A-Za-z0-9_]*)\b"#,      // 5: identifier
         ].joined(separator: "|")
-        // The pattern is a compile-time constant, so failing to build it is a programmer error.
-        // swiftlint:disable:next force_try
+        // swiftlint:disable:next force_try - a constant pattern; failing to build it is a programmer error
         return try! NSRegularExpression(pattern: pattern)
     }()
 
@@ -99,7 +98,7 @@ enum SwiftCodeHighlighter {
         "convenience", "required", "optional", "indirect",
         "get", "set", "willSet", "didSet", "defer",
         "precondition", "assert", "nonisolated",
-        "consuming", "borrowing", "sending"
+        "consuming", "borrowing", "sending",
     ]
 
     private static let types: Set<String> = [
@@ -117,6 +116,6 @@ enum SwiftCodeHighlighter {
         "VStack", "HStack", "ZStack",
         "Int8", "Int16", "Int32", "Int64",
         "UInt", "UInt8", "UInt16", "UInt32", "UInt64",
-        "CGFloat", "CGPoint", "CGSize", "CGRect", "NSObject"
+        "CGFloat", "CGPoint", "CGSize", "CGRect", "NSObject",
     ]
 }

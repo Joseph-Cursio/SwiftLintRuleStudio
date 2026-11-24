@@ -5,7 +5,6 @@
 //  UI tests for ViolationDetailView
 //
 
-import LintStudioUI
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftUI

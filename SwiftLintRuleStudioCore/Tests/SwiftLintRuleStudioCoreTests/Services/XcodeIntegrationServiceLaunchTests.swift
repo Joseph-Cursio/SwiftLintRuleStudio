@@ -65,7 +65,7 @@ struct XcodeIntegrationServiceLaunchTests {
         #expect(components?.queryItems == [
             URLQueryItem(name: "path", value: path),
             URLQueryItem(name: "line", value: "12"),
-            URLQueryItem(name: "column", value: "4")
+            URLQueryItem(name: "column", value: "4"),
         ])
     }
 

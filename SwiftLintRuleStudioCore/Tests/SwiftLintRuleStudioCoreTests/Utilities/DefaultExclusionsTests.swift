@@ -5,9 +5,7 @@
 //  Tests for the shared DefaultExclusions utility.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // Defined at file level to avoid @Test(arguments:) conflict with @MainActor-isolated initializers
@@ -40,7 +38,7 @@ struct DefaultExclusionsTests {
     func directoriesContainsExpectedEntries() {
         let expected: Set<String> = [
             ".build", "DerivedData", ".git", "Pods",
-            "Carthage", ".swiftpm", "node_modules", "Build"
+            "Carthage", ".swiftpm", "node_modules", "Build",
         ]
         #expect(Set(DefaultExclusions.directories) == expected)
     }

@@ -15,7 +15,7 @@ struct RuleDetailViewModelIntegrationErrorTests {
     @Test("RuleDetailViewModel handles invalid workspace gracefully")
     func testRuleDetailViewModelHandlesInvalidWorkspace() async throws {
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(rule: rule)
+        let viewModel = await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(rule: rule)
 
         try await Task { @MainActor in
             try viewModel.loadConfiguration()
@@ -38,11 +38,11 @@ struct RuleDetailViewModelIntegrationErrorTests {
             .appendingPathComponent("nonexistent")
             .appendingPathComponent(".swiftlint.yml")
 
-        let yamlEngine = await RuleDetailViewModelIntegrationTestHelpers.createYAMLConfigurationEngine(
+        let yamlEngine = await RuleDetailIntegrationTestHelpers.createYAMLConfigurationEngine(
             configPath: invalidPath
         )
         let rule = RuleDetailViewModelTestHelpers.createTestRule(id: "test_rule", isOptIn: false)
-        let viewModel = await RuleDetailViewModelIntegrationTestHelpers.createRuleDetailViewModel(
+        let viewModel = await RuleDetailIntegrationTestHelpers.createRuleDetailViewModel(
             rule: rule,
             yamlEngine: yamlEngine
         )

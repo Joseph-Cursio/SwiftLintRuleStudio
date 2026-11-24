@@ -214,7 +214,6 @@ struct RuleBrowserViewTests {
         #expect(wrapped.contains("<body>"))
         #expect(wrapped.contains("<p>Body</p>"))
     }
-
 }
 
 // MARK: - ViewInspector Extensions

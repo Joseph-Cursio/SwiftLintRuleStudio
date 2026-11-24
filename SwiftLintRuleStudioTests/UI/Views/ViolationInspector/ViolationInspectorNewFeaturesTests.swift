@@ -5,11 +5,10 @@
 //  Tests for new ViolationInspectorView features: grouping and export functionality
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
-import ViewInspector
 
 @MainActor
 struct ViolationInspectorNewFeaturesTests {
@@ -29,9 +28,9 @@ struct ViolationInspectorNewFeaturesTests {
                 filePath: filePath,
                 line: line,
                 severity: severity,
-                message: "Test violation"
-            ,
-                id: id)
+                message: "Test violation",
+                id: id
+            )
         }
     }
 
@@ -42,7 +41,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(filePath: "File1.swift"),
             await makeTestViolation(filePath: "File1.swift"),
-            await makeTestViolation(filePath: "File2.swift")
+            await makeTestViolation(filePath: "File2.swift"),
         ]
 
         let grouped = await groupViolations(violations, by: .file)
@@ -57,7 +56,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(ruleID: "rule1"),
             await makeTestViolation(ruleID: "rule1"),
-            await makeTestViolation(ruleID: "rule2")
+            await makeTestViolation(ruleID: "rule2"),
         ]
 
         let grouped = await groupViolations(violations, by: .rule)
@@ -72,7 +71,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(severity: .error),
             await makeTestViolation(severity: .error),
-            await makeTestViolation(severity: .warning)
+            await makeTestViolation(severity: .warning),
         ]
 
         let grouped = await groupViolations(violations, by: .severity)
@@ -87,7 +86,7 @@ struct ViolationInspectorNewFeaturesTests {
         let violations = [
             await makeTestViolation(),
             await makeTestViolation(),
-            await makeTestViolation()
+            await makeTestViolation(),
         ]
 
         let grouped = await groupViolations(violations, by: .ungrouped)
@@ -112,10 +111,13 @@ struct ViolationInspectorNewFeaturesTests {
             switch option {
             case .ungrouped:
                 return ["All": violations]
+
             case .file:
                 return Dictionary(grouping: violations) { $0.filePath }
+
             case .rule:
                 return Dictionary(grouping: violations) { $0.ruleID }
+
             case .severity:
                 return Dictionary(grouping: violations) { $0.severity.rawValue.capitalized }
             }

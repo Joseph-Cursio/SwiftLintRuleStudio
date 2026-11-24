@@ -6,7 +6,6 @@
 //  SwiftLint unions it with analyzer_rules, and a file SwiftLint rejects reads as its repair.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import Testing
 

@@ -31,6 +31,7 @@ struct SwiftLintCLIShellOutputTests {
             switch error {
             case .notFound:
                 #expect(true)
+
             default:
                 Issue.record("Expected notFound error")
             }
@@ -55,6 +56,7 @@ struct SwiftLintCLIShellOutputTests {
             switch error {
             case .executionFailed:
                 #expect(true)
+
             default:
                 Issue.record("Expected executionFailed error")
             }

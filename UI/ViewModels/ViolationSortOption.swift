@@ -3,8 +3,6 @@
 //  SwiftLintRuleStudio
 //
 
-import Foundation
-
 enum ViolationSortOption: String, CaseIterable {
     case file = "File"
     case rule = "Rule"

@@ -15,11 +15,14 @@ enum InProcessConfigurationError: LocalizedError {
                 + "\(Version.current.value) still asks SourceKit about each file when it runs them, and the "
                 + "built-in SwiftLint can't load SourceKit. Custom rules set to `execution_mode: sourcekit` "
                 + "are skipped instead."
+
         case let .usesWorkingDirectory(file):
             "\(file.path) uses ${PWD}, which SwiftLint fills in with the folder it runs in. The built-in "
                 + "SwiftLint runs inside the app, whose working directory is one for every lint, so it can't."
+
         case let .unreadable(file, reason):
             "Couldn't read \(file.path): \(reason)"
+
         case let .versionMismatch(file, pinned):
             "\(file.path) requires SwiftLint \(pinned), but SwiftLint \(Version.current.value) is built in."
         }
@@ -64,10 +67,10 @@ enum InProcessConfiguration {
         workspacePath: URL,
         onlyRule: String? = nil
     ) throws -> (configuration: Configuration, fileGraph: Set<String>) {
-        let onlyRule = onlyRule.map { [$0] } ?? []
+        let onlyRules = onlyRule.map { [$0] } ?? []
         let file = configPath ?? workspacePath.appendingPathComponent(Configuration.defaultFileName)
         guard FileManager.default.fileExists(atPath: file.path) else {
-            return (try Configuration(dict: [:], location: workspacePath, onlyRule: onlyRule), [])
+            return (try Configuration(dict: [:], location: workspacePath, onlyRule: onlyRules), [])
         }
 
         // Checked as written first, so a config SwiftLint rejects fails whichever rules run.
@@ -90,7 +93,7 @@ enum InProcessConfiguration {
         return (
             Configuration(
                 configurationFiles: configPath.map { [$0] } ?? [],
-                onlyRule: onlyRule,
+                onlyRule: onlyRules,
                 useDefaultConfigOnFailure: true
             ),
             fileGraph
@@ -216,8 +219,10 @@ enum InProcessConfiguration {
             switch value {
             case let string as String: string.contains(marker)
             case let array as [Any]: array.contains(where: names)
+
             case let dict as [String: Any]:
                 dict.keys.contains { $0.contains(marker) } || dict.values.contains(where: names)
+
             default: false
             }
         }
@@ -245,7 +250,7 @@ enum InProcessConfiguration {
             guard let reference = dict[key] as? String,
                   !reference.hasPrefix("http://"), !reference.hasPrefix("https://") else { continue }
             // The folder as SwiftLint's `Vertex.rootDirectory` takes it.
-            // swiftlint:disable:next legacy_objc_type
+            // swiftlint:disable:next legacy_objc_type - matches SwiftLint's own NSString path handling
             let folder = (path as NSString).deletingLastPathComponent
             let referencedPath = graphPath(of: reference, relativeTo: folder)
             guard fileGraph.insert(referencedPath).inserted,

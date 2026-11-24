@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // Model tests don't need @MainActor - but Swift 6 false positive requires it temporarily
@@ -21,9 +20,9 @@ struct ViolationTests {
             filePath: "/path/to/file.swift",
             line: 42,
             severity: .error,
-            message: "Force casts should be avoided"
-        ,
-            column: 10)
+            message: "Force casts should be avoided",
+            column: 10
+        )
 
         #expect(violation.ruleID == "force_cast")
         #expect(violation.filePath == "/path/to/file.swift")
@@ -56,7 +55,7 @@ struct ViolationTests {
 
         #expect(filter.ruleIDs == nil)
         #expect(filter.filePaths == nil)
-        #expect(filter.suppressedOnly == nil)
+        #expect(filter.suppression == .any)
     }
 
     @Test("Violation is Codable")

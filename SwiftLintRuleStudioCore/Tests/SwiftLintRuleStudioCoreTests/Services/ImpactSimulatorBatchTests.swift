@@ -5,7 +5,6 @@
 //  Batch simulation tests
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
 import Testing
@@ -34,7 +33,7 @@ struct ImpactSimulatorBatchTests {
 
         let violations = [
             Violation(ruleID: "rule1", filePath: "Test.swift", line: 1, severity: .warning, message: "one"),
-            Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .error, message: "two")
+            Violation(ruleID: "rule2", filePath: "Test.swift", line: 2, severity: .error, message: "two"),
         ]
 
         let workspace = Workspace(path: tempDir)

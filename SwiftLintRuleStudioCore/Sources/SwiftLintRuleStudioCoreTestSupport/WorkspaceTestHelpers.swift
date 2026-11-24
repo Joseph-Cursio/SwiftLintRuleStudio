@@ -6,7 +6,6 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudioCore
 
 /// Helper to create valid Swift project workspaces for testing
 public enum WorkspaceTestHelpers {

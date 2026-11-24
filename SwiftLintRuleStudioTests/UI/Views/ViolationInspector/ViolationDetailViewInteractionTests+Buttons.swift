@@ -6,10 +6,6 @@
 //
 
 import Foundation
-@testable import SwiftLintRuleStudio
-@testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
 import ViewInspector
 
@@ -57,7 +53,7 @@ extension ViolationDetailViewInteractionTests {
                 }
             }
 
-            guard let openButton = openButton else {
+            guard let openButton else {
                 return false
             }
 

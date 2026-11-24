@@ -186,7 +186,7 @@ extension RuleRegistry {
         state.parameters = RuleParameterParser.parseParameters(from: detailText, ruleId: ruleId)
         // Examples and header are only filled when the docs path didn't already
         // populate them — the docs are the more reliable source.
-        if state.triggeringExamples.isEmpty && state.nonTriggeringExamples.isEmpty {
+        if state.triggeringExamples.isEmpty, state.nonTriggeringExamples.isEmpty {
             let lines = detailText.components(separatedBy: .newlines)
             applyRuleHeader(lines: lines, state: &state)
             applyRuleExamples(lines: lines, state: &state)

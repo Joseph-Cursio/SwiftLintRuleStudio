@@ -8,10 +8,10 @@
 //  is a tap gesture / accessibility action), leaving Remove as a sibling Button.
 //
 
+import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
-import SwiftUI
 import Testing
 import ViewInspector
 

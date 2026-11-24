@@ -1,6 +1,5 @@
 @testable import SwiftLintRuleStudio
 import SwiftLintRuleStudioCore
-import SwiftUI
 import Testing
 
 /// One colour per rule category, and one mapping that decides it.

@@ -2,14 +2,12 @@
 //  ContentViewSectionsTests.swift
 //  SwiftLintRuleStudioTests
 //
-//  ViewInspector tests for the sectionDetailView routing in
-//  ContentView+Sections.swift. Each case in the AppSection switch needs
-//  to be exercised at least once; we host ContentView with the test
-//  dependency container, mutate its `selection` @State property, and
-//  assert one signature label per branch renders.
+//  ViewInspector tests for the section routing in SectionDetailView.swift.
+//  Each case in the AppSection switch needs to be exercised at least once;
+//  we host SectionDetailView with the test dependency container and a
+//  constant selection, and assert one signature label per branch renders.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import SwiftLintRuleStudioCoreTestSupport
@@ -27,8 +25,12 @@ struct ContentViewSectionsTests {
 
     private func makeView(selection: AppSection?) -> ViewResult {
         let container = DependencyContainer.createForTesting()
-        let content = ContentView(initialSelection: selection)
-        let wrapped = content.sectionDetailView
+        let wrapped = SectionDetailView(
+            selection: .constant(selection),
+            searchText: .constant(""),
+            selectedRuleId: .constant(nil),
+            ruleBrowserViewModel: nil
+        )
             .environment(\.dependencies, container)
             .environment(\.ruleRegistry, container.ruleRegistry)
         return ViewResult(view: AnyView(wrapped))
@@ -100,7 +102,15 @@ struct ContentViewSectionsTests {
     @Test(".branchDiff case routes to GitBranchDiffView")
     func testBranchDiffCase() async throws {
         let result = await MainActor.run { makeView(selection: .branchDiff) }
-        #expect(try await assertContainsText("Not a Git Repository", in: result))
+        // Its "Not a Git Repository" notice appears only once onAppear has run loadRefs, which
+        // an inspection one view below the hosted root doesn't see; the view itself is the route.
+        let found = try await MainActor.run {
+            ViewHosting.expel()
+            ViewHosting.host(view: result.view)
+            defer { ViewHosting.expel() }
+            return (try? result.view.inspect().find(GitBranchDiffView.self)) != nil
+        }
+        #expect(found)
     }
 
     @Test(".migration case routes to MigrationAssistantView")

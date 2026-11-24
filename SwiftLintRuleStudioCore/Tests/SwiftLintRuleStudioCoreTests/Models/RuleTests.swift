@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 // Model tests don't need @MainActor - but Swift 6 false positive requires it temporarily
@@ -83,7 +82,7 @@ struct RuleTests {
             AnyCodable(42),
             AnyCodable("text"),
             AnyCodable(true),
-            AnyCodable([1, "two", false])
+            AnyCodable([1, "two", false]),
         ]
         let encoder = JSONEncoder()
         let data = try encoder.encode(values)

@@ -88,7 +88,7 @@ struct RuleImpactResultTests {
                 Self.measured("clean", violationCount: 0),
                 Self.measured("noisy", violationCount: 2),
                 .failed(ruleId: "broken", reason: "boom"),
-                .unmeasurable(ruleId: "unused_import", reason: .analyzerRule)
+                .unmeasurable(ruleId: "unused_import", reason: .analyzerRule),
             ],
             totalDuration: 1,
             completedAt: Date(timeIntervalSince1970: 0)

@@ -160,12 +160,15 @@ nonisolated struct MirrorLinkDiscovery {
                 if reach.mayHoldReachableLinks(entryPath) {
                     try explore(entry.url, at: entryPath)
                 }
+
             case .folderLink(let target):
                 try follow(entry, to: target, at: entryPath)
+
             case .fileLink(let target):
                 if !MirrorRegions.isInside(target.path, workspaceRoot) {
                     linkedFiles.insert(target.path)
                 }
+
             case .file:
                 continue
             }

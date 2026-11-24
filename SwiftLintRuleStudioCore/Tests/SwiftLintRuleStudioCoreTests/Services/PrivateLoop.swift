@@ -6,7 +6,6 @@
 //  0.65.1 makes of it.
 //
 
-import Foundation
 import Testing
 
 /// The layouts ``SimulationWorkspacePrivateLoopTests`` checks.
@@ -84,7 +83,7 @@ nonisolated enum PrivateLoop {
             config: "excluded:\n  - ../kit/Vendor\n",
             links: [link("ws/Libs", to: "../kit"), link("kit/Vendor/loop", to: "..")],
             outcome: .leftOut
-        )
+        ),
     ]
 
     /// What no exclusion keeps SwiftLint out of: the link itself, and the folder a link leads
@@ -115,7 +114,7 @@ nonisolated enum PrivateLoop {
             config: "included:\n  - Sources\nexcluded:\n  - Sources\n",
             links: [link("ws/Sources/loop", to: "..")],
             outcome: .refused(saying: ": remove the link.")
-        )
+        ),
     ]
 
     /// Which folder the reason says to exclude: the deepest on the way that, named in
@@ -144,7 +143,7 @@ nonisolated enum PrivateLoop {
             config: "excluded:\n  - \"Gen[1]\"\n",
             links: [link("ws/Gen[1]/loop", to: "..")],
             outcome: .refused(saying: ": remove the link.")
-        )
+        ),
     ]
 
     /// Beyond the folders on one route: where `included` walks start, every route SwiftLint
@@ -206,7 +205,7 @@ nonisolated enum PrivateLoop {
             links: [
                 link("ws/App/L4", to: "../../kit"),
                 link("ws/Generated/L2", to: "../../kit"),
-                link("kit/G/L1", to: "../../ws/App")
+                link("kit/G/L1", to: "../../ws/App"),
             ],
             outcome: .keeps("ws/App/L4")
         ),
@@ -216,7 +215,7 @@ nonisolated enum PrivateLoop {
             links: [
                 link("ws/App/L4", to: "../../kit"),
                 link("ws/Gen/L2", to: "../../kit"),
-                link("kit/G/L1", to: "../../ws/App")
+                link("kit/G/L1", to: "../../ws/App"),
             ],
             outcome: .keeps("ws/App/L4")
         ),
@@ -226,9 +225,9 @@ nonisolated enum PrivateLoop {
             links: [
                 link("ws/Sources/F/L", to: "../../../kit"),
                 link("kit/Sub/M", to: "../../ws/Sources/F"),
-                link("ws/Other/H", to: "../../kit/Sub")
+                link("ws/Other/H", to: "../../kit/Sub"),
             ],
             outcome: .keeps("ws/Sources/F/L")
-        )
+        ),
     ]
 }

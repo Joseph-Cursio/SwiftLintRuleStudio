@@ -127,7 +127,7 @@ struct YAMLConfigEngineLayoutTests {
         let config = try YAMLConfigurationEngine.parse(yaml)
         let lists = [
             config.included, config.excluded, config.disabledRules,
-            config.optInRules, config.analyzerRules, config.onlyRules
+            config.optInRules, config.analyzerRules, config.onlyRules,
         ].map { canonical($0) }
         let rules = config.rules.keys.sorted().map { id -> String in
             let rule = config.rules[id]
@@ -145,16 +145,22 @@ struct YAMLConfigEngineLayoutTests {
         return switch value {
         case let map as [String: Any]:
             "{" + map.keys.sorted().map { "\($0):\(canonical(map[$0]))" }.joined(separator: ",") + "}"
+
         case let list as [Any]:
             "[" + list.map(canonical).joined(separator: ",") + "]"
+
         case let bool as Bool:
             "bool:\(bool)"
+
         case let int as Int:
             "int:\(int)"
+
         case let double as Double:
             "double:\(double)"
+
         case let string as String:
             "str:\(string)"
+
         default:
             "\(type(of: value)):\(value)"
         }
@@ -167,7 +173,7 @@ struct YAMLConfigEngineLayoutTests {
         "base: &base\n  warning: 1\nline_length: *base\n",
         "# header\n\nopt_in_rules:\n- empty_count\n- array_init\n",
         "custom_rules:\n  no_print:\n    regex: 'print\\('\n    message: \"No print\"\n",
-        "line_length:\n  warning: 1.0\n  ignores_urls: 1\n  ignores_comments: on\n"
+        "line_length:\n  warning: 1.0\n  ignores_urls: 1\n  ignores_comments: on\n",
     ])
     func editsKeepTheMeaning(yaml: String) throws {
         var config = try YAMLConfigurationEngine.parse(yaml)
@@ -178,7 +184,7 @@ struct YAMLConfigEngineLayoutTests {
             parameters: [
                 "warning": AnyCodable(90),
                 "ignores_urls": AnyCodable(true),
-                "ignores_comments": AnyCodable(true)
+                "ignores_comments": AnyCodable(true),
             ]
         )
 
@@ -191,7 +197,7 @@ struct YAMLConfigEngineLayoutTests {
     @Test("A setting changed to a value of another type is rewritten, not kept", arguments: [
         ("ignores_comments: 1", "ignores_comments: true"),
         ("ignores_comments: on", "ignores_comments: true"),
-        ("warning: 120.0", "warning: 120")
+        ("warning: 120.0", "warning: 120"),
     ])
     func valuesKeepTheirTypes(old: String, new: String) throws {
         let yaml = "line_length:\n  \(old)\n  error: 200\n"

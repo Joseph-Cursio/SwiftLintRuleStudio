@@ -32,7 +32,7 @@ extension SwiftLintCLIActor {
         // This ensures opt-in rules like empty_count have their documentation and examples
         _ = try await runSwiftLint(arguments: [
             "generate-docs",
-            "--path", docsDir.path
+            "--path", docsDir.path,
         ])
 
         let docFile = docsDir.appendingPathComponent("\(ruleId).md")

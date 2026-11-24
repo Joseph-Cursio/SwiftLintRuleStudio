@@ -121,9 +121,9 @@ public class ImpactSimulator: ImpactSimulatorProtocol {
             return
         }
         let root = shadow.root
-        let swiftLintCLI = swiftLintCLI
+        let backend = swiftLintCLI
         Task {
-            await swiftLintCLI.waitForAbandonedLints(at: root)
+            await backend.waitForAbandonedLints(at: root)
             shadow.cleanupInBackground()
         }
     }

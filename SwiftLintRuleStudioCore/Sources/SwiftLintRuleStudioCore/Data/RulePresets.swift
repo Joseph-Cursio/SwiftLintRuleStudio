@@ -5,8 +5,6 @@
 //  Static preset definitions for commonly used rule groups
 //
 
-import Foundation
-
 /// A preset collection of SwiftLint rules for common use cases
 public struct RulePreset: Identifiable, Codable, Sendable, Equatable {
     public let id: String
@@ -82,7 +80,7 @@ public enum RulePresets {
             "empty_count",
             "empty_string",
             "flatmap_over_map_reduce",
-            "reduce_boolean"
+            "reduce_boolean",
         ],
         category: .performance
     )
@@ -101,7 +99,7 @@ public enum RulePresets {
             "closure_body_length",
             "trailing_closure",
             "multiple_closures_with_trailing_closure",
-            "redundant_discardable_let"
+            "redundant_discardable_let",
         ],
         category: .swiftUI
     )
@@ -116,7 +114,7 @@ public enum RulePresets {
             "class_delegate_protocol",
             "weak_delegate",
             "unowned_variable_capture",
-            "private_over_fileprivate"
+            "private_over_fileprivate",
         ],
         category: .concurrency
     )
@@ -139,7 +137,7 @@ public enum RulePresets {
             "statement_position",
             "switch_case_alignment",
             "indentation_width",
-            "function_name_whitespace"
+            "function_name_whitespace",
         ],
         category: .codeStyle
     )
@@ -155,7 +153,7 @@ public enum RulePresets {
             "orphaned_doc_comment",
             "comment_spacing",
             "todo",
-            "mark"
+            "mark",
         ],
         category: .documentation
     )
@@ -167,7 +165,7 @@ public enum RulePresets {
             swiftUI,
             concurrencySafety,
             codeStyle,
-            documentation
+            documentation,
         ]
     }
 

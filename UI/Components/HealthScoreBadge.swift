@@ -169,37 +169,40 @@ private struct HealthScoreBadge: View {
 
 #Preview("Health Score Ring") {
     HStack(spacing: 32) {
-        HealthScoreRing(
-            report: ConfigHealthReport(
-                score: 92,
-                grade: .excellent,
-                breakdown: ConfigHealthReport.ScoreBreakdown(
-                    rulesCoverage: 90,
-                    categoryBalance: 95,
-                    optInAdoption: 90,
-                    noDeprecatedRules: 100,
-                    pathConfiguration: 85
-                ),
-                recommendations: []
+        HealthScoreRing(report: previewReport(
+            score: 92,
+            grade: .excellent,
+            breakdown: ConfigHealthReport.ScoreBreakdown(
+                rulesCoverage: 90,
+                categoryBalance: 95,
+                optInAdoption: 90,
+                noDeprecatedRules: 100,
+                pathConfiguration: 85
             )
-        )
+        ))
 
-        HealthScoreRing(
-            report: ConfigHealthReport(
-                score: 45,
-                grade: .needsWork,
-                breakdown: ConfigHealthReport.ScoreBreakdown(
-                    rulesCoverage: 40,
-                    categoryBalance: 50,
-                    optInAdoption: 30,
-                    noDeprecatedRules: 100,
-                    pathConfiguration: 50
-                ),
-                recommendations: []
+        HealthScoreRing(report: previewReport(
+            score: 45,
+            grade: .needsWork,
+            breakdown: ConfigHealthReport.ScoreBreakdown(
+                rulesCoverage: 40,
+                categoryBalance: 50,
+                optInAdoption: 30,
+                noDeprecatedRules: 100,
+                pathConfiguration: 50
             )
-        )
+        ))
     }
     .padding()
+}
+
+/// A report for the previews, with no recommendations.
+private func previewReport(
+    score: Int,
+    grade: HealthGrade,
+    breakdown: ConfigHealthReport.ScoreBreakdown
+) -> ConfigHealthReport {
+    ConfigHealthReport(score: score, grade: grade, breakdown: breakdown, recommendations: [])
 }
 
 #Preview("Health Score Indicator") {

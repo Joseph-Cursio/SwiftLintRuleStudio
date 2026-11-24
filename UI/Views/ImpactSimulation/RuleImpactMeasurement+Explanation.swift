@@ -14,12 +14,15 @@ extension RuleImpactMeasurement {
         switch self {
         case .measured:
             nil
+
         case .failed(let reason):
             reason ?? "The simulation stopped before it could count this rule's violations."
+
         case .unmeasurable(.analyzerRule):
             // Plain text, not Markdown: a `Text` built from a String shows backticks verbatim.
             "Analyzer rules run only under swiftlint analyze, which needs the compiler arguments "
                 + "of a full build. Linting skips them, so their violations can't be counted here."
+
         case .unmeasurable(.sourceKitUnavailable):
             "This rule depends on SourceKit, which this edition can't load, so its violations "
                 + "can't be counted here."

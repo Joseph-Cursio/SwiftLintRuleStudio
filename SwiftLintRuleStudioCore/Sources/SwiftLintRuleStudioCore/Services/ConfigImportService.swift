@@ -43,22 +43,6 @@ public protocol ConfigImportServiceProtocol: Sendable {
     func applyImport(preview: ConfigImportPreview, mode: ImportMode, to configPath: URL) throws
 }
 
-// MARK: - Errors
-
-private enum ConfigImportError: LocalizedError, Sendable {
-    case fetchFailed(String)
-    case parseFailed(String)
-    case saveFailed(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .fetchFailed(let msg): return "Failed to fetch config: \(msg)"
-        case .parseFailed(let msg): return "Failed to parse config: \(msg)"
-        case .saveFailed(let msg): return "Failed to save config: \(msg)"
-        }
-    }
-}
-
 // MARK: - Implementation
 
 public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
@@ -97,7 +81,7 @@ public final class ConfigImportService: ConfigImportServiceProtocol, Sendable {
         }
 
         // Basic validation (only if no errors already added)
-        if validationErrors.isEmpty && parsedConfig.ruleIds.isEmpty {
+        if validationErrors.isEmpty, parsedConfig.ruleIds.isEmpty {
             validationErrors.append("Configuration appears empty - no rules defined.")
         }
         if parsedConfig.hasOnlyRulesConflict {

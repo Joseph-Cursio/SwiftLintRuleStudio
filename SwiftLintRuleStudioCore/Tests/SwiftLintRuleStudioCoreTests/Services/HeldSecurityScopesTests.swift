@@ -110,7 +110,9 @@ struct HeldSecurityScopesTests {
 
     /// A sandboxed manager with no stored bookmarks: it holds the folder's own URL's scope.
     private struct NoBookmarks: SecurityScopedBookmarkStoring {
-        func saveBookmark(for _: URL) {}
+        func saveBookmark(for _: URL) {
+            // The stub ignores this call.
+        }
         func resolveURL(forPath _: String) -> URL? { nil }
     }
 

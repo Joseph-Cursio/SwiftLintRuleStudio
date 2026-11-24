@@ -4,7 +4,7 @@ import PackageDescription
 let swiftSettings: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
     .defaultIsolation(MainActor.self),
-    .enableUpcomingFeature("MemberImportVisibility")
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
@@ -31,7 +31,7 @@ let package = Package(
         .library(
             name: "SwiftLintCLISeam",
             targets: ["SwiftLintCLISeam"]
-        )
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/jpsim/Yams.git", from: "6.2.1"),
@@ -40,7 +40,7 @@ let package = Package(
         // the test target ONLY — the app links the SwiftLintRuleStudioCore product,
         // which must stay free of PropertyBased/Testing (putting this on the library
         // target is what broke the app build in 404e6fd; reverted in 1cc635c).
-        .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "3.0.0")
+        .package(url: "https://github.com/Joseph-Cursio/SwiftPropertyLaws.git", from: "3.0.0"),
     ],
     targets: [
         // Deliberately omits `.defaultIsolation(MainActor.self)`: the seam is
@@ -51,7 +51,7 @@ let package = Package(
             name: "SwiftLintCLISeam",
             swiftSettings: [
                 .swiftLanguageMode(.v6),
-                .enableUpcomingFeature("MemberImportVisibility")
+                .enableUpcomingFeature("MemberImportVisibility"),
             ]
         ),
         .target(
@@ -59,7 +59,7 @@ let package = Package(
             dependencies: [
                 "SwiftLintCLISeam",
                 "Yams",
-                .product(name: "LintStudioCore", package: "LintStudioUI")
+                .product(name: "LintStudioCore", package: "LintStudioUI"),
             ],
             swiftSettings: swiftSettings,
             linkerSettings: [
@@ -71,7 +71,7 @@ let package = Package(
             dependencies: [
                 "SwiftLintCLISeam",
                 "SwiftLintRuleStudioCore",
-                .product(name: "LintStudioCore", package: "LintStudioUI")
+                .product(name: "LintStudioCore", package: "LintStudioUI"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -87,9 +87,9 @@ let package = Package(
                 "SwiftLintRuleStudioCore",
                 "SwiftLintCLIBackend",
                 "SwiftLintRuleStudioCoreTestSupport",
-                .product(name: "PropertyLawKit", package: "SwiftPropertyLaws")
+                .product(name: "PropertyLawKit", package: "SwiftPropertyLaws"),
             ],
             swiftSettings: swiftSettings
-        )
+        ),
     ]
 )

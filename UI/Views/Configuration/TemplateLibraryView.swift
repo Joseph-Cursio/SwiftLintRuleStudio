@@ -202,7 +202,7 @@ private struct TemplateDetailView: View {
 
     @ViewBuilder
     private var applyButtonSection: some View {
-        if let onApply = onApply {
+        if let onApply {
             Divider()
 
             Button {
@@ -312,7 +312,7 @@ struct TemplateLibraryView: View {
         .searchable(text: $searchText, prompt: "Search templates")
         .navigationSplitViewColumnWidth(min: 250, ideal: 300)
         .overlay {
-            if filteredBuiltInTemplates.isEmpty && filteredUserTemplates.isEmpty {
+            if filteredBuiltInTemplates.isEmpty, filteredUserTemplates.isEmpty {
                 ContentUnavailableView(
                     "No Templates",
                     systemImage: "doc.text",

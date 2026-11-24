@@ -163,6 +163,5 @@ public class DependencyContainer {
             ?? GitBranchDiffService(gitService: git, comparisonService: self.configComparisonService)
         self.migrationAssistant = migrationAssistant
             ?? MigrationAssistant()
-
     }
 }

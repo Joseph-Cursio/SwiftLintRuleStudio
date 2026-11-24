@@ -115,7 +115,7 @@ struct YAMLConfigRuleListsRepairTests {
         let samples = [
             config(only: ["a", "u"], optIn: ["b"], disabled: ["a"], analyzer: ["u"]),
             config(only: ["a"], optIn: ["b"], disabled: ["a", "b"]),
-            config(only: ["u"], analyzer: ["u"])
+            config(only: ["u"], analyzer: ["u"]),
         ]
         for sample in samples {
             let once = sample.normalizedRuleLists()

@@ -7,7 +7,6 @@
 //  attribution) for the selected folder on the right.
 //
 
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 struct ConfigMapView: View {
@@ -48,7 +47,7 @@ struct ConfigMapView: View {
                 systemImage: "folder.badge.questionmark",
                 description: Text("Open a project to map its SwiftLint configs.")
             )
-        } else if viewModel.treeRows.isEmpty && !viewModel.isLoading {
+        } else if viewModel.treeRows.isEmpty, !viewModel.isLoading {
             ContentUnavailableView(
                 "No SwiftLint Configs",
                 systemImage: "doc.text.magnifyingglass",
@@ -74,7 +73,7 @@ struct ConfigMapView: View {
             }
         }
         .onChange(of: viewModel.selectedRowID) { _, newValue in
-            if let newValue = newValue {
+            if let newValue {
                 viewModel.select(rowID: newValue)
             }
         }

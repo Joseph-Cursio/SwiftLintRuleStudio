@@ -7,7 +7,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -84,7 +83,7 @@ struct MigrationAssistantTests {
     func testRemovesMergedRule(ruleId: String) {
         let config = makeConfig(rules: [
             ruleId: RuleConfiguration(enabled: true),
-            "identifier_name": RuleConfiguration(enabled: true, severity: .error)
+            "identifier_name": RuleConfiguration(enabled: true, severity: .error),
         ])
         let plan = assistant.detectMigrations(config: config, fromVersion: "0.6.0", toVersion: "0.65.0")
         #expect(plan.autoApplyableSteps.map(\.id) == ["remove-\(ruleId)"])
@@ -118,7 +117,7 @@ struct MigrationAssistantTests {
     func testRenameKeepsExistingTargetConfiguration() {
         var config = makeConfig(rules: [
             "variable_name": RuleConfiguration(enabled: true, severity: .error),
-            "identifier_name": RuleConfiguration(enabled: true, severity: .warning)
+            "identifier_name": RuleConfiguration(enabled: true, severity: .warning),
         ])
         let plan = assistant.detectMigrations(config: config, fromVersion: "0.16.0", toVersion: "0.65.0")
         assistant.applyMigration(plan, to: &config)
@@ -182,7 +181,7 @@ struct MigrationAssistantTests {
     func testNoMigrationsForCleanConfig() {
         let config = makeConfig(rules: [
             "line_length": RuleConfiguration(enabled: true),
-            "force_cast": RuleConfiguration(enabled: true)
+            "force_cast": RuleConfiguration(enabled: true),
         ])
         let plan = assistant.detectMigrations(config: config, fromVersion: "0.50.0", toVersion: "0.55.0")
 
@@ -280,7 +279,7 @@ struct MigrationAssistantTests {
             toVersion: "0.30.0",
             steps: [
                 .renameRule(from: "a", newName: "b"),
-                .removeDeprecatedRule(ruleId: "c", reason: "removed")
+                .removeDeprecatedRule(ruleId: "c", reason: "removed"),
             ]
         )
         #expect(plan.canAutoApply)
@@ -293,7 +292,7 @@ struct MigrationAssistantTests {
             toVersion: "0.30.0",
             steps: [
                 .renameRule(from: "a", newName: "b"),
-                .manualAction(description: "Do something")
+                .manualAction(description: "Do something"),
             ]
         )
         #expect(plan.canAutoApply == false)
@@ -305,7 +304,7 @@ struct MigrationAssistantTests {
             "test_rule": RuleConfiguration(
                 enabled: true,
                 parameters: ["old_param": AnyCodable(100)]
-            )
+            ),
         ])
         let plan = MigrationPlan(
             fromVersion: "0.20.0",

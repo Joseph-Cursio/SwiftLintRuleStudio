@@ -74,7 +74,7 @@ struct ViolationInspectorExportTests {
         let violations = [
             Self.makeViolation(line: 1),
             Self.makeViolation(line: 2),
-            Self.makeViolation(line: 3)
+            Self.makeViolation(line: 3),
         ]
 
         let exported = ViolationInspectorView.violationsForExport(
@@ -170,7 +170,7 @@ struct ViolationInspectorExportTests {
 
         let violations = [
             Self.makeViolation(ruleID: "force_cast", line: 7),
-            Self.makeViolation(ruleID: "line_length", line: 42, severity: .error)
+            Self.makeViolation(ruleID: "line_length", line: 42, severity: .error),
         ]
 
         try ViolationInspectorView.exportToJSON(violations: violations, url: url)
@@ -239,7 +239,7 @@ struct ViolationInspectorExportTests {
 
         let violations = [
             Self.makeViolation(ruleID: "force_cast", line: 7),
-            Self.makeViolation(ruleID: "line_length", line: 42)
+            Self.makeViolation(ruleID: "line_length", line: 42),
         ]
 
         try ViolationInspectorView.exportToCSV(violations: violations, url: url)
@@ -260,7 +260,7 @@ struct ViolationInspectorExportTests {
         try ViolationInspectorView.exportToCSV(
             violations: [
                 Self.makeViolation(ruleID: "force_cast"),
-                Self.makeViolation(ruleID: "line_length")
+                Self.makeViolation(ruleID: "line_length"),
             ],
             url: url
         )

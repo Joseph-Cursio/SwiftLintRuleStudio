@@ -57,14 +57,14 @@ struct GitBranchDiffView: View {
     private var mainContent: some View {
         if viewModel.isNotGitRepo {
             NotGitRepoNotice()
-        } else if viewModel.isLoading && viewModel.availableRefs == nil {
+        } else if viewModel.isLoading, viewModel.availableRefs == nil {
             ProgressView("Loading git refs...")
                 .frame(maxWidth: .infinity)
                 .padding()
         } else {
             branchPickerSection
 
-            if viewModel.isLoading && viewModel.availableRefs != nil {
+            if viewModel.isLoading, viewModel.availableRefs != nil {
                 ProgressView("Comparing configurations...")
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -102,26 +102,7 @@ struct GitBranchDiffView: View {
                         Text("Compare with:")
                             .font(.subheadline)
 
-                        Picker("Branch", selection: Bindable(viewModel).selectedRefString) {
-                            Text("Select a branch...").tag("")
-
-                            if refs.branches.count > 1 {
-                                SwiftUI.Section("Branches") {
-                                    ForEach(refs.branches.filter { $0 != refs.currentBranch }, id: \.self) { branch in
-                                        Text(branch).tag(branch)
-                                    }
-                                }
-                            }
-
-                            if !refs.tags.isEmpty {
-                                SwiftUI.Section("Tags") {
-                                    ForEach(refs.tags, id: \.self) { tag in
-                                        Text(tag).tag(tag)
-                                    }
-                                }
-                            }
-                        }
-                        .frame(minWidth: 200)
+                        refPicker(refs)
                     }
 
                     Button("Compare") {
@@ -162,69 +143,9 @@ struct GitBranchDiffView: View {
                 .background(Color.green.opacity(0.1))
                 .clipShape(.rect(cornerRadius: 8))
             } else {
-                if !result.onlyInFirst.isEmpty {
-                    diffSection(
-                        title: "Runs Only on the Current Branch",
-                        rules: result.onlyInFirst,
-                        color: .blue,
-                        icon: "minus.circle.fill"
-                    )
-                }
-
-                if !result.onlyInSecond.isEmpty {
-                    diffSection(
-                        title: "Runs Only on \(viewModel.selectedRef ?? "the Other Branch")",
-                        rules: result.onlyInSecond,
-                        color: .purple,
-                        icon: "plus.circle.fill"
-                    )
-                }
-
-                if !result.inBothDifferent.isEmpty {
-                    modifiedRulesSection(result.inBothDifferent)
-                }
-
-                if !result.pathDifferences.isEmpty {
-                    lineSection(title: "Paths", lines: result.pathDifferences, icon: "folder.fill")
-                }
-
-                if !result.otherDifferences.isEmpty {
-                    lineSection(title: otherSettingsTitle, lines: result.otherDifferences, icon: "gearshape.fill")
-                }
-
-                yamlDiffSection(result.diff)
+                differenceSections(result)
             }
         }
-    }
-
-    private func modifiedRulesSection(_ diffs: [RuleComparisonDiff]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "pencil.circle.fill")
-                    .foregroundStyle(.orange)
-                    .accessibilityHidden(true)
-                Text("Different Settings")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-            }
-
-            ForEach(diffs) { diff in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(diff.ruleId)
-                        .font(.system(.body, design: .monospaced))
-                        .fontWeight(.semibold)
-                    ForEach(diff.differences, id: \.self) { detail in
-                        Text(detail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.leading, 24)
-            }
-        }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
     }
 
     private func yamlDiffSection(_ diff: YAMLConfigurationEngine.ConfigDiff) -> some View {
@@ -263,45 +184,61 @@ struct GitBranchDiffView: View {
         "Other Settings (Current → \(viewModel.selectedRef ?? "Other Branch"))"
     }
 
-    private func lineSection(title: String, lines: [String], icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-            }
-            ForEach(lines, id: \.self) { line in
-                Text(line)
-                    .padding(.leading, 24)
-            }
+    @ViewBuilder
+    private func differenceSections(_ result: ConfigComparisonResult) -> some View {
+        if !result.onlyInFirst.isEmpty {
+            diffSection(
+                title: "Runs Only on the Current Branch",
+                rules: result.onlyInFirst,
+                color: .blue,
+                icon: "minus.circle.fill"
+            )
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
+
+        if !result.onlyInSecond.isEmpty {
+            diffSection(
+                title: "Runs Only on \(viewModel.selectedRef ?? "the Other Branch")",
+                rules: result.onlyInSecond,
+                color: .purple,
+                icon: "plus.circle.fill"
+            )
+        }
+
+        if !result.inBothDifferent.isEmpty {
+            modifiedRulesSection(result.inBothDifferent)
+        }
+
+        if !result.pathDifferences.isEmpty {
+            lineSection(title: "Paths", lines: result.pathDifferences, icon: "folder.fill")
+        }
+
+        if !result.otherDifferences.isEmpty {
+            lineSection(title: otherSettingsTitle, lines: result.otherDifferences, icon: "gearshape.fill")
+        }
+
+        yamlDiffSection(result.diff)
     }
 
-    private func diffSection(title: String, rules: [String], color: Color, icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .accessibilityHidden(true)
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+    private func refPicker(_ refs: GitRefs) -> some View {
+        Picker("Branch", selection: Bindable(viewModel).selectedRefString) {
+            Text("Select a branch...").tag("")
+
+            if refs.branches.count > 1 {
+                SwiftUI.Section("Branches") {
+                    ForEach(refs.branches.filter { $0 != refs.currentBranch }, id: \.self) { branch in
+                        Text(branch).tag(branch)
+                    }
+                }
             }
-            ForEach(rules, id: \.self) { ruleId in
-                Text(ruleId)
-                    .font(.system(.body, design: .monospaced))
-                    .padding(.leading, 24)
+
+            if !refs.tags.isEmpty {
+                SwiftUI.Section("Tags") {
+                    ForEach(refs.tags, id: \.self) { tag in
+                        Text(tag).tag(tag)
+                    }
+                }
             }
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .clipShape(.rect(cornerRadius: 8))
+        .frame(minWidth: 200)
     }
 }

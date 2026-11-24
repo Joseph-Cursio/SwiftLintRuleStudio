@@ -1,5 +1,5 @@
 import Foundation
-import SwiftLintFramework
+import SwiftLintCore
 @testable import SwiftLintInProcessBackend
 import Testing
 

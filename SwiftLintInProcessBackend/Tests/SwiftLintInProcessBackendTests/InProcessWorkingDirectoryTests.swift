@@ -10,7 +10,7 @@ struct InProcessWorkingDirectoryTests {
     /// YAML decodes `\x24` to `$` before SwiftLint expands the variable.
     @Test("A config using ${PWD} is refused, with a reason", arguments: [
         "included:\n  - ${PWD}/Sources\n",
-        "included:\n  - \"\\x24{PWD}/Sources\"\n"
+        "included:\n  - \"\\x24{PWD}/Sources\"\n",
     ])
     func workingDirectoryVariableIsRefused(config: String) throws {
         let workspace = FileManager.default.temporaryDirectory

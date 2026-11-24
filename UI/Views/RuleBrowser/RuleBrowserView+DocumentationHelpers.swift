@@ -1,23 +1,7 @@
 import LintStudioCore
-import SwiftLintRuleStudioCore
 import SwiftUI
 
 extension RuleBrowserView {
-    @ViewBuilder
-    func documentationTextView(markdown: String, colorScheme _: ColorScheme) -> some View {
-        // Strip all HTML and render as plain text to avoid any layout issues
-        let strippedContent = stripHTMLTags(from: markdown)
-        let processedContent = processContentForDisplay(content: strippedContent)
-        // Convert markdown to plain text (remove markdown syntax)
-        let plainText = convertMarkdownToPlainText(content: processedContent)
-
-        Text(plainText)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .fixedSize(horizontal: false, vertical: true)
-            .multilineTextAlignment(.leading)
-    }
-
     func convertMarkdownToPlainText(content: String) -> String {
         let lines = content.components(separatedBy: .newlines)
         var processedLines: [String] = []
@@ -105,7 +89,7 @@ extension RuleBrowserView {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
 
             // Skip the main title
-            if index == 0 && (trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ")) {
+            if index == 0, trimmed.hasPrefix("<h1>") || trimmed.hasPrefix("# ") {
                 continue
             }
 

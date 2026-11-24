@@ -82,23 +82,39 @@ private struct RuleDetailSheetsAndAlerts: ViewModifier {
 }
 
 struct RuleDetailView: View {
-    @State var viewModel: RuleDetailViewModel
+    @State private var viewModel: RuleDetailViewModel
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dependencies) var dependencies: DependencyContainer
     @Environment(\.appCapabilities) var capabilities: Set<AppCapability>
     @State private var showSaveConfirmation = false
     @State private var showError = false
     @State private var impactResult: RuleImpactResult?
-    // These four properties are read by RuleDetailView+Sections.swift (a separate file),
-    // so they cannot be private. internal is the minimum viable access level here.
-    @State var isSimulating = false
-    @State var violationCount: Int = 0
-    @State var isLoadingViolationCount = false
-    @State var cachedDocSegments: [RuleDocSegment.Rendered]?
-    // currentRule is only used within this file — private is correct
+    // The sections in RuleDetailView+Header and +Sections are handed these values; they don't
+    // read the state themselves.
+    @State private var isSimulating = false
+    @State private var violationCount = RuleViolationCount()
+    /// Analyses finished while the view is shown. Part of the violation count's task key, so a
+    /// finished analysis reloads the count.
+    @State private var analysesFinished = 0
+    @State private var cachedDocSegments: [RuleDocSegment.Rendered]?
     @State private var currentRule: Rule
 
     private let ruleId: String
+
+    /// What the violation count is loaded for: a change to any of these reloads it.
+    private struct ViolationCountKey: Equatable {
+        let ruleID: String
+        let workspaceID: UUID?
+        let analysesFinished: Int
+    }
+
+    private var violationCountKey: ViolationCountKey {
+        ViolationCountKey(
+            ruleID: rule.id,
+            workspaceID: dependencies.workspaceManager.currentWorkspace?.id,
+            analysesFinished: analysesFinished
+        )
+    }
 
     // Get the latest rule from registry (may have updated documentation)
     // Made internal for testing
@@ -113,10 +129,16 @@ struct RuleDetailView: View {
         _viewModel = State(initialValue: RuleDetailViewModel(rule: rule))
     }
 
-    init(rule: Rule, viewModel: RuleDetailViewModel) {
+    /// Takes the models from the caller, so a test can watch what the view loads into them.
+    init(
+        rule: Rule,
+        viewModel: RuleDetailViewModel,
+        violationCount: RuleViolationCount = RuleViolationCount()
+    ) {
         self.ruleId = rule.id
         _currentRule = State(initialValue: rule)
         _viewModel = State(initialValue: viewModel)
+        _violationCount = State(initialValue: violationCount)
     }
 
     var body: some View {
@@ -124,6 +146,8 @@ struct RuleDetailView: View {
             .navigationTitle(rule.name)
             .onAppear { loadWorkspaceConfiguration() }
             .task { await fetchRuleDetailsAndBuildString() }
+            .task(id: violationCountKey) { await loadViolationCount() }
+            .onReceive(dependencies.workspaceAnalyzer.analysisFinishedPublisher) { analysesFinished += 1 }
             .id(rule.id)
             .modifier(ruleDetailEventHandlers)
             .modifier(RuleDetailSheetsAndAlerts(
@@ -150,15 +174,15 @@ struct RuleDetailView: View {
     private var scrollContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                headerView
+                headerView(isEnabled: viewModel.isEnabled)
                 Divider()
-                configurationView
+                configurationView(model: viewModel, isSimulating: isSimulating)
                 Divider()
-                descriptionView
+                descriptionView(segments: cachedDocSegments)
                 Divider()
                 whyThisMattersView
                 Divider()
-                violationsCountView
+                violationsCountView(state: violationCount.state)
                 Divider()
                 relatedRulesView
                 Divider()
@@ -214,6 +238,7 @@ struct RuleDetailView: View {
                 // If HTML parsing fails, show this piece as plain text rather than dropping it.
                 let text = renderProse(markdown) ?? AttributedString(markdown)
                 return RuleDocSegment.Rendered(id: index, isCode: false, text: text)
+
             case .code(let code):
                 return RuleDocSegment.Rendered(id: index, isCode: true, text: SwiftCodeHighlighter.highlight(code))
             }
@@ -232,7 +257,7 @@ struct RuleDetailView: View {
                       .characterEncoding: String.Encoding.utf8.rawValue,
                       NSAttributedString.DocumentReadingOptionKey.defaultAttributes: [
                           NSAttributedString.Key.font: NSFont.systemFont(ofSize: 14)
-                      ]
+                      ],
                   ],
                   documentAttributes: nil
               ) else {
@@ -257,7 +282,7 @@ struct RuleDetailView: View {
         isSimulating = true
 
         let simulator = dependencies.impactSimulator
-        let ruleId = rule.id
+        let simulatedRuleId = rule.id
         let options = Self.simulationOptions(
             for: rule,
             capabilities: capabilities,
@@ -265,14 +290,14 @@ struct RuleDetailView: View {
         )
         let simulate = {
             try await simulator.simulateRule(
-                ruleId: ruleId,
+                ruleId: simulatedRuleId,
                 workspace: workspace,
                 baseConfigPath: workspace.configPath,
                 options: options
             )
         }
         Task {
-            impactResult = await Self.simulationResult(ruleId: ruleId, simulate: simulate)
+            impactResult = await Self.simulationResult(ruleId: simulatedRuleId, simulate: simulate)
             isSimulating = false
         }
     }
@@ -323,28 +348,11 @@ struct RuleDetailView: View {
         }
     }
 
-    private func loadViolationCount() {
-        guard let workspace = dependencies.workspaceManager.currentWorkspace else {
-            violationCount = 0
-            return
-        }
-
-        isLoadingViolationCount = true
-
-        Task {
-            do {
-                let filter = ViolationFilter(ruleIDs: [rule.id], suppressedOnly: false)
-                let count = try await dependencies.violationStorage.getViolationCount(
-                    filter: filter,
-                    workspaceId: workspace.id
-                )
-
-                violationCount = count
-                isLoadingViolationCount = false
-            } catch {
-                violationCount = 0
-                isLoadingViolationCount = false
-            }
-        }
+    private func loadViolationCount() async {
+        await violationCount.load(
+            ruleID: rule.id,
+            workspaceID: dependencies.workspaceManager.currentWorkspace?.id,
+            storage: dependencies.violationStorage
+        )
     }
 }

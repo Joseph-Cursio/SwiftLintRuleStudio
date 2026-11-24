@@ -7,7 +7,6 @@
 //  in-memory stub instead of a real engine writing to disk.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
 @testable import SwiftLintRuleStudioCore
 import Testing
@@ -42,7 +41,9 @@ private final class StubYAMLConfigurationEngine: YAMLConfigurationEngineProtocol
         )
     }
 
-    func validate(_: YAMLConfigurationEngine.YAMLConfig) throws {}
+    func validate(_: YAMLConfigurationEngine.YAMLConfig) throws {
+        // The stub ignores this call.
+    }
 
     func save(config: YAMLConfigurationEngine.YAMLConfig, createBackup: Bool) throws {
         saveCallCount += 1

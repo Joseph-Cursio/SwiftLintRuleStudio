@@ -70,7 +70,9 @@ private final class GatedImportService: ConfigImportServiceProtocol, @unchecked 
         return previews[min(index, previews.count - 1)]
     }
 
-    func applyImport(preview _: ConfigImportPreview, mode _: ImportMode, to _: URL) throws {}
+    func applyImport(preview _: ConfigImportPreview, mode _: ImportMode, to _: URL) throws {
+        // The stub ignores this call.
+    }
 }
 
 @MainActor

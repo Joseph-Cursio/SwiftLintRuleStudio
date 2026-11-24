@@ -84,7 +84,7 @@ struct ConfigComparisonViewModelFolderTests {
         ("/work/MyApp/.swiftlint.yml", "/old/MyApp/.swiftlint.yml", "work/MyApp", "old/MyApp"),
         ("/a/MyApp/.swiftlint.yml", "/x/a/MyApp/.swiftlint.yml", "a/MyApp", "x/a/MyApp"),
         ("/Downloads/strict.yml", "/Downloads/lenient.yml", "strict.yml", "lenient.yml"),
-        ("/work/MyApp/.swiftlint.yml", "/work/MyApp/.swiftlint.yml", "Left", "Right")
+        ("/work/MyApp/.swiftlint.yml", "/work/MyApp/.swiftlint.yml", "Left", "Right"),
     ])
     func labelsAreToldApart(left: String, right: String, leftLabel: String, rightLabel: String) {
         let labels = ConfigComparisonViewModel.labels(

@@ -43,7 +43,7 @@ struct ImpactSimulatorRoutingTests {
                     return nil
                 }
             }
-            if let captured = captured {
+            if let captured {
                 await store.record(captured)
             }
             return Data("[]".utf8)

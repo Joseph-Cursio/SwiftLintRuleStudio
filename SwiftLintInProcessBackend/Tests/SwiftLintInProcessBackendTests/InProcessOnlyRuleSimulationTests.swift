@@ -46,7 +46,7 @@ struct InProcessOnlyRuleSimulationTests {
             "Legacy/.swiftlint.yml": "disabled_rules:\n  - line_length\n",
             "Legacy/B.swift": long,
             "Strict/.swiftlint.yml": "only_rules:\n  - force_cast\n",
-            "Strict/C.swift": long
+            "Strict/C.swift": long,
         ])
         defer { try? FileManager.default.removeItem(at: root) }
 

@@ -21,68 +21,18 @@ private struct ConfigComparisonSelectors: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Left workspace
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Left Config")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                HStack {
-                    if let path = viewModel.leftWorkspacePath {
-                        Image(systemName: "doc.text.fill")
-                            .foregroundStyle(.blue)
-                            .accessibilityHidden(true)
-                        Text(path.deletingLastPathComponent().lastPathComponent)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    } else {
-                        Text("No config selected")
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    Button("Browse...") {
-                        viewModel.selectLeftWorkspace()
-                    }
-                    .buttonStyle(.bordered)
-                }
+            configSelector(title: "Left Config", path: viewModel.leftWorkspacePath, color: .blue) {
+                viewModel.selectLeftWorkspace()
             }
-            .frame(maxWidth: .infinity)
 
             Image(systemName: "arrow.left.arrow.right")
                 .font(.title2)
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
-            // Right workspace
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Right Config")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                HStack {
-                    if let path = viewModel.rightWorkspacePath {
-                        Image(systemName: "doc.text.fill")
-                            .foregroundStyle(.green)
-                            .accessibilityHidden(true)
-                        Text(path.deletingLastPathComponent().lastPathComponent)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    } else {
-                        Text("No config selected")
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    Button("Browse...") {
-                        viewModel.selectRightWorkspace()
-                    }
-                    .buttonStyle(.bordered)
-                }
+            configSelector(title: "Right Config", path: viewModel.rightWorkspacePath, color: .green) {
+                viewModel.selectRightWorkspace()
             }
-            .frame(maxWidth: .infinity)
 
             Button("Compare") {
                 viewModel.compare(knownRules: ruleRegistry.rules)
@@ -90,6 +40,40 @@ private struct ConfigComparisonSelectors: View {
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.leftWorkspacePath == nil || viewModel.rightWorkspacePath == nil)
         }
+    }
+
+    /// One side's config: its folder name, or a placeholder, and a Browse button.
+    private func configSelector(
+        title: String,
+        path: URL?,
+        color: Color,
+        browse: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                if let path {
+                    Image(systemName: "doc.text.fill")
+                        .foregroundStyle(color)
+                        .accessibilityHidden(true)
+                    Text(path.deletingLastPathComponent().lastPathComponent)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                } else {
+                    Text("No config selected")
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button("Browse...", action: browse)
+                    .buttonStyle(.bordered)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -210,42 +194,7 @@ struct ConfigComparisonView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                // Only in Left
-                if !result.onlyInFirst.isEmpty {
-                    ruleListSection(
-                        title: "Runs only with Left",
-                        icon: "minus.circle.fill",
-                        color: .red,
-                        rules: result.onlyInFirst
-                    )
-                }
-
-                // Only in Right
-                if !result.onlyInSecond.isEmpty {
-                    ruleListSection(
-                        title: "Runs only with Right",
-                        icon: "plus.circle.fill",
-                        color: .green,
-                        rules: result.onlyInSecond
-                    )
-                }
-
-                // Different settings
-                if !result.inBothDifferent.isEmpty {
-                    differenceSection(result.inBothDifferent)
-                }
-
-                if !result.pathDifferences.isEmpty {
-                    lineSection(title: "Paths", icon: "folder.fill", lines: result.pathDifferences)
-                }
-
-                if !result.otherDifferences.isEmpty {
-                    lineSection(
-                        title: "Other Settings (Left → Right)",
-                        icon: "gearshape.fill",
-                        lines: result.otherDifferences
-                    )
-                }
+                differenceSections(result)
 
                 Divider()
 
@@ -353,6 +302,46 @@ struct ConfigComparisonView: View {
             }
         } label: {
             Label("\(title) (\(lines.count))", systemImage: icon)
+        }
+    }
+
+    @ViewBuilder
+    private func differenceSections(_ result: ConfigComparisonResult) -> some View {
+        // Only in Left
+        if !result.onlyInFirst.isEmpty {
+            ruleListSection(
+                title: "Runs only with Left",
+                icon: "minus.circle.fill",
+                color: .red,
+                rules: result.onlyInFirst
+            )
+        }
+
+        // Only in Right
+        if !result.onlyInSecond.isEmpty {
+            ruleListSection(
+                title: "Runs only with Right",
+                icon: "plus.circle.fill",
+                color: .green,
+                rules: result.onlyInSecond
+            )
+        }
+
+        // Different settings
+        if !result.inBothDifferent.isEmpty {
+            differenceSection(result.inBothDifferent)
+        }
+
+        if !result.pathDifferences.isEmpty {
+            lineSection(title: "Paths", icon: "folder.fill", lines: result.pathDifferences)
+        }
+
+        if !result.otherDifferences.isEmpty {
+            lineSection(
+                title: "Other Settings (Left → Right)",
+                icon: "gearshape.fill",
+                lines: result.otherDifferences
+            )
         }
     }
 }

@@ -6,8 +6,6 @@
 //  plainly instead of hiding or half-wiring it.
 //
 
-import Foundation
-
 /// How ready a feature is.
 ///
 /// This is a roadmap distinction and is deliberately **not** modelled as an
@@ -34,6 +32,7 @@ enum FeatureStatus: Equatable {
         switch self {
         case .available:
             return nil
+
         case .comingSoon:
             return "Coming in a later release"
         }
@@ -44,6 +43,7 @@ enum FeatureStatus: Equatable {
         switch self {
         case .available:
             return nil
+
         case let .comingSoon(note):
             return note
         }

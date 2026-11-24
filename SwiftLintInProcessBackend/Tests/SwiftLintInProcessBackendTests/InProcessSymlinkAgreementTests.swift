@@ -37,21 +37,28 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
         case .nestedLinkWithoutExclusions, .fileLinkWithoutExclusions, .cyclicLinkWithoutExclusions,
              .outsideFileLinkWithoutExclusions:
             "disabled_rules:\n  - todo\n"
+
         case .outsideFileLinkWithExclusions: "excluded:\n  - Nothing\n"
         case .includedLinkIntoPrunedFolder: "included:\n  - Sources\n  - Generated\n"
+
         case .nestedLinkWithExclusions, .linkToWalkedFolderWithExclusions, .fileLinkWithExclusions,
              .configAboveOutsideFolderWithExclusions:
             "excluded:\n  - Nope\n"
+
         case .includedLinkWithoutExclusions, .linkInsideIncludedLinkWithoutExclusions: "included:\n  - Linked\n"
         case .linkInsideIncludedFolderWithExclusions: "included:\n  - Sources\nexcluded:\n  - Nope\n"
         case .globstarIncludedWithExclusions: "included:\n  - Sources/**\nexcluded:\n  - Sources/Generated\n"
+
         case .includedEntriesThroughLinkWithExclusions:
             "included:\n  - Sources\n  - Sources/Linked\nexcluded:\n  - Nope\n"
+
         case .globstarFilesIncluded: "included:\n  - Sources/**/*.swift\n"
         case .symlinkedNestedConfigWithExclusions: "excluded:\n  - Pods\n"
         case .exclusionUnderLinkPath: "excluded:\n  - Shared/Generated\n"
+
         case .exclusionUnderIncludedPathThroughLink:
             "included:\n  - Sources/Linked/inner\nexcluded:\n  - Sources/Linked/inner/Gen\n"
+
         case .twoLinksToOneFolderWithExclusions: "included:\n  - App\n  - Widget\nexcluded:\n  - Nope\n"
         }
     }
@@ -67,6 +74,7 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
         case .linkInsideIncludedLinkWithoutExclusions: 1 // A; not O behind the nested link
         case .linkInsideIncludedFolderWithExclusions: 2 // S, A through the nested link
         case .fileLinkWithoutExclusions, .fileLinkWithExclusions: 2 // B, A through the file link
+
         // A, through the link the walk of `Sources/` follows, and S twice: SwiftLint reaches it
         // from `Sources/` and from `Sources/*`, spelled differently, so its de-duplication misses.
         case .globstarIncludedWithExclusions: 3
@@ -78,6 +86,7 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
         case .twoLinksToOneFolderWithExclusions: 2 // Main, A once
         case .configAboveOutsideFolderWithExclusions: 2 // B, A at the severity of the config above real/
         case .cyclicLinkWithoutExclusions: 1 // B
+
         // B, and E at its real path under the config beside it (a warning) — or, with no
         // `excluded`, at the link's path under the workspace's (an error).
         case .outsideFileLinkWithExclusions, .outsideFileLinkWithoutExclusions: 2
@@ -99,51 +108,64 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
         switch self {
         case .nestedLinkWithoutExclusions, .nestedLinkWithExclusions, .includedLinkWithoutExclusions:
             [.link("ws/Linked", destination: "../real")]
+
         case .linkToWalkedFolderWithExclusions: [.file("ws/Real/R.swift"), .link("ws/Linked", destination: "Real")]
+
         case .linkInsideIncludedLinkWithoutExclusions:
             [
                 .file("base/other/O.swift"),
                 .link("base/real/Nested", destination: "../other"),
-                .link("ws/Linked", destination: "../real")
+                .link("ws/Linked", destination: "../real"),
             ]
+
         case .linkInsideIncludedFolderWithExclusions, .includedEntriesThroughLinkWithExclusions:
             [.file("ws/Sources/S.swift"), .link("ws/Sources/Linked", destination: "../../real")]
+
         case .fileLinkWithoutExclusions, .fileLinkWithExclusions:
             [.link("ws/FileLink.swift", destination: "../real/inner/A.swift")]
+
         case .globstarIncludedWithExclusions, .globstarFilesIncluded:
             [.file("ws/Sources/S.swift"), .link("ws/Sources/Shared", destination: "../../real")]
+
         case .symlinkedNestedConfigWithExclusions:
             [
                 .text("base/config/tests.yml", content: "force_cast:\n  severity: warning\n"),
                 .file("ws/Tests/T.swift"),
-                .link("ws/Tests/.swiftlint.yml", destination: "../../config/tests.yml")
+                .link("ws/Tests/.swiftlint.yml", destination: "../../config/tests.yml"),
             ]
+
         case .exclusionUnderLinkPath: [.file("base/real/Generated/G.swift"), .link("ws/Shared", destination: "../real")]
+
         case .exclusionUnderIncludedPathThroughLink:
             [.file("base/real/inner/Gen/G.swift"), .link("ws/Sources/Linked", destination: "../../real")]
+
         case .twoLinksToOneFolderWithExclusions:
             [
                 .file("ws/App/Main.swift"),
                 .link("ws/App/Shared", destination: "../../real"),
-                .link("ws/Widget/Shared", destination: "../../real")
+                .link("ws/Widget/Shared", destination: "../../real"),
             ]
+
         case .configAboveOutsideFolderWithExclusions:
             [
                 .text("base/.swiftlint.yml", content: "force_cast:\n  severity: warning\n"),
-                .link("ws/Linked", destination: "../real")
+                .link("ws/Linked", destination: "../real"),
             ]
+
         case .cyclicLinkWithoutExclusions: [.link("ws/Sources/loop", destination: "..")]
+
         case .outsideFileLinkWithExclusions, .outsideFileLinkWithoutExclusions:
             [
                 .text("base/elsewhere/.swiftlint.yml", content: "force_cast:\n  severity: warning\n"),
                 .file("base/elsewhere/E.swift"),
-                .link("ws/Sources/E.swift", destination: "../../elsewhere/E.swift")
+                .link("ws/Sources/E.swift", destination: "../../elsewhere/E.swift"),
             ]
+
         case .includedLinkIntoPrunedFolder:
             [
                 .file("ws/Sources/S.swift"),
                 .file("ws/.build/plugins/outputs/gen/G.swift"),
-                .link("ws/Generated", destination: ".build/plugins/outputs/gen")
+                .link("ws/Generated", destination: ".build/plugins/outputs/gen"),
             ]
         }
     }
@@ -157,6 +179,7 @@ enum SymlinkScenario: String, CaseIterable, Sendable, CustomTestStringConvertibl
                 try manager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
                 let content = if case .text(_, let content) = step { content } else { Self.source }
                 try content.write(to: url, atomically: true, encoding: .utf8)
+
             case let .link(path, destination):
                 let url = base.appendingPathComponent(Self.location(path))
                 try manager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

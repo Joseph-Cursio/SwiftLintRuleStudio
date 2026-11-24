@@ -6,7 +6,6 @@
 //  never is.
 //
 
-import Foundation
 @testable import SwiftLintRuleStudioCore
 
 extension MirrorScope {

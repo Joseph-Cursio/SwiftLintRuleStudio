@@ -37,16 +37,20 @@ extension Node {
     ///
     /// The alphabet is intentionally tiny so distinct nodes compare equal often
     /// — the collisions are where a passthrough that confuses identity with
-    /// equality gives itself away.
-    static func gen() -> Generator<Node, some SendableSequenceType> {
+    /// equality gives itself away. Nothing here calls it: swift-infer splices `Node.gen()` into the
+    /// tests it writes.
+    static func gen() // swiftlint:disable:this unused_declaration - swift-infer calls it by name
+        -> Generator<Node, some SendableSequenceType> {
         let symbols = Gen<String?>.element(of: ["alpha", "beta", "gamma"]).map { $0 ?? "alpha" }
 
         return zip(Gen<Int>.int(in: 0...2), symbols.array(of: 0...2)).map { shape, values in
             switch shape {
             case 0:
                 return Node(values.first ?? "alpha")
+
             case 1:
                 return Node(values.map { Node($0) })
+
             default:
                 return Node(values.map { (Node($0), Node($0)) })
             }

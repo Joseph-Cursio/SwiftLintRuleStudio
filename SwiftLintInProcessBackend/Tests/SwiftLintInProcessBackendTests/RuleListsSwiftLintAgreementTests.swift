@@ -92,7 +92,7 @@ enum RuleListsAgreementCases {
                 "trailing_comma", "vertical_whitespace", "non_overridable_class_declaration",
                 "period_spacing", "capture_variable", "array_init", "explicit_self", "colon",
                 "unused_import", "typesafe_array_init", "unused_declaration", "empty_count",
-                "force_cast", "force_unwrapping", "line_length"
+                "force_cast", "force_unwrapping", "line_length",
             ]),
             included: ["Sources", "Tests"],
             excluded: [".build"],
@@ -242,7 +242,7 @@ enum RuleListsAgreementCases {
                 """,
             rejected: true,
             expected: .exactly(["todo"])
-        )
+        ),
     ] + aliasCases
 }
 
@@ -351,6 +351,7 @@ struct RuleListsSwiftLintAgreementTests {
         switch testCase.expected {
         case let .exactly(ids):
             #expect(repaired == ids)
+
         case let .defaultMode(enabled, disabled):
             #expect(enabled.subtracting(repaired).isEmpty, "expected on: \(enabled.subtracting(repaired).sorted())")
             #expect(disabled.isDisjoint(with: repaired), "expected off: \(disabled.intersection(repaired).sorted())")

@@ -22,7 +22,7 @@ struct SwiftLintCLIIntegrationTests {
         let possiblePaths = [
             "/opt/homebrew/bin/swiftlint",
             "/usr/local/bin/swiftlint",
-            "/usr/bin/swiftlint"
+            "/usr/bin/swiftlint",
         ]
         return possiblePaths.contains { FileManager.default.fileExists(atPath: $0) }
     }

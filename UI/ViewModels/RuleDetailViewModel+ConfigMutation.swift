@@ -6,7 +6,6 @@
 //  workspace YAML mutations carried out by saveConfiguration().
 //
 
-import Foundation
 import SwiftLintRuleStudioCore
 
 extension RuleDetailViewModel {

@@ -153,10 +153,10 @@ public final class ConfigVersionHistoryService: ConfigVersionHistoryServiceProto
     }
 
     public func pruneOldBackups(for configPath: URL, keepCount: Int) throws {
-        let backups = listBackups(for: configPath)
-        guard backups.count > keepCount else { return }
+        let newestFirst = listBackups(for: configPath)
+        guard newestFirst.count > keepCount else { return }
 
-        let toRemove = backups.dropFirst(keepCount) // Already sorted newest first
+        let toRemove = newestFirst.dropFirst(keepCount) // Already sorted newest first
         for backup in toRemove {
             try FileManager.default.removeItem(at: backup.path)
         }

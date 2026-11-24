@@ -310,7 +310,7 @@ struct RuleRegistryBackgroundLoadingTests {
                 category: .metrics,
                 isOptIn: true,
                 isAnalyzer: true
-            )
+            ),
         ]
 
         let result = registry.buildRulesData(from: inputs, startingIndex: 5)

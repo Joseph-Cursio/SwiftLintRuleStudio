@@ -11,7 +11,6 @@
 
 import Foundation
 @testable import SwiftLintRuleStudioCore
-import SwiftLintRuleStudioCoreTestSupport
 import Testing
 
 @MainActor
@@ -76,7 +75,7 @@ struct ConfigBehaviourBoundaryTests {
         let root = try Self.workspace([
             "": "disabled_rules: [todo]",
             "App": "opt_in_rules: [empty_count]",
-            "App/Feature": "disabled_rules: [force_cast]"
+            "App/Feature": "disabled_rules: [force_cast]",
         ])
         defer { try? FileManager.default.removeItem(at: root) }
         let tree = ConfigTreeDiscovery().discover(in: root)
@@ -87,7 +86,7 @@ struct ConfigBehaviourBoundaryTests {
 
     @Test("the only_rules notice counts the rules, singular for one", arguments: [
         ("only_rules: [todo]", "Only 1 rule run here"),
-        ("only_rules: [todo, force_cast]", "Only 2 rules run here")
+        ("only_rules: [todo, force_cast]", "Only 2 rules run here"),
     ])
     func onlyRulesNotice(config: String, expected: String) throws {
         let root = try Self.workspace(["": config])

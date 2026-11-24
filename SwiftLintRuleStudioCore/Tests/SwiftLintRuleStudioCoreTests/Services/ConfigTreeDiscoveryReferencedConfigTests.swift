@@ -46,7 +46,7 @@ struct ConfigTreeDiscoveryReferencedConfigTests {
         let (repository, workspace) = try Self.repository([
             "Packages/Foo/.swiftlint.yml": "parent_config: ../../.swiftlint.yml\n",
             ".swiftlint.yml": "parent_config: Shared/base.yml\ndisabled_rules: [todo]\n",
-            "Shared/base.yml": "opt_in_rules: [empty_count]\n"
+            "Shared/base.yml": "opt_in_rules: [empty_count]\n",
         ])
         defer { try? FileManager.default.removeItem(at: repository) }
         let tree = ConfigTreeDiscovery().discover(in: workspace)
@@ -61,7 +61,7 @@ struct ConfigTreeDiscoveryReferencedConfigTests {
         #expect(tree.rootGraph.map(\.relativePath) == [
             "../../Shared/base.yml",
             "../../.swiftlint.yml",
-            ".swiftlint.yml"
+            ".swiftlint.yml",
         ])
     }
 
@@ -70,7 +70,7 @@ struct ConfigTreeDiscoveryReferencedConfigTests {
         let (repository, workspace) = try Self.repository([
             "Packages/Foo/.swiftlint.yml": "child_config: Config/strict.yml\n",
             "Packages/Foo/Config/strict.yml": "child_config: ../Sub/.swiftlint.yml\nopt_in_rules: [empty_count]\n",
-            "Packages/Foo/Sub/.swiftlint.yml": "disabled_rules: [todo]\n"
+            "Packages/Foo/Sub/.swiftlint.yml": "disabled_rules: [todo]\n",
         ])
         defer { try? FileManager.default.removeItem(at: repository) }
         let tree = ConfigTreeDiscovery().discover(in: workspace)
@@ -136,7 +136,7 @@ struct ConfigTreeDiscoveryReferencedConfigTests {
     func remoteConfigsLocalReferenceIsNotFollowed() throws {
         let (repository, workspace) = try Self.repository([
             "Packages/Foo/.swiftlint.yml": "parent_config: https://example.com/base.yml\n",
-            ".swiftlint.yml": "disabled_rules: [todo]\n"
+            ".swiftlint.yml": "disabled_rules: [todo]\n",
         ])
         defer { try? FileManager.default.removeItem(at: repository) }
         try Self.cacheRemoteConfig(

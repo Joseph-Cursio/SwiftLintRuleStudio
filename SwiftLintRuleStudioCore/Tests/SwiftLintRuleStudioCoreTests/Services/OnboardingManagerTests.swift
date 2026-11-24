@@ -25,16 +25,6 @@ struct OnboardingManagerTests {
         }.value
     }
 
-    private func withOnboardingManagerAsync<T: Sendable>(
-        userDefaults: UserDefaults,
-        operation: @MainActor @escaping (OnboardingManager) async throws -> T
-    ) async throws -> T {
-        try await Task { @MainActor in
-            let manager = OnboardingManager(userDefaults: userDefaults)
-            return try await operation(manager)
-        }.value
-    }
-
     // MARK: - First Run Detection
 
     @Test("OnboardingManager initializes with welcome step on first run")

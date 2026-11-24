@@ -24,10 +24,6 @@ nonisolated struct RawConfigKeys: Sendable {
     /// name, not `custom_rules`.
     let customRuleIds: [String]
 
-    /// `parent_config` and `child_config`, in that order, where present.
-    var referencedConfigs: [String] {
-        [parentConfig, childConfig].compactMap(\.self)
-    }
     /// The keys of the config at `url`, or nil when it can't be read as a YAML mapping.
     static func read(_ url: URL) -> Self? {
         guard let text = try? String(contentsOf: url, encoding: .utf8),

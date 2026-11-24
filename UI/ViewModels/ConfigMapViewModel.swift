@@ -48,7 +48,7 @@ class ConfigMapViewModel {
 
     /// Discovers the config tree and selects the root config (if any).
     func load() {
-        guard let workspacePath = workspacePath else {
+        guard let workspacePath else {
             tree = nil
             treeRows = []
             resolvedDisplay = nil
@@ -74,7 +74,7 @@ class ConfigMapViewModel {
     /// and computes any advisories for that config.
     func select(rowID: URL) {
         selectedRowID = rowID
-        guard let tree = tree,
+        guard let tree,
               let config = tree.configs.first(where: { $0.id == rowID }) else {
             resolvedDisplay = nil
             conflicts = []

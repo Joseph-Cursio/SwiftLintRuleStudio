@@ -22,10 +22,19 @@ struct OnboardingView: View {
     @ScaledMetric(relativeTo: .title) var headingFontSize: CGFloat = 32
     @ScaledMetric(relativeTo: .title2) var subheadingFontSize: CGFloat = 28
 
-    @State var swiftLintStatus: SwiftLintStatus = .checking
-    @State var swiftLintPath: URL?
-    @State var swiftLintVersion: String?
-    @State var errorMessage: String?
+    @State private var swiftLintStatus: SwiftLintStatus
+
+    init(
+        onboardingManager: OnboardingManager,
+        workspaceManager: WorkspaceManager,
+        swiftLintCLI: SwiftLintCLIProtocol,
+        swiftLintStatus: SwiftLintStatus = .checking
+    ) {
+        self.onboardingManager = onboardingManager
+        self.workspaceManager = workspaceManager
+        self.swiftLintCLI = swiftLintCLI
+        _swiftLintStatus = State(initialValue: swiftLintStatus)
+    }
 
     enum SwiftLintStatus: Equatable {
         case checking
@@ -56,7 +65,7 @@ struct OnboardingView: View {
                 }
                 .scrollBounceBehavior(.basedOnSize)
             }
-            navigationButtons
+            navigationButtons(isCheckingSwiftLint: swiftLintStatus == .checking)
         }
         // Fill the window instead of floating a fixed-size box inside it.
         .frame(minWidth: 700, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
@@ -74,17 +83,22 @@ struct OnboardingView: View {
         switch onboardingManager.currentStep {
         case .welcome:
             welcomeStep
+
         case .swiftLintCheck:
-            swiftLintCheckStep
+            swiftLintCheckStep(status: swiftLintStatus) {
+                Task { await checkSwiftLintInstallation() }
+            }
+
         case .workspaceSelection:
             workspaceSelectionStep
+
         case .complete:
             completeStep
         }
     }
 
     private func resetStepIfNeeded() {
-        if !onboardingManager.hasCompletedOnboarding && onboardingManager.currentStep != .welcome {
+        if !onboardingManager.hasCompletedOnboarding, onboardingManager.currentStep != .welcome {
             onboardingManager.currentStep = .welcome
         }
     }
@@ -97,8 +111,13 @@ struct OnboardingView: View {
         }
     }
 
+    private func checkSwiftLintInstallation() async {
+        swiftLintStatus = .checking
+        swiftLintStatus = await detectSwiftLint()
+    }
+
     private func handleWorkspaceChange(_ newValue: Workspace?) {
-        if newValue != nil && onboardingManager.currentStep == .workspaceSelection {
+        if newValue != nil, onboardingManager.currentStep == .workspaceSelection {
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 onboardingManager.nextStep()

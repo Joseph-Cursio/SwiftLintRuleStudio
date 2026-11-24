@@ -5,9 +5,7 @@
 //  Tests for the sandboxed edition's in-app help window
 //
 
-import Foundation
 @testable import SwiftLintRuleStudio
-import SwiftUI
 import Testing
 import ViewInspector
 

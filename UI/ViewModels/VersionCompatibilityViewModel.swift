@@ -37,7 +37,7 @@ class VersionCompatibilityViewModel {
     }
 
     func checkCompatibility() {
-        guard let configPath = configPath else {
+        guard let configPath else {
             error = YAMLConfigError.fileNotFound
             return
         }
@@ -69,7 +69,7 @@ class VersionCompatibilityViewModel {
     }
 
     func applyRenaming(_ rule: RenamedRuleInfo) {
-        guard let configPath = configPath else { return }
+        guard let configPath else { return }
 
         do {
             var config = try YAMLConfigurationEngine.loadConfig(at: configPath)
@@ -90,7 +90,7 @@ class VersionCompatibilityViewModel {
     }
 
     func applyAllFixes() {
-        guard let report = report else { return }
+        guard let report else { return }
         for renamed in report.renamedRules {
             applyRenaming(renamed)
         }

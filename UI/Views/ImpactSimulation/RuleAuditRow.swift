@@ -158,7 +158,7 @@ struct RuleAuditRow: View {
                         Button("Enable rule", action: onEnable)
                     }
                 }
-            if isExpanded && isExpandable {
+            if isExpanded, isExpandable {
                 expandedDetail
             }
         }
@@ -201,57 +201,13 @@ struct RuleAuditRow: View {
     private var mainRow: some View {
         HStack(spacing: AuditColumnWidths.spacing) {
             // Checkbox (disabled for already-enabled rules)
-            if !entry.isCurrentlyEnabled {
-                Button(action: onToggleSelect) {
-                    Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                        .foregroundStyle(isSelected ? .blue : .secondary)
-                        .accessibilityLabel(isSelected ? "Deselect rule" : "Select rule")
-                }
-                .buttonStyle(.plain)
-                .frame(width: AuditColumnWidths.checkbox)
-            } else {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .frame(width: AuditColumnWidths.checkbox)
-                    .accessibilityLabel("Already enabled")
-            }
+            selectionControl
 
             // Expand/collapse disclosure
-            if isExpandable {
-                Button(action: onToggleExpand) {
-                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
-                }
-                .buttonStyle(.plain)
-                .frame(width: AuditColumnWidths.disclosure)
-            } else {
-                Spacer().frame(width: AuditColumnWidths.disclosure)
-            }
+            disclosureControl
 
             // Rule name + description (flexible column)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(entry.rule.id)
-                        .font(.system(.body, design: .monospaced))
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                    if isUnavailable {
-                        Image(systemName: "nosign")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .help("Depends on SourceKit, so it isn't checked in this app. "
-                                + "You can still add it to your configuration.")
-                            .accessibilityLabel("Not checked in this app")
-                    }
-                }
-                Text(entry.rule.description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            ruleColumn
 
             // Category badge
             AuditCategoryBadge(category: entry.category)
@@ -361,5 +317,63 @@ struct RuleAuditRow: View {
         guard maxViolationCount > 0 else { return 0 }
         let proportion = CGFloat(violationCount) / CGFloat(maxViolationCount)
         return max(proportion * totalWidth, 3)
+    }
+
+    private var ruleColumn: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                Text(entry.rule.id)
+                    .font(.system(.body, design: .monospaced))
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                if isUnavailable {
+                    Image(systemName: "nosign")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .help("Depends on SourceKit, so it isn't checked in this app. "
+                            + "You can still add it to your configuration.")
+                        .accessibilityLabel("Not checked in this app")
+                }
+            }
+            Text(entry.rule.description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var disclosureControl: some View {
+        if isExpandable {
+            Button(action: onToggleExpand) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(isExpanded ? "Collapse details" : "Expand details")
+            }
+            .buttonStyle(.plain)
+            .frame(width: AuditColumnWidths.disclosure)
+        } else {
+            Spacer().frame(width: AuditColumnWidths.disclosure)
+        }
+    }
+
+    @ViewBuilder
+    private var selectionControl: some View {
+        if !entry.isCurrentlyEnabled {
+            Button(action: onToggleSelect) {
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(isSelected ? .blue : .secondary)
+                    .accessibilityLabel(isSelected ? "Deselect rule" : "Select rule")
+            }
+            .buttonStyle(.plain)
+            .frame(width: AuditColumnWidths.checkbox)
+        } else {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.secondary)
+                .frame(width: AuditColumnWidths.checkbox)
+                .accessibilityLabel("Already enabled")
+        }
     }
 }

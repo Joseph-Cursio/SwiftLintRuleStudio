@@ -3,7 +3,7 @@
 //  SwiftLintRuleStudio
 //
 
-import SwiftUI
+import CoreFoundation
 
 /// Fixed column widths shared between header and data rows
 enum AuditColumnWidths {
@@ -16,6 +16,4 @@ enum AuditColumnWidths {
     static let status: CGFloat = 70
     static let action: CGFloat = 55
     static let spacing: CGFloat = 12
-    /// Total fixed width consumed by non-flexible columns
-    static let leadingFixed: CGFloat = checkbox + spacing + disclosure + spacing
 }

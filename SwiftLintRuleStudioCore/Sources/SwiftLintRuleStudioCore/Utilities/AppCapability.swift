@@ -8,8 +8,6 @@
 //  and SwiftLint is linked in-process rather than detected on disk).
 //
 
-import Foundation
-
 public enum AppCapability: String, Sendable, Hashable, CaseIterable {
     /// Detect and use an externally-installed `swiftlint` binary (subprocess
     /// edition). Absent in the in-process edition, where SwiftLint is linked in

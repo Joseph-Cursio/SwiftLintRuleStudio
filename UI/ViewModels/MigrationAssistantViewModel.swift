@@ -63,7 +63,7 @@ class MigrationAssistantViewModel {
             error = MigrationError.noPreviousVersion
             return
         }
-        guard let configPath = configPath else {
+        guard let configPath else {
             error = YAMLConfigError.fileNotFound
             return
         }
@@ -99,7 +99,7 @@ class MigrationAssistantViewModel {
     }
 
     func previewChanges() {
-        guard let configPath = configPath,
+        guard let configPath,
               let plan = migrationPlan else { return }
 
         do {
@@ -120,7 +120,7 @@ class MigrationAssistantViewModel {
     }
 
     func applyMigration() {
-        guard let configPath = configPath,
+        guard let configPath,
               let plan = migrationPlan else { return }
 
         isMigrating = true

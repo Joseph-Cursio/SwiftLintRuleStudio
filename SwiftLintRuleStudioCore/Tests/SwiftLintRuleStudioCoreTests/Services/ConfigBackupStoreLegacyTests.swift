@@ -67,7 +67,7 @@ struct ConfigBackupStoreLegacyTests {
         let stored = fixture.store.earlierBackups(for: fixture.config)
         #expect(stored.map(\.timestamp) == [
             Date(timeIntervalSince1970: 1_700_000_100),
-            Date(timeIntervalSince1970: 1_700_000_000)
+            Date(timeIntervalSince1970: 1_700_000_000),
         ])
         #expect(try stored.map { try String(contentsOf: $0.path, encoding: .utf8) } == ["two\n", "one\n"])
     }
