@@ -201,45 +201,47 @@ struct ConfigRoundTripPropertyLawTests {
     @Test("a config survives serialize → parse on its modeled fields")
     func modeledFieldsRoundTrip() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let engine = makeEngine()
-            let config = makeConfig(from: spec)
-            let back = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config))
+            await recordingThrows {
+                let engine = makeEngine()
+                let config = makeConfig(from: spec)
+                let back = try YAMLConfigurationEngine.parse(try YAMLConfigurationEngine.serialize(config))
 
-            // `disabled_rules` round-trips verbatim. A rule marked
-            // `enabled == false` is NOT folded in here: the serializer cannot tell
-            // a default rule (disabled via `disabled_rules`) from an opt-in or
-            // analyzer rule (disabled by absence from its own list), so the
-            // kind-aware view models own that decision. Such a rule simply emits
-            // nothing — it vanishes from `rules` without appearing in
-            // `disabled_rules`, which is why `emittedRuleKeys` gates on `enabled`.
-            let expectedDisabled = Set(config.disabledRules ?? [])
-            let expectedRuleKeys = Self.emittedRuleKeys(in: config)
+                // `disabled_rules` round-trips verbatim. A rule marked
+                // `enabled == false` is NOT folded in here: the serializer cannot tell
+                // a default rule (disabled via `disabled_rules`) from an opt-in or
+                // analyzer rule (disabled by absence from its own list), so the
+                // kind-aware view models own that decision. Such a rule simply emits
+                // nothing — it vanishes from `rules` without appearing in
+                // `disabled_rules`, which is why `emittedRuleKeys` gates on `enabled`.
+                let expectedDisabled = Set(config.disabledRules ?? [])
+                let expectedRuleKeys = Self.emittedRuleKeys(in: config)
 
-            #expect(Set(back.disabledRules ?? []) == expectedDisabled)
-            #expect(Set(back.rules.keys) == expectedRuleKeys)
+                #expect(Set(back.disabledRules ?? []) == expectedDisabled)
+                #expect(Set(back.rules.keys) == expectedRuleKeys)
 
-            // The lists that are plain sets of identifiers.
-            #expect(Set(back.optInRules ?? []) == Set(config.optInRules ?? []))
-            #expect(Set(back.analyzerRules ?? []) == Set(config.analyzerRules ?? []))
-            #expect(Set(back.onlyRules ?? []) == Set(config.onlyRules ?? []))
+                // The lists that are plain sets of identifiers.
+                #expect(Set(back.optInRules ?? []) == Set(config.optInRules ?? []))
+                #expect(Set(back.analyzerRules ?? []) == Set(config.analyzerRules ?? []))
+                #expect(Set(back.onlyRules ?? []) == Set(config.onlyRules ?? []))
 
-            // Ordered, root-level values come back verbatim.
-            #expect(back.included == config.included)
-            #expect(back.excluded == config.excluded)
-            #expect(back.reporter == config.reporter)
+                // Ordered, root-level values come back verbatim.
+                #expect(back.included == config.included)
+                #expect(back.excluded == config.excluded)
+                #expect(back.reporter == config.reporter)
 
-            // Per-rule detail survives for every rule that stayed a mapping.
-            for key in expectedRuleKeys {
-                #expect(back.rules[key]?.severity == config.rules[key]?.severity)
-                #expect(back.rules[key]?.parameters == config.rules[key]?.parameters)
-                #expect(back.rules[key]?.enabled == true)
+                // Per-rule detail survives for every rule that stayed a mapping.
+                for key in expectedRuleKeys {
+                    #expect(back.rules[key]?.severity == config.rules[key]?.severity)
+                    #expect(back.rules[key]?.parameters == config.rules[key]?.parameters)
+                    #expect(back.rules[key]?.enabled == true)
+                }
+
+                // The scalar shorthand is a layout fact the parser recovers from the
+                // emitted text — so it comes back exactly for the rules actually
+                // written that way, not for every rule that asked.
+                let expectedShorthand = Set(expectedRuleKeys.filter { Self.emitsScalarShorthand($0, in: config) })
+                #expect(back.scalarShorthandRules == expectedShorthand)
             }
-
-            // The scalar shorthand is a layout fact the parser recovers from the
-            // emitted text — so it comes back exactly for the rules actually
-            // written that way, not for every rule that asked.
-            let expectedShorthand = Set(expectedRuleKeys.filter { Self.emitsScalarShorthand($0, in: config) })
-            #expect(back.scalarShorthandRules == expectedShorthand)
         }
     }
 
@@ -248,14 +250,16 @@ struct ConfigRoundTripPropertyLawTests {
     @Test("serializing a parsed config reproduces the text it was parsed from")
     func serializeIsAFixedPointThroughParse() async {
         await propertyCheck(input: Self.specGenerator()) { spec in
-            let engine = makeEngine()
-            let once = try YAMLConfigurationEngine.serialize(makeConfig(from: spec))
-            let twice = try YAMLConfigurationEngine.serialize(try YAMLConfigurationEngine.parse(once))
+            await recordingThrows {
+                let engine = makeEngine()
+                let once = try YAMLConfigurationEngine.serialize(makeConfig(from: spec))
+                let twice = try YAMLConfigurationEngine.serialize(try YAMLConfigurationEngine.parse(once))
 
-            // Stronger than law A: no field model, so nothing can be forgotten
-            // from the comparison. Layout counts — indentation, key order and
-            // comment placement all have to land in the same place.
-            #expect(twice == once)
+                // Stronger than law A: no field model, so nothing can be forgotten
+                // from the comparison. Layout counts — indentation, key order and
+                // comment placement all have to land in the same place.
+                #expect(twice == once)
+            }
         }
     }
 
